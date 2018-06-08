@@ -1,20 +1,20 @@
-# Render all team documents  
+# Render all tech documents  
 # and
-# copy to published documents folder.
+# move to published documents folder.
 
 srcdir <-  "~/Documents/UACTech/SystemDocumentation/github/uactechdoc/"
 trgdir <- "~/Dropbox/UAC_Tech_Docs"
 
-files <- c( "SystemDesignLighting" ,
-            "SystemDesignVideo",
-            "SystemDesignAudio",
-            "SystemDesignVideo",
-            "SystemDesignNetwork",
+files <- c( 
+  "SystemDesignAudio",
+  "SystemDesignLighting" ,
+  "SystemDesignNetwork",
+  "SystemDesignVideo",
        
-            "SystemOperationsAudio",
-            "SystemOperationsProjection",
-            "SystemOperationsLighting",
-            "SystemOperationsVideo"
+  "SystemOperationsAudio",
+  "SystemOperationsLighting",
+  "SystemOperationsProjection",
+  "SystemOperationsVideo"
           
           #"SystemOperationsGuide"
           #"InventoryManagement",

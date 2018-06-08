@@ -1,5 +1,5 @@
 ---
-title: "System Operating Guide - Projection"
+title: "System Operations - Projection"
 author: "Terry Doner"
 date: "`r format(Sys.time(), '%B %d %Y')`"
 output:
@@ -29,7 +29,6 @@ inventoryfile <- "TechInventory.xlsx"
 fname <- paste(path, inventoryfile, sep="/")
 
 NetworkInventory <- read_excel(fname, sheet = "Network")
-further <- read_excel(fname, sheet = "Further")
 ```
 
 # Introduction

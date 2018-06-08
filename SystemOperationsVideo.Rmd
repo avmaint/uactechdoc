@@ -21,14 +21,13 @@ require(ggplot2)
 library(kableExtra)
 
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+options(knitr.table.format = "html") 
+```
 
- options(knitr.table.format = "html") 
-
+```{r data}
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname <- paste(path, inventoryfile, sep="/")
-further <- read_excel(fname, sheet = "Further")
-
 ```
 
 # Introduction
@@ -333,6 +332,10 @@ There are two types of macros we have defined:
 * “DO” macros are meant for use during the service and execute a set of predefined actions meant for a particular point in time in the service.
 * “Setup” macros are meant to change configurations  and are used as part of the DO macros. This way we can change a setting without re-recording the entire DO macro.
     * The “Do Setup” macro is a hybrid. It executes all of the pre-service setup macros. 
+    
+> As June 8th the macros are laid out in the control software with #1 thorugh #10 on the left column of buttons, and #11 through #20 on the right. This doesn't match the macro numbers expected by the macro buttons on the ATEM. At some point the software will be pregrammed to follow a #1 left - #2 right, #3 left - #4 right pattern.
+
+>You can fire a macro from the software using the macro menu or from the ATEM by pressing the macro button follow by the number.
 
 1. __Do__ Setup pre-service
     * Run 21 setup USK
