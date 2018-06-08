@@ -28,7 +28,7 @@ inventoryfile <- "TechInventory.xlsx"
 
 fname <- paste(path, inventoryfile, sep="/")
 
-NetworkInventory <- read_excel("NetworkInventory.xlsx", sheet = "Network")
+NetworkInventory <- read_excel(fname, sheet = "Network")
 further <- read_excel(fname, sheet = "Further")
 ```
 
@@ -91,28 +91,28 @@ To use the remote tool, you need to start with a web browser. Some work better t
 1. The address to get started is: https://remoteassist.neysh.ca/ . 
 2. Click on "login" on the right side. 
 
-!["Starting with the web page"](./sop-remote-01.jpg)
+!["Starting with the web page"](../../images/sop-remote-01.jpg)
 
 3. You will be provided with a userid and password separately.
 4. Please do your best to protect this password from being compromised. 
 5. Click login
 
-!["Logging into the Service"](./sop-remote-02.jpg)
+!["Logging into the Service"](../../images/sop-remote-02.jpg)
 
 6. if you see uacAVtech here you know you are logged in to the service. 
 7. click on "Host" 
 
-!["Selecting the Host Tab" ](./sop-remote-03.jpg)
+!["Selecting the Host Tab" ](../../images/sop-remote-03.jpg)
 
 8. Select this entry in the access list. 
 9. There are several computers on the list, you want "CDMU-A001", click in the checkbox.
 10. Then click "Join"
 
-!["Selecting the Host Tab" ](./sop-remote-04.jpg)
+!["Selecting the Host Tab" ](../../images/sop-remote-04.jpg)
 
 The first time in you will need to select one of these options which will install addtional components on your system. Try "Windows Selector" first (on a windows machin), otherwise "ClickOnceDirect" or "WebStartBootstrap".
 
-!["Selecting the Correct Launcher" ](./sop-remote-05.jpg)
+!["Selecting the Correct Launcher" ](../../images/sop-remote-05.jpg)
 
 Once logged into CDMU-A001 you will see all three displays that this computer has configured, you will want to use the view menu to select the primary display so you have a decent screen size to work with. 
 
@@ -129,7 +129,7 @@ Early in the week the service cue sheet for the following Sunday will be distrib
 
 It is very rare that you won't create your playlist this way. After starting ProPresenter, find the "+" in the lowe left corner, and click on the little down arrow beside it. Select "New PCO Playlist".
 
-!["Create a PCO Playlist" ](./sop-NewPCOpl.jpg)
+!["Create a PCO Playlist" ](../../images/sop-NewPCOpl.jpg)
 
 Next you will see a pop-up where you need to select the plan that you want to use for your playlist. You may need to scroll sideways to see the date.
 
@@ -173,7 +173,7 @@ How do you change it? Click on the little blue ‘i’ beside the playlist docum
 
 See the three yellow outlines in the image below.
 
-!["Changing Video Loop Behaviour" ](./sop_video_loop.jpg)
+!["Changing Video Loop Behaviour" ](../../images/sop_video_loop.jpg)
 [Back to top](#top)
 
 ## Running Triple Wide
@@ -241,7 +241,7 @@ On the page, click the output you want to change, and the input you want to tie 
 
 You can do a similar thing direcly on the front panel using the OUT and IN buttons.  The unit is located under the desk near the computer.
 ```{r fig.height=2}
-img <- readJPEG("sop-gear-vs88dt-1.jpg") 
+img <- readJPEG("../../images/sop-gear-vs88dt-1.jpg") 
   
 g <- rasterGrob(img, interpolate=TRUE)
 

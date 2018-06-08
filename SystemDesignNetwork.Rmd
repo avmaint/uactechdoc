@@ -1,0 +1,350 @@
+---
+title: "System Design - Network"
+author: "Terry Doner"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output:
+  html_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+require(readr)
+require(dplyr)
+require(readxl)
+require(knitr)
+require(formattable)
+require(kableExtra)
+
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+options(knitr.table.format = "html") 
+
+path <-"~/Documents/UACTech/SystemDocumentation"
+inventoryfile <- "TechInventory.xlsx"
+fname <- paste(path, inventoryfile, sep="/")
+
+ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
+          "text", "text" , "text"   , 
+   "text" , "text", "text", "text", "date", "text",    
+  "text","numeric","text","numeric","numeric","numeric"     
+)
+
+TechInventory <- read_excel(fname, 
+                            sheet = "TechInventory", col_types=ct)
+
+NetworkInventory <- read_excel(fname, sheet = "Network")
+
+path <-"~/Documents/UACTech/SystemDocumentation"
+inventoryfile <- "TechInventory.xlsx"
+fname <- paste(path, inventoryfile, sep="/")
+further <- read_excel(fname, sheet = "Further")
+```
+
+#Introduction
+
+This document provides key technical documentation for the Network subsystems at UAC that are relevant to the AV system.
+
+**The contents document the state as is expected in September 2017**.
+
+[Back to top](#top)
+
+#Overall Switch Topology
+
+```{r overalltopology}
+st <-' 
+digraph overall { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Overall Switch Topology\n(as of 2017-08-10)",
+      fontname = Helvetica, bgcolor=white
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+
+subgraph cluster_1 { label="Server Room"
+      isp [label="Server room in office"] 
+      serverroom [label="NSCU-A001", tooltip="Cisco SG250-26P"]
+}
+
+subgraph cluster_electrical { 
+  label="Electrial Room"
+  electrical [label="NSCU-A002"]
+}
+
+subgraph cluster_library {
+  label="Library"
+  library [label="2 Library"]
+}
+
+subgraph cluster_avroom { label="AV Room"
+
+    nscua005    [label="NSCU-A005"
+                 tooltip="Cisco SG250-26P"]
+   
+}
+
+subgraph cluster_youth { label="Board Room"
+    youth    [label="youth"
+                    tooltip="youth"]
+}
+
+subgraph cluster_balcony { 
+  label="Balcony"
+
+  balconyfront [label="NSCU-A003" tooltip="Cisco SG250-26P"]
+  balconyrear  [label="NSCU-A004"  tooltip="Cisco SG250-26P"]
+  wifibalcony  [label="{WiFi UAC_Balcony|AT#}"     tooltip="wifi"]
+  wifiguest    [label="{WiFi UAC_Guest|AT#}"       tooltip="wifi"]
+}
+
+isp -> serverroom [label="simplified"]
+serverroom -> electrical
+serverroom -> balconyfront  
+balconyfront -> library
+balconyfront -> nscua005
+balconyfront -> balconyrear
+balconyfront -> wifibalcony 
+balconyfront -> wifiguest 
+library -> youth
+} 
+'
+
+DiagrammeR::grViz(st, height=350)
+
+selected.at <- c( "NSCU-A001", "NSCU-A002",  "NSCU-A003",
+                  "NSCU-A004", "NSCU-A005") %>%  
+  data.frame(AssetTag=.)
+
+merge(TechInventory, selected.at) %>% 
+    select(AssetTag, Location, Manufacturer, Model, Desc) %>%
+    formattable(align="l")
+
+```
+
+[Back to top](#top)
+  
+#AV Rack Room
+ 
+ ```{r audiorack}
+ar <-' 
+digraph overall { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="AV Rack Room Topology\n(as of 2017-08-25)",
+      fontname = Helvetica, bgcolor=white,
+      rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+
+   subgraph cluster_zahu0001 { label="ZAHU-0001"  tooltip="Amp Rack"
+      
+      nscua005    [label="{Switch|NSCU-A005}" 
+                           tooltip="Cisco SG250-26P"]
+    }
+    
+fohproje     [label="{East Wall Projector|ZVVU-A001}" tooltip=""]
+fohprojs     [label="{South Wall Projector|ZVVU-A002}" tooltip=""]
+fohprojw     [label="{West Wall Projector|ZVVU-A003}" tooltip=""]
+
+nscua005 -> fohproje
+nscua005 -> fohprojs
+nscua005 -> fohprojw
+
+} 
+'
+
+DiagrammeR::grViz(ar, height=350)
+```
+
+```{r, trdetails}
+selected.at <- c( "ZVVU-A001", "ZVVU-A002",  
+                  "ZVVU-A003", "NSCU-A005" , "ZAHU-0001") %>%  data.frame(AssetTag=.)
+
+merge(NetworkInventory, selected.at) %>% 
+    select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
+    formattable(align="l")
+```
+
+[Back to top](#top)
+
+#Balcony 
+##Front Desk
+ 
+```{r BalconyFrontSwitch}
+ar <-' 
+ graph bfs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Balcony Front Rack Topology\n(as of 2017-08-10)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+      
+   subgraph cluster_zahu0004 { label="ZAHU-0004 rack"  tooltip="Front desk Rack"
+
+         balconyfront [label="{Balcony Front|NSCU-A003}"
+                        tooltip="Cisco SG250-26P"]
+
+   }
+
+m7cl         [label="{Audio Console|ZAKU-0001}" tooltip="Yamaha M7CL"] 
+frontguest   [label="Guest Computer" tooltip="Guest as needed"]
+
+balconyfront -- m7cl
+balconyfront -- frontguest
+
+} 
+'
+
+DiagrammeR::grViz(ar, height=350)
+```
+
+```{r, fddetails}
+selected.at <- c( "ZAKU-0001" ,"NSCU-A003" ) %>%  data.frame(AssetTag=.)
+
+merge(NetworkInventory, selected.at) %>% 
+    select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
+    formattable(align="l")
+```
+
+## Rear Desk
+
+The rear switch topology has been broken out to the East and West sides so the diagrams are more readable. The Cameras are arbitrarily assigned to the west side.
+
+```{r BalconyRearSwitch }
+brs.west <-' 
+graph bfs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Balcony Rear Rack (West) Topology\n(as of 2017-08-10)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+  
+  subgraph cluster_zvhu0002 { label="ZVHU-0002 rack"  tooltip="Rear Desk Rack"
+
+balconyrear [label="{Balcony Rear|NSCU-A004}" tooltip="Cisco SG250-26P"]
+
+  }
+
+  subgraph cluster_zvhu0003 { label="ZVHU-0003 rack"  tooltip="Rack on desk"
+ 
+recorder1  [label="{BMD Recorder 1|ZVRU-A001}", tooltip="BMD HyperDeck Mini"]
+recorder2  [label="{BMD Recorder 2|ZVRU-A002}", tooltip="BMD HyperDeck Mini"]
+} 
+atem       [label="{Recording Switcher|ZVKU-A003}", tooltip="BMD ATEM Television Pro HD"]
+rmip       [label="{Camera Control|ZVKU-A004}", tooltip="Sony RMIP10"]
+camera1    [label="{Robo Camera|ZVCU-A001}", tooltip="Sony SRG360SHE "]
+camera2    [label="{Robo Camera|ZVCU-A002}", tooltip="Sony SRG360SHE "]
+camera3    [label="{Robo Camera|ZVCU-A003}", tooltip="Sony SRG360SHE"]
+cdmua002 [label="{Video Computer|CDMU-A002}", tooltip="TBD "]
+
+balconyrear -- recorder1
+balconyrear -- recorder2
+balconyrear -- atem
+balconyrear -- rmip
+balconyrear -- camera1 [label="PoE+"]
+balconyrear -- camera2 [label="PoE+"]
+balconyrear -- camera3 [label="PoE+"]
+  
+balconyrear -- cdmua002
+} 
+'
+brs.east <-' 
+graph bfs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Balcony Rear Rack (East) Topology\n(as of 2017-08-10)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+  
+  subgraph cluster_zvhu0002 { label="ZVHU-0002 rack"  
+                              tooltip="Front desk Rack"
+        balconyrear [label="{Balcony Rear|NSCU-A004}", 
+                      tooltip="Cisco "]
+  }
+
+rearguest  [label="Rear Guest ", tooltip="as needed "]
+cdwu0009   [label="{Mediashout|CDWU-0009}", tooltip="CDWU-0009 Windows"]
+iMac       [label="{ProPresenter|CDMU-A001}", tooltip="Apple iMac27 "]
+
+  subgraph cluster_zvhu0001 { label="ZVHU-0001 rack"  
+                              tooltip="Front desk Rack"
+        vs88dt     [label="{Presentation Switcher|ZVKU-A001}", 
+                  tooltip=" Kramer vs88-dt"]
+        fx4        [label="{Video Processor|ZVKU-A002}", 
+                  tooltip="Datapath fx4 "]
+  }
+
+balconyrear -- rearguest
+ 
+balconyrear -- cdwu0009
+ 
+balconyrear -- iMac
+balconyrear -- vs88dt
+balconyrear -- fx4
+} 
+'
+
+DiagrammeR::grViz(brs.west, height=350)
+DiagrammeR::grViz(brs.east, height=350)
+
+```
+
+```{r, rddetails}
+selected.at <- c( "ZVRU-A001", "ZVRU-A002",  "ZVKU-A003",
+                  "ZVKU-A004", 
+                  "ZVCU-A001", "ZVCU-A002", "ZVCU-A003",
+                  "NSCU-A004",
+                  "CDWU-0009", "CDMU-A001", "CDMU-A002",
+                  "ZVKU-A001", "ZVKU-A002",
+                  "NSCU-A004" ) %>%  
+                data.frame(AssetTag=.)
+
+merge(NetworkInventory, selected.at) %>% 
+    arrange(AssetTag) %>%
+    select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
+    formattable(align="l")
+```
+[Back to top](#top)
+ 
+# Network Details - All Locations
+
+```{r} 
+NetworkInventory %>% 
+#filter(Category=="Video") %>% 
+select(Location, AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
+  formattable(align="l")
+```
+[Back to top](#top)
+
+# Devices which are in need of IP Address Allocation
+Allocation is pending delivery of equipment so we can know the MAC address. Once the 2017 upgrade project is complete, this section won't be needed anymore.
+
+```{r}
+NetworkInventory %>% 
+  select(-Category, -Location, -Usage, -Notes, -URL) %>% 
+  filter( ! is.na(MAC)  ) %>% 
+  filter(   is.na(IP)   )   %>% 
+   formattable(align="l")
+```
+[Back to top](#top)
+
+`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
+
+[Back to top](#top)
+
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/",  knitr::current_input())`.

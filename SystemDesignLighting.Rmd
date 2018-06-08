@@ -1,0 +1,719 @@
+---
+title: "System Design - Lighting"
+author: "Terry Doner"
+date:  "`r format(Sys.time(), '%B %d %Y')`" 
+output:
+  html_document:
+    toc: yes
+ 
+---
+
+```{r setup, include=FALSE}
+require(readr)
+require(dplyr)
+require(readxl)
+require(knitr)
+require(formattable)
+require(ggplot2)
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+path <-"~/Documents/UACTech/SystemDocumentation"
+inventoryfile <- "TechInventory.xlsx"
+fname <- paste(path, inventoryfile, sep="/")
+
+NetworkInventory <- read_excel(fname, sheet = "Network")
+
+ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
+          "text", "text" , "text"   , 
+   "text" , "text", "text", "text", "date", "text",    
+  "text","numeric","text","numeric","numeric","numeric"     
+)
+
+Tech_Inventory <- read_excel(fname, 
+                            sheet = "TechInventory", col_types=ct)
+```
+
+# Introduction
+This document provides key technical documentation for the lighting subsystems at UAC.
+
+Purpose:
+
+* Necessary to help the hearing impaired ( roughly 10% of the population) to lip read
+* Supports video recording
+* Helps draw attention to the central item – conversely makes it easier to ignore clutter
+* Helps audience to focus and concentrate
+* Reinforces the message (spoken or sung)
+
+The lighting console is an ETC Express 125. We use only one DMX universe for output. 
+
+The lighting console provides the primary means of control for all users. At times control can be provided by a computer running software such as QLC+.
+
+The console is protected from power surges via an opto-isolator/DMX splitter.
+From the opto-isolator we branch to a NSI Microplex protocol Converter (NSI IF/501) in the rack and a NSI DMX to analog converter in the electrical room.
+
+
+The DMX for scrollers and rotators pass through the IF501. 
+
+The dip switches on the IF/501 determines how it operates. It is to be programmed for DMX in and NSI microplex out. The eight address switches should be down (bottom of box). The Config switches should be DUDD. In normal operation the power light should be solid green and the STAT should be solid yellow. The ERR light should be dark (off).
+
+There is not enough power on this NRD8000 circuits to power all circuits at once.
+
+[Back to top](#top)
+
+##DMX Map
+
+```{r}
+dmxmap <- tribble(
+  ~DMX.Range, ~Comments,
+c(1,16), 
+"Control the NRD8000 dimmers in the balcony closet. ",
+
+c(17,28),
+"Control the 12 2k LMI dimmers in the electrical room via a DMX to analog converter.",
+
+c(29,36), 
+"Scrollers",
+
+c(37,40),
+"Rotators - 2 channels each.",
+
+c(101,145),
+"ColorSource Pars Overhead and Points - 5 channels each",
+
+c(151,171),
+"Ketra S38 Lamps - 3 channels each"
+)
+
+dmxmap %>% formattable(align="l")
+```
+
+
+# Topologies
+Three different control protocols are used: 
+
+* DMX, which is the backbone protocol
+* NSI Microplex. The I/F501 provides the bridge bewteen DMX and microplex
+* and KetraNet Mesh wireless
+
+## Control Topology
+  
+```{r top1}
+DiagrammeR::grViz("sdl-topology1-control.gv")
+
+selected.at <- c(
+              "ZLIU-0001", "ZLEU-0001",
+              "ZLEU-0002", "ZLIU-0002",
+              "ZLKU-0001", "ZLEU-0003",
+              "ZLEU-0004" ,"ZLIU-0003",
+              "ZLIP-0001", "ZLIU-0004",
+              "ZLIU-A001", "ZLIU-A003", "ZLIU-A002"
+              ) %>%                              data.frame(AssetTag=.)
+
+merge( Tech_Inventory, selected.at) %>% 
+    select(AssetTag, Manufacturer, Model, Desc ) %>%
+    arrange( AssetTag ) %>%
+    formattable(align="l")
+
+```
+
+[Back to top](#top)
+
+##Ketra Sub-System Topology
+
+This diagram is only a subset of the ligthing system focus on what we need to install the Ketra system. I have included the stage floor and overhead to put into context why we need the planned splitter in the amp rack.
+
+```{r topology , echo=FALSE}
+topology <- "
+digraph ketra { 
+graph [overlap = true, fontsize = 30, rankdir=LR 
+      label='Ketra System Topology',
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip='',  fontsize = 16, style=filled  
+      fillcolor='lime']
+
+subgraph cluster_stage { label='Stage'
+   pots     [label='Ketra S38 Pots' ]
+}
+
+subgraph cluster_balcony { label= 'Balcony' 
+  console  [label='Lighting Console|ZLKU-0001'    ]
+  computer [label='Ketra DesignStudio|Windows|CDWU-0009' ]
+  N1       [label='N1'  ]  
+  subgraph cluster_rack {  label='rack' 
+    dmxsplit1 [label= 'dmx Split|ZLIU-0003' ]
+  }
+}
+
+subgraph cluster_avroom {  label='AV Room'
+  subgraph cluster_amp { label= 'Amp Rack'
+    N3       [label='N3|ZLIU-A003'  ]  
+    dmxsplit2 [label= 'DMX Splitter|ZLIU-A001' ]
+}
+}
+
+console -> dmxsplit1 [label='dmx']
+dmxsplit1 -> dmxsplit2 [label='dmx']
+
+dmxsplit2 -> N3  [label='dmx']
+N3 -> pots [label='wireless' ]
+
+computer -> N1 [label='usb'] 
+N1 -> pots [label='wireless']
+
+}
+" 
+DiagrammeR::grViz(topology)
+
+```
+
+## Circuit Destinations 
+
+Lines refer to power distribution circuits from dimmers to lighting distribution points.
+
+```{r}
+circuits <- tribble(
+  ~CircuitRange, ~Destination,
+  c ( 1,10), "Balcony East Bar",
+  c(11,20),  "Balcony West Bar", 
+  c(21,32),	 "Attic", 
+  c(40,42),  "Stage Floor" 
+)
+
+circuits %>% formattable(align="l")
+```
+
+## DMX Assignments Details
+
+```{r}
+dmx.details <- tribble(
+  ~DMX.Num, ~Circuit , ~Purpose,
+  1, c(9, 11 ), "?",
+  2, c(6, 12 ), "?",
+  3, "18",   "Pennisula West Bar",
+  4, "5",    "Pennisula East Bar",
+  5, c(7,13), "SL+Centre",
+  6, "",     "Dimmer 6 seems to have troubles",
+  7, "8",	   "Wall West",
+  8, "14",   "Wall East",
+  9, "4",    "SL",
+  10, "1",   "Band SR",
+  11, "20",  "Wall East",
+  12, c(19, 2),  "", 
+  13, "3",    "Centre",
+  14, "10",   "Wall",
+  15, "17",   "Keys",
+  16, "16",   "Wall East",
+seq(17,20), "",	    "unused",
+21, "40",	  "Floor",
+22, "41",	  "Floor",
+23, "42",   "Floor",
+seq(24,28),  "", "unused", 
+seq(29,32), "",  "Scrollers",
+seq(33,36), "",  "Scrollers",
+c(47,48), "",    "Rotator control/reserved",
+c(49,50), "",     "Rotator control/reserved"
+)
+
+dmx.details %>% formattable(align="l")
+```
+
+[Back to top](#top)
+
+##Ketra Configuration
+```{r}
+k <- tribble(
+~Zones, ~Text, ~Num, ~Red, ~Green, ~Blue,
+"Walls","Console",101,101,102,103,
+"","DMX",151,151,152,153,
+"Down Stage","Console",104,104,105,106,
+"","DMX",154,154,155,156,
+"Mid Stage","Console",107,107,108,109,
+"","DMX",157,157,158,159,
+"Up Stage","Console",110,110,111,112,
+"","DMX",160,160,161,162,
+"Centre 1","Console",113,113,114,115,
+"","DMX",163,163,164,165,
+"Centre 2","Console",116,116,117,118,
+"","DMX",166,166,167,168,
+"Centre 1","Console",119,119,120,121,
+"","DMX",169,169,170,171
+)
+
+k %>% select(-Num) %>% formattable(align="l")
+```
+
+## ColorSource Pars
+
+```{r}
+csp <- tribble(
+~Fixture, ~Text, ~Patch, ~Intensity, ~Red, ~Green, ~Blue, ~Strobe,
+1,"Console",51,51,52,53,54,55,
+"","DMX",101,101,102,103,104,105,
+ 
+2,"Console",56,56,57,58,59,60,
+"","DMX",106,106,107,108,109,110,
+
+3,"Console",61,61,62,63,64,65,
+"","DMX",111,111,112,113,114,115,
+
+4,"Console",66,66,67,68,69,70,
+"","DMX",116,116,117,118,119,120,
+
+5,"Console",71,71,72,73,74,75,
+"","DMX",121,121,122,123,124,125,
+
+6,"Console",76,76,77,78,79,80,
+"","DMX",126,126,127,128,129,130,
+
+7,"Console",81,81,81,83,84,85,
+"","DMX",131,131,132,133,134,135,
+
+8,"Console",86,86,87,88,89,90,
+"","DMX",136,136,137,138,139,140,
+
+9,"Console",91,91,92,93,94,95,
+"","DMX",141,141,142,143,144,145
+)
+
+csp %>% select(-Patch) %>% formattable(align="l")
+```
+
+# GOBO Rotators
+
+Each one needs two channels.
+
+* 37 is a control channel, 38 must be zero.
+* 39 is a control channel, 40 must be zero.
+
+Intensity of zero is stop. The closer to 50 the slower it rotates. 1-49 and 50-100 rotate in opposite directions.
+
+[Back to top](#top)
+
+#House Lighting
+
+The main house lights are controlled via a control box in the balcony located on the east end of the rear desk. These are line voltage (120V ) analog controls which control the Lutron Dimmer boxes in the electrical room in four groups.
+
+* Main House including under balcony
+* Upper Balcony
+* Platform Outer (Crown)
+* Platform Inner
+
+```{r}
+cs = c("AssetTag","Qty"  ,
+  "Manufacturer" ,
+  "Model"  , 
+  "Qty",
+  "Location"  ,
+  "Type" ,
+  "Desc"     )
+
+Tech_Inventory %>%  
+          filter( Manufacturer=="Lutron" , InService== "Y") %>%  
+          dplyr::select(one_of(cs)) %>% 
+          formattable(align="l" )  
+```
+
+Under independent control are the sconse lights along the perimeter walls. These are controlled via a two-way switch located by the south-east and north-east doors. The control at the south-east door has a programmable timer. The intent is to ensure that there is some lighting in the evenings between dusk and midnight to enable sfe passage.
+
+[Back to top](#top)
+
+#Ketra Design
+
+```{r parms, echo=FALSE, warning=FALSE}
+products <- tribble(
+  ~model, ~type, ~angle, 
+  "Spot",              "S",  10 ,
+  "Flood",             "F",  25,  
+  "Wide Flood",       "WF",  40,
+  "Very Wide Flood", "VWF",  60
+  )
+
+locations <- tribble(
+  ~name, ~height,
+  "Bulkhead", 19+8/12,
+  "InnerNorth", 22+4/12,
+  "InnerSouth", 15+11/12
+)
+
+a <- 0.7 # Alpha for graphics
+
+lamps <- merge(products, locations)  %>% mutate(rads = angle/180*pi)
+
+circleFun <- function( x= 0, y=0 , r=1, npoints=50, start=0, end=2, fill="black"){
+  tt <- seq(start*pi, end*pi, length.out=npoints)
+  data.frame(
+    x = x + r * cos(tt),
+    y = y + r * sin(tt),
+    fill = fill
+  )
+}
+
+fin <- function(f, i) {
+  f + i/12
+}
+
+```
+Ketra S38 product comes in `r nrow(products)` different beam angles:
+```{r, echo=FALSE}
+products %>% formattable(align="l")
+```
+For the pots on the west side of the stage I have measured the position of each pot (give or take an inch or three). The east side is taken as the mirror image. This is a pretty good assumption but there is at least one notable exception; one pot is out of place.
+
+
+```{r echo=FALSE}
+# based on pots w2 and w15 - w15 on a 28" riser"
+rise = 19.4 -(16.1 + 28/12)
+run = 25.75 - 4.25
+# use the tan rule as above, convert from radians to degrees
+angle = atan(rise/run) *(180/pi)
+```
+
+```{r echo=FALSE}
+lamps <- lamps %>% mutate(θ = rads/2) %>%
+         mutate(beamradius = 2 * tan(θ) * height / 2 )
+```
+[goto top](#TOC)
+
+
+```{r plan, echo=FALSE}
+pots.w <- tribble(
+~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
+"down stage",     "w01",    "F",   17.5/12,  4+1/12, 19+6/12,  "",
+"down stage",     "w02",    "F",   68/12,    4+3/12, 19+5/12,  "",
+"down stage",     "w03",    "F",   119.5/12, 6+6/12, 19+7/12,  "5-10 from edge on curve",
+"down stage",     "w04",    "F",   179.5/12, 11+2/12, 19+7/12, "4-10 from front edge",
+"wall",     "w05",    "S",   239/12,   15+8/12, 19+6/12, 
+                                        "2-10 from side wall. y guessed",
+"mid stage",     "w06",    "F",   27/12,    9+1/12,  22+1/12, "",
+"mid stage",     "w07",    "F",   87.5/12,  10+5/12, 21+12/12, "",
+"centre1",     "w08",    "VWF",   11/12,    13+6/12, 21+2/12,  "",
+"centre2",     "w09",    "VWF",   60.5/12,  14+1/12, 21,       "",
+"centre3",     "w10",   "VWF",   118/12,   16+3/12, 20+5/12,  "",
+"wall",     "w11",   "S",   14+8/12,  20+4/12, 18+2/12,  
+                "y guessed. 14 inch riser. 2-3 from wall"  ,
+"up stage",     "w12",   "WF",   23/12,    18+6/12, 19+4/12, "7 inch riser",
+"up stage",     "w13",   "WF",   87/12,    20+2/12, 19+4/12, "14 inch riser",
+"wall",     "w14",   "S",   125/12,   25+8/12, 16+2/12, "28 inch riser",
+"wall",     "w15",   "S",   44/12,    25+9/12, 16+2/12, "")
+
+refs <- tribble(
+~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
+"ref",     "r1",    "ref", 0,        0,       0,       "",
+"ref",     "r2",    "ref", 0,       28+8/12,  0,       "",
+"ref",     "r3",    "ref", 10+8/12, 0,        0,       "",
+"ref",     "r4",    "ref", 10+8/12, 28+8/12, 0,        "",
+"ref",     "r5",    "ref", 40+6/12,      0,        0,  "",
+"ref",     "r6",    "ref", 25.8,    14.4,     0,       "position guessed"
+)
+
+pots.e <- pots.w %>%
+        filter(type != "ref") %>%
+        mutate( x = -x) %>%
+        mutate (name = gsub(  "w", "e", name,  fixed=TRUE)) 
+
+positions <- rbind(pots.w, pots.e, refs)
+
+l1 <- positions %>% filter(type== "ref") %>% 
+  filter(name != "r3") %>% 
+  filter(name != "r6") %>% 
+  select(x,y)
+
+l2 <- positions %>% filter(type== "ref") %>% 
+  filter(name != "r2") %>% 
+  filter(name != "r4") %>% 
+  filter(name != "r5") %>% 
+  select(x,y)
+
+plan <- positions %>%
+        filter(type != "ref") %>%
+       # mutate(type ="S") %>%
+        merge(products) %>%
+        select(group, name, type, x,y, z, angle) %>%
+        mutate(rads = angle/180*pi) %>%
+        mutate(θ = rads/2) %>%
+        mutate(beamradius = 2 * tan(θ) * z / 2 ) 
+
+for (i in 1:nrow(plan)) {
+  assign( paste0("p_", plan[i, "name"]), circleFun(x=plan[i, "x"], 
+                                    y=plan[i, "y"], 
+                                    r=plan[i,"beamradius"], 
+                                    fill=plan[i, "type"]  ))
+}
+
+makeplot <- function(df) {
+  g <- ggplot(df) + coord_equal() +
+  geom_point( aes(x=x, y=y)) + 
+  geom_path(data=l1, aes(x=x, y=y) ) +
+  geom_path(data=l2, aes(x=x, y=y) ) +
+  geom_path(data=l1, aes(x=-x, y=y) ) +
+  geom_path(data=l2, aes(x=-x, y=y) )  
+    
+#add in beam plot
+for (i in 1:nrow(df) ) {
+    
+   g <- g + geom_polygon(data=get(paste0("p_", df[i, "name"])) ,
+                         aes(x,y, fill=fill),   alpha=a)  }
+  
+g <- g +   geom_text( aes(x=x, y=y, label=name), nudge_y = 1) 
+return(g)
+}
+ 
+```
+
+The basic floor plan. 
+```{r echo=FALSE}
+df <- plan
+ g <- ggplot(df) + coord_equal() +
+  geom_path(data=l1, aes(x=x, y=y) ) +
+  geom_path(data=l2, aes(x=x, y=y) ) +
+  geom_path(data=l1, aes(x=-x, y=y) ) +
+  geom_path(data=l2, aes(x=-x, y=y) ) +
+  geom_text( aes(x=x, y=y, label=name) ) 
+g 
+```
+
+The design has divided up the design into `r plan %>% select(group) %>% unique() %>% count()` zones. Each group would be controlled by its own DMX channel group. 
+
+```{r groups, echo=FALSE}
+smry <- plan %>% 
+  group_by(group) %>%
+  summarise(Lamp_Count = n() )
+   
+smry %>% formattable(align="l")
+```
+
+[goto top](#TOC)
+
+# Walls  
+We need to keep the light off the screens so we need to use the spot width lamps next to the walls. With nothing else added, these will create dots on the floor.
+```{r echo=FALSE}
+p1 <- plan %>% 
+   filter(group == "wall" ) 
+
+makeplot(p1 )
+
+p1 %>% select(-rads, -θ ) %>% formattable()
+```
+[goto top](#TOC)
+
+# Down Stage (Bulkhead)
+The bulkhead pots can be used to light up the typical vocal area. An eight foot beam diameter should give decent coverage. With all of them on, the centre section wil be brighter than the outside.
+
+For coverage behind the bulkhead, we can use "Two Rows"
+
+```{r echo=FALSE}
+p1 <- plan %>% 
+   filter(group == "down stage" ) 
+
+makeplot(p1 )
+
+p1 %>% select(-rads, -θ ) %>% formattable()
+```
+[goto top](#TOC)
+
+# Mid Stage Centre  
+Could be used in combination with the bulkhead (down stage) or separately. 
+```{r echo=FALSE}
+p1 <- plan %>% 
+   filter(group == "mid stage" ) 
+
+makeplot(p1 )
+
+p1 %>% select(-rads, -θ ) %>% formattable()
+```
+[goto top](#TOC)
+
+# Up Stage Centre  
+Could go with Flood or Wide Flood. The WF covers most of the riser  
+```{r echo=FALSE}
+p1 <- plan %>% 
+   filter(group == "up stage" ) 
+
+makeplot(p1 )
+
+p1 %>% select(-rads, -θ ) %>% formattable()
+```
+[goto top](#TOC)
+
+# Centre Wash
+The six centre pots are in three groups to wash most of the platform. There will be a hot spot down the centre if all are on at once.
+
+##Centre Wash Group1 
+```{r echo=FALSE}
+p1 <- plan %>% 
+   filter(group == "centre1"  )   
+
+makeplot(p1)
+
+p1 %>% select(-rads, -θ ) %>% formattable()
+```
+
+##Centre Wash Group 2
+
+```{r echo=FALSE}
+p1 <- plan %>% 
+   filter(group == "centre2"  )   
+
+makeplot(p1)
+
+p1 %>% select(-rads, -θ ) %>% formattable()
+```
+[goto top](#TOC)
+
+##Centre Wash Group 3
+The rear two (#10s) as shown in the diagram will hit the wall before the floor. It will be below the screen. If the wall splash is a visual problem we should be able to flag the fixture.
+
+```{r echo=FALSE}
+p1 <- plan %>% 
+   filter(group == "centre3"  )   
+
+makeplot(p1)
+
+p1 %>% select(-rads, -θ ) %>% formattable()
+```
+[goto top](#TOC)
+
+#Ketra Details
+```{r echo=FALSE}
+rbind(pots.w, pots.e) %>% formattable()
+```
+[goto top](#TOC)
+
+##Transition Delay
+The systems supports several profiles:
+
+* RGB  - Red, Green, Blue 
+* RGBW - RGB plus White
+* RGBIF - RGB plus Intensity and Fade Time
+
+The maximum delay time required to execute a lighting transition follows this formula:
+$$
+T = 2.7 \times {ceiling} (  \frac {N \times G} {45})
+$$
+where:
+
+* N is the number of (DMX) Channels per Group 
+* G is the number of groups
+* T is the Maximum delay time.
+
+In this design there are 7 groups all using the RGB profile.  
+
+```{r}
+G <- 7
+N <- 3  # four DMX channels for per group.
+
+T <- 2.7 * ceiling(N*G/45)
+```
+The expected maximum transition time is `r T` seconds.
+
+[goto top](#TOC)
+
+#Appendix
+
+#The Room 
+* SW Wall 71-10
+* South Wall 21-3
+* NW Wall 55-11
+* North Centre 45-2
+* NE Back Wall 55-8
+* SE Back Wall 72-2
+* front to back along centre line 90-2
+* distance (y dimension) -23-2 for corners of SW/NW wall meet
+* corner to corner distance 123-2
+
+```{r room, echo=FALSE}
+
+room <- tribble(
+~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
+ "ref",     "r2",    "ref", 0,         fin(28,8),  0,       "",
+ "ref",     "r4",    "ref", fin(10,8), fin(28,8), 0,        "",
+ "ref",     "r7",    "ref", (123+6/12)/2, -23-2/12, 0,  "",
+ "ref",     "r8",    "ref", (45+2/12)/2, -(90+2/12)+(28+8/12), 0,"",
+ "ref",     "r9",    "ref", 0,   -(90+2/12)+(28+8/12), 0,"" 
+)
+
+  g <- ggplot(refs) + coord_equal() +
+  geom_point( aes(x=x, y=y)) + 
+  geom_path(data=l1, aes(x=x, y=y) ) +
+  geom_path(data=l2, aes(x=x, y=y) ) +
+  geom_path(data=l1, aes(x=-x, y=y) ) +
+  geom_path(data=l2, aes(x=-x, y=y) )  +
+  geom_path(data=room, aes(x=x, y=y)) +
+  geom_path(data=room, aes(x=-x, y=y))  
+    
+g <- g +   geom_text( aes(x=x, y=y, label=name), nudge_y = 1) 
+g
+```
+
+[Back to top](#top)
+
+# Network Details
+The lighting system has no network components.
+```{r} 
+# NetworkInventory %>% 
+# filter(Group=="Video") %>% 
+# select(Location, Usage, Device, MAC, IP, URL, Notes) %>%
+# kable() 
+```
+
+[Back to top](#top)
+
+# Lighting Equipment Inventory
+
+```{r inventory, echo=FALSE, asis=TRUE}
+ 
+cs = c("AssetTag","Qty"  ,
+  "Manufacturer" ,
+  "Model"  , 
+  "Qty",
+  "Location"  ,
+  "Type" ,
+  "Desc"     )
+
+Tech_Inventory %>%  
+          filter( Category=="Lighting" , InService== "Y") %>%  
+          dplyr::select(one_of(cs)) %>% 
+          formattable(align="l" )  
+```
+
+[Back to top](#top)
+
+#Appendix
+
+# Gel String Colours
+
+|Intensity| Name        | Rosco Number |
+|---------|-------------|--------------|
+|  5      | Neon Yellow |              |	 
+| 13      |	Flesh       |              |	 
+| 25      |	Amber       |	             |
+| 33      |	Orange      |	R23          |
+| 38      |	Red	        |              |
+| 45      |	Lite Pink	  | R35          |
+| 52      |	Magenta	    | R46          |
+| 58      | Lavender    | R57          |
+| 65      |	Purple      |	             |
+| 73      |	Lite Blue   |              |	 
+| 80	    | Warm Dark Blue	|          | 
+| 85	    | Cold Dark Blue   |         |	 
+| 95      |	Lite Green  |	 R88         |
+| 100     |	Kelly Green |	 R94         |
+|         |             |              |
+
+
+`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
+
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/", knitr::current_input())`.
+
+going direct to pdf requires some trickery 'cause Diagrammer doesn't support than directly. here is a hack which would beed to be conditional on html versus pdf output.
+
+```{r eval=FALSE}
+# seq is the input
+tmp<-capture.output(rsvg_png(charToRaw(export_svg(seq)),'seq.png'))
+cat('![Sequence diagram](seq.png){#fig:seq}\n\n')
+ 
+# The next line is placed in markdown
+# ![Sequence diagram](seq.png){#fig:seq}
+```

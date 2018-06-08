@@ -5,18 +5,18 @@
 srcdir <-  "~/Documents/UACTech/SystemDocumentation/github/uactechdoc/"
 trgdir <- "~/Dropbox/UAC_Tech_Docs"
 
-files <- c(#"SystemDesignLighting" ,
-           #"SystemDesignVideo",
-           #"SystemDesignAudio",
-           
-           #"SystemDesignNetwork",
+files <- c("SystemDesignLighting" ,
+           "SystemDesignVideo",
+            "SystemDesignAudio",
+           "SystemDesignVideo",
+           "SystemDesignNetwork",
            #"InventoryManagement",
            #"TechTeamOrg",
-           #"SystemOperationsAudio",
+           "SystemOperationsAudio",
            #"TechTeamIntro",
            #"index",
            #"SystemAdministrationGuide",
-           #"SystemOperationsProjection"
+           "SystemOperationsProjection",
            #"SystemOperationsGuide"
           "SystemOperationsLighting"
            )

@@ -22,16 +22,17 @@ path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname <- paste(path, inventoryfile, sep="/")
 
-NetworkInventory <- read_excel("NetworkInventory.xlsx", sheet = "Network")
-NetworkInventory <- read_excel("TechInventory.xlsx", 
+#NetworkInventory <- read_excel(fname, sheet = "Network")
+NetworkInventory <- read_excel(fname, 
                             sheet = "Network")
 
 ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
+          "text", "text" , "text"   ,
    "text" , "text", "text", "text", "date", "text",    
   "text","numeric","text","numeric","numeric","numeric"     
 )
 
-Tech_Inventory <- read_excel("TechInventory.xlsx", 
+Tech_Inventory <- read_excel(fname, 
                             sheet = "TechInventory", col_types=ct) 
 further <- read_excel(fname, sheet = "Further")
 

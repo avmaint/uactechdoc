@@ -1,0 +1,291 @@
+---
+title: "System Design - Audio"
+author: "Terry Doner"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output:
+  html_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+require(readr)
+require(dplyr)
+require(readxl)
+require(knitr)
+require(formattable)
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+path <-"~/Documents/UACTech/SystemDocumentation"
+inventoryfile <- "TechInventory.xlsx"
+fname <- paste(path, inventoryfile, sep="/")
+
+NetworkInventory <- read_excel(fname, sheet = "Network")
+
+ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
+          "text", "text" , "text"   ,
+   "text" , "text", "text", "text", "date", "text",    
+  "text","numeric","text","numeric","numeric","numeric"     
+)
+
+Tech_Inventory <- read_excel(fname, 
+                            sheet = "TechInventory", col_types=ct)
+
+```
+
+# Introduction
+This document provides key technical documentation for the Santurary audio subsystems at UAC. Other audio systems are not documeted to this level of detail (Youth, Children).
+
+Purpose:
+
+* Necessary to help the hearing impaired ( roughly 10% of the population) to lip read
+* Supports video recording
+* Helps draw attention to the central item – conversely makes it easier to ignore clutter
+* Helps audience to focus and concentrate
+* Reinforces the message (spoken or sung)
+
+[Back to top](#top)
+ 
+# Configuration
+The descriptions of the configurations will generally start at the input side of the system and work towrds the outputs.
+
+```{r overview}
+DiagrammeR::grViz("sda-overview.gv")
+```
+
+[Back to top](#top)
+ 
+## Microphones and Other Inputs
+
+There are a variety of microphone inputs that come from the stage as well as CD players, tape players and computer inputs in the balcony. These all are fed into one of two audio mix consoles: A Yamaha M7CL-48 and a Yamaha DM1000. The M7CL is the primary console while the DM1000 handles inputs located at the mix position.
+  
+```{r top1}
+DiagrammeR::grViz("sda-inputs.gv" )
+
+selected.at <- c( "CDWU-0009", "ZAKU-0002","ZAKU-0001" ) %>%  data.frame(AssetTag=.)
+
+merge( Tech_Inventory, selected.at) %>% 
+    select(AssetTag, Manufacturer, Model, Desc ) %>%
+    formattable(align="l")
+```
+
+[Back to top](#top)
+ 
+## Audio Mix Consoles
+
+As introduced in the earlier section there are two primary mix consoles in the Santurary System. Both of these consoles are digital with full scene store and recall. Recalling scene 001 on the M7CL will cause both consoles to reset to our standard starting point which is an excellent foundation for 95% of the services we run in a year. 
+
+### M7CL Input Assignments
+
+Having a consistent wiring plan helps make system more predictable and easier for all audio engineers to use. The consistent wiring plan is also essentail to leveage the power of console's scene recall feature. It minimizies the amount of rewiring required.
+
+This is the standard input map for the M7.
+
+|Ch #	|Input |	Mic/DI	| Notes |
+|------|------|------|------|
+|1|Kick|Beyer M88|Drum Snake|
+|2|Snare|CAD|Drum Snake|
+|3|Tom 1|CAD|Drum Snake|
+|4|Tom 2|CAD|Drum Snake|
+|5|Tom 3|CAD|Drum Snake|
+|6|Tom 4 (floor)|CAD|Drum Snake|
+|7|OH L|AKG 418|Drum Snake|
+|8|OH R|AKG 418|Drum Snake|
+|9|Hat|AKG 418|Drum Snake|
+|10|Djembe - spare (Sn 2)|SM 57|Drum Snake|
+|11|perc 1||Drum Snake|
+|12|perc 2||Drum Snake|
+|13|Bass 1|JDI DI||
+|14|Bass 2|||
+|15|EG 1|SM 57||
+|16|EG 2|||
+|17|AG 1|Pro DI||
+|18|AG 2|||
+|19|B3 lo| SM57 ||
+|20|B3 hi| SM57 ||
+|21|Pno lo|||
+|22|Pno hi|||
+|23|syn 1|Pro DI||
+|24|syn 2|||
+|25|syn 3|||
+|26|syn 4|||
+|27|Str 1|||
+|28|Str 2|||
+|29|Choir 1|AT 853|Set up as required|
+|30|Choir 2|AT 853|Set up as required|
+|31|Choir 3|AT 853|Set up as required|
+|32|Choir 4|||
+|33|LVox 1|Beta 58|Vocal Snake|
+|34|LVox 2|Beta 58|Vocal Snake|
+|35|LVox 3|Beta 58|Vocal Snake|
+|36|LVox 4|Beta 58|Vocal Snake|
+|37|LVox 5|Beta 58|Vocal Snake|
+|38|LVox 6|Beta 58|Vocal Snake|
+|39|LVox 7|Beta 58|Vocal Snake|
+|40|LVox 8|Beta 58|Vocal Snake|
+|41|Hn 1|AKG 419 or SM 57||
+|42|Hn 2|AKG 419 or SM 57||
+|43|HH L vox 1|Senn HH wireless|Wireless|
+|44|HH L vox 2|Senn HH wireless|Wireless|
+|45|HH L vox 3|Senn HH wireless|Wireless|
+|46|HH L vox 4|Senn HH wireless|Wireless|
+|47|HH L vox 5|Senn HH wireless|Wireless|
+|48|HH L vox 6|Senn HH wireless|Wireless|
+|STR1|Effect 1 Return|Rev Plate|stereo inputs|
+|STR2|Effect 2 Return|Rev Hall||
+|STR3|Effect 3 Return|Mono Delay||
+|STR4|Effect 4 Return|Chorus||
+|||||
+
+### DM1000 Inputs
+THe DM1000 inputs are all located in the FoH mix position. 
+
+|Ch #|Input|Mic/DI|Notes|
+|----|----|----|----|
+|1|Lav 1|Sennhesier|Wireless|
+|2|Lav 2|Sennhesier|Wireless|
+|3|Lav 3|Sennhesier|Wireless|
+|4|Lav 4|Sennhesier|Wireless|
+|5|Lav 5|Sennhesier|Wireless|
+|6|Lav 6|Sennhesier|Wireless|
+|7|Lav 7|AT|Wireless|
+|8|Lav 8|AT|Wireless|
+|9|Lav 9|AT|Wireless|
+|10|Lav 10|AT|Wireless|
+|11|CD L||Tascam CD-01U|
+|12|CD R||Tascam CD-01U|
+|13|Comp L|||
+|14|Comp R|||
+|15|DVD/Laptop/ipod L|||
+|16|DVD/Laptop/ipod R|||
+|Omni 1|VCR L|Fader 29||
+|Omni 2|VCR R|Fader 30||
+|Omni 3|Cass L|Fader 31||
+|Omni 4|Cass R|Fader 32||
+
+### Console Links
+There is an IO exapnsion card in each of the two consoles. This enables console-to-console communication. The busses in the DM1000 console are linked to the busses in the M7 using these cards. The FLow is from the DM1000 to the M7. The link cards are in slot one of each console.
+
+#### DM1K Slot 1 Ouput Assignments
+
+| Bus     | \ | Usage |
+|-----------|-|-------------|
+| Aux 1-6   | | Monitor 1-6 |
+| Aux 8     | | Record      |
+| Aux 15-16 | | Stereo LR   |
+|           | |             |
+
+#### M7CL Slot 1 Input Assignments
+
+| Input | \ | Bus Assignment |
+|-----------|-|-------------|
+| 1-6   |   | Mix 1-6       |
+| 8     |   | Mix 14        |
+| 13-14 |   | Cue LR        |
+| 15-16 |   | Stereo LR     |
+| 16    |   | Mono          |
+|           | |             |
+
+
+### M7 Mix Bus Usage
+
+This console has 16 mix busses. Since the console is capable of multuple routing paths within the console. This is described by the 'And then' description which informs about what happens next within the console.
+
+|Mix #|Description|And then|
+|------|----------|----------|
+|1|Monitor 1|To Rack EQ and then out to Omni 1|
+|2|Monitor 2|To Rack EQ and then out to Omni 2|
+|3|Monitor 3|To Rack EQ and then out to Omni 3|
+|4|Monitor 4|To Rack EQ and then out to Omni 4|
+|5|Monitor 5|To Rack EQ and then out to Omni 5|
+|6|Monitor 6|To Rack EQ and then out to Omni 6|
+|7|Effect - Reverb plate|To Rack 5 and then to STRIN 1|
+|8|Effect - Rev-X Hall|To Rack 6 and then to STRIN 2|
+|9|Effect - mono Delay|To Rack 7 and then to STRIN 3|
+|10|Effect - Chorus|To Rack 8 and then to STRIN 4|
+|11|||
+|12|||
+|13|||
+|14|Record Mix|Out on Omni 14|
+|15|||
+|16|||
+||||
+
+### M7 User Defined Key
+
+The user defined keys allow the operator to quickly acccess common features.
+
+|Key|Function|
+|----|----|
+|1|Monitor 1 to faders|
+|2|Monitor 2 to faders|
+|3|Monitor 3 to faders|
+|4|Monitor 4 to faders|
+|5|Monitor 5 to faders|
+|6|Monitor 6 to faders|
+|7|Fx1 to faders|
+|8|Fx2 to faders|
+|9|Record to faders|
+|10|48v - phantom power control|
+|11|Tap - effect timing|
+|12|Talkback - operator to stage communication|
+|||
+
+
+[Back to top](#top)
+
+
+## Outputs
+
+Now lets finish our journey the the speakers.  
+
+```{r top2}
+DiagrammeR::grViz("sda-outputs.gv")
+
+selected.at <- c( "ZAKU-0001", "ZAKU-0002", "ZVKU-A003"  ) %>%  data.frame(AssetTag=.)
+
+merge( Tech_Inventory, selected.at) %>% 
+    select(AssetTag, Manufacturer, Model, Desc ) %>%
+    formattable(align="l")
+```
+
+[Back to top](#top)
+
+# Network Details
+Some of the audio system components have network (tcp/ip specicially) connectivity requriements. The primary audio console can be remotely operated from an iPad, so other devices also must be on the network as well, but they are personal devices and not part of this inventory. In the balcony, network switch NPHU-0004 provides wired access.    
+```{r} 
+ NetworkInventory %>% 
+  filter(Category=="Audio") %>% 
+  select(Location, Usage, Device, MAC, IP, URL, Notes) %>%
+  kable() 
+```
+
+[Back to top](#top)
+
+# Equipment Inventory
+
+```{r inventory, echo=FALSE, asis=TRUE}
+
+cs = c("AssetTag", "Qty"  ,
+  "Manufacturer" ,
+  "Model"  , 
+  "Qty",
+  "Location"  ,
+  "Type" ,
+  "Desc"     )
+
+Tech_Inventory %>%  
+          filter( Category=="Audio" , InService== "Y") %>%  
+          dplyr::select(one_of(cs)) %>% 
+          knitr::kable(   )  
+```
+
+[Back to top](#top)
+
+`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
+
+[Back to top](#top)
+
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r knitr::current_input()`
