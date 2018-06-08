@@ -26,12 +26,9 @@ options(knitr.table.format = "html") # latex for pdf
 ```
 
 ```{r data}
-base <-  "~/Documents/UACTech/SystemDocumentation"
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
-
-fname <- paste(path, inventoryfile, sep="/")
-
+fname   <- paste(path, inventoryfile, sep="/")
 further <- read_excel(fname, sheet = "Further")
 ```
 
