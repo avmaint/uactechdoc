@@ -2,7 +2,7 @@
 # and
 # copy to published documents folder.
 
-srcdir <-  "~/Documents/UACTech/SystemDocumentation/src/uactechdoc/"
+srcdir <-  "~/Documents/UACTech/SystemDocumentation/github/uactechdoc/"
 trgdir <- "~/Dropbox/UAC_Tech_Docs"
 
 files <- c(#"SystemDesignLighting" ,
