@@ -1,0 +1,33 @@
+---
+title: "UAC Tech Team Documents"
+author: "Terry Doner"
+date: '2018-05-28'
+output: html_document
+---
+
+```{r options, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message = FALSE)
+options(knitr.table.format = "html") 
+```
+
+```{r packages}
+require(kableExtra)
+require(readxl)
+require(dplyr)
+require(knitr)
+```
+
+```{r data}
+path <-"~/Documents/UACTech/SystemDocumentation"
+inventoryfile <- "TechInventory.xlsx"
+fname <- paste(path, inventoryfile, sep="/")
+```
+
+# Overview
+
+>To be written 
+
+`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
+
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/", knitr::current_input())`.
