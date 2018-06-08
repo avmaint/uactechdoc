@@ -1,0 +1,50 @@
+
+```{r fipackages}
+require(kableExtra)
+require(readxl)
+require(dplyr)
+```
+
+```{r fidata}
+path <-"~/Documents/UACTech/SystemDocumentation"
+inventoryfile <- "TechInventory.xlsx"
+fname <- paste(path, inventoryfile, sep="/")
+further <- read_excel(fname, sheet = "Further")
+```
+
+# Further Information
+
+There are several types of documents available.
+
+```{r}
+chart <- tribble(
+  ~Type, ~Description,
+"System opertating guides",
+"These documents will tell you how to operate each subsystem.",
+
+"System design documents",
+"These provide a deep dive into where all components are located, how they are wired, how they are configured, and why. A regular operator does not normally need to know this level of detail - until there is a problem.",
+
+"Administration guides",  
+"This will contain information that very few people will need to know and is mostly related to credentials (accounts, userids, and passwords), and what you need to know to manage those." ,
+
+"Manuals",
+"These are publications from the manufactures of the equipment we have."
+)
+
+chart %>% 
+  kable() %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+There is an operations and a design guides for each of the major subsystems.  
+
+```{r fifurther, asis=FALSE}
+further %>%
+  mutate (Operations = ifelse(is.na(Operations),"",text_spec("X", link=Operations))) %>%
+  mutate (Design = ifelse(is.na(Design),"",text_spec("X", link=Design))) %>%
+  mutate (Other = ifelse(is.na(Other),"",text_spec("X", link=Other))) %>%
+
+  kable( escape = FALSE) %>%
+  kable_styling("striped", full_width = TRUE)
+```
