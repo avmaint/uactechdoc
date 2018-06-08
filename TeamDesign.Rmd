@@ -1,0 +1,480 @@
+---
+title: "Team Design"
+author: "Terry Doner"
+date: "`r format(Sys.time(),  '%B %d %Y')`" 
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+---
+<a id="top"></a>
+```{r options, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE )
+options(knitr.table.format = "html") 
+```
+
+```{r packages}
+require(kableExtra)
+require(readxl)
+require(dplyr)
+
+require(xtable)
+require(formattable)
+require(DiagrammeR)
+
+require(knitr)
+require(kableExtra)
+```
+
+```{r data ,results='asis', echo=FALSE}
+path <-"~/Documents/UACTech/SystemDocumentation"
+inventoryfile <- "TechInventory.xlsx"
+fname <- paste(path, inventoryfile, sep="/")
+
+org.df <- read_excel(fname, sheet = "TeamOrg")
+org.df$lastName <- substr(org.df$lastName,1,1) #abbreviate last names 
+
+positionString <- function(s) {
+  
+thisname <- org.df %>% dplyr::filter( position == s) %>% dplyr::select(who)
+thisname <- thisname$who %>% as.character()
+
+bossTitle <- org.df %>% dplyr::filter( position == s) %>% dplyr::select(reportsTo)
+bossTitle <- bossTitle$reportsTo  %>% as.character()
+bossName <- org.df %>% dplyr::filter(position == bossTitle) %>% dplyr::select(who)
+bossName <- bossName$who
+
+t <- paste0("The ",  s, " (" , thisname,  ") reports to the ", bossTitle, " (", bossName, ")." )
+
+return(t)
+}
+```
+
+```{r data2}
+path <-"~/Documents/UACTech/SystemDocumentation"
+inventoryfile <- "TechInventory.xlsx"
+fname <- paste(path, inventoryfile, sep="/")
+
+```
+
+#Introduction
+
+A clear understanding of the roles and responsibilities within a team is always important. Even more so within a church volunteer environment where are relationships are much more complex than what they might be in a secular workplace. This document outlines the many roles within the Technical Arts organization. 
+
+Let's start with the overall team structure. 
+
+```{r org2, echo=FALSE, results="asis", warning=FALSE }
+org1 <- "
+digraph org { 
+graph [overlap = true, fontsize = 30, rankdir=LR 
+      label='Organizational Chart',
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip='',  fontsize = 16, style=filled  
+       ]
+" 
+
+org2 <- org.df %>% 
+          filter(management == "Yes"   ) %>%
+           mutate(node = paste0( gsub(" ", "", who), "[label='", who, "|", position, "'" ,   ",fillcolor=", ifelse(filled=="Yes", "'#D7F2D5 '","'lightsalmon'") , "  ]\n"  ) ) %>%
+           select(node) 
+
+org2 <- paste(org2$node, collapse = " " )
+
+d1 <- org.df %>%  rename(key = reportsTo)
+d2 <- org.df %>%  rename(key = position)
+
+org3 <- merge(x=d1, y=d2, by="key") %>%
+        filter(management.x  == "Yes") %>%
+         select(who.x, who.y ) %>%
+         mutate(edge = paste0( gsub(" ", "", who.y) , 
+                                      "->", 
+                                    gsub(" ", "", who.x) 
+                      )) %>%   
+         select(edge)
+
+org3 <- paste(org3$edge, collapse=" ")
+
+#org3 <- ""
+
+org4 <- "}"
+
+org <- paste(org1, org2, org3, org4)
+
+DiagrammeR::grViz(org)
+```
+
+
+# Job Descriptions
+
+All of these positions share some requirements in common:
+
+1. A spiritual call to this ministry.
+2. A servant spirit -- we all need to serve one another and technical support serves the production technology needs of all participants.
+3. Eagerness to learn.
+
+The description for each position below expands on these with role specifics needs.
+
+## Worship Leader
+`r this <- "Worship Leader"`
+`r positionString(this)` 
+
+###Responsibilities
+The job description of this position is not in the scope of this document.
+
+###Team
+The positions reporting to the `r this` are:
+```{r echo=FALSE}
+org.df %>% 
+  dplyr::filter( reportsTo == this ) %>% 
+  dplyr::select(  position, firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+## Technical Director
+`r this <- "Technical Director" `
+`r positionString(this)`
+
+###Responsibilities
+1.	Oversee the operation and maintenance of the sanctuary sound system, theatre lighting, video and computer projection systems and all other AV equipment on campus. This task includes:
+    + Regular checks of the equipment for malfunctions and making repairs or getting repairs performed as required.
+    +	Ensuring that a good supply of consumables are on hand: spare lamps for the theatre lights,  video projectors, batteries, CD blanks, and gaffe/duct tape.
+    +	Maintenance of a formal equipment inventory.
+    +	Ensuring that the technical spaces are clean and tidy.
+2.	Recruit and train technical staff.
+    +	This is a difficult part of the job. Not everyone who wants to twist knobs is suited to the job. Commitmentt, punctuality, attention to detail, a willingness to learn from the present staff as well as do independent learning is vital. 
+3.	Schedule Crews for all services.
+    + This task includes:
+        + Maintain the schedule and coordinate last minute changes. Scheduling is managed via Planning Center Online.
+        + Be the point of contact for events outside the regular service schedule, such as weddings, funerals and outside groups wanting to use the facilities.
+4.	Liase between the church and outside suppliers for rentals, purchases, etc.
+    + This task includes:
+        + Advise the Facilities Committee on projected equipment needs.
+        +	Know who the suppliers of equipment and services are and be able to negotiate the best rates.
+        + Establish relationships with key suppliers
+5. Be the primary contact for facility users who require technical support.
+    +	This task includes:
+        +	Be available to all users of the church facility to advise them of the capabilities of the installed systems and how to enhance them as required. Eg. renting extra lighting equipment.
+6.	Budgeting.
+    + Prepare planned expenditures for the coming fiscal year and manage within that plan.
+    + Forecast large expenditures for at least three years beyond the next year to minimize surprises and allow for good long term financial management.
+7. Manage online service used by the eminstry
+    + Example, Dropbox, Vimeo
+
+###Team
+The positions reporting to the `r this` are:
+```{r echo=FALSE}
+org.df %>% dplyr::filter( reportsTo == this ) %>% dplyr::select(  position, firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+ 
+```
+
+## Audio Lead
+`r this <- "Audio Lead"`
+`r positionString(this)`
+
+###Responsibilities
+
+1. An appropriate technical knowledge of sound reinforcement.  
+2. Ability and willingness to train and supervise others.
+3. Collaboration with the Worship Leader on the goals and design of the worship set.
+5. Assist with the maintenance  audio equipment inventory.
+6. Manage the audio equipment, overseeing the repair or replacement of failed equipment, planning preventive maintenance, 
+7. Contributing to budget planning.
+8. Planning and executing on the long term strategy for the audio systems
+9. The ability to reconfigure the system as needed. 
+
+###Team
+The positions reporting to the `r this` are:
+```{r echo=FALSE}
+org.df %>% dplyr::filter( reportsTo == this ) %>% dplyr::select(  position, firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+ 
+```
+
+## Audio Crew
+`r this <- "Audio Crew"`
+
+###Responsibilities
+
+1. Availability during the week for rehearsal. 
+2. Working with the worship leader for each event to ensure all details are understood.
+3. Critical listening of our productions to detect problems and make improvements.
+4. Ensuring audio cues are executed without fault.
+
+###Team
+The team members are:
+```{r echo=FALSE}
+org.df %>% 
+  dplyr::filter( position == this ) %>% 
+  dplyr::select( firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+
+## Lighting Lead
+`r this <- "Lighting Lead"`
+`r positionString(this)`
+
+###Responsibilities
+
+1. An appropriate technical knowledge of lighting design.  
+2. Ability and willingness to train and supervise others.
+3. Collaboration with the Worship Leader on the goals and design of the service.
+5. Assist with the maintenance  lighting equipment inventory.
+6. Manage the lighting equipment, overseeing the repair or replacement of failed equipment, planning preventive maintenance, 
+7. Contributing to budget planning.
+8. Planning and executing on the long term strategy for the lighting systems
+9. Understanding of the safety principles and practices for working at height.
+10. An understanding of how lighting control systems work and in particular how the system as installed at UAC works. The ability to reconfigure the system as needed. 
+
+###Team
+The positions reporting to the `r this` are:
+```{r echo=FALSE}
+org.df %>% dplyr::filter( reportsTo == this ) %>% 
+  dplyr::select(  position, firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+## Lighting Crew
+`r this <- "Lighting Crew"`
+
+###Responsibilities
+
+1. Availability during the week for rehearsal. 
+2. Working with the worship leader for each event to ensure all details are understood.
+3. Critical observation of our productions to detect problems and make improvements.
+4. Ensuring lighting cues are executed without fault.
+5. An working understand of colour theory as applied to lighting design. 
+6. An understanding of how lighting control systems work and in particular how the system as installed at UAC works.
+
+###Team
+The team members are:
+```{r echo=FALSE}
+org.df %>% dplyr::filter( position == this ) %>% 
+  dplyr::select( firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+ 
+```
+ 
+## Presentation Lead
+`r this <- "Presentation Lead"`
+`r positionString(this)`
+
+###Responsibilities
+
+1. An appropriate technical knowledge of presentation system design.  
+2. Ability and willingness to train and supervise others.
+3. Collaboration with the Worship Leader on the goals and design of the service.
+5. Assist with the maintenance  presentation equipment inventory; computers, video switches, and projectors.
+6. Manage the presentation equipment, overseeing the repair or replacement of failed equipment, planning preventive maintenance, 
+7. Contributing to budget planning.
+8. Planning and executing on the long term strategy for the presentation systems
+10. An understanding of how the presentation control systems work as installed at UAC works. The ability to reconfigure the system as needed. 
+
+###Team
+The positions reporting to the `r this` are:
+```{r echo=FALSE}
+org.df %>% dplyr::filter( reportsTo == this ) %>% 
+  dplyr::select(  position, firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+## Presentation Crew
+`r this <- "Presentation Crew"`
+
+###Responsibilities
+
+1. Availability during the week for rehearsal. 
+2. Working with the worship leader for each event to ensure all details are understood.
+3. Critical observation of our productions to detect problems and make improvements.
+4. Ensuring computer cues are executed without fault.
+5. An understanding of how the advanced features of ProPresenter work
+6. Ability to operate the video matrix switch to get the right content on the right display.
+
+###Team
+The team members are:
+```{r echo=FALSE}
+org.df %>% dplyr::filter( position == this ) %>% 
+  dplyr::select( firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+## Video Lead
+`r this <- "Video Lead"`
+`r positionString(this)`
+
+###Responsibilities
+
+1. An appropriate technical knowledge of video system design and operation.  
+2. Ability and willingness to train and supervise others.
+3. Collaboration with the Worship Leader on the goals and design of the service.
+5. Assist with the maintenance  video equipment inventory; computers, video switches, and cameras.
+6. Manage the video equipment, overseeing the repair or replacement of failed equipment, planning preventive maintenance, 
+7. Contributing to budget planning.
+8. Planning and executing on the long term strategy for the presentation systems
+10. An understanding of how the video control systems work as installed at UAC works. The ability to reconfigure the system as needed.
+11. An understanding and working ability of video production practises. Specifically camera angle selection, cutting, fading, keying.
+
+###Team
+The positions reporting to the `r this` are:
+```{r echo=FALSE}
+org.df %>% dplyr::filter( reportsTo == this ) %>% 
+  dplyr::select(  position, firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+## Video Crew 
+`r this <- "Video Crew"`
+
+###Responsibilities
+
+1. Availability during the week for rehearsal. 
+2. Working with the worship leader for each event to ensure all details are understood.
+3. Critical observation of our productions to detect problems and make improvements.
+4. Ensuring video cues are executed without fault.
+5. An understanding and working ability of video production practises. Specifically camera angle selection, cutting, fading, keying.
+6. Ensuring that all video media needed for recording or live streaming has been prepared and available for use during the service, such as titles and bumpers. 
+
+###Team
+The team members are:
+```{r echo=FALSE}
+org.df %>% dplyr::filter( position == this ) %>% 
+  dplyr::select( firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+## Stagecraft Lead
+`r this <- "Stagecraft Lead"`
+`r positionString(this)`
+
+###Responsibilities
+
+1. An appropriate knowledge of set design and construction.  
+2. Ability and willingness to train and supervise others.
+3. Collaborate with the Ministry team on their long range plans to assess the themes in the upcoming series 
+4. Contributing to budget planning.
+5. A working understanding of safe set design, including physical and fire safety.
+6. Collaborate with the stagecraft team members and the other department leads to determine the elements to be constructed.
+7. Manage budget
+8. Acquire and manage materials
+9. Schedule team activities
+10. Install and deinstall elements as per plan.
+
+###Team
+The positions reporting to the `r this` are:
+```{r echo=FALSE}
+org.df %>% dplyr::filter( reportsTo == this ) %>% 
+  dplyr::select(  position, firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+## Stagecraft Crew
+`r this <- "Stagecraft Crew"`
+
+The stagecraft team constructs things like this. http://pin.it/hD_vg0k
+
+### Skills needed by the team:
+
+* Carpentry
+* Light mechanical (nuts, bolts and brackets)
+* Painting
+* Rigging (making sure stuff can't fall over)
+* Painters
+* Electrical (plug things in & low voltage wiring)
+* Creatives 
+ 
+I would expect we would do a project for every series. Sometimes we may just remix what we already had. Also expect a project for special events.
+
+###Responsibilities
+
+###Team
+The team members are:
+```{r echo=FALSE}
+org.df %>% dplyr::filter( position == this ) %>% 
+  dplyr::select( firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+## WL Assistant 
+`r this <- "WL Assistant"`
+`r positionString(this)`
+
+###Responsibilities
+
+####Series / Seasonal Planning
+#. Identify production elements (video, staging, music)
+#. Commmunicate details of the execution to other teams 
+#. Plan and execute preparation
+#. Checkpoint with ministry staff 
+
+####Weekly planning
+#. Review service plan, ensuring all elements are understood
+#. Ensure all production elements are in place
+#. If communion Service, understand the distribution plan (come forward, served)
+#. Checkpoint with ministry staff
+#. Ensure needed supplies are in place (coffee, cream, milk, other)
+
+####Service Execution
+
+#. Unlock front doors
+#. Turn on lobby and bathroom lights
+#. Turn on the ceiling fans
+#. Make coffee for worship team
+#. Ensure order of service is correct and printed
+#. Print/Distribute and last minute sheet music
+#. Ensure all elements in place
+#. Communicate last minute changes to interested parties. 
+#. Ensure lobby is in order
+#. Before countdown, ensure sanctuary is ready: doors closed, walk-in lighting set, stage clean. 
+#. Ensure fans are turned off before the message
+
+###Team
+
+The positions reporting to the `r this` are:
+```{r echo=FALSE}
+org.df %>% dplyr::filter( reportsTo == this ) %>% 
+  dplyr::select(  position, firstName, lastName) %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+There are no team members.
+
+[Back to top](#top)
+
+`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
+
+[Back to top](#top)
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/", knitr::current_input())`.
+
+
+#Appendix
+Listing of the staff database:
+```{r dumpdb, echo=FALSE}
+org.df %>% 
+  dplyr::select(who, position,	reportsTo )  %>% 
+  kable(align="l")  %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```

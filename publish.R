@@ -9,7 +9,8 @@ files <- c(
   "SystemDesignAudio",
   "SystemDesignLighting" ,
   "SystemDesignNetwork",
-  "SystemDesignVideo",
+  "SystemDesignProjection",
+  "TeamDesign.Rmd",
        
   "SystemOperationsAudio",
   "SystemOperationsLighting",
