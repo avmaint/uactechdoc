@@ -14,7 +14,9 @@ files <- c(
   "SystemOperationsAudio",
   "SystemOperationsLighting",
   "SystemOperationsProjection",
-  "SystemOperationsVideo"
+  "SystemOperationsVideo",
+  
+  "index.Rmd"
           
           #"SystemOperationsGuide"
           #"InventoryManagement",
