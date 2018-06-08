@@ -1,0 +1,773 @@
+---
+title: "System Operations - Video"
+author: "Terry Doner"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output: 
+  html_document:
+        toc: true     
+  pdf_document:
+     toc: true
+---
+
+```{r setup, include=FALSE}
+#output: pdf_document
+require(readr)
+require(dplyr)
+require(readxl)
+require(knitr)
+require(jpeg)
+require(grid)
+require(ggplot2)
+library(kableExtra)
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+
+ options(knitr.table.format = "html") 
+
+path <-"~/Documents/UACTech/SystemDocumentation"
+inventoryfile <- "TechInventory.xlsx"
+fname <- paste(path, inventoryfile, sep="/")
+further <- read_excel(fname, sheet = "Further")
+
+```
+
+# Introduction
+This document provides basic operating information for Video Mixing at Unionville Alliance Church. We do this for several purposes
+
+#. In-house Inclusion
+: We 'broadcast' our mix content internally to the lobby and nursery so that those who can't be in the main sanctuary can participate in those locations.  
+
+#. Recording for the Web site
+: We record the message and post that as quickly as possible to the web site so that those who may wish to watch the content later can do so.
+
+#. Image Magnification
+: There are times when we want to make small things large. Maybe Pastor has an artifact in hand that he would like everyone to see, or we have something on stage that we need to be featured - like a baptism. We have the capbility to use our cameras to grab the 'image' and routed it to the one or more projectors.
+
+#. Livestreaming
+: We stream our services to FaceBook Live
+
+[Back to top](#top)
+
+#Turning it on and off
+
+Main Power
+: On - Flip the switch at the top of the tabletop rack - lableled "Power Swtich #4".
+: Off - Flip the same switch the other way.
+
+Cameras
+: Both On and OFF are handled by the RMIP10 camera control panel. Hold down the Power Button (beside the big "1" button) and press/release each of the "1", "2", and "3" buttons. This will wake the cameras up. It takes about 30 seconds for an image to appear.
+
+> <small>As we currently operate things, the cameras are 'on' all the time but 'asleep'. To turn them off completely we have to unplug their power source. If this has been done you may need to plug them in. On - there are three ethernet jacks that need to be plugged into the cisco switch (NSCU-A004) so that the cameras can get power. Off - Unplug those same three jacks. There is a little plastic tab that needs to be depressed to release the jack. Be gentle.</small>
+
+
+
+# Operating Remote Cameras via the RMIP10 
+
+The RMIP10 (Asset Tag ZVKU-A004) remote control allows a single person to operate three cameras quite easily. Especially since we have presets assigned which are programmed to bring a camera to sepcific positions quickly. We have created some standard presets which enable simple operation for many basic situations. All three cameras share these same presets, but since they are positioned in different locations they still provide different perspectives.
+
+The bottom row of buttons select which camera is to be controlled. The control is either via the joystick or the position buttons
+
+The middle row of buttons will be typically used to direct a camera to a preset position. 
+
+```{r fig.height=2}
+img <- readJPEG("sov-CamRemote.jpg") 
+  
+g <- rasterGrob(img, interpolate=TRUE)
+
+ggplot() +  
+  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
+  ggtitle("Camera Remote Controls" )
+```
+
+
+#. Teaching Tight 
+: Head and shoulders on the standard teaching spot.
+#. Teaching Medium 
+: Waist up on the standard teaching spot.
+#. Teaching Wide
+: Full body about 3 meters wide. Good for a change in perspective and for when the pastor is moving around a lot.
+#. Whole Stage
+: As you might expect - the whole stage from edge to edge.
+#. Worship Leader Tight
+: The Worship leader is normally in the centre front of the stage. This head and shoulder shot might need some tweaking when used as position week over week may not be consistent.
+#. Worhsip Team Wide
+: The whole team of 6 or so singers. When used you may need to go wider of narrower depending on the vocal compliment of that week.
+
+>As of Sept 19: The last two presets have not been programmed.
+
+[Back to top](#top)
+
+# Operating the Video Mixer
+
+## Overview
+
+The Video Mixer (Asset Tag# ZVKU-A003) takes many different inputs such as the PTZ cameras, potentially combining them together and sending the result to the output, such as the video recorder.
+
+The complete list of external sources:
+
+#. Input #1
+: A video feed from the Presetation Switch (ZVKU-A001), which will usuaully be a feed from ProPresenter
+
+#. Input #2
+: A direct feed from the VideoMac (CDMU-A002)
+
+#. Input #3
+: A secondary feed from the presentatoin Switch. This can be used when the windows machine is being used for native PowerPoint, or Mediashout. It will also be useful when we implement three independent screens from ProPresenter, you will be able to choose between two of the three projected images.
+
+#. Input #4
+: Not used
+
+#. Input #5
+: Not used
+
+#. Input #6
+: PTZ camera #1 - far east side. <small>There are wiring constraints that prohibits camera 1 from being on input 1. Just in case you are wondering why camera 1 was not input 1, etc.</small> 
+
+#. Input #7
+: PTZ camera #2 - centre
+
+#. Input #8
+: PTZ camera #3 - far west side
+
+And there is also the internal media player sources. 
+
+There are two outputs:
+
+* Program
+* Auxillary
+
+The Program output of the video mixer is sent to three different destinations:
+
+* To the presentation switch (ZVKU-A001), where it can be routed to a projectors
+* The two video recorders (ZVRU-A001 and ZVRU-A002)
+* The Web Presenter device (Asset Tag# ?), which is used for live streaming
+
+The Auxillary output is sent to two destinations:
+
+* The presentation swtich (ZVKU-A001), where it can further routed to any of its outputs. 
+* The Web Presenter (ZVIU-A004) which then becomes an input to the VideoMac (CDMU-A002) for use in programs like Skype or OBS. 
+
+[Back to top](#top)
+ 
+## Control Overview
+
+There are several sections that we will use a lot. 
+
+Program and Preview buttons
+: In the lower left corner there are two rows of 8 buttons. They are not labelled as Program and Preview, but instead with the corresponding source.
+
+* The top row will have a red button, and the bottom will have a green button. 
+* The red button indicates which source is currently live. 
+* The green button indicates which one is next.
+
+```{r fig.height=2}
+img <- readJPEG("sov-ProgramPreview.jpg") 
+  
+g <- rasterGrob(img, interpolate=TRUE)
+
+ggplot() +  
+  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
+  ggtitle("Program and Preview", subtitle="Lower Left")
+```
+    
+CUT and AUTO Buttons (Next to Slider)
+: In the centre at the bottom the are two buttons.
+
+* Pushing the CUT button will imediately switch the next source (green) to live. And place the one the was live as the next. 
+* The AUTO button also swaps current and next but does so using the select transition effect, such as mix.
+* There is a slider next to the AUTO button, this functions much like the auto button, but gives you direct control over the speed of the transition.
+    
+```{r fig.height=2}
+img <- readJPEG("sov-CutAuto.jpg") 
+  
+g <- rasterGrob(img, interpolate=TRUE)
+
+ggplot() +  
+  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
+  ggtitle("Cut and Auto", subtitle="Lower Centre")
+```
+   
+    
+Slider
+: Botttom Center.
+
+* the slider executes the same transition as the AUTO button will execute except that you manually control the speed of the transition. You can even stop part way through, and go backwards.
+    
+Mix Button
+: Top centre
+
+* The mix button, when pressed, sets the transition to be a a disolve between the current and next images. (one image will fade away an the other will fade in) 
+
+```{r fig.height=2}
+img <- readJPEG("sov-Mix.jpg") 
+  
+g <- rasterGrob(img, interpolate=TRUE)
+
+ggplot() +  
+  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
+  ggtitle("Mix", subtitle="Top Centre")
+```
+
+DVE PiP Buttons
+: Left side middle - there are four of them.
+
+* These buttons are used for picture-in-picture effects. Pressing one of those buttons inserts a second video source into that corner of the screen (in the NEXT scene). It will initially appear as a black box. 
+* You would then press the 'Key 1 Fill' button (on the opposite side of the console) and one of the small numbers underneth to select which source you want to use as the fill.
+* Once the look is ready, go live with the AUTO or CUT buttons.
+
+```{r fig.height=2}
+img <- readJPEG("sov-PiP.jpg") 
+  
+g <- rasterGrob(img, interpolate=TRUE)
+
+ggplot() +  
+  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
+  ggtitle("DVE PiP", subtitle="Right Middle")
+```
+
+Key 1 Fill
+: Left side, middle
+
+* This button is used in conjunction with the numbered keys immediately below to select the source to be placed in a PiP.
+
+```{r fig.height=2}
+img <- readJPEG("sov-Key1Fill.jpg") 
+  
+g <- rasterGrob(img, interpolate=TRUE)
+
+ggplot() +  
+  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
+  ggtitle("Key 1 Fill", subtitle="Left Middle")
+```
+
+[Back to top](#top)
+
+# Basic Operation
+
+##Changing Sources
+
+* Decide which source you want to change to 
+* Press the corresponding button on the preview row
+* Verify you have the desired look on the preview window on the monitor. 
+* Decide on your transition effect, for most cases a simple cross fade works great.
+* Press the transition button to take the transition effect ("Auto") or "Cut" for an instantaneous transition
+
+## Picture in Picture
+
+* Decide on which source you want to have as the main image
+* Decide on which corner of the screen you wan to have the PiP and press the corresponding DVE PiP Button
+* Press the "Key 1 Fill" button and then press the numbered button below which corresponds to the source you desire in the corner.
+* Finally press the CUT or AUTO button to make the transition.
+
+> <small>To turn PiP off ... I don't remember - fiddle with the BKGD and "Key 1 TIE" buttons.</small>
+
+[Back to top](#top)
+
+## Lower Thirds - Down Stream Luma Keying
+
+> Down Stream Key is abbreviated DSK. 
+
+A key is a mask applied to one source to overlay on top of another. The term key refers to that which defines the mask, and fill refers to what goes inside the mask.
+
+A Luma key is a key defined by the brightness of the key source. 
+
+Our most typical configuration is to link DSK #1 to media player #1 and DSK #2 to media player #2 and both as Luma keys. This can be done via the built-in display or via the ATEM control software. The software is easier to use. 
+
+To set our default configuration, go into the DSK menus for DSK1 and DSK2. Using #1 as an example, set the key source to Media Player 1 and the fill to also be Media Player 1. Also set the clip level to be about 15%. The clip level determines what to consider part of the mask, or not.
+
+We typically use this for a lower 3rd type graphic, where the top 2/3rds are black and the bottom third is a graphic with text and absolutely no black. With clip set to 15 everything below 15% brightness is excluded from the mask, and everything above that is included. The fill source (which is, as above, configured to be the same image) is then used to 'fill' in the inclusion part of the mask. 
+
+We can now use the DSK to place a title graphic on top of a camera image.
+
+A different example configuration is with lyrics. Say the text is pure white and the back ground is all darker. You could set the key and fill to both be "ProPresenter" and set the clip to 90. Now you can overlay the text on top of a camera image and knock out the background graphic from ProPresenter.
+
+[Back to top](#top)
+
+## Using the Built-in Media Player
+
+The ATEM mixer has two built-in media players which can play images and very short videos. Using them has three steps:
+
+#. Loading the content into the mixer
+    + This is most easily done using the ATEM control software on the VideoMac (CDMU-A002). Go into the Media tab and navigate to the file you want to transfer and then drag n' drop it into the media bin. You can get rid of old media by simply click on the the 'X' in the corner of the media item. 
+#. Assigning a media element (image or video) to a player. Two ways to do this
+    + Using the ATEM software, media tab as above. You can drag n' drop media from the bin to the player of your choice on the right hand side.
+    + Using the ATEM console itself, you can naviagte to the media player menus and select the item you want by file name.
+#. Using the player as a source
+    + You can select either media player as a source for a transition using either the Program buttons or the Preview buttons. They are labelled "MP 1" and "MP 2". You do have to use the 'shift button' to select them. 
+    
+[Back to top](#top)
+
+## Using the External Media Players
+
+The system is not currently configured to use these as sources. They are used for recording only at the moment. 
+
+[Back to top](#top)
+
+## Using Macros
+
+###What is a Macro?
+
+A macro is an easy way to automate a sequence of switcher actions so you can repeat the sequence at the press of a button. This makes the execution of a complex set of steps easy to do in a hurray and without error.
+
+###Running Macros
+
+There are three ways to run macros:
+
+1. Directly from the panel. 
+    1. (This instruction need to be tested)
+    2. Press the macro button and then the number of the macro you wish to execute 
+2. From the ATEM Control Software on the Video Mac (CDMU-A002). 
+    1. Open the application (if not already running) 
+    2. Click on ‘macros’ in the title bar. The macro window is a floating window you can move freely about on your desktop. 
+    3. There is a tab for "Create" and “Run”, click on “Run”
+    4. There is a radio button for “Recall and Run”, select that.
+    5. To run a specific macro just click on the macro name in the grid. 
+3. FUTURE: From a preset in CueCommander
+    1. Not yet implemented. 
+
+
+###Standard Macros Defined for UAC:
+
+There are two types of macros we have defined:
+
+* “DO” macros are meant for use during the service and execute a set of predefined actions meant for a particular point in time in the service.
+* “Setup” macros are meant to change configurations  and are used as part of the DO macros. This way we can change a setting without re-recording the entire DO macro.
+    * The “Do Setup” macro is a hybrid. It executes all of the pre-service setup macros. 
+
+1. __Do__ Setup pre-service
+    * Run 21 setup USK
+    * Run 22 setup Pre-message MP
+    * Run 23 setup DSK1 and dsk2
+2. __Do__ start recorder 1
+3. __Do__ stop recorder 1
+4. __Do__ start recorder 2
+5. __Do__ stop recorder 2
+6. __Do__ Start of message logos and start recording
+    1. Run  MP setup 22
+    2. Run DSK setup 23
+    3. Run start recorder 2 
+    4. Fire DSK1 
+    5. pause for 3s
+    6. remove DSK1, Fire DSK2 
+    7. Pause for 3s
+    8. Remove DSK2
+7. __Do__ end of message and stop recorder
+    1. Set post msg trailer mp1 24  
+    2. Fire mp1
+    2. Pause 3s
+    3. FTB
+    3. Run stop recorder 2
+    5. fire camera 2
+    6. FTB
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. __Do__ Aux1 from ProP
+17. __Do__ Aux1 from CDWU-0009
+18. __Do__ Aux1 from Program
+19. __Do__ USK On - Turn on the Upstream keyer.
+20. __Do__ USK Off - Turn off the Upstream keyer.
+21. __Setup__ USK for ProP overlay. This sets the upstream key to create a overlay of just the bright parts of the ProPresenter source - which is usually just the Text.
+    1. set fill and key to PP 
+    Threshold at 92, gain 70
+    2. source and key as ProP
+    3. Set Flying key position A to Bottom Centre x=0, y=-3, size=.8
+    4. Set Flying key position B to Bottom Right  x=6, y=-4, size=.6
+22. __Setup__ Pre-Message MP
+    1. Move graphic 1 to Mp1 (church Logo)
+    2. Move graphic 2 to MP2 (speaker L3rd)
+23. __Setup__ DSK1 and DSK2 for luma key 
+    1. %10, source and key to be respective MP
+24. __Setup__ Post-Message video Trailer MP
+    1. Move Graphic 3 to MP1
+
+[Back to top](#top) 
+
+## Going Deeper
+Once you are comfortable with the basics, reading through the manual would be beneficial.
+
+The video mixer manual is a massive 1673 pages, but don’t be scared by that. It is the same content repeated for 8 different languages and four different products, so that reduces it to about 100 pages of relevant content for our product. 
+
+You can access the manual directly from this [link:](https://www.dropbox.com/s/kpj5k4nvx9jy85j/BMD%20ATEM_Switchers_Manual.pdf?dl=0)
+
+Be aware that not all products offer the same feature sets, so you when reading a section you need to watch out for sections they may only apply to the “Broadcast 1 M/E" or "Broadcast 1 M/E" products. They have more features than ours. Our video mixer model is called a “Blackmagic Design ATEM Television Studio Pro HD”. 
+
+Page 106
+: Begins the section on our particular model, "ATEM Television Studio Pro HD”
+
+Page 109-110
+: Covers audio controls, not of a big interest to us since most of our Audio work is handle by our audio mixing system. 
+
+Page 110-113
+: Covers the camera control features which doesn’t apply to our cameras models. 
+
+Page 114
+: Starts a short section on upstream and downstream keying. See page 135 for details.
+
+Page 116
+: Picture in Picture
+
+Page 117
+: The Aux button. Our product has only one Aux output.
+
+Page 118
+: Operating your ATEM switcher (not all features supported - such as ‘stinger’)
+
+Page 135
+: Keying. Pay particular attention to Luma keying on page 136. I have found that use of the clip parameter an important function for a good key.
+
+page 157-163
+: Macros. I think they are an important feature we can leverage to make our opening much smoother. 
+
+Page 33
+: Using the ATEM Control Software. Most things can be done directly from the panel, but some things are much easier from the software. 
+
+[Back to top](#top)
+
+# Operating the Video Recorders
+
+We have two solid state recorders, Black Magic Design Hyperdeck Minis (Asset Tags ZVRU-A001 and ZVRU-A002). These record onto SD memory cards. You can observe and verify what is being recorded by looking at the mini screens on the device.
+
+> Ensure that the destination card has been formatted before you begin recording.
+
+To start recording
+: Press the white dot button, it will turn red while recording.
+
+To stop recording
+: Press the white square
+
+There are also macros that can do the same thing for both recorders.
+
+The screen will display the amount of time the recording has been going for. If the counter turns red then not much time is left on the cards. The amount of recording time shold be check well before the beginnning of service. You may need to format the card.
+
+### Formattting a card
+To format the memory card using the hyperdeck mini:
+
+ #. Insert the media you want to format in the SD card slot.
+ #. Press the 'menu' button on the control panel.
+ #. Turn the jog wheel and use the set button to enter the 'record' menu on the LCD desplay and select 'format card'.
+ #. Select the SD card you want to format on the LCD using the jog wheel. Press the 'set' button to confirm your selection.
+ #. Now pick the desired format, in our case 'HFS+'.
+ #. A Warning message will appear asking you to confirm the choice. Confirm by selecting 'format' with the wheel and then pressing the 'set' button.
+ #. A progress bar will show the progress. When complete the message 'formatting complete' will be displayed. Press the 'set' button again to return to the menu.
+ 
+[Back to top](#top)
+
+# Operating Web Presenter
+
+This device enables us to stream our video content live on services like FaceBook Live (This capability hasn't been enabled yet). And can also be used as a source for Skype and to record content.
+
+The device is pretty hands off. You should see the source signal on the front display. If not then hit the 'some button - don't recall which' button on recorder #1 as it is a source for the web presenter. 
+
+There is a mini-swticher built into the web presenter. The box is wired to see the ATEM Program output on #1 and the ATEM Aux output on #2. You typically will want the #1 for recording or live streaming. You would likely want #2 for Skype. 
+
+Why #2 for Skype? In this situation you would want the skype video output (from CDMU-A002) to go into the ATEM and out on Program to feed the projectors. But you want the video in to Skype to be a camera. Say the centre camera. You would feed the ATEM Aux output the centre camera feed, which goes to input #2. There is a complete separate document on this topic.
+
+[Back to top](#top)
+
+# Livestreaming
+
+As of May 2018 we have begun to stream our entire service to "FaceBook Live". 
+
+This is how it works. The "Program" output from the ATEM is wired into the into of the "Web Presenter" box. Its output is feed via USB to the into of the computer. The computer sees that devices as a web cam.
+
+```{r}
+d <- 'digraph livestreaming { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Livestreaming Topology\n(as of 2018-05-20)",
+      fontname = Helvetica, bgcolor=white
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+
+rswitch [
+  tooltip="BMD ATEM Television Studio Pro HD"
+
+  label="{
+    {{<al>AudioL}|{<ar>AudioR}|
+      {<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}
+      |{<i5>sdi|In5}|{<i6>sdi|In6}|{<i7>sdi|In7}|{<i8>sdi|In8}}
+      |{Recording Switcher|ZVKU-A003}|
+      {{Out1|<o1>sdi}|{Out2|<o2>sdi}|{Out3|<o3>sdi}|{Out4|<o4>sdi}|{Aux|<aux>sdi}|{mv|<mv>hdmi}}
+    }"
+]
+
+webp [
+  label="{
+    <i1>sdi|in1
+    |{Web Presenter|ZVIU-A004}
+    |<o1>usb
+    }"
+  tooltip="BMD Web Presenter"
+]
+cdmua002 [label="{{<usb>usb}|{iMac 21|CDMU-A002}|{<ethernet>ethernet}}"]
+
+rswitch:o3 -> webp:i1 
+webp:o1 -> cdmua002:usb
+cdmua002:ethernet -> Facebook
+     
+} '
+
+DiagrammeR::grViz(d)
+```
+
+We use a program called OBS to stream the web cam feed to facebook live. It is free to download and use, and runs on Windows and Mac. So you can install it on your own machine if you want to become familiar with it. 
+
+The is the details of the setup.
+
+* Sometime during the week, Kris (or another facebook admin) will generate a streaming key and place in the  week's dropbox folder in a file called "live stream key.txt" or something similar. It would like something like "444241729362798?ds=1&a=ATiKDmZGnUEDUDV1". 
+The stream will be scheduled to go live at 10am.
+* open OBS and go into Settings, and then the "Stream" section. Paste the key into the "Stream Key" field. Press "ok"
+* at about 9:50am, press the "Start Streaming" button. It will then change to be the "stop streaming" button.
+* From the scene list select the scene "02 Announcement Clock", and then click the  "transition" button.
+* at 10am select the scene "xx web presenter with date", and click "transition".
+* after a few seconds, select the "xx Web Presenter scene", and click "transition".
+* check to make sure we are still streaming.
+
+* at the end of the service, ckick "Stop Streaming".
+
+[Back to top](#top)
+
+# Video Post Processing and Uploading
+
+We have an objective to minimize the delay between end of service and message video publication. Getting our live mix correct means we don't have to fix anything, which eliminates an edit step.
+
+We make two video recordings: 1) for the entire serice, and 2) just the message portion. When we live mix we need to get the title graphics and the trailer recorded as part of #2 so it is 'finished'.
+
+Our current recording process encodes the video as 1920x1080p60 which produces a file of about 35GB. We have a hard limit of 5GB per week upload, and upload takes a lot of time. Our goal is to produce a file that is less than 2.5GB.  (That enables a second upload if there is a problem).
+
+##Edit
+
+These instructions are written assuming the use of Davinci Resolve V14 video editing software (free for Mac and Windows). 
+
+#. Move the media card from the recorder to the computer.
+Pop the CD card out recorder #2 and insert in in the back of the computer.
+
+#. Start the program Davinci Resolve.
+It will take a minute to start and then will ask if you want to start a new project (bottom of window). Click "New Project". It will ask for a project name. Choose the date of service, eg "may27". 
+
+#. Import the media.
+From finder navigate to the media card. The file we want is largest file and likely the last ".mov". Drag and Drop it into the media bin.
+
+#. Add it to the timeline. Drag and drop the video from the bin to the timeline.
+
+#. Check the beginning and end of the recording to make sure it starts and ends well. Is it doesn't we'll need to fix it up. I won't be including those instructions here, yet.
+
+#. Now to touch up the audio. Click on the fairlight tab at the bottom. select the audio track. Increase clip volue to +3. Drag and drop AuDynamicsProcessor on to the audio track. right click to get the menu and select "Clip Attributes", select "embedded Channel 2" for both tracks.
+
+#. Now go to the deliver tab. Change the codec to "H.264". Change the quality to restrict to "7000" kbps. switch to the file tab, and put in today's data as the "custom name".
+
+#. Click the "Add to Render Queue" button. It will ask where to put the output file - choose the "/Users/avuser/..." option - which will be the first one.
+
+#. click "Start Render". It will take about 10 minutes.
+
+
+Along the bottom of the UI there are 'tab' selectors for "Media", 'Edit', 'Color', 'Fairlight', and 'Deliver'. 
+
+```{r fig.height=2, fig.width=4}
+img <- readJPEG("sov-ResolveTabs.jpg" ) 
+  
+g <- rasterGrob(img, interpolate=TRUE)
+
+ggplot() +  
+  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
+  ggtitle("Resolve UI ", subtitle="Bottom Tabs")
+```
+
+The post service steps are as follows:
+
+#. Transfer to computer
+: Take the SD memory card for the #2 recording (usually recorder 2) and plug it into a computer. (The cards are currently being formatted for MacOS).
+
+#. Edit (Optional)
+: Using Davinci Resolve video editing program, load the video from the card using the 'Media' tab and then on the 'Edit' tab place it on the timeline and make any required corrections. 
+
+#. Render / Transcode
+: This is the key step that reduces the file size. This step all occurs on the 'Deliver' tab. In the upper right corner, there is a tabbed dialogue. You will set video parameters on the 'Video' tab, and name the file on the 'File' tab.
+
+```{r fig.height=2, fig.width=4}
+img <- readJPEG("sov-DeliverTabs.jpg" ) 
+  
+g <- rasterGrob(img, interpolate=TRUE)
+
+ggplot() +  
+  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
+  ggtitle("Deliver UI ", subtitle="Video, Audio and File Tabs")
+```
+
+The parameters on the video tab should be set to these:
+```{r fig.height=3, fig.width=4}
+img <- readJPEG("sov-VideoParameters.jpg" ) 
+  
+g <- rasterGrob(img, interpolate=TRUE)
+
+ggplot() +  
+  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
+  ggtitle("Video Tab", subtitle="Video Parameters")
+```
+
+Once that is done, click the 'Add to Render Queue' button just below those paramaters. And then you need to start the render process. On my laptop it takes about 1 minute to render 1 minute of video. 
+
+```{r fig.height=3, fig.width=3}
+img <- readJPEG("sov-StartRender.jpg" ) 
+  
+g <- rasterGrob(img, interpolate=TRUE)
+
+ggplot() +  
+  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
+  ggtitle("Render Queue", subtitle="Start Render")
+```
+
+## Upload to Vimeo
+: Check the resulting file size, it should be about 2.5GB, less is better. Open you web browser, go to [Vimeo](http://www.vimeo.com), and logon with userid uacmedia@uachome.org. The password is provided separaetly. Upload the file. It will take some time - 1 to 6 hours has been my experience. Also set the various fields that describe the video:
+
+* Title - use the message title
+* Description - use the synopsis / teaser text provided
+* All Audiences
+* English
+* Tags: uac, unionvillealliance and whatever else fits the topic
+* Assign a license: creative commons, attribution, no derivaties.
+* also assign it to the collection for the series. 
+
+After upload, vimeo takes a while to prepare the video for publication - maybe 10 or 15 minutes. Once that is complete grab the Share URL for the video and go to the next step.
+
+5. Update the UACHome website
+: Go to the [church web site](http://www.uachome.org) and login, which is at the bottom of the page. Usually the audio is posted first so the page for the sermon would already exist. Go to Sermons page and navigate to the page for this particular sermon. Click 'Edit'. Scroll down to the Video Link field and paste in the URL from Vimeo. Click Save.
+
+#. Congratulations - You are almost done
+: The one last thing is to ensure that the memory card gets back to the church for the next service.
+
+
+[Back to top](#top)
+
+# Putting it all together and Getting Creative
+
+## Camera Operation
+
+* Make (most) changes while "not live"
+* try to pick camera angles, especially during teaching where the speaker is looking into the camera most of the time. 
+* When subject is facing sideways, frame image so that they are looking across the frame. Or switch to the reverse angle.
+* Vary exposure according to lighting conditions
+    * Switcher may provide exposure directions so that cameras match
+    * Anticipate what lighting will be like when next live. Most important when there will be a large difference. Auto exposure is easiest to use but cannot react fast enough when there is a sudden change.
+* Anticipate and follow the subject
+* If you can't keep up with the subjects movement, then zoom out.
+   
+* When zooming in or out, will also need to tilt to keep framing correct (when live).
+* Make live pans broad and smooth:
+    * When panning a row of people (a choir) the switcher will want to switch to you after you are already in motion, so you will need to begin your pan as if the row was longer than it is, and at the end of the row, keep going past the end for the same reason.
+    * Other more advanced actions are possible but need to be able to understand and execute the simpler ones first. (An example of a more advanced more would be to zoom in, tilt, and pan all in one compound move.)
+* It really helps contribute to the creative process if the camera operators can actively seek out interesting content when no other direction has been given.
+* Sometimes a camera gets confused about what to focus on. When that happens, camera operators need to switch to manual focus. We should be able to use auto-focus most of the time, but when the camera gets it wrong, it can be helped by by switching to manual focus (for a time).
+
+## Advice on choosing your shots 
+
+* Before service, check your camera anlges and look for clutter in the backgroud that could be cleaned up.
+* Use cuts for preaching, talking, interviews, and dramas
+* Use fades (MIX) for music. 
+* Make cuts or fades according to the ryhthm of the material. Try to make them at the ends of phrases or sentences.
+* Make the duration of the scenes match the pace of the material. Every 15-30 seconds for preaching, perhaps every 10-20 seconds for music.
+* Use a mixture of tight, medium and long shots, but use long shots sparringly.
+* During transitions on stage - like one speaker leaving and another arriving, use a longer shot so that the 'recorded" audience knows what is going on. You don't want to leave them with an empty podium/scene.
+* When there is a transition happening, say during a prayer, you likely are focused on the person praying. Watch what is happening in the backgroud and anticiapte people walking through the background and pick a different angle.
+* When approaching a transition, line up a camera to anticpate what is coming. You may prefer a long shot camera until you establish exactly where the action is happening.
+* When a transition will involve a significant change in scene brightness, manually  adjust camera exposure for what is coming, rather than for the darkness. 
+
+## Typical service structure 
+
+Our typical service content should follow a standard structure. 
+
+* Intro Bumper - this will be short and video - less than 10 seconds.
+* (Optional) Selected camera shots with Lyrics as an insert or visa versa.
+* The message portion of the video would contain:
+    * Series Bumper
+    * Message Bumper which would introduce the topic for the week (this could be a static image)
+    * A lower 3rd to introduce the speaker.
+* Exit trailer (thinking a static image in which we could overlay PiP) which would contain
+    * © Copyright 2017 Unionville Alliance Church
+    * Our CCLI License notice
+    * A hook to our web site
+
+#Appendix
+
+[Back to top](#top)
+
+## Video Terminology
+
+FTB
+: Fade to Black. A gradual transistion of the program output to all black
+
+DSK
+: Down Stream Keyer. A video mixing ability to overlay the program output with something like a graphic or a lower third banner.
+
+PTZ
+: a term used to describe a remote controllable camera which provides Pan, Tilt, and Zoom controls.
+
+Pan
+: Moving the camera from side to side.
+
+Tilt
+: Moving the camera up and down.
+
+Video bumper
+: A visual way to provide a “bumper” to your main content – a bumper for the start and finish. Usually short and attention grabbing.
+
+Zoom
+: Moving the image in and out (larger and smaller - technically this is changing the focal length).
+
+Shutter speed
+: Some points:
+
+* Controls the amount of light by varying the rate at which the scence is sampled.
+* Expressed as a fraction, for example 1/90
+* Too slow and motion in the image will blur. This motion blur becomes highly noticable at speeds slower than 1/30 (1/8 and 1/15).
+* The GL2's shutter speed can range from 1/8 at the slowest to 1/15000 at the fastest.
+
+Aperture
+: Controls the amount of light entering the camera by varying the lens iris.
+ Also results in the [depth-of-field](http://www.mediacollege.com/video/camera/focus/depth-of-field.html)  changing, but that is not often a concern.
+ Ranges from F1.4 to F8.0, but the limits also vary by the focal length
+Gain
+
+Controls image brightness by the amount of electronic amplification of the video signal.
+Typical use +12dB
+Can use +18dB when scene is really dark or +6dB when really bright.
+The smaller the number the less noise the image will have.
+
+Tight Shot
+: Zoomed in so you have only head and shoulders - or less - in the frame.
+
+Long Shot
+: Zoomed out so that you see a good portion of the stage.
+
+Medium Shot
+: Anywhere between a tight and a long shot.
+
+Focus Pull
+: A technique where the camera focus point is changed while live. [ Read more.](http://www.mediacollege.com/video/camera/focus/pull.html)
+
+[Back to top](#top)
+
+## Setting up a Tripod
+Some simple notes for now. Since our cameras are now ceiling mounted, this isn't important unless we bring in a camera for a special purpose.
+
+* Dropping all three legs and make them even before spreading - this helps get them even to start. However if, as is the case on the main floor, the floor is not level, adjust the legs so that the center column is vertical. The bubble level might help you figure this out. This is very important especially when the center column is fully extended. It is more vulnerable to being knocked over.
+* Lock down the camera before letting go of it.
+* Adjust the tension knows for smooth operation. There is a tension/lock control for each of three dimensions of motion.
+* Especially when left unattended, cameras 1 and three should be left hugging the wood posts rather than blocking off two pew rows. That way we maximize seating for people and reduce the chance of them being knocked over.
+
+[Back to top](#top)
+
+`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
+
+[Back to top](#top)
+
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/", knitr::current_input())`.

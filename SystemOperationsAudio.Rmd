@@ -1,0 +1,103 @@
+---
+title: "System Operations - Audio"
+author: "Terry Doner"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output: 
+    html_document:
+        toc: true
+---
+
+```{r setup, include=FALSE}
+require(readr)
+require(dplyr)
+require(readxl)
+require(knitr)
+require(jpeg)
+require(grid)
+require(ggplot2)
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+
+setwd("~/Documents/UACTech/SystemDocumentation")
+
+NetworkInventory <- read_excel("NetworkInventory.xlsx", sheet = "Network")
+
+```
+
+# Introduction
+This document provides basic operating information for each of the Audio systems at Unionville Alliance Church.
+
+[Back to top](#top)
+
+  
+## Power On
+ 
+>To Be written. 
+ 
+[Back to top](#top) 
+
+## Power Off 
+
+>To Be written. 
+ 
+[Back to top](#top) 
+ 
+# Basic Mixing
+
+>To Be written. 
+ 
+[Back to top](#top) 
+
+# Audio Recording
+
+### Purpose
+
+To record the sermon or teaching for publication on the web site.
+Also serves as a backup for the CD recording.
+Operation
+
+### Via Computer (EZTracker)
+
+Note
+: EZTracker is not currently working (2016).
+
+The program we use is called EZTracker. There are usually cues on the cue sheet to remind operator when to start and stop. Key Points:
+
+* Switch ‘4’ must be on – same as the video recording system
+* Use mode “record 2”
+* Press the level button to ensure there is a signal; lots of green, some yellow only the occasional brief flicker of red. If you are checking it during singing, you may see a lot of red that is okay since the sermon will be a lot quieter. You will need to press the level button again to return to normal.
+* Press “Record” – the big red button to begin recording and “Stop” to, obviously stop recording. If the sermon is broken up by other things (communion distribution, for example) you could pause the recording or ‘stop and start’ as appropriate.
+* Press the ‘close’ button to quit the application. The normal ‘X’ button in the upper right has been disabled to prevent accidental closure.
+
+### Via Audio CD
+
+Key Points:
+
+#. Place a blank CD into the recorder and close the tray. It will take a few moments to recognize the disc type.
+#. Press the Auto/Manual (or is it tracking) button on the left hand side to select whether you want new tracks created automatically or not.
+#. Press the record button to begin recording
+#. Press the record button again to start a new track when desired.
+#. Press stop when done. The display will flash a PMA message for a few moments
+#. To Finalize. 
+    * Press the "Finalize" button, it will think for a moment or three and the display will show a time. (usually 2:01). 
+    * Push Play and it will begin finalizing. The time will count down.
+    * Eject disc, remove disc
+    * Close tray.
+#. If for some reason the audio CD was not finalized, put it back into the recorder and pick up the instructions at step #6.
+
+  
+[Back to top](#top)
+
+#Audio Terminology
+   
+None.  
+
+[Back to top](#top)
+
+`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
+
+[Back to top](#top)
+
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. THe source is found here `r paste0(getwd(),  "/", knitr::current_input())`.
