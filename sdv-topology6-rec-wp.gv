@@ -1,0 +1,54 @@
+digraph webpresenter { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Video Recording Topology - Web Presenter\n(as of 2017-11-11)",
+      fontname = Helvetica, bgcolor=white
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+      
+rswitch [
+  tooltip="BMD ATEM Television Studio Pro HD"
+
+  label="{
+    {{<al>AudioL}|{<ar>AudioR}|
+      {<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}
+      |{<i5>sdi|In5}|{<i6>sdi|In6}|{<i7>sdi|In7}|{<i8>sdi|In8}}
+      |Recording Switcher\nZVKU-A003|
+      {{Out1|<o1>sdi}|{Out2|<o2>sdi}|{Out3|<o3>sdi}|{Out4|<o4>sdi}|{Aux|<aux>sdi}|{mv|<mv>hdmi}}
+    }"
+]
+
+recorder1 [
+  label="{
+    <i1>sdi|in1
+    |Recorder\nZVRU-A001 
+    }"
+  tooltip="BMD Hyperdeck Studio Mini"
+]
+
+recorder2 [
+  label="{
+    <i1>sdi|in1
+    |Recorder\nZVRU-A002 
+    }"
+  tooltip="BMD Hyperdeck Studio Mini"
+]
+
+fromvmp [label="From\nVmix\nProgram"]
+fromvma [label="From\nVmix\nAux"]
+
+wp [label="{{ {<i1>sdi|1 }|{<i2>hdmi|2} }|{Web Presenter \n ZVIU-A004}|{<usb>usb}}"]
+
+cdmua002 [label="{Video Recoding iMac|CDMU-A002}"]
+ 
+fromvmp -> wp:i1
+fromvma -> wp:i2
+ 
+wp -> cdmua002
+ 
+rswitch:o1 -> recorder1:i1 
+rswitch:o2 -> recorder2:i1 
+  
+} 

@@ -1,0 +1,72 @@
+digraph topology1 { 
+graph [overlap = true, fontsize = 10, rankdir=TB 
+      tooltip="Control Topology",
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" , 
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+      
+console [label="{Lighting Control|ETC Express\nZLKU-0001|{<vga>vga|<o1>dmx\n1-512|<o2>dmx\n512-1024}}"]
+
+computer [label="{{Computer}|{ <o1>usb|<o2>usb }}"]
+
+n1 [label="{<i>usb|Ketra N1\nZLIU-A002|KetraNet}"]
+computer:o2 -> n1:i
+
+monitor [label="{<i>vga|Monitor}"]
+
+optoisolator [label="{{<i1>dmx|<i2>dmx}|Optical Isolator\nZLIU-0003|{<o1>dmx|<o2>dmx|<o3>dmx|<o4>dmx}}"]
+
+interface [label="{<i>dmx|I/F 501\nZLIU-0001|<o>microplex}"] 
+usbdmx [label="{<i>usb|Interface\nZLIP-0001|<o>dmx}"] 
+
+demux [label="{<i>dmx|Interface\nZLIU-0002|analog}"]
+
+pathway [label="{<i>dmx|Interface\nZLIU-A001|{<o1>dmx|<o2>dmx|<o2>dmx}}"]
+
+chromaq [label="{<i>dmx|Scroller Control\nZLIU-0004|{<o1>dmx|<o2>4pin}}"]
+
+n3 [label="{<i>dmx|Ketra N3\nZLIU-A003|<o>KetraNet}"]
+
+chromaq:o1 -> pathway
+pathway:o1 -> n3 [label="port to be confirmed"]
+ 
+nrd1 [label="{<i>microplex|NSI Dimmer 1-8\nZLEU-0001}"] 
+nrd2 [label="{<i>microplex|NSI Dimmer 9-16\nZLEU-0002}"] 
+
+analogdimmer1 [label="{<i>analog|LMI Dimmer 17-22\nZLEU-0003}"] 
+analogdimmer2 [label="{<i>analog|LMI Dimmer 23-28\nZLEU-0004}"] 
+
+computer:o1 -> usbdmx:i
+console:vga   -> monitor:i
+console:o1 -> optoisolator:i1
+
+interface:o -> nrd1:dmx
+interface:o -> nrd2:dmx
+
+optoisolator:o1 -> interface:dmx     
+optoisolator:o2 -> demux:i
+optoisolator:o3 -> chromaq:i
+
+usbdmx:o -> optoisolator:i2
+
+demux -> analogdimmer1
+demux -> analogdimmer2
+
+Node [shape=plaintext, fillcolor=white]
+stamp [label= <<table>
+<tr><td>Title</td>
+    <td>Control Topology</td>
+</tr>    
+<tr><td>As of</td>
+    <td>2017-10-04</td>
+</tr>
+<tr><td>Status</td>
+    <td>Implemented</td>
+</tr>    
+</table>> ]  
+
+{rank=same; stamp n3}
+{rank=same; console computer}
+ } 

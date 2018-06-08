@@ -1,0 +1,155 @@
+digraph overview { 
+graph [overlap = true, fontsize = 30, rankdir=LR 
+      label="Audio Overview (as of 2017-08-22)", 
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" , fontsize = 10, 
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+
+mics [label="
+{ 
+  {    Microphones\nand Other Inputs} 
+|{
+  <o1>  
+| <o2> 
+| <o3>  
+}
+}
+"]
+
+consoles [label="
+{
+ {  <i1> 
+  |  <i2>   
+  |  <i3> }
+|  
+  Audio Mix\nConsoles
+|{
+  <o1>  
+| <o2> 
+| <o3>  
+| <o4>  
+| <o5> 
+}
+}
+"]
+
+mics:o1 -> consoles:i1
+mics:o2 -> consoles:i2
+mics:o3 -> consoles:i3
+
+dsp [label="
+{{
+  <i1> 
+} |House Processors
+| <o1>
+}
+"]
+
+consoles:o1 -> dsp:i1 
+
+houseamp [label="
+{{
+  <i1> 
+} |Front of House\nAmplifiers
+| <o1>
+}
+"]
+
+dsp:o1 -> houseamp:i1
+houseamp:o1 -> housespeakers:i1
+
+housespeakers [label="
+{{
+  <i1> 
+} |Front of House\nSpeakers
+
+}
+"]
+
+lobbyamp [label="
+{
+  {
+  <il> 
+} |
+  {Lobby\nAmplifier} 
+| <o1>
+}
+"]
+
+lobbyspeakers [label="
+{
+  {
+  <il> 
+} |
+  {Lobby\nSpeakers} 
+}
+"]
+
+consoles:o3 -> lobbyamp:i1
+lobbyamp:o1 -> lobbyspeakers:i1
+ 
+monitoramp [label="
+{
+  {
+  <il> 
+} |
+  {Monitor\nAmplifiers} 
+}
+"]  
+ 
+monitorspeakers [label="
+{
+  {
+  <il> 
+} |
+  {Monitor\nSpeakers} 
+}
+"] 
+ 
+consoles:o2 -> monitoramp:i1
+monitoramp:o1 -> monitorspeakers:i1
+
+videomixer [label="
+{
+  {
+  <il> 
+} |
+  {Video\nMixer|ZVKU-A003} 
+}
+"]
+
+mediashout [label="
+{
+  {
+  <il> 
+} |
+  {Mediashout\nComputer|CDWU-0009} 
+}
+"]
+
+consoles:o4 -> videomixer:i1
+consoles:o5 -> mediashout:i1
+
+Node [shape=plaintext, fillcolor=white, fontsize = 6]
+stamp [label= <<table>
+<tr><td>Title</td>
+    <td>Audio Outputs</td>
+</tr>    
+<tr><td>As of</td>
+    <td>2017-02-06</td>
+</tr>
+<tr><td>Status</td>
+    <td>Implemented</td>
+</tr>    
+</table>> ]  
+
+lobbyspeakers -> stamp [stye=invisible]
+
+{rank=same;  lobbyspeakers  housespeakers monitorspeakers}
+{rank=same;  lobbyamp  houseamp monitoramp}
+
+{rank=same;  lobbyspeakers stamp}
+
+  } 

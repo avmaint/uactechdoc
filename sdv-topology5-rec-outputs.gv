@@ -1,0 +1,67 @@
+digraph recording { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Video Recording Topology - Outputs\n(as of 2017-11-11)",
+      fontname = Helvetica, bgcolor=white
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+      
+ 
+s2h1 [label="{sdi|hdmi}" tooltip="BMD mini"]
+s2h2 [label="{sdi|hdmi}" tooltip="BMD mini"]
+
+rswitch [
+  tooltip="BMD ATEM Television Studio Pro HD"
+
+  label="{
+    {{<al>AudioL}|{<ar>AudioR}|
+      {<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}
+      |{<i5>sdi|In5}|{<i6>sdi|In6}|{<i7>sdi|In7}|{<i8>sdi|In8}}
+      |Recording Switcher\nZVKU-A003|
+      {{Out1|<o1>sdi}|{Out2|<o2>sdi}|{Out3|<o3>sdi}|{Out4|<o4>sdi}|{Aux|<aux>sdi}|{mv|<mv>hdmi}}
+    }"
+]
+
+pswitch [
+  tooltip="Kramer VS-88DT"
+  label="{
+  {
+    <i1>In1|<i2>In2|<i3>In3|<i4>In4|<i5>In5| <i6> In6 |<i7>In7|{<i8>In8}}
+  |Presentation Switcher\nZVKU-A001|
+  {<o1>Out1|<o2>Out2|<o3>Out3|<o4>Out4|<o5>Out5|<o6>Out6 |<o7>Out7|{Out8<o8>}} }"]
+   
+switchmonitor [label="{
+    <i>hdmi|In
+      |MultiView Monitor 
+   }"
+   tooltip="Samsung"
+   ]
+
+recorder1 [
+  label="{
+    <i1>sdi|in1
+    |Recorder\nZVRU-A001 
+    }"
+  tooltip="BMD Hyperdeck Studio Mini"
+]
+
+recorder2 [
+  label="{
+    <i1>sdi|in1
+    |Recorder\nZVRU-A002 
+    }"
+  tooltip="BMD Hyperdeck Studio Mini"
+]
+
+rswitch:o1 -> recorder1:i1 
+rswitch:o2 -> recorder2:i1 
+rswitch:o4 -> s2h1;
+s2h1   -> pswitch:i8
+rswitch:mv -> switchmonitor:i
+
+rswitch:aux -> s2h2
+s2h2 -> pswitch:i7
+
+} 

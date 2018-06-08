@@ -70,7 +70,7 @@ The bottom row of buttons select which camera is to be controlled. The control i
 The middle row of buttons will be typically used to direct a camera to a preset position. 
 
 ```{r fig.height=2}
-img <- readJPEG("sov-CamRemote.jpg") 
+img <- readJPEG("../../images/sov-CamRemote.jpg") 
   
 g <- rasterGrob(img, interpolate=TRUE)
 
@@ -161,7 +161,7 @@ Program and Preview buttons
 * The green button indicates which one is next.
 
 ```{r fig.height=2}
-img <- readJPEG("sov-ProgramPreview.jpg") 
+img <- readJPEG("../../images/sov-ProgramPreview.jpg") 
   
 g <- rasterGrob(img, interpolate=TRUE)
 
@@ -178,7 +178,7 @@ CUT and AUTO Buttons (Next to Slider)
 * There is a slider next to the AUTO button, this functions much like the auto button, but gives you direct control over the speed of the transition.
     
 ```{r fig.height=2}
-img <- readJPEG("sov-CutAuto.jpg") 
+img <- readJPEG("../../images/sov-CutAuto.jpg") 
   
 g <- rasterGrob(img, interpolate=TRUE)
 
@@ -199,7 +199,7 @@ Mix Button
 * The mix button, when pressed, sets the transition to be a a disolve between the current and next images. (one image will fade away an the other will fade in) 
 
 ```{r fig.height=2}
-img <- readJPEG("sov-Mix.jpg") 
+img <- readJPEG("../../images/sov-Mix.jpg") 
   
 g <- rasterGrob(img, interpolate=TRUE)
 
@@ -216,7 +216,7 @@ DVE PiP Buttons
 * Once the look is ready, go live with the AUTO or CUT buttons.
 
 ```{r fig.height=2}
-img <- readJPEG("sov-PiP.jpg") 
+img <- readJPEG("../../images/sov-PiP.jpg") 
   
 g <- rasterGrob(img, interpolate=TRUE)
 
@@ -231,7 +231,7 @@ Key 1 Fill
 * This button is used in conjunction with the numbered keys immediately below to select the source to be placed in a PiP.
 
 ```{r fig.height=2}
-img <- readJPEG("sov-Key1Fill.jpg") 
+img <- readJPEG("../../images/sov-Key1Fill.jpg") 
   
 g <- rasterGrob(img, interpolate=TRUE)
 
@@ -572,7 +572,7 @@ From finder navigate to the media card. The file we want is largest file and lik
 Along the bottom of the UI there are 'tab' selectors for "Media", 'Edit', 'Color', 'Fairlight', and 'Deliver'. 
 
 ```{r fig.height=2, fig.width=4}
-img <- readJPEG("sov-ResolveTabs.jpg" ) 
+img <- readJPEG("../../images/sov-ResolveTabs.jpg" ) 
   
 g <- rasterGrob(img, interpolate=TRUE)
 
@@ -593,7 +593,7 @@ The post service steps are as follows:
 : This is the key step that reduces the file size. This step all occurs on the 'Deliver' tab. In the upper right corner, there is a tabbed dialogue. You will set video parameters on the 'Video' tab, and name the file on the 'File' tab.
 
 ```{r fig.height=2, fig.width=4}
-img <- readJPEG("sov-DeliverTabs.jpg" ) 
+img <- readJPEG("../../images/sov-DeliverTabs.jpg" ) 
   
 g <- rasterGrob(img, interpolate=TRUE)
 
@@ -604,7 +604,7 @@ ggplot() +
 
 The parameters on the video tab should be set to these:
 ```{r fig.height=3, fig.width=4}
-img <- readJPEG("sov-VideoParameters.jpg" ) 
+img <- readJPEG("../../images/sov-VideoParameters.jpg" ) 
   
 g <- rasterGrob(img, interpolate=TRUE)
 
@@ -616,7 +616,7 @@ ggplot() +
 Once that is done, click the 'Add to Render Queue' button just below those paramaters. And then you need to start the render process. On my laptop it takes about 1 minute to render 1 minute of video. 
 
 ```{r fig.height=3, fig.width=3}
-img <- readJPEG("sov-StartRender.jpg" ) 
+img <- readJPEG("../../images/sov-StartRender.jpg" ) 
   
 g <- rasterGrob(img, interpolate=TRUE)
 

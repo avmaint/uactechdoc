@@ -1,0 +1,26 @@
+digraph nursery { 
+graph [overlap = true, fontsize = 25, rankdir=TB
+      label="Nursery Topology\n(as of 2017-11-11)",
+      fontname = Helvetica]
+ 
+node [shape=Mrecord, style=filled , fillcolor="white:beige" ,fontsize = 10, 
+      gradientangle=270]
+  
+pswitch [label="{
+  {{<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}|{<i5>hdmi|In5}|{<i6>hdmi|In6}|{<i7>hdmi|In7}|{<i8>hdmi|In8}}
+  |{Presentation\nSwitcher\nZVKU-A001}|
+  {{<o1>Out1|-}|{Out2|-}|{Out3|-}|{Out4|-}|{Out5|-}|{Out6|-}|{Out7|<o7>HDBaseT}|{Out8|-}}  
+  }"]  
+  
+node [  tooltip="" ]
+
+subgraph cluster_lobby { label="Nursery" 
+  nbluray    [label="{{BluRay\nZVPU-0001}|<o>hdmi}"]
+  c62hdmi1   [label="{<i>HDBaseT| to\nZVIU-A001|<o>hdmi}", tooltip="In nursery"]
+  nurserytv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Nursery\nTV\nZVVU-0002}"]
+}
+
+pswitch:o7 -> c62hdmi1:i
+c62hdmi1:o -> nurserytv:i1
+nbluray:o -> nurserytv:i2
+}

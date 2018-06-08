@@ -1,0 +1,56 @@
+digraph topology1 { 
+graph [overlap = true, fontsize = 30, rankdir=LR 
+      label="Audio Inputs (as of 2017-08-22)",
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" , fontsize = 10,
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+      
+dm1k [label="{
+  {{<i1>1-6 }|{<i2>4-10}|{<i3>11-12}|{<i4>13-14}|{<i5>15-16}|{<i6>?}|{<i7>29-30}}
+  |{Yamaha\nDM1000}|
+  {{ <link>Slot 1\nOut} } }"]
+    
+foh [label="{ FoH\nInputs
+|{<o1>Lavs 1-6 
+| <o2>Lavs 4-10
+| <o3>CD 01U
+| <o4>Computer\nCDWU-0009
+| <o5>DVD
+| <o6>CD 5disc
+| <o7>VCR
+| <o8>HH 1-6
+} }"]  
+      
+foh:o1 -> dm1k:i1      
+foh:o2 -> dm1k:i2
+foh:o3 -> dm1k:i3
+foh:o4 -> dm1k:i4
+foh:o5 -> dm1k:i5
+foh:o6 -> dm1k:i6
+foh:o7 -> dm1k:i7
+
+m7 [label="
+   {{
+  <i1>42-48
+| <i2>1-42  
+ }
+| {    Yamaha\nM7CL} |{
+<link>Slot 1\nIn}
+}
+"]
+
+foh:o8 -> m7:i1
+dm1k:link -> m7:link
+
+stage [label="{ Stage\nInputs
+|{<o1>1-42 
+| <o2>43-48   
+} }"]  
+
+stage:o1 -> m7:i2
+
+{rank=same; dm1k m7   }
+{rank=same; foh stage}
+ } 
