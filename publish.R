@@ -11,17 +11,18 @@ files <- c(
   "SystemDesignNetwork",
   "SystemDesignProjection",
   "TeamDesign.Rmd",
-       
+
   "SystemOperationsAudio",
   "SystemOperationsLighting",
   "SystemOperationsProjection",
   "SystemOperationsVideo",
   
-  "index.Rmd"
+  "TeamDesign",
+  
+  "index"
           
           #"SystemOperationsGuide"
           #"InventoryManagement",
-          #"TechTeamOrg",
           #"TechTeamIntro",
           #"index",
           #"SystemAdministrationGuide",

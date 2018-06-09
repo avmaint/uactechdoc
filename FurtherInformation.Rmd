@@ -19,13 +19,13 @@ There are several types of documents available.
 ```{r}
 chart <- tribble(
   ~Type, ~Description,
-"System opertating guides",
+"System Opertations Documents",
 "These documents will tell you how to operate each subsystem.",
 
-"System design documents",
+"System Design Documents",
 "These provide a deep dive into where all components are located, how they are wired, how they are configured, and why. A regular operator does not normally need to know this level of detail - until there is a problem.",
 
-"Administration guides",  
+"Administration Documents",  
 "This will contain information that very few people will need to know and is mostly related to credentials (accounts, userids, and passwords), and what you need to know to manage those." ,
 
 "Manuals",
