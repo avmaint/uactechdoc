@@ -25,18 +25,24 @@ path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname <- paste(path, inventoryfile, sep="/")
 
-#NetworkInventory <- read_excel("NetworkInventory.xlsx", sheet = "Network")
 ```
 
 # Introduction
-This document provides basic operating information for each of the Audio systems at Unionville Alliance Church.
+This document provides basic operating information for each of the Audio systems at UAC.
 
 [Back to top](#top)
 
-  
 ## Power On
  
->To Be written. 
+There are three numbered swtiches located in the balcony required to turn the system on
+
+#. is located at the far west end of the front desk
+#. is located behind the mix position at the top of the rack
+#. is just below #2 
+
+Allow a 10 second pause between flipping each swtich.
+
+After the console has fully started, you would typically want to recall the default scene so all settings are in a known good state.
  
 [Back to top](#top) 
 
