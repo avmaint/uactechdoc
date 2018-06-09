@@ -19,7 +19,7 @@ There are several types of documents available.
 ```{r}
 chart <- tribble(
   ~Type, ~Description,
-"System Opertations Documents",
+"System Operations Documents",
 "These documents will tell you how to operate each subsystem.",
 
 "System Design Documents",
@@ -34,6 +34,7 @@ chart <- tribble(
 
 chart %>% 
   kable() %>%
+  column_spec( 1, width = "40%", bold = TRUE ) %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
@@ -46,5 +47,6 @@ further %>%
   mutate (Other = ifelse(is.na(Other),"",text_spec("X", link=Other))) %>%
 
   kable( escape = FALSE) %>%
-  kable_styling("striped", full_width = TRUE)
+  column_spec( 1 , bold = TRUE ) %>%
+  kable_styling("striped" )
 ```
