@@ -17,15 +17,17 @@ files <- c(
   "SystemOperationsProjection",
   "SystemOperationsVideo",
   
-  "TeamDesign",
+  "TechHomePage",
   
-  "index"
+  "index",
+  
+  "TeamDesign"
           
           #"SystemOperationsGuide"
           #"InventoryManagement",
           #"TechTeamIntro",
-          #"index",
-          #"SystemAdministrationGuide",
+
+            #"SystemAdministrationGuide",
            )
 
 for (f in files) {

@@ -22,7 +22,6 @@ require(kableExtra)
 knitr::opts_chunk$set(echo = FALSE)
 options(knitr.table.format = "html") # latex for pdf 
 
-base <-  "~/Documents/UACTech/SystemDocumentation"
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 
