@@ -36,9 +36,9 @@ This document provides basic operating information for each of the Audio systems
  
 There are three numbered swtiches located in the balcony required to turn the system on
 
-#. is located at the far west end of the front desk
-#. is located behind the mix position at the top of the rack
-#. is just below #2 
+#. is located at the far west end of the front desk. This energizes the front desk gear.
+#. is located behind the mix position at the top of the rack. This energizies the rear desk audio gear.
+#. is just below #2. This energizes the audio amplifiers.
 
 Allow a 10 second pause between flipping each swtich.
 
@@ -48,38 +48,30 @@ After the console has fully started, you would typically want to recall the defa
 
 ## Power Off 
 
+Power off is the opposite sequence from power on.  Provide a 30 second pause between switch 3 and 2. This gives the power amps time to cycle off before proceeding.
+
+[Back to top](#top) 
+ 
+# Basic Operations
+
+## The Two Consoles
+
+>To Be written. 
+
+## Scene Recall 
+
+>To Be written. 
+
+## Operating a Channel
+
 >To Be written. 
  
 [Back to top](#top) 
- 
-# Basic Mixing
 
->To Be written. 
- 
-[Back to top](#top) 
-
-# Audio Recording
-
-### Purpose
+## Audio Recording - Audio CD
 
 To record the sermon or teaching for publication on the web site.
 Also serves as a backup for the CD recording.
-Operation
-
-### Via Computer (EZTracker)
-
-Note
-: EZTracker is not currently working (2016).
-
-The program we use is called EZTracker. There are usually cues on the cue sheet to remind operator when to start and stop. Key Points:
-
-* Switch ‘4’ must be on – same as the video recording system
-* Use mode “record 2”
-* Press the level button to ensure there is a signal; lots of green, some yellow only the occasional brief flicker of red. If you are checking it during singing, you may see a lot of red that is okay since the sermon will be a lot quieter. You will need to press the level button again to return to normal.
-* Press “Record” – the big red button to begin recording and “Stop” to, obviously stop recording. If the sermon is broken up by other things (communion distribution, for example) you could pause the recording or ‘stop and start’ as appropriate.
-* Press the ‘close’ button to quit the application. The normal ‘X’ button in the upper right has been disabled to prevent accidental closure.
-
-### Via Audio CD
 
 Key Points:
 
@@ -95,7 +87,6 @@ Key Points:
     * Close tray.
 #. If for some reason the audio CD was not finalized, put it back into the recorder and pick up the instructions at step #6.
 
-  
 [Back to top](#top)
 
 #Audio Terminology
