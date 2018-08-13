@@ -10,7 +10,6 @@ files <- c(
   "SystemDesignLighting" ,
   "SystemDesignNetwork",
   "SystemDesignProjection",
-  "TeamDesign.Rmd",
 
   "SystemOperationsAudio",
   "SystemOperationsLighting",
@@ -19,10 +18,9 @@ files <- c(
   
   "TechHomePage",
   
-  "index",
-  
-  "TeamDesign"
+  "TeamDesign", 
           
+  "index"
           #"SystemOperationsGuide"
           #"InventoryManagement",
           #"TechTeamIntro",
@@ -30,16 +28,20 @@ files <- c(
             #"SystemAdministrationGuide",
            )
 
+print(paste("files:", files))
+
 for (f in files) {
+  
   print(paste("Processing:", f))
   
   rmd <- paste0(srcdir, f, '.Rmd')
+  print(paste("Rendering", rmd))
   rmarkdown::render(rmd, output_format = "html_document")
   
   html <- paste0(srcdir, f, '.html')
   cmd <- paste("mv", html, trgdir)
   
-  cat(cmd)
+  print(paste("Moving:", cmd))
   
   system(cmd)
 }

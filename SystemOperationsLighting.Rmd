@@ -18,6 +18,7 @@ require(jpeg)
 require(grid)
 require(ggplot2)
 require(kableExtra)
+require(lubridate)
 ```
 
 ```{r options, echo=FALSE}
@@ -63,6 +64,8 @@ This document provides basic operating information for each of the major AV syst
 
 #Controlling the Ligthing System
 
+> Needs to be re-written to account for new COLORSOURCE console.
+
 We have two ways of operating the theatrical lighting system. The hardware-based Express Console and the Software based QLC control. To exploit the full capability of our installed lights we need use QLC, for basic operations use the Express console.
 
 You cannot attempt to use both at the same time as things will become confused. You make this choice by physically un-plugging the control cable of the system you don't want to use and plug in the control cable of the system you do want to use for control. 
@@ -70,6 +73,321 @@ You cannot attempt to use both at the same time as things will become confused. 
 By default we should leave the system with the Express control cable connected.
 
 > Insert pictures of these two cables.
+
+[Back to top](#top)
+
+
+#Operating the ColorSource 40AV Console
+
+In the August 2018 we will be installing a new lighting console. This will replace our current complicated solution consisting of the old express console during the week, the computer program on Sunday morning, and the brown box for the house lights. The new console will be able to control all of that and more.
+
+##Learning
+
+There are 20 videos in the ColorSource Video Learning Series. The model we will have is the ColorSource 40AV. This list of videos is tagged into three categories: Basic, Intermediate and Advanced.  
+
+The "User Manual" is available on the [manufacturer's website](https://www.etcconnect.com/Support/Consoles/ColorSource/Documentation.aspx) 
+
+[ColorSource Video Learning Series](https://www.youtube.com/playlist?list=PLl-Ao0hIFwH-KC5-CK9VrAvZCP2YynH1X)
+
+The videos are all numbered (TitleNumber) on the web site, but that is not the best order to watch them in for our purpose. The Seqeunce is a better choice. 
+
+```{r}
+
+asd <- function(m,s) {return(as.duration(m*60+s))}
+
+vids <- tribble(
+~Sequence, ~TitleNumber, ~Title, ~Length, ~Level, ~Comments,
+
+10,1,
+"Patching by RDM",
+asd(2,51),
+"Advanced",
+"Useful when setting up a new lighting fixture.",
+
+1,2,
+"Patching - Add Dimmer",
+asd(2,03),
+"Advanced",
+"Useful when setting up a new lighting fixture.",
+
+2,3,
+"Patching - Add Device",
+asd(3,38),
+"Advanced",
+"Useful when setting up a new lighting fixture.",
+
+3,4,
+"Edit Patch",
+asd(3,01),
+"Advanced",
+"Useful when reconfiguring the system.",
+
+6,5,
+"Show File Handling",
+asd(3,40),
+"Basic",
+"Core skill. Saving and restoring show files is a good thing for all to know.",
+
+5,6,
+"Arrange Stage Map",
+asd(3,06),
+"Basic",
+"We may not change the stage map much, but understanding it is a good thing.",
+
+3,7,
+"Quick Select",
+asd(2,21),
+"Basic",
+"Core skill",
+
+1,8,
+"Intensity",
+asd(3,39),
+"Basic",
+"Core skill.",
+
+2,9,
+"Color",
+asd(3,01),
+"Basic",
+"Core skill.",
+
+3,10,
+"Device Parameters",
+asd(4,25),
+"Intermediate",
+"May not be relevant to current fixtures",
+
+4,11,
+"Record to Playback Fader",
+asd(5,14),
+"Basic",
+"Core skill.",
+
+4,12,
+"Record to Cue",
+asd(4,53),
+"Advanced",
+"Don't expect to use cues much",
+
+1,13,
+"Record to Playback Sequence",
+asd(3,37),
+"Intermediate",
+"We could occasionally use a Sequence to automate a complicated set of steps.",
+
+5,14,
+"Apply Effects",
+asd(5,19),
+"Advanced",
+"Not likely to be used in normal operation.",
+
+2,15,
+"Edit Cues and Sequences",
+asd(4,00),
+"Intermediate",
+"Not likely to regularly use cues, but could use sequences.",
+
+11,16,
+"Playback Automark",
+asd(3,29),
+"Advanced",
+"We have no near term plan for moving lights",
+
+9,17,
+"Sound",
+asd(2,48),
+"Advanced",
+"Not likely to be used in normal operation.",
+
+6,18,
+"Live Sound and Sound to Light",
+asd(1,49),
+"Advanced",
+"Not likely to be used in normal operation.",
+
+7,19,
+"Visual Images",
+asd(3,06),
+"Advanced",
+"Not likely to be used in normal operation.",
+
+8,20,
+"Visual Effects",
+asd(2,24),
+"Advanced",
+"Not likely to be used in normal operation."
+)
+```
+
+Titles classified as Basic are videos every operator should watch (about 21 minutes). 
+ 
+```{r basic}
+vids %>%
+  arrange(Sequence) %>%
+  filter(Level == "Basic") %>%
+  select(-Level) %>%
+  kable() %>%
+  column_spec( 1,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+ 
+The Intermediate videos should be viewed after you become familiar with normal operations (12 minutes). 
+
+```{r inter}
+vids %>%
+  arrange(Sequence) %>%
+  filter(Level == "Intermediate") %>%
+  select(-Level) %>%
+  kable()%>%
+  column_spec( 1,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+The titles classified as Advanced as not likely to be useful to regular Sunday morning staff (35 minutes).  
+
+```{r adv}
+vids %>%
+  arrange(Sequence) %>%
+  filter(Level == "Advanced") %>%
+  select(-Level) %>%
+  kable() %>%
+  column_spec( 1,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+[Back to top](#top)
+
+##Simple Console Operations
+In the default settings, the lower row of 20 sliders are programmed to looks that are usefull for a normal service. 
+
+>> This is what I am thinking will be the set-up, but may change my mind once I get my own hands on the board.
+
+```{r defs}
+
+defs <- tribble(
+  ~Slider, ~Title, ~Description,
+  
+21, "Walk in", "Used before and after service. Medium House, colourful stage glow. Cross lit.",
+
+22, "Pre-worship", "Used as the musicians are getting ready; the moments before the first words. House Low, stage set to basic theme, no face light. Cross lit.",
+
+23, "Worship", "Used for the main worship set. Similar to #2, but with face light. Cross lit.",
+
+24, "Emcee/Announcement", "Used for announncments and such. Similar to #2, but face light at front and centre only. Cross lit.",
+
+25, "Video", "Used for video playback. Stage very dark; a little accent. House dim. Cross dimmmly lit.", 
+
+26, "Message", "Used for the pastor's message. Similar to #2. Up stage is darker. House is brighter. Cross lit."
+)
+
+defs %>%
+  arrange(Slider) %>%
+  kable() %>%
+  column_spec( 1:2,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+
+```
+
+The upper row is used for specials and will vary over time. The first six have a designated special purpose for sound triggers.
+
+[Back to top](#top)
+
+##Operating the Keypad
+
+There is a simple lighting control panel located in the Usher's room. It enables the house lights to set according to several pre-defined looks. 
+
+
+```{r}
+keypad <- tribble(
+  ~Number, ~Name, ~Description,
+
+  1, "Off", "Off",
+  2, "Security", "A subset of lights on medium (sconse plus maybe some of the house lights)",
+  3, "Basic", "Front centre lit bright - rest of room medium - funerals / weddings plus some accents",
+  4, "BSF", "More light Downlight On stage - otherwise #4",
+  5, "Sconse only", "(Might be redundant with 2)",
+  6, "Auditorium House", "Auditorium House lights full White",
+  7, "Stage lights",  "Stage lights full white",
+  8, "Janitor", "Most everything on full white (stage ketra plus house): 6+7"
+)
+
+keypad %>%
+  arrange(Number) %>%
+  kable() %>%
+  column_spec( 1,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+**Keypad operations are diabled when the main console is powered on. **
+
+[Back to top](#top)
+
+
+
+# Blinds and Shades
+
+We have two ways of controlling the light the enters the sanctuary via the exterior windows: semi-transparent shades and blackout blinds.
+
+### Shade Operation
+
+The shades are operated manually. There is a chrome chain in each window which runs the shade up or down.  
+
+### Blind Operation
+
+The blackout blinds operate on four banks of three blinds (one bank per wall). The switches are under the second desk near the computer.
+They are labelled: SE, NE, SW, and NW, which stands for the combinations of South, East, North and West.
+
+Each switch has three positions: Up, center and down. The Up and Down positions move the blinds in that direction. Centre is ‘off’, but does not stop a blind mid-way. When a blind is set to move in a direction it will do so until it is fully up or fully down. There are internal limit switches that will stop the blind at the limit. The switch does not have to be returned to the centre position.
+
+To stop a blind mid-way while travelling, momentarily flick the switch in the opposite direction and then return the switch to centre. If you pause too long in the opposite direction the blind will reverse direction rather than stop.
+
+When the service is over, please ensure that the blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.
+
+### Troubleshooting
+
+If a blind pops out of its track. 
+: Running the blinds up and down a **little** bit at a time can sometimes get them back in their track. An assistant at the blind can reach in behind and help guide them in. If it is more than a few inches, a ladder may be required to reinsert the blind into the track.
+
+[Back to top](#top)
+
+# Appendix
+
+## Lighting Terminology
+
+Dimmmer
+: A device which regulates the power sent to a lighting instrument (typically incandescent) this allows the intensity of the instrument to be varied. Usually DMX controlled, but could be controlled via an analog or proprietary protocols.
+
+DMX / DMX512
+: an industry standard lighting control protocol. A universe is a group of 512 channels, numbered 1 through 512. See also RDM. 
+
+Gel
+: a coloured sheet of special plastic which is used to physically change the colour of a light. 
+
+Gel Frame
+: a metal or heat-resistant cardboard frame to hold a Gel and slips into a slot on the lighitng instrument.
+
+Gobo
+: a pattern, usually made from thin metal or glass, which enables a lighting instrument to project a pattern. Usually slips in the a Gobo frame which slides into the instrument. 
+
+Incandescent
+: a method of producing light by heating a filament (thin wire) inside a glass bulb. A standard old-fashioned lightbulb is incandescent. See Also LED.
+
+LED / Light Emitting Diode
+: A technology that generates lighting from a solid state device rather than a hot piece of wire (incandecent). An LED instrument also typically has built in dimming and control control. They typically use 3 to 5 DMX channels. See aslo Incandescent.
+
+Par / Par Can
+: a type of lighting instrument with a fixed beam width. Some of them look like paint cans. Generally used for washes.
+
+Rotator
+: a device which spins a Gobo. Inserted into a lighting instrument where the Gobo holder would go - usually.
+
+Top Hat
+: a light modifier added to the front of a lighting instrument to narrow its beam spread.
+
+[Back to top](#top)
+
+`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
 
 [Back to top](#top)
 
@@ -276,47 +594,6 @@ The correct settings need to be set by ensuring you have the "UAC" universe sele
 #Operating the Express Console
 
 >To be written.
-
-[Back to top](#top)
-
-# Blinds and Shades
-
-We have two ways of controlling the light the enters the sanctuary via the exterior windows: semi-transparent shades and blackout blinds.
-
-### Shade Operation
-
-The shades are operated manually. There is a chrome chain in each window which runs the shade up or down.  
-
-### Blind Operation
-
-The blackout blinds operate on four banks of three blinds (one bank per wall). The switches are under the second desk near the computer.
-They are labelled: SE, NE, SW, and NW, which stands for the combinations of South, East, North and West.
-
-Each switch has three positions: Up, center and down. The Up and Down positions move the blinds in that direction. Centre is ‘off’, but does not stop a blind mid-way. When a blind is set to move in a direction it will do so until it is fully up or fully down. There are internal limit switches that will stop the blind at the limit. The switch does not have to be returned to the centre position.
-
-To stop a blind mid-way while travelling, momentarily flick the switch in the opposite direction and then return the switch to centre. If you pause too long in the opposite direction the blind will reverse direction rather than stop.
-
-When the service is over, please ensure that the blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.
-
-### Troubleshooting
-
-If a blind pops out of its track. 
-: Running the blinds up and down a **little** bit at a time can sometimes get them back in their track. An assistant at the blind can reach in behind and help guide them in. If it is more than a few inches, a ladder may be required to reinsert the blind into the track.
-
-[Back to top](#top)
-
-# Appendix
-
-## Lighting Terminology
-
-> So much more to be added here.
-
-DMX / DMX512
-: an industry standard lighting control protocol. A universe is a group of 512 channels, numbered 1 through 512. 
-
-[Back to top](#top)
-
-`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
 
 [Back to top](#top)
 
