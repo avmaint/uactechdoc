@@ -259,43 +259,79 @@ vids %>%
 [Back to top](#top)
 
 ##Simple Console Operations
-In the default settings, the lower row of 20 sliders are programmed to looks that are usefull for a normal service. 
+In our standard settings, we use the *playback* mode to run our basic scenes. You must be in playback mode for this to work. A quick check is to look at the numbered buttons below the faders; if they are a pale purple and green then you are in the right mode. 
 
->> This is what I am thinking will be the set-up, but may change my mind once I get my own hands on the board.
+>insert picture of the screen. 
+
+The last 6 sliders on the bottom row are programmed to looks that are useful for a simple service. 
+
+> This is what I am thinking will be the set-up, but may change my mind once I get my own hands on the board. The way we did this before, we used each setting as a complete look. I may now change this up to take a lego brick approach.
 
 ```{r defs}
 
-defs <- tribble(
-  ~Slider, ~Title, ~Description,
+simple <- tribble(
+  ~PlaybackNo, ~Title, ~Description,
   
-21, "Walk in", "Used before and after service. Medium House, colourful stage glow. Cross lit.",
+35, "Base Look", "This is the base look for the service. Used before and after service. Medium Low, colourful stage glow. Cross lit.",
 
-22, "Pre-worship", "Used as the musicians are getting ready; the moments before the first words. House Low, stage set to basic theme, no face light. Cross lit.",
+36, "Pre-worship", "Add this in as we are about to sing. Used as the musicians are getting ready; the moments before the first words. House Low, stage set to basic theme, no face light. Cross lit.",
 
-23, "Worship", "Used for the main worship set. Similar to #2, but with face light. Cross lit.",
+37, "Worship", "Add this in during musical worship; Used for the main worship set. This adds in face light to the vocal and band area.",
 
-24, "Emcee/Announcement", "Used for announncments and such. Similar to #2, but face light at front and centre only. Cross lit.",
+38, "Emcee/Announcement", "May not need this... depends on what I decide to do for house light control. Used for announncments and such. Similar to #2, but face light at front and centre only. Cross lit.",
 
-25, "Video", "Used for video playback. Stage very dark; a little accent. House dim. Cross dimmmly lit.", 
+39, "Video", "May not need this - drop to base look. Used for video playback. Stage very dark; a little accent. House dim. Cross dimmmly lit.", 
 
-26, "Message", "Used for the pastor's message. Similar to #2. Up stage is darker. House is brighter. Cross lit."
+40, "Message", "Used for the pastor's message. Up stage is darker. House is brighter. Cross lit."
 )
 
-defs %>%
-  arrange(Slider) %>%
+simple %>%
+  arrange(PlaybackNo) %>%
   kable() %>%
   column_spec( 1:2,   bold = TRUE ) %>%
   kable_styling("striped", full_width = TRUE)
 
 ```
 
+The other playback faders are used to control individual groups of lights.
+
 The upper row is used for specials and will vary over time. The first six have a designated special purpose for sound triggers.
+
+```{r}
+
+rest <- tribble(
+  ~PlaybackNo, ~Title, ~Description,
+  
+7, "Sconse", "?",
+8, "MainHouse", "Pendants upper and lower, under balcony",
+9, "StagePots" , "?",
+10, "Top Wash", "Vocal Area",
+11, "Vocal Face Wide", "Big group",
+12, "Vocal Face Narrow", "Small Group",
+13, "Apron Colour", "The two points plus back.",
+14, "Apron White", "Face light",
+15, "UltraHex", "",
+16, "Cross", "",
+17, "Baptism", "",
+18, "Front of Apron", ""
+)
+
+rest %>%
+  arrange(PlaybackNo) %>%
+  kable() %>%
+  column_spec( 1:2,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+
+```
+
 
 [Back to top](#top)
 
 ##Operating the Keypad
 
 There is a simple lighting control panel located in the Usher's room. It enables the house lights to set according to several pre-defined looks. 
+
+> These looks are ideas. The final set has to be no more than 5.
 
 
 ```{r}

@@ -1,20 +1,21 @@
 digraph topology1 { 
 graph [overlap = true, fontsize = 10, rankdir=TB 
-      tooltip="Control Topology",
+      tooltip="Control Topology - DMX",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , 
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
-console [label="{Lighting Control|ETC Express\nZLKU-0001|{<vga>vga|<o1>dmx\n1-512|<o2>dmx\n512-1024}}"]
+console [label="{Lighting Control|ETC CS40AV\nZLKU-B001|{<hdmi>hdmi|<dmx1>DMX 1|<dmx2>DMX 2}}"]
 
-computer [label="{{Computer}|{ <o1>usb|<o2>usb }}"]
+computer [label="{{Computer\nCDWU-0009}|{ <o1>usb|<o2>usb }}"]
 
 n1 [label="{<i>usb|Ketra N1\nZLIU-A002|KetraNet}"]
 computer:o2 -> n1:i
 
-monitor [label="{<i>vga|Monitor}"]
+matrix [label="{<i>Input 8\nhdmi|Video Matrix\nZVKU-A001}"]
+console:hdmi   -> matrix:i8
 
 optoisolator [label="{{<i1>dmx|<i2>dmx}|Optical Isolator\nZLIU-0003|{<o1>dmx|<o2>dmx|<o3>dmx|<o4>dmx}}"]
 
@@ -38,9 +39,7 @@ nrd2 [label="{<i>microplex|NSI Dimmer 9-16\nZLEU-0002}"]
 analogdimmer1 [label="{<i>analog|LMI Dimmer 17-22\nZLEU-0003}"] 
 analogdimmer2 [label="{<i>analog|LMI Dimmer 23-28\nZLEU-0004}"] 
 
-computer:o1 -> usbdmx:i
-console:vga   -> monitor:i
-console:o1 -> optoisolator:i1
+console:dmx1 -> optoisolator:i1
 
 interface:o -> nrd1:dmx
 interface:o -> nrd2:dmx
@@ -60,11 +59,9 @@ stamp [label= <<table>
     <td>Control Topology</td>
 </tr>    
 <tr><td>As of</td>
-    <td>2017-10-04</td>
+    <td>2018-08-14</td>
 </tr>
-<tr><td>Status</td>
-    <td>Implemented</td>
-</tr>    
+   
 </table>> ]  
 
 {rank=same; stamp n3}

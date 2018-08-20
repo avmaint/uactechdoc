@@ -1,0 +1,56 @@
+digraph topology1 { 
+graph [overlap = true, fontsize = 10, rankdir=TB 
+      tooltip="Control Topology - KetraNet",
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" , 
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+      
+ 
+touchpad [label="{Main Floor Touchpad\nZLKU-B002|KetraNet}"]
+
+computer [label="{{Computer\nCDWU-0009}|{ <o1>usb|<o2>usb }}"]
+
+n1 [label="{<i>usb|Ketra N1\nZLIU-A002|KetraNet}"]
+computer:o2 -> n1:i
+
+n3 [label="{<i>dmx|Ketra N3\nZLIU-A003|<o>KetraNet}"]
+
+ketranet [label="Ketranet\nMesh\nNetwork"]
+
+touchpad -> ketranet
+
+pathway:o1 -> n3 [label="port to be confirmed"]
+ 
+
+ketran4_1 [label="{<i>Ketra N4 Controller\nZLIU-B001|KetraNet}"] 
+ketran4_2 [label="{<i>Ketra N4 Controller\nZLIU-B002|KetraNet}"] 
+ketran4_3 [label="{<i>Ketra N4 Controller\nZLIU-B003|KetraNet}"] 
+
+ketranet -> ketran4_1
+ketranet -> ketran4_2
+ketranet -> ketran4_3
+n3       -> ketranet
+n1       -> ketranet
+
+console:dmx1 -> optoisolator:i1
+
+optoisolator:o1 -> interface:dmx     
+optoisolator:o2 -> demux:i
+ 
+Node [shape=plaintext, fillcolor=white]
+stamp [label= <<table>
+<tr><td>Title</td>
+    <td>Control Topology - KetraNet</td>
+</tr>    
+<tr><td>As of</td>
+    <td>2018-08-14</td>
+</tr>
+   
+</table>> ]  
+
+{rank=same; stamp   ketran4_1 ketran4_2 ketran4_3}
+{rank=same; console computer  }
+{rank=same; n1 n3 touchpad}
+ } 

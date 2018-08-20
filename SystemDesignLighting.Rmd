@@ -8,15 +8,23 @@ output:
  
 ---
 
-```{r setup, include=FALSE}
+```{r options, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+```
+
+```{r packages}
 require(readr)
 require(dplyr)
 require(readxl)
 require(knitr)
 require(formattable)
 require(ggplot2)
+require(kableExtra)
+```
 
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+
+```{r getdata, include=FALSE}
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname <- paste(path, inventoryfile, sep="/")
@@ -31,6 +39,9 @@ ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   ,
 
 Tech_Inventory <- read_excel(fname, 
                             sheet = "TechInventory", col_types=ct)
+
+dmx.details <- read_excel(fname, 
+                            sheet = "DMX.Details" )
 ```
 
 # Introduction
@@ -44,13 +55,10 @@ Purpose:
 * Helps audience to focus and concentrate
 * Reinforces the message (spoken or sung)
 
-The lighting console is an ETC Express 125. We use only one DMX universe for output. 
-
-The lighting console provides the primary means of control for all users. At times control can be provided by a computer running software such as QLC+.
+The lighting console is an ETC ColorSource 40AV. We use only one DMX universe for output. The lighting console provides the primary means of control for all users. 
 
 The console is protected from power surges via an opto-isolator/DMX splitter.
 From the opto-isolator we branch to a NSI Microplex protocol Converter (NSI IF/501) in the rack and a NSI DMX to analog converter in the electrical room.
-
 
 The DMX for scrollers and rotators pass through the IF501. 
 
@@ -78,7 +86,7 @@ c(37,40),
 "Rotators - 2 channels each.",
 
 c(101,145),
-"ColorSource Pars Overhead and Points - 5 channels each",
+"ColorSource Pars Topbar and Points - 5 channels each",
 
 c(151,171),
 "Ketra S38 Lamps - 3 channels each"
@@ -96,9 +104,20 @@ Three different control protocols are used:
 * and KetraNet Mesh wireless
 
 ## Control Topology
-  
-```{r top1}
+
+> Consider spliting the topology into DMX and KetraNet views.
+
+
+### DMX Topology
+```{r}
 DiagrammeR::grViz("sdl-topology1-control.gv")
+
+```
+
+###KetraNet Topology
+
+```{r top1}
+DiagrammeR::grViz("sdl-topology2-control.gv")
 
 selected.at <- c(
               "ZLIU-0001", "ZLEU-0001",
@@ -106,8 +125,11 @@ selected.at <- c(
               "ZLKU-0001", "ZLEU-0003",
               "ZLEU-0004" ,"ZLIU-0003",
               "ZLIP-0001", "ZLIU-0004",
-              "ZLIU-A001", "ZLIU-A003", "ZLIU-A002"
-              ) %>%                              data.frame(AssetTag=.)
+              "ZLIU-A001", "ZLIU-A003", "ZLIU-A002",
+              "ZLKU-B001", "ZLKU-B002",
+              "ZLIU-B001", "ZLIU-B002", "ZLIU-B003" 
+              ) %>% 
+  data.frame(AssetTag=.)
 
 merge( Tech_Inventory, selected.at) %>% 
     select(AssetTag, Manufacturer, Model, Desc ) %>%
@@ -167,17 +189,17 @@ DiagrammeR::grViz(topology)
 
 ```
 
-## Circuit Destinations 
+# Dimmer Circuit Destinations
 
 Lines refer to power distribution circuits from dimmers to lighting distribution points.
 
 ```{r}
 circuits <- tribble(
-  ~CircuitRange, ~Destination,
-  c ( 1,10), "Balcony East Bar",
-  c(11,20),  "Balcony West Bar", 
-  c(21,32),	 "Attic", 
-  c(40,42),  "Stage Floor" 
+  ~CircuitRange, ~Destination, ~PowerDistro,
+  c ( 1,10), "Balcony East Bar", "Balcony Closet",  
+  c(11,20),  "Balcony West Bar", "Balcony Closet",
+  c(21,32),	 "Attic",            "Electrical Room",
+  c(40,42),  "Stage Floor",      "Electrical Room"
 )
 
 circuits %>% formattable(align="l")
@@ -185,99 +207,63 @@ circuits %>% formattable(align="l")
 
 ## DMX Assignments Details
 
-```{r}
-dmx.details <- tribble(
-  ~DMX.Num, ~Circuit , ~Purpose,
-  1, c(9, 11 ), "?",
-  2, c(6, 12 ), "?",
-  3, "18",   "Pennisula West Bar",
-  4, "5",    "Pennisula East Bar",
-  5, c(7,13), "SL+Centre",
-  6, "",     "Dimmer 6 seems to have troubles",
-  7, "8",	   "Wall West",
-  8, "14",   "Wall East",
-  9, "4",    "SL",
-  10, "1",   "Band SR",
-  11, "20",  "Wall East",
-  12, c(19, 2),  "", 
-  13, "3",    "Centre",
-  14, "10",   "Wall",
-  15, "17",   "Keys",
-  16, "16",   "Wall East",
-seq(17,20), "",	    "unused",
-21, "40",	  "Floor",
-22, "41",	  "Floor",
-23, "42",   "Floor",
-seq(24,28),  "", "unused", 
-seq(29,32), "",  "Scrollers",
-seq(33,36), "",  "Scrollers",
-c(47,48), "",    "Rotator control/reserved",
-c(49,50), "",     "Rotator control/reserved"
-)
+> The Balcony Easy/West Bar assignments need to be updated post Aug 2018 changes.
 
-dmx.details %>% formattable(align="l")
+```{r}
+# b <- 449
+# 
+# dmx.details <- tribble(
+#   ~DMX.Range, ~Channel, ~Circuit, ~Location, ~Type, ~Usage,
+#   
+# c(0,0), c(1,7), "", "FoH Centre",    "4WRD", "Apron", 
+# 
+# c(0,0), c(8,9), "", "FoH C?",             "CS Par",  "SR Wash",
+#   
+# c(0.0), 10,          "",             "FoH ?", "CS Par", "Band",     
+# 
+# c(101, 115), 0, "", "Top Bar", "CS Par", "SR side (5 channels per) ",
+# c(116, 120), 0, "", "Top Bar", "CS Par", "Apron Back Wash (5 channels per) ",
+# c(121, 135), 0, "", "Top Bar", "CS Par", "SL Side (5 channels per) ",
+# c(136, 145), 0, "", "Speaker", "CS Par", "Apron Wash (5 channels per) ",
+# 
+# c(151, 169), 0, "", "","",  "Ketra Stage Pots (3 channels per)",  
+#   
+#   b+1, 0, c(9, 11 ), "","", "?",
+#   b+2, 0, c(6, 12 ), "","", "?",
+#   b+3, 0, "18",   "","", "Pennisula West Bar",
+#   b+4, 0, "5",    "","", "Pennisula East Bar",
+#   b+5, 0, c(7,13), "","", "SL+Centre",
+#   b+6, 0, "",     "","", "Dimmer 6 does not work",
+#   b+7, 0, "8",	   "","", "Wall West",
+#   b+8, 0, "14",   "","", "Wall East",
+#   b+9, 0, "4",    "","", "SL",
+#   b+10, 0, "1",   "","", "Band SR",
+#   b+11, 0, "20",  "","", "Wall East",
+#   b+12, 0, c(19, 2),  "","", "", 
+#   b+13, 0, "3",    "","", "Centre",
+#   b+14, 0, "10",   "","", "Wall",
+#   b+15, 0, "17",   "","", "Keys",
+#   b+16, 0, "16",   "","", "Wall East",
+# seq(b+17,b+20), 0, "",	    "","", "unused",
+# b+21, 0, "40",	  "","", "Floor",
+# b+22, 0, "41",	  "","", "Floor",
+# b+23, 0, "42",   "","", "Floor",
+# seq(b+24,b+28),  0, "", "","", "unused", 
+# seq(b+29,b+32),  0, "", "","", "Scrollers",
+# seq(b+33,b+36),  0, "", "","", "Scrollers",
+# c(b+47,b+48),    0, "", "","", "Rotator control/reserved",
+# c(b+49,b+50),    0, "", "","", "Rotator control/reserved"
+# )
+# 
+
+
+dmx.details %>% kable(align="l") %>%
+  column_spec( 1,  bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
 ```
 
 [Back to top](#top)
 
-##Ketra Configuration
-```{r}
-k <- tribble(
-~Zones, ~Text, ~Num, ~Red, ~Green, ~Blue,
-"Walls","Console",101,101,102,103,
-"","DMX",151,151,152,153,
-"Down Stage","Console",104,104,105,106,
-"","DMX",154,154,155,156,
-"Mid Stage","Console",107,107,108,109,
-"","DMX",157,157,158,159,
-"Up Stage","Console",110,110,111,112,
-"","DMX",160,160,161,162,
-"Centre 1","Console",113,113,114,115,
-"","DMX",163,163,164,165,
-"Centre 2","Console",116,116,117,118,
-"","DMX",166,166,167,168,
-"Centre 1","Console",119,119,120,121,
-"","DMX",169,169,170,171
-)
-
-k %>% select(-Num) %>% formattable(align="l")
-```
-
-## ColorSource Pars
-
-```{r}
-csp <- tribble(
-~Fixture, ~Text, ~Patch, ~Intensity, ~Red, ~Green, ~Blue, ~Strobe,
-1,"Console",51,51,52,53,54,55,
-"","DMX",101,101,102,103,104,105,
- 
-2,"Console",56,56,57,58,59,60,
-"","DMX",106,106,107,108,109,110,
-
-3,"Console",61,61,62,63,64,65,
-"","DMX",111,111,112,113,114,115,
-
-4,"Console",66,66,67,68,69,70,
-"","DMX",116,116,117,118,119,120,
-
-5,"Console",71,71,72,73,74,75,
-"","DMX",121,121,122,123,124,125,
-
-6,"Console",76,76,77,78,79,80,
-"","DMX",126,126,127,128,129,130,
-
-7,"Console",81,81,81,83,84,85,
-"","DMX",131,131,132,133,134,135,
-
-8,"Console",86,86,87,88,89,90,
-"","DMX",136,136,137,138,139,140,
-
-9,"Console",91,91,92,93,94,95,
-"","DMX",141,141,142,143,144,145
-)
-
-csp %>% select(-Patch) %>% formattable(align="l")
-```
 
 # GOBO Rotators
 
@@ -291,6 +277,8 @@ Intensity of zero is stop. The closer to 50 the slower it rotates. 1-49 and 50-1
 [Back to top](#top)
 
 #House Lighting
+
+> The house lighting information needs to be completely revised post 2018 upgrades.
 
 The main house lights are controlled via a control box in the balcony located on the east end of the rear desk. These are line voltage (120V ) analog controls which control the Lutron Dimmer boxes in the electrical room in four groups.
 
@@ -485,7 +473,7 @@ smry %>% formattable(align="l")
 
 [goto top](#TOC)
 
-# Walls  
+## Walls  
 We need to keep the light off the screens so we need to use the spot width lamps next to the walls. With nothing else added, these will create dots on the floor.
 ```{r echo=FALSE}
 p1 <- plan %>% 
@@ -497,7 +485,7 @@ p1 %>% select(-rads, -θ ) %>% formattable()
 ```
 [goto top](#TOC)
 
-# Down Stage (Bulkhead)
+## Down Stage (Bulkhead)
 The bulkhead pots can be used to light up the typical vocal area. An eight foot beam diameter should give decent coverage. With all of them on, the centre section wil be brighter than the outside.
 
 For coverage behind the bulkhead, we can use "Two Rows"
@@ -512,7 +500,7 @@ p1 %>% select(-rads, -θ ) %>% formattable()
 ```
 [goto top](#TOC)
 
-# Mid Stage Centre  
+## Mid Stage Centre  
 Could be used in combination with the bulkhead (down stage) or separately. 
 ```{r echo=FALSE}
 p1 <- plan %>% 
@@ -524,7 +512,7 @@ p1 %>% select(-rads, -θ ) %>% formattable()
 ```
 [goto top](#TOC)
 
-# Up Stage Centre  
+## Up Stage Centre  
 Could go with Flood or Wide Flood. The WF covers most of the riser  
 ```{r echo=FALSE}
 p1 <- plan %>% 
@@ -536,7 +524,7 @@ p1 %>% select(-rads, -θ ) %>% formattable()
 ```
 [goto top](#TOC)
 
-# Centre Wash
+## Centre Wash
 The six centre pots are in three groups to wash most of the platform. There will be a hot spot down the centre if all are on at once.
 
 ##Centre Wash Group1 
@@ -593,19 +581,21 @@ T = 2.7 \times {ceiling} (  \frac {N \times G} {45})
 $$
 where:
 
-* N is the number of (DMX) Channels per Group 
-* G is the number of groups
-* T is the Maximum delay time.
-
-In this design there are 7 groups all using the RGB profile.  
-
 ```{r}
-G <- 7
-N <- 3  # four DMX channels for per group.
+df <- tribble (
+  ~Variable, ~Description, ~Value,
+  "N",     "the number of (DMX) Channels per Group", N <- 3,
+  "G",     "the number of groups", G<-7*2,
+  "T",     "the Maximum delay time", T <- 2.7 * ceiling(N*G/45)
+)
 
-T <- 2.7 * ceiling(N*G/45)
+df %>% kable()
 ```
-The expected maximum transition time is `r T` seconds.
+
+
+
+
+In this design there are `r G`  groups all using the RGB profile. The expected maximum transition time is `r T` seconds.
 
 [goto top](#TOC)
 
