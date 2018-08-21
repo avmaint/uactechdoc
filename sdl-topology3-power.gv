@@ -1,0 +1,56 @@
+digraph topology3 { 
+graph [overlap = true, fontsize = 10, rankdir=TB 
+      tooltip="Power Topology",
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" , 
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+      
+      
+subgraph cluster_er {
+  somepanel
+  lmi
+  lp1
+}      
+
+subgraph cluster_bal {
+  balcony
+  nsi
+  balconyeast
+  balconywest
+}
+
+subgraph cluster_bulk {
+  bulkhead
+  topbar
+  points
+}
+
+somepanel -> lmi
+lmi -> stage [label="41,42,43"]
+lmi -> attic
+
+lp1 -> bulkhead
+lp1 -> balcony
+balcony -> nsi
+nsi -> balconyeast [label="1-10"]
+nsi -> balconywest [label="11-20"]
+
+bulkhead -> topbar
+bulkhead -> points
+bulkhead -> fohbar
+  
+Node [shape=plaintext, fillcolor=white]
+stamp [label= <<table>
+<tr><td>Title</td>
+    <td>Power Topology</td>
+</tr>    
+<tr><td>As of</td>
+    <td>2018-08-20</td>
+</tr>
+</table>> ]  
+
+{rank=same; stamp  attic  }
+
+ } 

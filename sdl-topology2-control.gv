@@ -17,6 +17,10 @@ computer:o2 -> n1:i
 
 n3 [label="{<i>dmx|Ketra N3\nZLIU-A003|<o>KetraNet}"]
 
+pathway [label="Pathway\nZLIU-A001"]
+console [label="Console\nETC CS 40AV\nZLKU-B001"]
+optoisolator [label="Optical Isolator\nZLIU-0003"]
+
 ketranet [label="Ketranet\nMesh\nNetwork"]
 
 touchpad -> ketranet
@@ -35,22 +39,21 @@ n3       -> ketranet
 n1       -> ketranet
 
 console:dmx1 -> optoisolator:i1
+optoisolator -> pathway 
 
-optoisolator:o1 -> interface:dmx     
-optoisolator:o2 -> demux:i
- 
+  
 Node [shape=plaintext, fillcolor=white]
 stamp [label= <<table>
 <tr><td>Title</td>
     <td>Control Topology - KetraNet</td>
 </tr>    
 <tr><td>As of</td>
-    <td>2018-08-14</td>
+    <td>2018-08-20</td>
 </tr>
    
 </table>> ]  
 
 {rank=same; stamp   ketran4_1 ketran4_2 ketran4_3}
-{rank=same; console computer  }
-{rank=same; n1 n3 touchpad}
+{rank=same; console computer touchpad }
+{rank=same; n1 n3 }
  } 

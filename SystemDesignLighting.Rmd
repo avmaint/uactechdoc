@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r options, echo=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
 options(knitr.table.format = "html") # latex for pdf 
 ```
 
@@ -44,7 +44,7 @@ dmx.details <- read_excel(fname,
                             sheet = "DMX.Details" )
 ```
 
-# Introduction
+#Introduction
 This document provides key technical documentation for the lighting subsystems at UAC.
 
 Purpose:
@@ -68,81 +68,39 @@ There is not enough power on this NRD8000 circuits to power all circuits at once
 
 [Back to top](#top)
 
-##DMX Map
-
-```{r}
-dmxmap <- tribble(
-  ~DMX.Range, ~Comments,
-c(1,16), 
-"Control the NRD8000 dimmers in the balcony closet. ",
-
-c(17,28),
-"Control the 12 2k LMI dimmers in the electrical room via a DMX to analog converter.",
-
-c(29,36), 
-"Scrollers",
-
-c(37,40),
-"Rotators - 2 channels each.",
-
-c(101,145),
-"ColorSource Pars Topbar and Points - 5 channels each",
-
-c(151,171),
-"Ketra S38 Lamps - 3 channels each"
-)
-
-dmxmap %>% formattable(align="l")
-```
-
-
-# Topologies
+# Control Systems
 Three different control protocols are used: 
 
 * DMX, which is the backbone protocol
 * NSI Microplex. The I/F501 provides the bridge bewteen DMX and microplex
 * and KetraNet Mesh wireless
 
-## Control Topology
-
-> Consider spliting the topology into DMX and KetraNet views.
-
+The Microplex subsystem is shown on the DMX diagram.
 
 ### DMX Topology
-```{r}
+```{r top1}
 DiagrammeR::grViz("sdl-topology1-control.gv")
 
-```
-
-###KetraNet Topology
-
-```{r top1}
-DiagrammeR::grViz("sdl-topology2-control.gv")
-
-selected.at <- c(
-              "ZLIU-0001", "ZLEU-0001",
-              "ZLEU-0002", "ZLIU-0002",
-              "ZLKU-0001", "ZLEU-0003",
-              "ZLEU-0004" ,"ZLIU-0003",
-              "ZLIP-0001", "ZLIU-0004",
-              "ZLIU-A001", "ZLIU-A003", "ZLIU-A002",
-              "ZLKU-B001", "ZLKU-B002",
-              "ZLIU-B001", "ZLIU-B002", "ZLIU-B003" 
+selected.at <- c( "ZLKU-B001", "ZLIP-0001", "CDWU-0009",
+                  "ZVKU-A001", "ZLIU-0003", "ZLIU-A002",
+                  "ZLIU-0001", "ZLIU-0002", "ZLIU-0004",
+                  "ZLEU-0001", "ZLEU-0002", 
+                  "ZLEU-0003", "ZLEU-0004",
+                  "ZLIU-A001", "ZLIU-A003" 
               ) %>% 
   data.frame(AssetTag=.)
 
 merge( Tech_Inventory, selected.at) %>% 
     select(AssetTag, Manufacturer, Model, Desc ) %>%
     arrange( AssetTag ) %>%
-    formattable(align="l")
-
+    kable(align="l") %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
 ```
 
-[Back to top](#top)
+###KetraNet Topology
 
-##Ketra Sub-System Topology
-
-This diagram is only a subset of the ligthing system focus on what we need to install the Ketra system. I have included the stage floor and overhead to put into context why we need the planned splitter in the amp rack.
+Exact pathways for the N4 devices not yet established. These two diagrams needs to be merged.
 
 ```{r topology , echo=FALSE}
 topology <- "
@@ -189,74 +147,67 @@ DiagrammeR::grViz(topology)
 
 ```
 
-# Dimmer Circuit Destinations
+```{r top2}
+DiagrammeR::grViz("sdl-topology2-control.gv")
 
-Lines refer to power distribution circuits from dimmers to lighting distribution points.
+selected.at <- c(
+                "ZLKU-B001", "ZLKU-B002", "CDWU-0009",
+                "ZLIU-0003",
+                "ZLIU-A003", "ZLIU-A002", 
+              "ZLIU-B001", "ZLIU-B002", "ZLIU-B003" 
+              ) %>% 
+  data.frame(AssetTag=.)
 
-```{r}
-circuits <- tribble(
-  ~CircuitRange, ~Destination, ~PowerDistro,
-  c ( 1,10), "Balcony East Bar", "Balcony Closet",  
-  c(11,20),  "Balcony West Bar", "Balcony Closet",
-  c(21,32),	 "Attic",            "Electrical Room",
-  c(40,42),  "Stage Floor",      "Electrical Room"
-)
+merge( Tech_Inventory, selected.at) %>% 
+    select(AssetTag, Manufacturer, Model, Desc ) %>%
+    arrange( AssetTag ) %>%
+    kable(align="l") %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
 
-circuits %>% formattable(align="l")
 ```
 
-## DMX Assignments Details
+[Back to top](#top)
+
+
+
+##DMX Summary
+>*Note that the DMX address for the Scrollers and Rotators are in conflict with the FoH Bar. *
+
+```{r}
+dmxmap <- tribble(
+  ~DMX.Lo, ~DMX.Hi, ~Comments,
+  1, 15,        "FoH Bar - Centre",
+
+ 12, 57+5-1,    "FoH Bar - SR/SL",
+
+448, 448+16-1, "NRD8000 dimmers in the balcony closet",
+
+464, 464+12-1, "LMI dimmers (6x2kx2) in the electrical room",
+
+101, 145,      "ColorSource Pars Topbar and Points",
+
+151, 171,      "Ketra S38 Stage Pots",
+172, 202+5-1,  "CS Pars on Floor",
+
+29, 36, "Scrollers",
+
+47 , 50, "Rotators - 2 channels each."
+)
+
+dmxmap %>%
+  arrange(DMX.Lo) %>%
+  kable(align="l") %>%
+  column_spec( 1:2,  bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+
+## DMX Details
 
 > The Balcony Easy/West Bar assignments need to be updated post Aug 2018 changes.
 
 ```{r}
-# b <- 449
-# 
-# dmx.details <- tribble(
-#   ~DMX.Range, ~Channel, ~Circuit, ~Location, ~Type, ~Usage,
-#   
-# c(0,0), c(1,7), "", "FoH Centre",    "4WRD", "Apron", 
-# 
-# c(0,0), c(8,9), "", "FoH C?",             "CS Par",  "SR Wash",
-#   
-# c(0.0), 10,          "",             "FoH ?", "CS Par", "Band",     
-# 
-# c(101, 115), 0, "", "Top Bar", "CS Par", "SR side (5 channels per) ",
-# c(116, 120), 0, "", "Top Bar", "CS Par", "Apron Back Wash (5 channels per) ",
-# c(121, 135), 0, "", "Top Bar", "CS Par", "SL Side (5 channels per) ",
-# c(136, 145), 0, "", "Speaker", "CS Par", "Apron Wash (5 channels per) ",
-# 
-# c(151, 169), 0, "", "","",  "Ketra Stage Pots (3 channels per)",  
-#   
-#   b+1, 0, c(9, 11 ), "","", "?",
-#   b+2, 0, c(6, 12 ), "","", "?",
-#   b+3, 0, "18",   "","", "Pennisula West Bar",
-#   b+4, 0, "5",    "","", "Pennisula East Bar",
-#   b+5, 0, c(7,13), "","", "SL+Centre",
-#   b+6, 0, "",     "","", "Dimmer 6 does not work",
-#   b+7, 0, "8",	   "","", "Wall West",
-#   b+8, 0, "14",   "","", "Wall East",
-#   b+9, 0, "4",    "","", "SL",
-#   b+10, 0, "1",   "","", "Band SR",
-#   b+11, 0, "20",  "","", "Wall East",
-#   b+12, 0, c(19, 2),  "","", "", 
-#   b+13, 0, "3",    "","", "Centre",
-#   b+14, 0, "10",   "","", "Wall",
-#   b+15, 0, "17",   "","", "Keys",
-#   b+16, 0, "16",   "","", "Wall East",
-# seq(b+17,b+20), 0, "",	    "","", "unused",
-# b+21, 0, "40",	  "","", "Floor",
-# b+22, 0, "41",	  "","", "Floor",
-# b+23, 0, "42",   "","", "Floor",
-# seq(b+24,b+28),  0, "", "","", "unused", 
-# seq(b+29,b+32),  0, "", "","", "Scrollers",
-# seq(b+33,b+36),  0, "", "","", "Scrollers",
-# c(b+47,b+48),    0, "", "","", "Rotator control/reserved",
-# c(b+49,b+50),    0, "", "","", "Rotator control/reserved"
-# )
-# 
-
-
 dmx.details %>% kable(align="l") %>%
   column_spec( 1,  bold = TRUE ) %>%
   kable_styling("striped", full_width = TRUE)
@@ -264,8 +215,38 @@ dmx.details %>% kable(align="l") %>%
 
 [Back to top](#top)
 
+#Power Distribution Systems
 
-# GOBO Rotators
+```{r}
+DiagrammeR::grViz("sdl-topology3-power.gv")
+
+```
+
+
+## Dimmer Circuit Destinations
+
+Lines refer to power distribution circuits from dimmers to lighting distribution points.
+
+```{r}
+circuits <- tribble(
+  ~Circuit.Lo, ~Circuit.Hi, ~Destination, ~PowerDistro,
+   1 ,10 , "Balcony East Bar",  "Balcony Closet",  
+   11,20 ,  "Balcony West Bar", "Balcony Closet",
+   21,32 ,	 "Attic",           "Electrical Room",
+   40,42 ,  "Stage Floor",      "Electrical Room"
+)
+
+circuits %>% 
+  kable(align="l") %>%
+  column_spec( 1:2,  bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+
+#Accessories
+
+## GOBO Rotators
+>Needs to be updated. DMX info is out-of-date.
 
 Each one needs two channels.
 
@@ -275,6 +256,30 @@ Each one needs two channels.
 Intensity of zero is stop. The closer to 50 the slower it rotates. 1-49 and 50-100 rotate in opposite directions.
 
 [Back to top](#top)
+
+##Colour Scrollers
+
+>To be written
+
+### Gel String Colours
+
+|Intensity| Name        | Rosco Number |
+|---------|-------------|--------------|
+|  5      | Neon Yellow |              |	 
+| 13      |	Flesh       |              |	 
+| 25      |	Amber       |	             |
+| 33      |	Orange      |	R23          |
+| 38      |	Red	        |              |
+| 45      |	Lite Pink	  | R35          |
+| 52      |	Magenta	    | R46          |
+| 58      | Lavender    | R57          |
+| 65      |	Purple      |	             |
+| 73      |	Lite Blue   |              |	 
+| 80	    | Warm Dark Blue	|          | 
+| 85	    | Cold Dark Blue   |         |	 
+| 95      |	Lite Green  |	 R88         |
+| 100     |	Kelly Green |	 R94         |
+|         |             |              |
 
 #House Lighting
 
@@ -299,7 +304,9 @@ cs = c("AssetTag","Qty"  ,
 Tech_Inventory %>%  
           filter( Manufacturer=="Lutron" , InService== "Y") %>%  
           dplyr::select(one_of(cs)) %>% 
-          formattable(align="l" )  
+          kable(align="l" )  %>%
+  column_spec( 1,  bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
 ```
 
 Under independent control are the sconse lights along the perimeter walls. These are controlled via a two-way switch located by the south-east and north-east doors. The control at the south-east door has a programmable timer. The intent is to ensure that there is some lighting in the evenings between dusk and midnight to enable sfe passage.
@@ -564,7 +571,9 @@ p1 %>% select(-rads, -θ ) %>% formattable()
 
 #Ketra Details
 ```{r echo=FALSE}
-rbind(pots.w, pots.e) %>% formattable()
+rbind(pots.w, pots.e) %>% kable() %>%
+  column_spec( 1,  bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
 ```
 [goto top](#TOC)
 
@@ -584,16 +593,17 @@ where:
 ```{r}
 df <- tribble (
   ~Variable, ~Description, ~Value,
-  "N",     "the number of (DMX) Channels per Group", N <- 3,
-  "G",     "the number of groups", G<-7*2,
-  "T",     "the Maximum delay time", T <- 2.7 * ceiling(N*G/45)
+   "",      "Number of groups on Stage", g1 <-7,
+   "",      "Number of groups in House", g2 <-7,
+   "G",     "Total number of groups",    G  <-(g1+g2),
+   "N",     "Number of (DMX) Channels per Group", N <- 3,
+  "T",     "Maximum delay time", T <- 2.7 * ceiling(N*G/45)
 )
 
-df %>% kable()
+df %>% kable() %>%
+  column_spec( 1 ,  bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
 ```
-
-
-
 
 In this design there are `r G`  groups all using the RGB profile. The expected maximum transition time is `r T` seconds.
 
@@ -602,15 +612,25 @@ In this design there are `r G`  groups all using the RGB profile. The expected m
 #Appendix
 
 #The Room 
-* SW Wall 71-10
-* South Wall 21-3
-* NW Wall 55-11
-* North Centre 45-2
-* NE Back Wall 55-8
-* SE Back Wall 72-2
-* front to back along centre line 90-2
-* distance (y dimension) -23-2 for corners of SW/NW wall meet
-* corner to corner distance 123-2
+```{r}
+  tribble(
+  ~Object, ~Feet, ~Inches, 
+  "SW Wall",      71,  10,  
+  "South Wall",   21,  3, 
+  "NW Wall",      55, 11, 
+  "North Centre", 45,  2,
+  "NE Back Wall",  55, 8,
+  "SE Back Wall", 72, 2,
+  "Front to back along centre line", 90, 2,
+  "Distance (y dimension)  for corners of SW/NW wall meet",  23, 2,
+  "Corner to corner distance", 123, 2
+) %>% 
+  mutate(Distance = Feet + Inches/12) %>%
+  kable() %>%
+  column_spec( 1,  bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
 
 ```{r room, echo=FALSE}
 
@@ -639,12 +659,15 @@ g
 [Back to top](#top)
 
 # Network Details
-The lighting system has no network components.
+The lighting system has few network components. RJ45 and cat6 cabling is used for some interconnects - the protocol is DMX not ethernet.
+
 ```{r} 
-# NetworkInventory %>% 
-# filter(Group=="Video") %>% 
-# select(Location, Usage, Device, MAC, IP, URL, Notes) %>%
-# kable() 
+NetworkInventory %>% 
+  filter(Category=="Lighting") %>% 
+  select(Location, Usage, Device, MAC, IP, URL, Notes) %>%
+  kable() %>%
+  column_spec( 1,  bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
 ```
 
 [Back to top](#top)
@@ -664,32 +687,15 @@ cs = c("AssetTag","Qty"  ,
 Tech_Inventory %>%  
           filter( Category=="Lighting" , InService== "Y") %>%  
           dplyr::select(one_of(cs)) %>% 
-          formattable(align="l" )  
+          arrange(AssetTag) %>%
+          kable(align="l" )  %>%
+          column_spec( 1,  bold = TRUE ) %>%
+          kable_styling("striped", full_width = TRUE)
 ```
 
 [Back to top](#top)
 
 #Appendix
-
-# Gel String Colours
-
-|Intensity| Name        | Rosco Number |
-|---------|-------------|--------------|
-|  5      | Neon Yellow |              |	 
-| 13      |	Flesh       |              |	 
-| 25      |	Amber       |	             |
-| 33      |	Orange      |	R23          |
-| 38      |	Red	        |              |
-| 45      |	Lite Pink	  | R35          |
-| 52      |	Magenta	    | R46          |
-| 58      | Lavender    | R57          |
-| 65      |	Purple      |	             |
-| 73      |	Lite Blue   |              |	 
-| 80	    | Warm Dark Blue	|          | 
-| 85	    | Cold Dark Blue   |         |	 
-| 95      |	Lite Green  |	 R88         |
-| 100     |	Kelly Green |	 R94         |
-|         |             |              |
 
 
 `r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
