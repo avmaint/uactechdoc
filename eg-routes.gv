@@ -1,0 +1,82 @@
+digraph Routes { 
+graph [overlap = true, fontsize = 30, rankdir=LR 
+      label="Routes\n(as of 1993-03-12)",
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" , fontsize = 10, 
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+
+LP1   [label=' LP1 | Lighting Breaker Panel | electrical room  north wall '] 
+LP2   [label=' LP2 | Lighting Breaker Panel | electrical room  east wall '] 
+LP3   [label=' LP3 | Lighting Breaker Panel | electrical room  east wall '] 
+HP1   [label=' HP1 | Heating Breaker Panel | electrical room  west wall '] 
+HP2   [label=' HP2 | Heating Breaker Panel | electrical room  north wall '] 
+HP3   [label=' HP3 | Heating Breaker Panel | electrical room  east wall '] 
+CP1    [label=' CP1  | Lutron control panel | balcony on umbilical cable '] 
+CP2   [label=' CP2 | Screen control switch | balcony mounted in desk '] 
+CP3   [label=' CP3 | NSI Lighting Control | NA '] 
+J0    [label=' J0  | splitter box | electrical room  north wall '] 
+J1    [label=' J1  | E box | lower west attic (above prayer room) middle '] 
+J2   [label=' J2 | E box | same location as J1 '] 
+J3   [label=' J3 | E box | balcony centre to the west under carpeted panel '] 
+J4   [label=' J4 | Small junction box | on cliff between upper and lower attic '] 
+J5   [label=' J5 | Switch box | mounted in desk in balcony '] 
+J6   [label=' J6 | Theatre Lighting Main Switch | NA ']
+J7   [label=' J7 | Theatre Lighting Sub Breakers | NA '] 
+J8   [label=' J8 | Patch cord junction box | Balcony '] 
+R0   [label=' R0 | Plug | rear of bulkhead - upper half - breaker LP1-16 '] 
+R1   [label=' R1 | Plug | rear of bulkhead - lower half - breaker LP1-31 '] 
+R2R3 [label=' R2 R3 | Plugs | balcony desk - west side - surface mount - breaker LP1-5 ']
+R4R5   [label=' R4 R5 | Plugs | nursery area on walls between red and blue rooms plugs are back to back ']
+
+R6 [label='R6|Plug strip|10 individual circuits each ceiling mounted'] 
+R7 [label='R7|Plug strip|10 individual circuits each ceiling mounted'] 
+
+R8R13   [label=' R8-R13 |Plugs|Balcony desk - east side – surface mount - breaker LP1-3 '] 
+
+MP -> LP1  [label="R0"]
+ 
+LP1 -> unknownR1	[ label="R1"]
+  
+LP1 -> J2 	[ label="R2"]
+ 
+J1 -> J4 [ label="R3" ]
+ 
+J0 -> J1	[ label="R4"]
+ 
+J0 -> J3  [ label="R5" ]
+ 
+J0 -> J1	[ label="R6" ]
+ 
+J3 -> unknownR7  [ label="R7"]
+
+J3 -> R2R3 [ label="R8"]
+
+J3 -> CP2  [ label="R9"]
+
+J3 -> J5  [ label="R10"]
+
+J3 ->unknownR11	[ label="R11"]
+
+J3 -> CP1 	[ label="R12"]
+
+J3 -> unknownR13	[ label="R13" ]
+
+R14	[ label="R14"]
+
+R15	[ label="R15"]
+
+J3 -> R4R5 [ label="R16"]
+
+J4 -> R1 [ label="R17"]
+
+LP1 -> J0 [ label="R18"]
+
+J5 -> R8R13	[ label="R19"]
+
+J5 -> R14R19	[ label="R20"]
+
+J8 -> R6
+J8 -> R7
+}

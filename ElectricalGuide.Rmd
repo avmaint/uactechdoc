@@ -1,0 +1,155 @@
+---
+title: "UAC Electrical Guide"
+author: "Terry Doner"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output: 
+    html_document:
+        toc: true
+---
+
+```{r options, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+```
+
+```{r packages, include=FALSE}
+require(dplyr)
+require(readxl)
+require(knitr)
+```
+
+```{r getdata}
+path <-"~/Documents/UACTech/SystemDocumentation/data"
+#path <- "../../data"
+electricalfile <- "Electrical.xlsx"
+fname <- paste(path, electricalfile, sep="/")
+panels <- read_excel( fname, sheet = "Panels")
+nodes <- read_excel(fname, sheet = "Nodes")
+routes <- read_excel(fname, sheet = "Routes")
+
+lutron <- read_excel(fname, sheet = "Lutron")
+```
+
+> as of 1993/03/12
+
+These notes are to be considered as a starting point only. The accuracy of these notes can not be guaranteed.
+
+CHECK IT OUT BEFORE STARTING WORK.
+
+Changes that have been made since 1993:
+
+* Technical Power Panel on Main floor and revamp of balcony power - circa 2000
+* 2016 Installtion of the HVAC system
+* 2016 Installation of lobby thermostat
+* repartitioning of the office space - several times
+
+Please notify Terry Doner of any changes or corrections for inclusion in the next release of these notes.
+
+[Back to top](#top)
+ 
+# Breaker Panel - LP1
+```{r echo=FALSE}
+panel <- "LP1"
+
+odd  <- panels %>% 
+  filter(Panel==panel) %>% 
+  filter(Circuit %% 2 == 1) %>% 
+  select(Description, Circuit)
+even <- panels %>% 
+  filter(Panel==panel) %>% 
+  filter(Circuit %% 2 == 0) %>% 
+  select(Circuit, Description)
+
+cbind(odd, even) %>% kable()
+```
+
+[Back to top](#top)
+
+# Breaker Panel - LP2
+```{r echo=FALSE}
+panel <- "LP2"
+
+odd  <- panels %>% 
+  filter(Panel==panel) %>% 
+  filter(Circuit %% 2 == 1) %>% 
+  select(Description, Circuit)
+even <- panels %>% 
+  filter(Panel==panel) %>% 
+  filter(Circuit %% 2 == 0) %>% 
+  select(Circuit, Description)
+
+cbind(odd, even) %>% kable()
+```
+
+[Back to top](#top)
+ 
+# Breaker Panel - LP3
+```{r echo=FALSE}
+panel <- "LP3"
+
+odd  <- panels %>% 
+  filter(Panel==panel) %>% 
+  filter(Circuit %% 2 == 1) %>% 
+  select(Description, Circuit)
+even <- panels %>% 
+  filter(Panel==panel) %>% 
+  filter(Circuit %% 2 == 0) %>% 
+  select(Circuit, Description)
+
+cbind(odd, even) %>% kable()
+```
+
+[Back to top](#top)
+
+# Breaker Panel - HP3 (Heat)
+```{r echo=FALSE}
+panel <- "HP3"
+
+odd  <- panels %>% 
+  filter(Panel==panel) %>% 
+  filter(Circuit %% 2 == 1) %>% 
+  select(Description, Circuit)
+even <- panels %>% 
+  filter(Panel==panel) %>% 
+  filter(Circuit %% 2 == 0) %>% 
+  select(Circuit, Description)
+
+cbind(odd, even) %>% kable()
+```
+ 
+[Back to top](#top)
+
+# Node Locations
+```{r echo=FALSE}
+
+nodes %>% kable()
+```
+
+[Back to top](#top)
+
+#Routing Descriptions
+```{r echo=FALSE}
+
+routes %>% select(RouteNum,	RouteDesc,	Wire,	Usage) %>% kable()
+```
+
+```{r echo=FALSE}
+DiagrammeR::grViz("eg-routes.gv" )
+```	
+
+[Back to top](#top)
+ 
+#Lutron Dimmers
+```{r echo=FALSE}
+
+lutron %>% kable()
+```
+
+[Back to top](#top)
+
+# Schematic Diagram
+
+[Back to top](#top)
+
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/",  knitr::current_input())`.
