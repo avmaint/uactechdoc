@@ -1,45 +1,74 @@
 digraph topology3 { 
 graph [overlap = true, fontsize = 10, rankdir=TB 
-      tooltip="Power Topology",
+      tooltip="Lighting Power Topology",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , 
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
+lp1 [label="{{Panel LP1}|{ <o3032>30,32|<o2>...|<o4448>44,46,48}}"]
+somepanel [label="{{Panel LP?}|{ <o3032>...|<ox>... }}"]
+stage     [label="{<i>41-43|{Stage Outlets}|{ fixtures}}"]
+balconyeast  [label="{<i>1-10|{Balcony East}|{ fixtures}}"]
+balconywest  [label="{<i>11-20|{Balcony West}|{ fixtures}}"]
+
+fohbar       [label="{FoH Bars\n3 bars|6 4WRD\n7 CS Spots\n4 CS Pars}"]
+topbar       [label="{Stage Overhead Bar|7 CS Pars}"]
+points       [label="{Apron/Points|2 CS Pars}"]
+
+etcrelay  [label="{<i>..|{ETC Power Relay}|{ fixtures}}"]
+
       
-subgraph cluster_er {
+subgraph cluster_er { label="Electrical Room"
   somepanel
-  lmi
+  lmi      [label="LMI\nDimmers"]
   lp1
+  distro [label="100 Amp\nDistro"]
 }      
 
-subgraph cluster_bal {
-  balcony
-  nsi
+subgraph cluster_bal { label="Balcony"
+  balcony     [label="Balcony\nPanel"]
+  nsi         [label="{<i>...|{NSI Dimmers\n2 units}|{ <o>...}}"]
   balconyeast
   balconywest
 }
 
-subgraph cluster_bulk {
-  bulkhead
+subgraph cluster_bulk { label="Bulkhead"
+  bulkhead  [label="Bulkhead\nPanel"]
   topbar
   points
 }
 
-somepanel -> lmi
-lmi -> stage [label="41,42,43"]
+subgraph cluster_attic {label="Attic"
+attic [label="{<i>21-32|{Attic Outlets}|{ fixtures}}"]
+etcrelay
+}
+
+subgraph cluster_amp {label="Audio Amp Room"
+   amppanel [label="Audio Panel"]
+}
+
+subgraph cluster_stage {label="Stage Floor"
+  stagepars [label="7 CS Pars\n6 AW bars"]
+}
+
+amppanel -> stagepars
+
+somepanel:ox -> lmi
+lmi -> stage  
 lmi -> attic
 
-lp1 -> bulkhead
-lp1 -> balcony
+lp1:o2 -> bulkhead
+lp1:o3032 -> balcony  
+lp1:o4448 -> distro
 balcony -> nsi
-nsi -> balconyeast [label="1-10"]
-nsi -> balconywest [label="11-20"]
+nsi -> balconyeast  
+nsi -> balconywest  
 
 bulkhead -> topbar
 bulkhead -> points
-bulkhead -> fohbar
+bulkhead -> etcrelay -> fohbar
   
 Node [shape=plaintext, fillcolor=white]
 stamp [label= <<table>
@@ -47,10 +76,10 @@ stamp [label= <<table>
     <td>Power Topology</td>
 </tr>    
 <tr><td>As of</td>
-    <td>2018-08-20</td>
+    <td>2018-08-21</td>
 </tr>
 </table>> ]  
 
-{rank=same; stamp  attic  }
+{rank=same; stamp  fohbar    }
 
  } 

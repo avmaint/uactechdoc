@@ -281,9 +281,51 @@ Intensity of zero is stop. The closer to 50 the slower it rotates. 1-49 and 50-1
 | 100     |	Kelly Green |	 R94         |
 |         |             |              |
 
-#House Lighting
+#House Lighting - NEW as of Fall 2018
+The house lights consists for many major components:
 
-> The house lighting information needs to be completely revised post 2018 upgrades.
+#. Pendants over the main floor sections
+    * Each pendant has two groups of lamps. An outer group of four lamps and an inner single lamp group. The four outer lamps have a wide beam spread, the inner one is narrow. They are colour colour controllable (LED RGB).
+    * The pendants over the "A" and "E" sections (extreme east and west sections) are independently controllable from the middle sections. 
+    * Control Channels: 4 control channels 
+    * DMX addresses: 12 DMX 
+#. Pendants over the Balcony
+    * These pendants have only the outer group of lamps. 
+    * Control Channels: 1 channel 
+    * DMX addresses: 3
+#. Pots under the Balcony
+    * Each pot will be an RGB lamp
+    * Control Channels: 1
+    * DMX addresses: 3
+#. Sconse along the main floor perimeter
+    * These lamps will also be RGB lamps.
+    * There is also a pair of 3-way light swtiches at the entrance doors that can turn off the lights.
+    * Control Channels: 1
+    * DMX addresses: 3
+#. Railing lights on the Balcony handrail
+    * These white only strip lights are dimmable and are manually operated.
+    * Control Channels: 0
+    * DMX Addresses: 0
+    
+##Control
+The house lights (except the railing) can be controlled in two ways:
+ 
+#. Via the touchpad panel 
+    * Located at the front of the auditorium, office side.
+    * Allows the selection of one of five preset scenes.
+    * When the console is powered on, the touchpad is disabled.
+#. Via the Colorsource 40AV console
+    * Located in the balcony on th erear desk.
+    * many sophisticated looks can be programmed into the console.
+    * When the console is powered on, the touchpad is disabled.
+    
+##Programming
+
+The touchpad scenes and the DMX channel assignments are programmed via the Ketra Design Studio software which is installed on the windows computer CDWU-0009. It requires a Ketra N1 dongle to interface with the KetraNet wireless mesh network.
+
+#House Lighting - Old Lutron
+
+> This section needs to be removed once the 2018 upgrades are complete.
 
 The main house lights are controlled via a control box in the balcony located on the east end of the rear desk. These are line voltage (120V ) analog controls which control the Lutron Dimmer boxes in the electrical room in four groups.
 
