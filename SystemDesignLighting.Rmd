@@ -250,8 +250,7 @@ circuits %>%
 
 Each one needs two channels.
 
-* 37 is a control channel, 38 must be zero.
-* 39 is a control channel, 40 must be zero.
+* n is a control channel, n+1 must be zero.
 
 Intensity of zero is stop. The closer to 50 the slower it rotates. 1-49 and 50-100 rotate in opposite directions.
 
