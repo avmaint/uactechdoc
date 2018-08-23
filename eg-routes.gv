@@ -36,6 +36,11 @@ R7 [label='R7|Plug strip|10 individual circuits each ceiling mounted']
 R8R13   [label=' R8-R13 |Plugs|Balcony desk - east side – surface mount - breaker LP1-3 '] 
 
 MP -> LP1  [label="R0"]
+MP -> LP2
+MP -> LP3
+MP -> HP1
+MP -> HP2
+MP -> HP3
  
 LP1 -> unknownR1	[ label="R1"]
   
@@ -62,10 +67,6 @@ J3 ->unknownR11	[ label="R11"]
 J3 -> CP1 	[ label="R12"]
 
 J3 -> unknownR13	[ label="R13" ]
-
-R14	[ label="R14"]
-
-R15	[ label="R15"]
 
 J3 -> R4R5 [ label="R16"]
 

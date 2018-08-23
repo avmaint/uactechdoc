@@ -16,6 +16,7 @@ options(knitr.table.format = "html") # latex for pdf
 require(dplyr)
 require(readxl)
 require(knitr)
+require(kableExtra)
 ```
 
 ```{r getdata}
@@ -24,7 +25,7 @@ path <-"~/Documents/UACTech/SystemDocumentation/data"
 electricalfile <- "Electrical.xlsx"
 fname <- paste(path, electricalfile, sep="/")
 panels <- read_excel( fname, sheet = "Panels")
-nodes <- read_excel(fname, sheet = "Nodes")
+nodes <- read_excel(fname, sheet = "Boxes")
 routes <- read_excel(fname, sheet = "Routes")
 
 lutron <- read_excel(fname, sheet = "Lutron")
@@ -32,105 +33,144 @@ lutron <- read_excel(fname, sheet = "Lutron")
 
 > as of 1993/03/12
 
-These notes are to be considered as a starting point only. The accuracy of these notes can not be guaranteed.
+<strong><large>
+
+#Warnings
+
+* Electrical work is to be performed only by a qualified electrician. 
+* Your life is important - be safe
+* These notes are to be considered as a starting point only. The only guarantee of accuracy of these notes is that there are errors. If we knew where they were wrong we'd correct it.
 
 CHECK IT OUT BEFORE STARTING WORK.
+</large>
+</strong>
+
+#Notable Changes
 
 Changes that have been made since 1993:
 
-* Technical Power Panel on Main floor and revamp of balcony power - circa 2000
+* pre 2000 - addition of Youth building. No details documented.
+* circa 2000 - Technical Power Panel on Main floor and revamp of balcony power
 * 2016 Installtion of the HVAC system
 * 2016 Installation of lobby thermostat
-* repartitioning of the office space - several times
+* Repartitioning of the office space - several times
+* Additional of permanent attic lighting
+* 2017 Lighting Installation
+* 2018 Lighting Installation
 
 Please notify Terry Doner of any changes or corrections for inclusion in the next release of these notes.
 
 [Back to top](#top)
+
+#Panels and Breakers
  
-# Breaker Panel - LP1
+## Breaker Panel - LP1
 ```{r echo=FALSE}
 panel <- "LP1"
 
 odd  <- panels %>% 
   filter(Panel==panel) %>% 
-  filter(Circuit %% 2 == 1) %>% 
-  select(Description, Circuit)
+  filter(Breaker %% 2 == 1) %>% 
+  select(Description, Breaker)
 even <- panels %>% 
   filter(Panel==panel) %>% 
-  filter(Circuit %% 2 == 0) %>% 
-  select(Circuit, Description)
+  filter(Breaker %% 2 == 0) %>% 
+  select(Breaker, Description)
 
-cbind(odd, even) %>% kable()
+cbind(odd, even) %>% 
+  kable() %>%
+    column_spec( 2:3,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
 ```
 
 [Back to top](#top)
 
-# Breaker Panel - LP2
+## Breaker Panel - LP2
 ```{r echo=FALSE}
 panel <- "LP2"
 
 odd  <- panels %>% 
   filter(Panel==panel) %>% 
-  filter(Circuit %% 2 == 1) %>% 
-  select(Description, Circuit)
+  filter(Breaker %% 2 == 1) %>% 
+  select(Description, Breaker)
 even <- panels %>% 
   filter(Panel==panel) %>% 
-  filter(Circuit %% 2 == 0) %>% 
-  select(Circuit, Description)
+  filter(Breaker %% 2 == 0) %>% 
+  select(Breaker, Description)
 
-cbind(odd, even) %>% kable()
+cbind(odd, even) %>% 
+  kable() %>%
+    column_spec( 2:3,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
 ```
 
 [Back to top](#top)
  
-# Breaker Panel - LP3
+## Breaker Panel - LP3
 ```{r echo=FALSE}
 panel <- "LP3"
 
 odd  <- panels %>% 
   filter(Panel==panel) %>% 
-  filter(Circuit %% 2 == 1) %>% 
-  select(Description, Circuit)
+  filter(Breaker %% 2 == 1) %>% 
+  select(Description, Breaker)
 even <- panels %>% 
   filter(Panel==panel) %>% 
-  filter(Circuit %% 2 == 0) %>% 
-  select(Circuit, Description)
+  filter(Breaker %% 2 == 0) %>% 
+  select(Breaker, Description)
 
-cbind(odd, even) %>% kable()
+cbind(odd, even) %>% 
+  kable() %>%
+    column_spec( 2:3,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
 ```
 
 [Back to top](#top)
 
-# Breaker Panel - HP3 (Heat)
+## Breaker Panel - HP3 (Heat)
 ```{r echo=FALSE}
 panel <- "HP3"
 
 odd  <- panels %>% 
   filter(Panel==panel) %>% 
-  filter(Circuit %% 2 == 1) %>% 
-  select(Description, Circuit)
+  filter(Breaker %% 2 == 1) %>% 
+  select(Description, Breaker)
 even <- panels %>% 
   filter(Panel==panel) %>% 
-  filter(Circuit %% 2 == 0) %>% 
-  select(Circuit, Description)
+  filter(Breaker %% 2 == 0) %>% 
+  select(Breaker, Description)
 
-cbind(odd, even) %>% kable()
+cbind(odd, even) %>% 
+  kable() %>%
+    column_spec( 2:3,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
 ```
  
 [Back to top](#top)
 
-# Node Locations
-```{r echo=FALSE}
+# Box Locations
 
-nodes %>% kable()
+A box is either a receptable, a junction box, a breaker panel, or some other kind of device. 
+The facility is a big place. There are junction boxes in numerous places and various sub panels. This section attempts to list them all. Not all are labelled.
+
+```{r echo=FALSE}
+nodes %>% 
+  kable() %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
 ```
 
 [Back to top](#top)
 
 #Routing Descriptions
-```{r echo=FALSE}
 
-routes %>% select(RouteNum,	RouteDesc,	Wire,	Usage) %>% kable()
+Wiring takes many routes from box to box. This section tries to help you find them.
+
+```{r echo=FALSE}
+routes %>% select(RouteNum,	RouteDesc,	Wire,	Usage) %>% 
+  kable() %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
 ```
 
 ```{r echo=FALSE}
@@ -140,9 +180,13 @@ DiagrammeR::grViz("eg-routes.gv" )
 [Back to top](#top)
  
 #Lutron Dimmers
-```{r echo=FALSE}
+>Needs to be updated as a result of lighting projects in 2017/2018
 
-lutron %>% kable()
+```{r echo=FALSE}
+lutron %>% 
+  kable() %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
 ```
 
 [Back to top](#top)
