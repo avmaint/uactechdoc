@@ -23,10 +23,12 @@ files <- c(
   "index"
           #"SystemOperationsGuide"
           #"InventoryManagement",
-          #"TechTeamIntro",
+          #"
 
             #"SystemAdministrationGuide",
            )
+
+files <- c("TechTeamIntro", "ElectricalGuide")
 
 print(paste("files:", files))
 

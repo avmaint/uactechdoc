@@ -26,11 +26,12 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 options(knitr.table.format = "html") # latex for pdf 
 ```
 
-```{r data}
+```{r getdata}
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname   <- paste(path, inventoryfile, sep="/")
 further <- read_excel(fname, sheet = "Further")
+playback <- read_excel(fname, sheet = "CS40.Playback")
 ```
 
 # Introduction
@@ -270,69 +271,71 @@ vids %>%
 ##Simple Console Operations
 In our standard settings, we use the *playback* mode to run our basic scenes. You must be in playback mode for this to work. A quick check is to look at the numbered buttons below the faders; if they are a pale purple and green then you are in the right mode. 
 
->insert picture of the screen. 
+There is a button on the left side of the screen that you touch to select playback mode; the yellow arrow in the picture below points at it.
 
-The last 6 sliders on the bottom row are programmed to looks that are useful for a simple service. 
+![Playback Mode - The yellow arrow points at the button](../../images/sol-cs40-playback.png)
+
+Also the playback master must be up. It is the second slider from the left at the top of the screen. 
+
+> Insert a picture of the four sliders.
+
+The first 6 sliders on the bottom row are programmed to looks that are useful for a simple service. 
 
 > This is what I am thinking will be the set-up, but may change my mind once I get my own hands on the board. The way we did this before, we used each setting as a complete look. I may now change this up to take a lego brick approach.
 
-```{r defs}
+```{r simple}
+playback %>%
+  #arrange(Playback) %>%
+  filter(IsSimple =="Y") %>%
+  select(-IsSimple) %>%
+  kable() %>%
+  column_spec( 1,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
 
-simple <- tribble(
-  ~PlaybackNo, ~Title, ~Description,
-  
-35, "Base Look", "This is the base look for the service. Used before and after service. Medium Low, colourful stage glow. Cross lit.",
+[Back to top](#top)
 
-36, "Pre-worship", "Add this in as we are about to sing. Used as the musicians are getting ready; the moments before the first words. House Low, stage set to basic theme, no face light. Cross lit.",
+##Intermediate Console Operations
 
-37, "Worship", "Add this in during musical worship; Used for the main worship set. This adds in face light to the vocal and band area.",
+The other playback faders are used to control individual groups of lights. The first six have a designated special purpose for sound triggers.
 
-38, "Emcee/Announcement", "May not need this... depends on what I decide to do for house light control. Used for announncments and such. Similar to #2, but face light at front and centre only. Cross lit.",
+> Consider swapping Towers and Sconse.
 
-39, "Video", "May not need this - drop to base look. Used for video playback. Stage very dark; a little accent. House dim. Cross dimmmly lit.", 
+There are terms used in these descirptions to describe areas of the room that you need to know.
 
-40, "Message", "Used for the pastor's message. Up stage is darker. House is brighter. Cross lit."
-)
+Flares
+: similar in location to the towers, these are cone shaped lights which can be used to provide a contrasting overlay to the towers.
 
-simple %>%
-  arrange(PlaybackNo) %>%
+House
+: All Pendants plus the under balcony pot lights
+
+Sconse
+: The wall mounted fixtures that light the outer aisles
+
+Scrim
+: portable white translucent panels on stage - currently white
+
+Stage Pots
+: The lights recessed mounted into the ceiling of the stage
+
+Towers
+: These are wide pillars of light that wash up the walls beside the screens
+
+Wall Wash
+: These are the ceiling mounted perimeter lights that wash down the walls including the bulkhead sideways wash.
+
+All of these have a group of three playbacks that are programmed for RGB. This provides an easy way to set the colour of that entire group by adjsuting the relative blend of red, green and blue.
+
+Some of the playback groups, for example the House, also have a straight white slider. This is a quick way of getting to white for that group. 
+
+```{r intermediate}
+playback %>%
+#  arrange(Playback) %>%
+  select(-IsSimple) %>%
   kable() %>%
   column_spec( 1:2,   bold = TRUE ) %>%
   kable_styling("striped", full_width = TRUE)
-
 ```
-
-The other playback faders are used to control individual groups of lights.
-
-The upper row is used for specials and will vary over time. The first six have a designated special purpose for sound triggers.
-
-```{r}
-
-rest <- tribble(
-  ~PlaybackNo, ~Title, ~Description,
-  
-7, "Sconse", "?",
-8, "MainHouse", "Pendants upper and lower, under balcony",
-9, "StagePots" , "?",
-10, "Top Wash", "Vocal Area",
-11, "Vocal Face Wide", "Big group",
-12, "Vocal Face Narrow", "Small Group",
-13, "Apron Colour", "The two points plus back.",
-14, "Apron White", "Face light",
-15, "UltraHex", "",
-16, "Cross", "",
-17, "Baptism", "",
-18, "Front of Apron", ""
-)
-
-rest %>%
-  arrange(PlaybackNo) %>%
-  kable() %>%
-  column_spec( 1:2,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
-
-```
-
 
 [Back to top](#top)
 
@@ -393,6 +396,9 @@ When the service is over, please ensure that the blinds are all the way up. If l
 
 If a blind pops out of its track. 
 : Running the blinds up and down a **little** bit at a time can sometimes get them back in their track. An assistant at the blind can reach in behind and help guide them in. If it is more than a few inches, a ladder may be required to reinsert the blind into the track.
+
+If the playbacks do not seem to work
+: Two things to check. 1) ensure you are in playback mode and that the playback master is up. See Instructions in the Simple Console Operations section. 
 
 [Back to top](#top)
 
