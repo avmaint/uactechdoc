@@ -177,22 +177,24 @@ merge( Tech_Inventory, selected.at) %>%
 ```{r}
 dmxmap <- tribble(
   ~DMX.Lo, ~DMX.Hi, ~Comments,
-  1, 15,        "FoH Bar - Centre",
+  1, 11,        "FoH Bar - Centre",
 
- 12, 57+5-1,    "FoH Bar - SR/SL",
+ 12, 57+5-1,    "FoH Bar - East/West",
 
-448, 448+16-1, "NRD8000 dimmers in the balcony closet",
+384, 384+8-1, "NRD8000 dimmers in the balcony closet",
 
-464, 464+12-1, "LMI dimmers (6x2kx2) in the electrical room",
 
-101, 145,      "ColorSource Pars Topbar and Points",
+101, 145,      "ColorSource Pars Topbar and Thrust",
 
 151, 171,      "Ketra S38 Stage Pots",
-172, 202+5-1,  "CS Pars on Floor",
+172, 202+5-1,  "CS Pars on Floor (flares)",
+219, 291+12-1,        "Wall Wash East",
+303, 375+12-1,        "Wall Wash West",
+86, 213+6-1,        "Wash Bulkhead",
 
-29, 36, "Scrollers",
-
-47 , 50, "Rotators - 2 channels each."
+NA, NA, "Scrollers",
+NA, NA, "LMI dimmers (6x2kx2) in the electrical room",
+NA , NA, "Rotators - 2 channels each."
 )
 
 dmxmap %>%
@@ -208,7 +210,9 @@ dmxmap %>%
 > The Balcony Easy/West Bar assignments need to be updated post Aug 2018 changes.
 
 ```{r}
-dmx.details %>% kable(align="l") %>%
+dmx.details %>% 
+  select(-x, -y, -z) %>%
+  kable(align="l") %>%
   column_spec( 1,  bold = TRUE ) %>%
   kable_styling("striped", full_width = TRUE)
 ```
@@ -241,44 +245,6 @@ circuits %>%
   column_spec( 1:2,  bold = TRUE ) %>%
   kable_styling("striped", full_width = TRUE)
 ```
-
-
-#Accessories
-
-## GOBO Rotators
->Needs to be updated. DMX info is out-of-date.
-
-Each one needs two channels.
-
-* n is a control channel, n+1 must be zero.
-
-Intensity of zero is stop. The closer to 50 the slower it rotates. 1-49 and 50-100 rotate in opposite directions.
-
-[Back to top](#top)
-
-##Colour Scrollers
-
->To be written
-
-### Gel String Colours
-
-|Intensity| Name        | Rosco Number |
-|---------|-------------|--------------|
-|  5      | Neon Yellow |              |	 
-| 13      |	Flesh       |              |	 
-| 25      |	Amber       |	             |
-| 33      |	Orange      |	R23          |
-| 38      |	Red	        |              |
-| 45      |	Lite Pink	  | R35          |
-| 52      |	Magenta	    | R46          |
-| 58      | Lavender    | R57          |
-| 65      |	Purple      |	             |
-| 73      |	Lite Blue   |              |	 
-| 80	    | Warm Dark Blue	|          | 
-| 85	    | Cold Dark Blue   |         |	 
-| 95      |	Lite Green  |	 R88         |
-| 100     |	Kelly Green |	 R94         |
-|         |             |              |
 
 #House Lighting - NEW as of Fall 2018
 The house lights consists for many major components:
@@ -693,8 +659,15 @@ room <- tribble(
   geom_path(data=room, aes(x=x, y=y)) +
   geom_path(data=room, aes(x=-x, y=y))  
     
-g <- g +   geom_text( aes(x=x, y=y, label=name), nudge_y = 1) 
-g
+g <- g +   geom_text( aes(x=x, y=y, label=name), nudge_y = 2, label_size=.1) 
+
+new <-  dmx.details %>% filter(!is.na(x))
+gnew <- g + 
+  geom_point(data=new, aes(x=x, y=y, color=Type))  +
+     geom_text(data=new, aes(x=x, y=y, label=Channel), 
+               nudge_x=new$nx, nudge_y=new$ny   ) 
+ 
+gnew
 ```
 
 [Back to top](#top)
@@ -737,6 +710,44 @@ Tech_Inventory %>%
 [Back to top](#top)
 
 #Appendix
+
+#Accessories
+
+## GOBO Rotators
+>Needs to be updated. DMX info is out-of-date.
+
+Each one needs two channels.
+
+* n is a control channel, n+1 must be zero.
+
+Intensity of zero is stop. The closer to 50 the slower it rotates. 1-49 and 50-100 rotate in opposite directions.
+
+[Back to top](#top)
+
+##Colour Scrollers
+
+>To be written
+
+### Gel String Colours
+
+|Intensity| Name        | Rosco Number |
+|---------|-------------|--------------|
+|  5      | Neon Yellow |              |	 
+| 13      |	Flesh       |              |	 
+| 25      |	Amber       |	             |
+| 33      |	Orange      |	R23          |
+| 38      |	Red	        |              |
+| 45      |	Lite Pink	  | R35          |
+| 52      |	Magenta	    | R46          |
+| 58      | Lavender    | R57          |
+| 65      |	Purple      |	             |
+| 73      |	Lite Blue   |              |	 
+| 80	    | Warm Dark Blue	|          | 
+| 85	    | Cold Dark Blue   |         |	 
+| 95      |	Lite Green  |	 R88         |
+| 100     |	Kelly Green |	 R94         |
+|         |             |              |
+
 
 
 `r knit_child('FurtherInformation.Rmd', quiet=TRUE)`

@@ -19,16 +19,15 @@ files <- c(
   "TechHomePage",
   
   "TeamDesign", 
+  "ElectricalGuide",
           
   "index"
           #"SystemOperationsGuide"
           #"InventoryManagement",
-          #"
+          #", "TechTeamIntro"
+)
 
-            #"SystemAdministrationGuide",
-           )
-
-files <- c("TechTeamIntro", "ElectricalGuide")
+files <- c("SystemAdministrationGuide")
 
 print(paste("files:", files))
 
