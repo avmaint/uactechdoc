@@ -5,7 +5,6 @@ date:  "`r format(Sys.time(), '%B %d %Y')`"
 output:
   html_document:
     toc: yes
- 
 ---
 
 ```{r options, echo=FALSE}
@@ -21,6 +20,22 @@ require(knitr)
 require(formattable)
 require(ggplot2)
 require(kableExtra)
+```
+
+```{r functions}
+circleFun <- function( x= 0, y=0 , r=1, npoints=50, start=0, end=2, fill="black"){
+  tt <- seq(start*pi, end*pi, length.out=npoints)
+  data.frame(
+    x = x + r * cos(tt),
+    y = y + r * sin(tt),
+    fill = fill
+  )
+}
+
+#convert feet and inches to decimal feet
+fin <- function(f, i) {
+  f + i/12
+}
 ```
 
 
@@ -55,13 +70,82 @@ stage.refs <- tribble(
 
 room.refs <- tribble(
 ~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
- "ref",     "r2",    "ref", 0,         fin(28,8),  0,       "",
- "ref",     "r4",    "ref", fin(10,8), fin(28,8), 0,        "",
+ #"ref",     "r2",    "ref", 0,         fin(28,8),  0,       "",
+ #"ref",     "r4",    "ref", fin(10,8), fin(28,8), 0,        "",
  "ref",     "r7",    "ref", (123+6/12)/2, -23-2/12, 0,  "",
  "ref",     "r8",    "ref", (45+2/12)/2, -(90+2/12)+(28+8/12), 0,"",
  "ref",     "r9",    "ref", 0,   -(90+2/12)+(28+8/12), 0,"" 
 )
 ```
+
+```{r walls}
+all.refs <- rbind(stage.refs, room.refs)
+
+wall <- function(p1, p2) {
+  a <- all.refs[all.refs$name==p1,] %>% select(x,y)
+  b <- all.refs[all.refs$name==p2,] %>% rename(xend=x, yend=y) %>% select(xend, yend)
+  return( cbind(a, b))
+}
+
+wall.flip1 <- function(p1,p2) {
+  a <- all.refs[all.refs$name==p1,] %>% select(x,y)  
+  b <- all.refs[all.refs$name==p2,] %>% mutate(xend = -x, yend=y) %>% select(xend, yend) 
+  return( cbind(a, b))
+}
+
+wall.flip2 <- function(p1,p2) {
+  a <- all.refs[all.refs$name==p1,] %>% mutate(x = -x, y=y) %>% select(x,y)  
+  b <- all.refs[all.refs$name==p2,] %>% mutate(xend = -x, yend=y) %>% select(xend, yend) 
+  return( cbind(a, b))
+}
+
+s.wall  <- wall.flip1("r4","r4")  
+sw.wall <- wall("r4", "r7") 
+nw.wall <- wall("r7", "r8")
+n.wall  <- wall.flip1("r8","r8")  
+ne.wall <- wall.flip2("r8", "r7")
+se.wall <- wall.flip2("r7", "r4")
+stage1  <- wall("r6","r3")
+stage2  <- wall.flip1("r3","r3")
+stage3  <- wall.flip2("r6","r3")
+
+wall.segments <- rbind(s.wall, sw.wall, nw.wall, n.wall, ne.wall, se.wall, stage1, stage2, stage3)
+
+stage.segments <- rbind(stage1, stage2, stage3, s.wall,
+                        wall("r4", "r6"),
+                        wall.flip2("r4", "r6")
+                        )
+```
+
+```{r allpots}
+pots.w <- tribble(
+~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
+"Down Stage",     "w01",    "F",   17.5/12,  4+1/12, 19+6/12,  "",
+"Down Stage",     "w02",    "F",   68/12,    4+3/12, 19+5/12,  "",
+"Down Stage",     "w03",    "F",   119.5/12, 6+6/12, 19+7/12,  "5-10 from edge on curve",
+"Down Stage",     "w04",    "F",   179.5/12, 11+2/12, 19+7/12, "4-10 from front edge",
+"Wall",     "w05",    "S",   239/12,   15+8/12, 19+6/12, 
+                                        "2-10 from side wall. y guessed",
+"Mid Stage",     "w06",    "F",   27/12,    9+1/12,  22+1/12, "",
+"Mid Stage",     "w07",    "F",   87.5/12,  10+5/12, 21+12/12, "",
+"Centre1",     "w08",    "VWF",   11/12,    13+6/12, 21+2/12,  "",
+"Centre2",     "w09",    "VWF",   60.5/12,  14+1/12, 21,       "",
+"Centre3",     "w10",   "VWF",   118/12,   16+3/12, 20+5/12,  "",
+"Wall",     "w11",   "S",   14+8/12,  20+4/12, 18+2/12,  
+                "y guessed. 14 inch riser. 2-3 from wall"  ,
+"Up Stage",     "w12",   "WF",   23/12,    18+6/12, 19+4/12, "7 inch riser",
+"Up Stage",     "w13",   "WF",   87/12,    20+2/12, 19+4/12, "14 inch riser",
+"Wall",     "w14",   "S",   125/12,   25+8/12, 16+2/12, "28 inch riser",
+"Wall",     "w15",   "S",   44/12,    25+9/12, 16+2/12, "")
+
+pots.e <- pots.w %>%
+        filter(type != "ref") %>%
+        mutate( x = -x) %>%
+        mutate (name = gsub(  "w", "e", name,  fixed=TRUE)) 
+
+all.pots <- rbind(pots.e, pots.w)
+```
+
 
 #Introduction
 This document provides key technical documentation for the lighting subsystems at UAC.
@@ -269,28 +353,81 @@ circuits %>%
 
 ##Theartrical Channels
 ```{r tchan, echo=FALSE}
-  g <- ggplot(stage.refs) + coord_equal() +
-  geom_point( aes(x=x, y=y)) + 
-  geom_path(data=l1, aes(x=x, y=y) ) +
-  geom_path(data=l2, aes(x=x, y=y) ) +
-  geom_path(data=l1, aes(x=-x, y=y) ) +
-  geom_path(data=l2, aes(x=-x, y=y) )  +
-  geom_path(data=room.refs, aes(x=x, y=y)) +
-  geom_path(data=room.refs, aes(x=-x, y=y))  
-    
-g <- g +   geom_text( aes(x=x, y=y, label=name), nudge_y = 2, label_size=.1) +
-  geom_text(data=room.refs, aes(x=x, y=y, label=name), nudge_y = 2, label_size=.1)
+  channels <-  dmx.details %>% filter(!is.na(x))
 
-channels <-  dmx.details %>% filter(!is.na(x))
-gnew <- g + 
-  geom_point(data=channels, aes(x=x, y=y, color=Type))  +
-     geom_text(data=channels, aes(x=x, y=y, label=Channel), 
-               nudge_x=channels$nx, nudge_y=channels$ny   ) 
- 
-gnew
+  g <- ggplot() + 
+        geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
+        coord_equal() + #scale_size_identity() +
+        geom_point(data=channels, aes(x=x, y=y, color=Type), size=2)  +
+        geom_text(data=channels, aes(x=x, y=y, label=Channel), 
+                nudge_x=channels$nx, nudge_y=channels$ny   ) 
+g
+```
+
+##Stage Pots
+```{r stagepots}
+
+chs <- dmx.details %>% filter(Location == "Stage Pots") %>% select(Channel, Usage)
+lox <- merge(chs, all.pots, by.x="Usage", by.y="group" )
+
+
+ggplot() +
+  geom_point(data=lox,              aes(x=x, y=y, color=factor(Channel) ), size=9) +
+  geom_segment(data=stage.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
+  geom_text(data=lox, aes(x=x,y=y, label=Channel) ) +
+  coord_equal() + scale_size_identity()
+```
+
+##House Pendants
+
+>Channels are not correct
+
+```{r pendants, echo=FALSE}
+pendants <- tribble(
+  ~Channel, ~x,  ~y, ~sz,
+  98,      -35,  -10,  1, 
+  99,      -35,  -10,  7,
+  98,       35,  -10,  1, 
+  99,       35,  -10,  7,
+  97,      -10,  -10,  1, 
+  96,      -10,  -10,  7,
+  97,       10,  -10,  1, 
+  96,       10,  -10,  7,
+  
+  98,      -45,  -25,  1, 
+  99,      -45,  -25,  7,
+  98,       45,  -25,  1, 
+  99,       45,  -25,  7,
+  97,      -10,  -25,  1, 
+  96,      -10,  -25,  7,
+  97,       10,  -25,  1, 
+  96,       10,  -25,  7,
+  
+#balcony
+  95,       10,  -40, 3,
+  95,      -10,  -40, 3, 
+  95,       10,  -50, 3,
+  95,      -10,  -50, 3
+
+) 
+
+p1 <- pendants %>% filter(sz==1)
+p2 <- pendants %>% filter(sz==7)
+p3 <- pendants %>% filter(sz==3)
+
+ggplot() + 
+        geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
+        geom_point(data=p2, aes(x=x, y=y, color=factor(sz), size=12) ) +
+        geom_point(data=p1, aes(x=x, y=y, color=factor(sz), size=7) ) +
+        geom_point(data=p3, aes(x=x, y=y, color=factor(sz), size= 8) ) +
+        geom_text(data=p1, aes(x=x, y=y, label=Channel )) +
+        geom_text(data=p3, aes(x=x, y=y, label=Channel ) ) +
+        geom_text(data=p2, aes(x=x, y=y, label=Channel ), nudge_x=4, nudge_y=4) +
+        coord_equal() + theme(legend.position="none") + scale_size_identity()
 ```
 
 
+##Sconse
 #House Lighting - NEW as of Fall 2018
 The house lights consists for many major components:
 
@@ -387,18 +524,7 @@ a <- 0.7 # Alpha for graphics
 
 lamps <- merge(products, locations)  %>% mutate(rads = angle/180*pi)
 
-circleFun <- function( x= 0, y=0 , r=1, npoints=50, start=0, end=2, fill="black"){
-  tt <- seq(start*pi, end*pi, length.out=npoints)
-  data.frame(
-    x = x + r * cos(tt),
-    y = y + r * sin(tt),
-    fill = fill
-  )
-}
 
-fin <- function(f, i) {
-  f + i/12
-}
 
 ```
 Ketra S38 product comes in `r nrow(products)` different beam angles:
@@ -424,31 +550,7 @@ lamps <- lamps %>% mutate(θ = rads/2) %>%
 
 
 ```{r plan, echo=FALSE}
-pots.w <- tribble(
-~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
-"down stage",     "w01",    "F",   17.5/12,  4+1/12, 19+6/12,  "",
-"down stage",     "w02",    "F",   68/12,    4+3/12, 19+5/12,  "",
-"down stage",     "w03",    "F",   119.5/12, 6+6/12, 19+7/12,  "5-10 from edge on curve",
-"down stage",     "w04",    "F",   179.5/12, 11+2/12, 19+7/12, "4-10 from front edge",
-"wall",     "w05",    "S",   239/12,   15+8/12, 19+6/12, 
-                                        "2-10 from side wall. y guessed",
-"mid stage",     "w06",    "F",   27/12,    9+1/12,  22+1/12, "",
-"mid stage",     "w07",    "F",   87.5/12,  10+5/12, 21+12/12, "",
-"centre1",     "w08",    "VWF",   11/12,    13+6/12, 21+2/12,  "",
-"centre2",     "w09",    "VWF",   60.5/12,  14+1/12, 21,       "",
-"centre3",     "w10",   "VWF",   118/12,   16+3/12, 20+5/12,  "",
-"wall",     "w11",   "S",   14+8/12,  20+4/12, 18+2/12,  
-                "y guessed. 14 inch riser. 2-3 from wall"  ,
-"up stage",     "w12",   "WF",   23/12,    18+6/12, 19+4/12, "7 inch riser",
-"up stage",     "w13",   "WF",   87/12,    20+2/12, 19+4/12, "14 inch riser",
-"wall",     "w14",   "S",   125/12,   25+8/12, 16+2/12, "28 inch riser",
-"wall",     "w15",   "S",   44/12,    25+9/12, 16+2/12, "")
 
-
-pots.e <- pots.w %>%
-        filter(type != "ref") %>%
-        mutate( x = -x) %>%
-        mutate (name = gsub(  "w", "e", name,  fixed=TRUE)) 
 
 positions <- rbind(pots.w, pots.e, stage.refs)
 
@@ -527,7 +629,7 @@ smry %>% formattable(align="l")
 We need to keep the light off the screens so we need to use the spot width lamps next to the walls. With nothing else added, these will create dots on the floor.
 ```{r echo=FALSE}
 p1 <- plan %>% 
-   filter(group == "wall" ) 
+   filter(group == "Wall" ) 
 
 makeplot(p1 )
 
@@ -542,7 +644,7 @@ For coverage behind the bulkhead, we can use "Two Rows"
 
 ```{r echo=FALSE}
 p1 <- plan %>% 
-   filter(group == "down stage" ) 
+   filter(group == "Down Stage" ) 
 
 makeplot(p1 )
 
@@ -554,7 +656,7 @@ p1 %>% select(-rads, -θ ) %>% formattable()
 Could be used in combination with the bulkhead (down stage) or separately. 
 ```{r echo=FALSE}
 p1 <- plan %>% 
-   filter(group == "mid stage" ) 
+   filter(group == "Mid Stage" ) 
 
 makeplot(p1 )
 
@@ -566,7 +668,7 @@ p1 %>% select(-rads, -θ ) %>% formattable()
 Could go with Flood or Wide Flood. The WF covers most of the riser  
 ```{r echo=FALSE}
 p1 <- plan %>% 
-   filter(group == "up stage" ) 
+   filter(group == "Up Stage" ) 
 
 makeplot(p1 )
 
@@ -580,7 +682,7 @@ The six centre pots are in three groups to wash most of the platform. There will
 ##Centre Wash Group1 
 ```{r echo=FALSE}
 p1 <- plan %>% 
-   filter(group == "centre1"  )   
+   filter(group == "Centre1"  )   
 
 makeplot(p1)
 
@@ -591,7 +693,7 @@ p1 %>% select(-rads, -θ ) %>% formattable()
 
 ```{r echo=FALSE}
 p1 <- plan %>% 
-   filter(group == "centre2"  )   
+   filter(group == "Centre2"  )   
 
 makeplot(p1)
 
@@ -604,7 +706,7 @@ The rear two (#10s) as shown in the diagram will hit the wall before the floor. 
 
 ```{r echo=FALSE}
 p1 <- plan %>% 
-   filter(group == "centre3"  )   
+   filter(group == "Centre3"  )   
 
 makeplot(p1)
 
