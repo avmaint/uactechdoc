@@ -27,7 +27,7 @@ files <- c(
           #", "TechTeamIntro"
 )
 
-files <- c("SystemAdministrationGuide")
+#files <- c("SystemAdministrationGuide")
 
 print(paste("files:", files))
 

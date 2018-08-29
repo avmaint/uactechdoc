@@ -42,6 +42,25 @@ Tech_Inventory <- read_excel(fname,
 
 dmx.details <- read_excel(fname, 
                             sheet = "DMX.Details" )
+#stage and room reference points
+stage.refs <- tribble(
+~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
+"ref",     "r1",    "ref", 0,        0,       0,       "",
+"ref",     "r2",    "ref", 0,       28+8/12,  0,       "",
+"ref",     "r3",    "ref", 10+8/12, 0,        0,       "",
+"ref",     "r4",    "ref", 10+8/12, 28+8/12, 0,        "",
+"ref",     "r5",    "ref", 40+6/12,      0,        0,  "",
+"ref",     "r6",    "ref", 25.8,    14.4,     0,       "position guessed"
+)
+
+room.refs <- tribble(
+~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
+ "ref",     "r2",    "ref", 0,         fin(28,8),  0,       "",
+ "ref",     "r4",    "ref", fin(10,8), fin(28,8), 0,        "",
+ "ref",     "r7",    "ref", (123+6/12)/2, -23-2/12, 0,  "",
+ "ref",     "r8",    "ref", (45+2/12)/2, -(90+2/12)+(28+8/12), 0,"",
+ "ref",     "r9",    "ref", 0,   -(90+2/12)+(28+8/12), 0,"" 
+)
 ```
 
 #Introduction
@@ -246,6 +265,32 @@ circuits %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
+#Lighting Plots
+
+##Theartrical Channels
+```{r tchan, echo=FALSE}
+  g <- ggplot(stage.refs) + coord_equal() +
+  geom_point( aes(x=x, y=y)) + 
+  geom_path(data=l1, aes(x=x, y=y) ) +
+  geom_path(data=l2, aes(x=x, y=y) ) +
+  geom_path(data=l1, aes(x=-x, y=y) ) +
+  geom_path(data=l2, aes(x=-x, y=y) )  +
+  geom_path(data=room.refs, aes(x=x, y=y)) +
+  geom_path(data=room.refs, aes(x=-x, y=y))  
+    
+g <- g +   geom_text( aes(x=x, y=y, label=name), nudge_y = 2, label_size=.1) +
+  geom_text(data=room.refs, aes(x=x, y=y, label=name), nudge_y = 2, label_size=.1)
+
+channels <-  dmx.details %>% filter(!is.na(x))
+gnew <- g + 
+  geom_point(data=channels, aes(x=x, y=y, color=Type))  +
+     geom_text(data=channels, aes(x=x, y=y, label=Channel), 
+               nudge_x=channels$nx, nudge_y=channels$ny   ) 
+ 
+gnew
+```
+
+
 #House Lighting - NEW as of Fall 2018
 The house lights consists for many major components:
 
@@ -399,22 +444,13 @@ pots.w <- tribble(
 "wall",     "w14",   "S",   125/12,   25+8/12, 16+2/12, "28 inch riser",
 "wall",     "w15",   "S",   44/12,    25+9/12, 16+2/12, "")
 
-refs <- tribble(
-~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
-"ref",     "r1",    "ref", 0,        0,       0,       "",
-"ref",     "r2",    "ref", 0,       28+8/12,  0,       "",
-"ref",     "r3",    "ref", 10+8/12, 0,        0,       "",
-"ref",     "r4",    "ref", 10+8/12, 28+8/12, 0,        "",
-"ref",     "r5",    "ref", 40+6/12,      0,        0,  "",
-"ref",     "r6",    "ref", 25.8,    14.4,     0,       "position guessed"
-)
 
 pots.e <- pots.w %>%
         filter(type != "ref") %>%
         mutate( x = -x) %>%
         mutate (name = gsub(  "w", "e", name,  fixed=TRUE)) 
 
-positions <- rbind(pots.w, pots.e, refs)
+positions <- rbind(pots.w, pots.e, stage.refs)
 
 l1 <- positions %>% filter(type== "ref") %>% 
   filter(name != "r3") %>% 
@@ -618,7 +654,8 @@ In this design there are `r G`  groups all using the RGB profile. The expected m
 
 #Appendix
 
-#The Room 
+#The Room
+##Measurements
 ```{r}
   tribble(
   ~Object, ~Feet, ~Inches, 
@@ -638,34 +675,26 @@ In this design there are `r G`  groups all using the RGB profile. The expected m
   kable_styling("striped", full_width = TRUE)
 ```
 
-
+##Floor Plan
+Reference location "r1" is the "zero" point.
 ```{r room, echo=FALSE}
-
-room <- tribble(
-~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
- "ref",     "r2",    "ref", 0,         fin(28,8),  0,       "",
- "ref",     "r4",    "ref", fin(10,8), fin(28,8), 0,        "",
- "ref",     "r7",    "ref", (123+6/12)/2, -23-2/12, 0,  "",
- "ref",     "r8",    "ref", (45+2/12)/2, -(90+2/12)+(28+8/12), 0,"",
- "ref",     "r9",    "ref", 0,   -(90+2/12)+(28+8/12), 0,"" 
-)
-
-  g <- ggplot(refs) + coord_equal() +
+  g <- ggplot(stage.refs) + coord_equal() +
   geom_point( aes(x=x, y=y)) + 
   geom_path(data=l1, aes(x=x, y=y) ) +
   geom_path(data=l2, aes(x=x, y=y) ) +
   geom_path(data=l1, aes(x=-x, y=y) ) +
   geom_path(data=l2, aes(x=-x, y=y) )  +
-  geom_path(data=room, aes(x=x, y=y)) +
-  geom_path(data=room, aes(x=-x, y=y))  
+  geom_path(data=room.refs, aes(x=x, y=y)) +
+  geom_path(data=room.refs, aes(x=-x, y=y))  
     
-g <- g +   geom_text( aes(x=x, y=y, label=name), nudge_y = 2, label_size=.1) 
+g <- g +   geom_text( aes(x=x, y=y, label=name), nudge_y = 2, label_size=.1) +
+  geom_text(data=room.refs, aes(x=x, y=y, label=name), nudge_y = 2, label_size=.1)
 
-new <-  dmx.details %>% filter(!is.na(x))
+channels <-  dmx.details %>% filter(!is.na(x))
 gnew <- g + 
-  geom_point(data=new, aes(x=x, y=y, color=Type))  +
-     geom_text(data=new, aes(x=x, y=y, label=Channel), 
-               nudge_x=new$nx, nudge_y=new$ny   ) 
+  geom_point(data=channels, aes(x=x, y=y, color=Type))  +
+     geom_text(data=channels, aes(x=x, y=y, label=Channel), 
+               nudge_x=channels$nx, nudge_y=channels$ny   ) 
  
 gnew
 ```
