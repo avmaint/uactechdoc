@@ -50,7 +50,7 @@ subgraph cluster_amp {label="Audio Amp Room"
 }
 
 subgraph cluster_stage {label="Stage Floor"
-  stagepars [label="7 CS Pars\n6 AW bars"]
+  stagepars [label="7 CS Pars\n6 AW bars\n4ADJ bars"]
 }
 
 amppanel -> stagepars
