@@ -70,8 +70,6 @@ stage.refs <- tribble(
 
 room.refs <- tribble(
 ~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
- #"ref",     "r2",    "ref", 0,         fin(28,8),  0,       "",
- #"ref",     "r4",    "ref", fin(10,8), fin(28,8), 0,        "",
  "ref",     "r7",    "ref", (123+6/12)/2, -23-2/12, 0,  "",
  "ref",     "r8",    "ref", (45+2/12)/2, -(90+2/12)+(28+8/12), 0,"",
  "ref",     "r9",    "ref", 0,   -(90+2/12)+(28+8/12), 0,"" 
@@ -86,11 +84,11 @@ thrust.refs <- tribble(
 
 balcony.refs <- tribble(
   ~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
-  "balcony", "b1", "ref",       35,    -50,       0,  "",
-  "balcony", "b2", "ref",       35,    -25,       0,  "",
-  "balcony", "b3", "ref",       20,    -35,       0,  "",
-  "balcony", "b4", "ref",       12,    -35,       0,  "",
-  "balcony", "b5", "ref",        6,    -31,       0,  ""
+  "balcony", "b1", "ref",       35,    -50,       0,  "position guessed",
+  "balcony", "b2", "ref",       35,    -25,       0,  "position guessed",
+  "balcony", "b3", "ref",       20,    -35,       0,  "position guessed",
+  "balcony", "b4", "ref",       12,    -35,       0,  "position guessed",
+  "balcony", "b5", "ref",        6,    -31,       0,  "position guessed"
 )
 
 ```
@@ -648,7 +646,7 @@ Ketra S38 product comes in `r nrow(products)` different beam angles:
 ```{r, echo=FALSE}
 products %>% formattable(align="l")
 ```
-For the pots on the west side of the stage I have measured the position of each pot (give or take an inch or three). The east side is taken as the mirror image. This is a pretty good assumption but there is at least one notable exception; one pot is out of place.
+For the pots on the west side of the stage I have measured the position of each pot (give or take an inch or three). The east side is taken as the mirror image. This is a pretty good assumption but there is at least one notable exception; one pot is out of place and the stage is not symmetrical. 
 
 
 ```{r echo=FALSE}
@@ -708,7 +706,9 @@ makeplot <- function(df) {
 for (i in 1:nrow(df) ) {
     
    g <- g + geom_polygon(data=get(paste0("p_", df[i, "name"])) ,
-                         aes(x,y, fill=fill),   alpha=a)  }
+                         aes(x,y, fill=fill),   alpha=a) +
+        scale_size_identity()
+   }
   
 g <- g +   geom_text( aes(x=x, y=y, label=name), nudge_y = 1) 
 return(g)
@@ -897,26 +897,25 @@ In this design there are `r G`  groups all using the RGB profile. The expected m
 ##Floor Plan
 Reference location "r1" is the "zero" point.
 ```{r room, echo=FALSE}
-  g <- ggplot(stage.refs) + coord_equal() +
-  geom_point( aes(x=x, y=y)) + 
-  geom_path(data=l1, aes(x=x, y=y) ) +
-  geom_path(data=l2, aes(x=x, y=y) ) +
-  geom_path(data=l1, aes(x=-x, y=y) ) +
-  geom_path(data=l2, aes(x=-x, y=y) )  +
-  geom_path(data=room.refs, aes(x=x, y=y)) +
-  geom_path(data=room.refs, aes(x=-x, y=y))  
-    
-g <- g +   geom_text( aes(x=x, y=y, label=name), nudge_y = 2, label_size=.1) +
-  geom_text(data=room.refs, aes(x=x, y=y, label=name), nudge_y = 2, label_size=.1)
-
-channels <-  dmx.details %>% filter(!is.na(x))
-gnew <- g + 
-  geom_point(data=channels, aes(x=x, y=y, color=Type))  +
-     geom_text(data=channels, aes(x=x, y=y, label=Channel), 
-               nudge_x=channels$nx, nudge_y=channels$ny   ) 
- 
-gnew
+ggplot() + 
+        coord_equal() +  
+        geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
+        geom_segment(data=balc.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
+        geom_curve(data=thrust, aes(x=x,y=y, xend=xend, yend=yend),
+                   curvature=-0.3) +
+        geom_point(data=all.refs, aes(x=x, y=y), color="white", size=6) +
+        geom_text(data=all.refs, aes(x=x, y=y, label=name))
 ```
+
+```{r l912}
+all.refs %>%
+  select(-group) %>%
+  kable() %>%  
+  column_spec( 1,  bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+  
+```
+
 
 [Back to top](#top)
 
