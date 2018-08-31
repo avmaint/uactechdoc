@@ -7,16 +7,17 @@ output:
         toc: true
 ---
 
-```{r packages, include=FALSE}
+```{r options, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+```
+
+```{r packages }
 require(readr)
 require(dplyr)
 require(readxl)
 require(knitr)
-```
-
-```{r options}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
-options(knitr.table.format = "html") # latex for pdf 
+require(kableExtra)
 ```
 
 ```{r getdata}
@@ -34,40 +35,96 @@ Tech_Inventory <- read_excel(fname,
                             sheet = "TechInventory", col_types=ct)
 
 NetworkInventory <- read_excel(fname, sheet = "Network")
+```
 
+```{r functions}
+dump.inv <- function(items) {
+
+selected <- items %>% 
+  data.frame(AssetTag=.)
+
+merge( Tech_Inventory, selected) %>% 
+    select(AssetTag, Manufacturer, Model, Desc ) %>%
+    arrange( AssetTag ) %>%
+    kable(align="l") %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
+}
 ```
 
 ## Introduction
-This document provides key technical documentation for the video subsystems at UAC.
+This document provides key technical documentation for the video subsystems at UAC. This diagram provides an overview of the major components and leaves out some details.
+
+```{r}
+DiagrammeR::grViz("sdv-topology0-overview.gv")
+```
 
 ## Presentation Switcher
-Planned installtion will be in February 2017. The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats.
+The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats.
 
-It has 8 inputs and 8 outputs. It can be controlled via the buttons on the front panel or from it's built in web page.
+It has 8 inputs and 8 outputs. It can be controlled via the buttons on the front panel or from it’s built in web page.
+
+>TODO: review details of the input list
+
+```{r}
+psi <- tribble(
+  ~Input, ~Usage,       ~Comment,
+
+1, "Balcony 1",  "Primary computer for video content (including audio). Also provide confidence – listed as input 4." ,
+2, "unused", "FUTURE. Alternate which can be used for backup. Advanced presentations and building video while Balcony 1 is in use.", 
+3, "Guest", "Video input for guest computer. Can handle hdmi or VGA.",
+4, "unused", " FUTURE: Confidence Output from Primary computer for dedicated confidence feed. Needs secondary output which mediashout drives. FUTURE",
+5, "unused",  "FUTURE: Bluray/DVD player",
+6, "Video Mix" , "Mixed video for FOH projection or building distribution. Can display PiP of camera or mediashout, etc.",
+7, "Spare", "Spare",
+8, "Spare", "Spare" 
+)
+
+pso <- tribble(
+    ~Output, ~Usage,       ~Comment,
+1,
+"FoJ Prj", 
+"Front of House projectors which covers east and west wall",
+2, 
+"unused",
+"FUTURE Centre Projector which covers centre wall.",
+3, 
+"Unused",
+"FUTURE Projector which covers west wall",
+4,
+"Confidence",
+"Projector which covers rear wall in balcony. Lyrics for singers, etc.",
+5,
+"Building",
+"FUTURE. Distribution network to lobby, downstairs entrance, nursery, Fellowship Hall (overflow).",
+6,
+"Video Mix",
+"Video mixer so projected content can be mixed with camera – Picture-in-Picture, etc. Video Mix output is a matrix input so it also could be routed to projectors or building. Dedicated wiring to recorder.",
+7,
+"unused",
+"FUTURE. Allow delivery of audio content to audio console so it can be live in the house. The video output is not of particular interest.",
+8,
+"Spare",
+"Future expansion."   
+)
+```
 
 ### Presentation Switcher Inputs
-| Input | Usage     | Comment | 
-|:-|:-|:---------------------------------| 
-| 1     | Balcony 1 | Primary computer for video content (including audio). Also provide confidence – listed as input 4. |  
-| 2 | unused | FUTURE. Alternate which can be used for backup. Advanced presentations and building video while Balcony 1 is in use. | 
-| 3 | Guest  | Video input for guest computer. Can handle hdmi or VGA. |
-| 4 | unused | FUTURE: Confidence Output from Primary computer for dedicated confidence feed. Needs secondary output which mediashout drives. FUTURE |
-| 5 | unused | FUTURE: Bluray/DVD player  |
-| 6 | Video Mix | Mixed video for FOH projection or building distribution. Can display PiP of camera or mediashout, etc. |
-| 7 | Spare | Spare |
-| 8 | Spare | Spare |
+
+```{r}
+psi %>% 
+  kable() %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
+```
 
 ### Presentation Switcher Outputs
-| Output | Usage     | Comment | 
-|:--|:--|:--------------------| 
-| 1 | FoJ Prj| Front of House projectors which covers east and west wall |
-| 2 | unused| FUTURE Centre Projector which covers centre wall.|
-| 3 | Unused | FUTURE Projector which covers west wall |
-| 4 | Confidence | Projector which covers rear wall in balcony. Lyrics for singers, etc. | 
-| 5 | Building | FUTURE. Distribution network to lobby, downstairs entrance, nursery, Fellowship Hall (overflow). |
-| 6 | Video Mix | Video mixer so projected content can be mixed with camera – Picture-in-Picture, etc. Video Mix output is a matrix input so it also could be routed to projectors or building. Dedicated wiring to recorder.|
-| 7 | unused | FUTURE. Allow delivery of audio content to audio console so it can be live in the house. The video output is not of particular interest.|
-| 8 | Spare | Future expansion.|
+```{r}
+pso %>% 
+  kable() %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
+```
 
 ### Presentation Switcher Configurations
 The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.  
@@ -98,32 +155,75 @@ DiagrammeR::grViz("sdv-PScamera.gv", height=300)
 There are a lot of components to the system. One big diagram is daunting. It has been broken down into smaller portions to be more consumable. 
 
 ### Computer Topology
-There is only one computer in the system, with dual output video card. One is used for the operator display, and the second for presentation. 
+
+There are three computers in the system:
+
+CDWU-0009 Windows / Mediashout
+: The windows system runs Mediashout and has a dual output video card. One is used for the operator display, and the second for presentation. It also has Powerpoint for Windows installed.
+
+CDMU-A001 MacOS / ProPresenter
+: This system runs ProPresenter and has a built in operator display, and a displayport output to the datapath video processor which split the output to three separate video signals for the front projectors, and a separate video output that drives the rear confidence montitor. It also has Powerpoint for Mac and Keynote installed.
+
+CDMU-A002 MacOS / QLC - ATEM - OBS
+: This system runs lighting (QLC+), ATEM switcher software, and OBS (for streaming) and can also run things like Skype. It has a USBC-HDMI adapter that is direct connected to Input 2 of the video mixer.
+  
 ```{r top1}
 DiagrammeR::grViz("sdv-topology1-computer.gv")
+dump.inv(c("CDWU-0009","CDMU-A001","CDMU-A002"))
 ```
 
 ### Projection Topology
 Long distance signal transmission is achieved using Cat5 or Cat6 cabling. This used to require discrete transmitters and receviers, and those are in use for the front of house (FoH) projectors. But there is now a industry standard solution called HDBaseT which is now appearing on professional grade equipment; this is used for the read confidence projector and is why that portion of the diagram is so much simpler.
 ```{r top2}
 DiagrammeR::grViz("sdv-topology2-projection.gv")
+dump.inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003", "ZVVU-0001"))
+```
+
+###Lobby Topology
+The TV in the lobby gets its content from the presentation Switcher. For the main service it should get its feed from the video mixer program output.
+
+```{r l132}
+DiagrammeR::grViz("sdv-topology3-lobby.gv")
+
+dump.inv(c("ZVIU-A002", "ZVKU-A001", "ZVVU-0003"))
 ```
 
 ### Nursery Topology
-Target for installation of this equipment is Feb 15 2017.
+The TV in the nursery gets its content from the presentation Switcher. For the main service it should get its feed from the video mixer program output.
+
+Alternately it can be switched to the Bluray player.
 ```{r top3}
 DiagrammeR::grViz("sdv-topology4-nursery.gv")
+dump.inv(c("ZVIU-A001", "ZVKU-A001", "ZVPU-0001", "ZVVU-0002"))
 ```
 
+The TV and the Bluray player each have a remote control.
+
 ### Recording Topology
-This is somewhat simplified. The distribution amps and camera monitors have been excluded.
-The equipment is all very old. The abbreviation "cv" means "Composite Video", and "sv" means "S-video".
+The recording topology is quite complex and so it is broken up into peices.
+
+####Inputs
+
 ```{r top5a}
 DiagrammeR::grViz("sdv-topology5-rec-inputs.gv", height=350)
 ```
 
+####Outputs
 ```{r top5b}
 DiagrammeR::grViz("sdv-topology5-rec-outputs.gv", height=350)
+```
+
+####Web Presenter
+There are some details on the signal path between the Video Mixer and the Web Presenter that need to be documented.
+
+```{r topwp}
+DiagrammeR::grViz("sdv-topology6-rec-wp.gv", height=350)
+```
+
+```{r}
+dump.inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002", "ZVCU-A001",
+           "ZVCU-A002", "ZVCU-A003", "ZVKU-A003",
+           "ZVRU-A001", "ZVRU-A002"))
 ```
 
 # Network Details
@@ -132,7 +232,9 @@ DiagrammeR::grViz("sdv-topology5-rec-outputs.gv", height=350)
 NetworkInventory %>% 
 filter(Category=="Video") %>% 
 select(Location, Usage, Device, MAC, IP, URL, Notes) %>%
-kable() 
+kable() %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
 ```
 
 # Video Equipment Inventory
@@ -151,8 +253,16 @@ Video_Inventory <- Tech_Inventory %>%
           filter( Category=="Video" , InService== "Y") %>%  
           dplyr::select(one_of(cs))   
 
-knitr::kable(Video_Inventory  )  
+knitr::kable(Video_Inventory  )  %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
 ```
+
+[Back to top](#top)
+
+`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
+
+[Back to top](#top)
 
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r knitr::current_input()`.
