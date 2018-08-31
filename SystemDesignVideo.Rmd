@@ -1,0 +1,158 @@
+---
+title: "System Documentaion - Video"
+author: "Terry Doner"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output: 
+    html_document:
+        toc: true
+---
+
+```{r packages, include=FALSE}
+require(readr)
+require(dplyr)
+require(readxl)
+require(knitr)
+```
+
+```{r options}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+```
+
+```{r getdata}
+path <-"~/Documents/UACTech/SystemDocumentation"
+inventoryfile <- "TechInventory.xlsx"
+fname <- paste(path, inventoryfile, sep="/")
+
+ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
+          "text", "text" , "text"   , 
+   "text" , "text", "text", "text", "date", "text",    
+  "text","numeric","text","numeric","numeric","numeric"     
+)
+
+Tech_Inventory <- read_excel(fname, 
+                            sheet = "TechInventory", col_types=ct)
+
+NetworkInventory <- read_excel(fname, sheet = "Network")
+
+```
+
+## Introduction
+This document provides key technical documentation for the video subsystems at UAC.
+
+## Presentation Switcher
+Planned installtion will be in February 2017. The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats.
+
+It has 8 inputs and 8 outputs. It can be controlled via the buttons on the front panel or from it's built in web page.
+
+### Presentation Switcher Inputs
+| Input | Usage     | Comment | 
+|:-|:-|:---------------------------------| 
+| 1     | Balcony 1 | Primary computer for video content (including audio). Also provide confidence – listed as input 4. |  
+| 2 | unused | FUTURE. Alternate which can be used for backup. Advanced presentations and building video while Balcony 1 is in use. | 
+| 3 | Guest  | Video input for guest computer. Can handle hdmi or VGA. |
+| 4 | unused | FUTURE: Confidence Output from Primary computer for dedicated confidence feed. Needs secondary output which mediashout drives. FUTURE |
+| 5 | unused | FUTURE: Bluray/DVD player  |
+| 6 | Video Mix | Mixed video for FOH projection or building distribution. Can display PiP of camera or mediashout, etc. |
+| 7 | Spare | Spare |
+| 8 | Spare | Spare |
+
+### Presentation Switcher Outputs
+| Output | Usage     | Comment | 
+|:--|:--|:--------------------| 
+| 1 | FoJ Prj| Front of House projectors which covers east and west wall |
+| 2 | unused| FUTURE Centre Projector which covers centre wall.|
+| 3 | Unused | FUTURE Projector which covers west wall |
+| 4 | Confidence | Projector which covers rear wall in balcony. Lyrics for singers, etc. | 
+| 5 | Building | FUTURE. Distribution network to lobby, downstairs entrance, nursery, Fellowship Hall (overflow). |
+| 6 | Video Mix | Video mixer so projected content can be mixed with camera – Picture-in-Picture, etc. Video Mix output is a matrix input so it also could be routed to projectors or building. Dedicated wiring to recorder.|
+| 7 | unused | FUTURE. Allow delivery of audio content to audio console so it can be live in the house. The video output is not of particular interest.|
+| 8 | Spare | Future expansion.|
+
+### Presentation Switcher Configurations
+The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.  
+
+#### Normal Service Switcher Configuration 
+The display should look like:
+
+|Input |1|2|3|4|5|6|7|8|
+|-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|Output|1|0|0|4|1|1|1|0|
+
+```{r normal}
+DiagrammeR::grViz("sdv-PSnormal.gv", height=300)
+```
+
+#### Camera Switcher Configuration  
+The display should look like:
+
+|Input |1|2|3|4|5|6|7|8|
+|-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|Output|6|0|0|4|6|0|6|0|
+
+```{r camera}
+DiagrammeR::grViz("sdv-PScamera.gv", height=300)
+```
+
+## Topologies
+There are a lot of components to the system. One big diagram is daunting. It has been broken down into smaller portions to be more consumable. 
+
+### Computer Topology
+There is only one computer in the system, with dual output video card. One is used for the operator display, and the second for presentation. 
+```{r top1}
+DiagrammeR::grViz("sdv-topology1-computer.gv")
+```
+
+### Projection Topology
+Long distance signal transmission is achieved using Cat5 or Cat6 cabling. This used to require discrete transmitters and receviers, and those are in use for the front of house (FoH) projectors. But there is now a industry standard solution called HDBaseT which is now appearing on professional grade equipment; this is used for the read confidence projector and is why that portion of the diagram is so much simpler.
+```{r top2}
+DiagrammeR::grViz("sdv-topology2-projection.gv")
+```
+
+### Nursery Topology
+Target for installation of this equipment is Feb 15 2017.
+```{r top3}
+DiagrammeR::grViz("sdv-topology4-nursery.gv")
+```
+
+### Recording Topology
+This is somewhat simplified. The distribution amps and camera monitors have been excluded.
+The equipment is all very old. The abbreviation "cv" means "Composite Video", and "sv" means "S-video".
+```{r top5a}
+DiagrammeR::grViz("sdv-topology5-rec-inputs.gv", height=350)
+```
+
+```{r top5b}
+DiagrammeR::grViz("sdv-topology5-rec-outputs.gv", height=350)
+```
+
+# Network Details
+
+```{r} 
+NetworkInventory %>% 
+filter(Category=="Video") %>% 
+select(Location, Usage, Device, MAC, IP, URL, Notes) %>%
+kable() 
+```
+
+# Video Equipment Inventory
+
+```{r inventory, echo=FALSE, asis=TRUE}
+
+cs = c("Qty"  ,
+  "Manufacturer" ,
+  "Model"  , 
+  "Qty",
+  "Location"  ,
+  "Type" ,
+  "Desc"     )
+
+Video_Inventory <- Tech_Inventory %>%  
+          filter( Category=="Video" , InService== "Y") %>%  
+          dplyr::select(one_of(cs))   
+
+knitr::kable(Video_Inventory  )  
+```
+
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r knitr::current_input()`.
