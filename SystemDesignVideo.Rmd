@@ -1,5 +1,5 @@
 ---
-title: "System Documentaion - Video"
+title: "System Design - Video"
 author: "Terry Doner"
 date: "`r format(Sys.time(), '%B %d %Y')`"
 output: 
@@ -25,35 +25,21 @@ path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname <- paste(path, inventoryfile, sep="/")
 
-ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
-          "text", "text" , "text"   , 
-   "text" , "text", "text", "text", "date", "text",    
-  "text","numeric","text","numeric","numeric","numeric"     
+ct <- c(  "text", "text",  "numeric", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "date", "text", "text", "numeric", "text", "numeric", "numeric", "numeric"     
 )
 
-Tech_Inventory <- read_excel(fname, 
-                            sheet = "TechInventory", col_types=ct)
-
+Tech_Inventory <- read_excel(fname, sheet = "TechInventory", col_types=ct)
 NetworkInventory <- read_excel(fname, sheet = "Network")
 ```
 
 ```{r functions}
-dump.inv <- function(items) {
-
-selected <- items %>% 
-  data.frame(AssetTag=.)
-
-merge( Tech_Inventory, selected) %>% 
-    select(AssetTag, Manufacturer, Model, Desc ) %>%
-    arrange( AssetTag ) %>%
-    kable(align="l") %>%
-    column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
-}
+source("./commonFunctions.R") 
 ```
 
 ## Introduction
 This document provides key technical documentation for the video subsystems at UAC. This diagram provides an overview of the major components and leaves out some details.
+
+Frequently throughout this document there will be a diagram or description of some aspect of the installation and following that a listing of the mentioned equipment which provide more detail on the mentioned assets.
 
 ```{r}
 DiagrammeR::grViz("sdv-topology0-overview.gv")
@@ -169,14 +155,14 @@ CDMU-A002 MacOS / QLC - ATEM - OBS
   
 ```{r top1}
 DiagrammeR::grViz("sdv-topology1-computer.gv")
-dump.inv(c("CDWU-0009","CDMU-A001","CDMU-A002"))
+print_inv(c("CDWU-0009","CDMU-A001","CDMU-A002"), Tech_Inventory)
 ```
 
 ### Projection Topology
 Long distance signal transmission is achieved using Cat5 or Cat6 cabling. This used to require discrete transmitters and receviers, and those are in use for the front of house (FoH) projectors. But there is now a industry standard solution called HDBaseT which is now appearing on professional grade equipment; this is used for the read confidence projector and is why that portion of the diagram is so much simpler.
 ```{r top2}
 DiagrammeR::grViz("sdv-topology2-projection.gv")
-dump.inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003", "ZVVU-0001"))
+print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003", "ZVVU-0001"), Tech_Inventory)
 ```
 
 ###Lobby Topology
@@ -185,7 +171,7 @@ The TV in the lobby gets its content from the presentation Switcher. For the mai
 ```{r l132}
 DiagrammeR::grViz("sdv-topology3-lobby.gv")
 
-dump.inv(c("ZVIU-A002", "ZVKU-A001", "ZVVU-0003"))
+print_inv(c("ZVIU-A002", "ZVKU-A001", "ZVVU-0003"), Tech_Inventory)
 ```
 
 ### Nursery Topology
@@ -194,7 +180,7 @@ The TV in the nursery gets its content from the presentation Switcher. For the m
 Alternately it can be switched to the Bluray player.
 ```{r top3}
 DiagrammeR::grViz("sdv-topology4-nursery.gv")
-dump.inv(c("ZVIU-A001", "ZVKU-A001", "ZVPU-0001", "ZVVU-0002"))
+print_inv(c("ZVIU-A001", "ZVKU-A001", "ZVPU-0001", "ZVVU-0002"), Tech_Inventory)
 ```
 
 The TV and the Bluray player each have a remote control.
@@ -221,9 +207,9 @@ DiagrammeR::grViz("sdv-topology6-rec-wp.gv", height=350)
 ```
 
 ```{r}
-dump.inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002", "ZVCU-A001",
+print_inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002", "ZVCU-A001",
            "ZVCU-A002", "ZVCU-A003", "ZVKU-A003",
-           "ZVRU-A001", "ZVRU-A002"))
+           "ZVRU-A001", "ZVRU-A002"), Tech_Inventory)
 ```
 
 # Network Details
