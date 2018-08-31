@@ -1,21 +1,24 @@
 digraph topology0 { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Overview\n(as of 2017-11-11)",
+      label="Overview\n(as of 2018-08-31)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
-pswitch [label="{ |{Presentation\nSwitcher|ZVKU-A001}|  }"]
-rswitch [label="{ |{Record \nmixer|ZVKU-A003 }|  }"]
+pswitch [label="Presentation\nSwitcher|ZVKU-A001"]
+rswitch [label="Video\nmixer|ZVKU-A003"]
     
-cdwu0009 [label="{{Mediashout|CDWU-0009}| }"]
-cdmua001 [label="{{ProPresenter|CDMU-A001}| }"]
+cdwu0009 [label=" OBS or Mediashout|CDWU-0009 "]
+cdmua001 [label=" ProPresenter|CDMU-A001 "]
 cdmua002 [label="{|{iMac 21|CDMU-A002}| }"]
 
-fx4 [label="{ |{Datapath fx4|ZVKU-A002}| }"]
-wp [label="{ |{Web\nPresenter|ZVIU-A004}| }"]
+fx4 [label="Datapath fx4|ZVKU-A002"]
+wp [label="Web\nPresenter|ZVIU-A004"]
+cs40 [label="Lighting Console|ZLKU-B001"]
+facebook [label=" OBS Livestream|via Facebook Live "]
+recorders [label="Video\nRecorders"]
 
 fx4:o1 -> pswitch:i1
 fx4:o2 -> pswitch:i2
@@ -26,11 +29,12 @@ cdmua001 -> pswitch
 
 cdwu0009:hdmi -> pswitch:i5
  
-guest [label="{{Guest}| }"]
+guest [label=" Guest"]
 guest:hdmi -> pswitch:i6
 
 wp -> cdmua002 
 cdmua002 -> rswitch
+cdmua002 -> facebook
 
 pswitch -> rswitch
 
@@ -38,5 +42,11 @@ rswitch -> pswitch
 cameras -> rswitch
 rswitch->wp
 pswitch -> projectors
+cs40 -> pswitch
+rswitch -> recorders
+
+{rank=same; facebook projectors recorders}
+{rank=same; cameras cdmua001  guest cdwu0009 cs40 }
+
 
 } 
