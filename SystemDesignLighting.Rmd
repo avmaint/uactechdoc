@@ -197,9 +197,6 @@ There are two mechanisms to control the lighting:
 * A touch panel located on the main floor by the south east auditorium doors. Users can select one of several preset configurations. 
 * For more sophisticated control, The primary lighting control console  is an ETC ColorSource 40AV console.  It is used for all lighting operations more sophisticated than can be accomplished via the touchpad panel.
 
-
-
-
 [Back to top](#top)
 
 # Control Systems
