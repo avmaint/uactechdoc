@@ -10,14 +10,14 @@ node [shape=Mrecord, tooltip="" , fontsize = 10,
 pswitch [label="Presentation\nSwitcher|ZVKU-A001"]
 rswitch [label="Video\nmixer|ZVKU-A003"]
     
-cdwu0009 [label=" OBS or Mediashout|CDWU-0009 "]
-cdmua001 [label=" ProPresenter|CDMU-A001 "]
-cdmua002 [label="{|{iMac 21|CDMU-A002}| }"]
+cdwu0009 [label="OBS or Mediashout|CDWU-0009"]
+cdmua001 [label="ProPresenter|CDMU-A001"]
+cdmua002 [label="OBS|CDMU-A002"]
 
 fx4 [label="Datapath fx4|ZVKU-A002"]
 wp [label="Web\nPresenter|ZVIU-A004"]
 cs40 [label="Lighting Console|ZLKU-B001"]
-facebook [label=" OBS Livestream|via Facebook Live "]
+facebook [label="Livestream|via Facebook Live"]
 recorders [label="Video\nRecorders"]
 
 fx4:o1 -> pswitch:i1
@@ -47,6 +47,4 @@ rswitch -> recorders
 
 {rank=same; facebook projectors recorders}
 {rank=same; cameras cdmua001  guest cdwu0009 cs40 }
-
-
 } 
