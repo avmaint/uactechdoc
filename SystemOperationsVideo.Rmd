@@ -8,8 +8,12 @@ output:
   pdf_document:
      toc: true
 ---
+```{r options, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options(knitr.table.format = "html") 
+```
 
-```{r setup, include=FALSE}
+```{r packages }
 #output: pdf_document
 require(readr)
 require(dplyr)
@@ -19,15 +23,16 @@ require(jpeg)
 require(grid)
 require(ggplot2)
 library(kableExtra)
-
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-options(knitr.table.format = "html") 
 ```
 
 ```{r data}
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname <- paste(path, inventoryfile, sep="/")
+```
+
+```{r functions}
+source("./commonFunctions.R")
 ```
 
 # Introduction
@@ -57,8 +62,6 @@ Cameras
 : Both On and OFF are handled by the RMIP10 camera control panel. Hold down the Power Button (beside the big "1" button) and press/release each of the "1", "2", and "3" buttons. This will wake the cameras up. It takes about 30 seconds for an image to appear.
 
 > <small>As we currently operate things, the cameras are 'on' all the time but 'asleep'. To turn them off completely we have to unplug their power source. If this has been done you may need to plug them in. On - there are three ethernet jacks that need to be plugged into the cisco switch (NSCU-A004) so that the cameras can get power. Off - Unplug those same three jacks. There is a little plastic tab that needs to be depressed to release the jack. Be gentle.</small>
-
-
 
 # Operating Remote Cameras via the RMIP10 
 
@@ -332,8 +335,6 @@ There are two types of macros we have defined:
 * “DO” macros are meant for use during the service and execute a set of predefined actions meant for a particular point in time in the service.
 * “Setup” macros are meant to change configurations  and are used as part of the DO macros. This way we can change a setting without re-recording the entire DO macro.
     * The “Do Setup” macro is a hybrid. It executes all of the pre-service setup macros. 
-    
-> As June 8th the macros are laid out in the control software with #1 thorugh #10 on the left column of buttons, and #11 through #20 on the right. This doesn't match the macro numbers expected by the macro buttons on the ATEM. At some point the software will be pregrammed to follow a #1 left - #2 right, #3 left - #4 right pattern.
 
 >You can fire a macro from the software using the macro menu or from the ATEM by pressing the macro button follow by the number.
 
@@ -341,11 +342,12 @@ There are two types of macros we have defined:
     * Run 21 setup USK
     * Run 22 setup Pre-message MP
     * Run 23 setup DSK1 and dsk2
-2. __Do__ start recorder 1
-3. __Do__ stop recorder 1
-4. __Do__ start recorder 2
-5. __Do__ stop recorder 2
-6. __Do__ Start of message logos and start recording
+2. -    
+3. __Do__ start recorder 1
+4. __Do__ stop recorder 1
+5. __Do__ start recorder 2
+6. __Do__ stop recorder 2
+7. __Do__ Start of message logos and start recording
     1. Run  MP setup 22
     2. Run DSK setup 23
     3. Run start recorder 2 
@@ -354,7 +356,7 @@ There are two types of macros we have defined:
     6. remove DSK1, Fire DSK2 
     7. Pause for 3s
     8. Remove DSK2
-7. __Do__ end of message and stop recorder
+8. __Do__ end of message and stop recorder
     1. Set post msg trailer mp1 24  
     2. Fire mp1
     2. Pause 3s
@@ -475,9 +477,7 @@ Why #2 for Skype? In this situation you would want the skype video output (from 
 
 # Livestreaming
 
-As of May 2018 we have begun to stream our entire service to "FaceBook Live". 
-
-This is how it works. The "Program" output from the ATEM is wired into the into of the "Web Presenter" box. Its output is feed via USB to the into of the computer. The computer sees that devices as a web cam.
+We now stream our entire service to "FaceBook Live". This is how it works. The "Program" output from the ATEM is wired into the into of the "Web Presenter" box. Its output is feed via USB to the into of the computer. The computer sees that devices as a web cam.
 
 ```{r}
 d <- 'digraph livestreaming { 
@@ -521,14 +521,14 @@ cdmua002:ethernet -> Facebook
 DiagrammeR::grViz(d)
 ```
 
-We use a program called OBS to stream the web cam feed to facebook live. It is free to download and use, and runs on Windows and Mac. So you can install it on your own machine if you want to become familiar with it. 
+We use a program called OBS to stream the web cam feed to facebook live. (It is free to download and use, and runs on Windows and Mac. So you can install it on your own machine if you want to become familiar with it.)
 
 The is the details of the setup.
 
 * Sometime during the week, Kris (or another facebook admin) will generate a streaming key and place in the  week's dropbox folder in a file called "live stream key.txt" or something similar. It would like something like "444241729362798?ds=1&a=ATiKDmZGnUEDUDV1". 
 The stream will be scheduled to go live at 10am.
 * open OBS and go into Settings, and then the "Stream" section. Paste the key into the "Stream Key" field. Press "ok"
-* at about 9:50am, press the "Start Streaming" button. It will then change to be the "stop streaming" button.
+* at about 9:30am, press the "Start Streaming" button. It will then change to be the "stop streaming" button.
 * From the scene list select the scene "02 Announcement Clock", and then click the  "transition" button.
 * at 10am select the scene "xx web presenter with date", and click "transition".
 * after a few seconds, select the "xx Web Presenter scene", and click "transition".
