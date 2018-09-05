@@ -159,6 +159,46 @@ Once the import is complete, you can then link the new document to the playlist.
 
 # Stage Display
 
+Propresenter gives us the ability to display different content on the rear display for the stage team to see that is different from what the audience sees. Since it helps give them confidence, it is sometimes called the confidence display as well. 
+
+>Key point. Once the Stage Display Layout is set, it will not change until you set it to something else. This means you need to add the proper cues thorughout the playlist. For example, you need to set the worhsip lyric layout on the first song, The speaking layout for the message, and then the worship layout again one the first song after the message.
+
+The Stage display layouts are defined in the main Propresenter settings dialog, under the displays tab. We have three primary layouts.
+
+Worship Lyrics - static slide
+: Used for our musical worship portion of the service. It features the lyrics without the backgrounds (except for the first slide) and a small preview of the first few lines of the next slide. 
+
+Kevin Front - no clock
+: Used when Pastor Kevin is speaking. It mirrors the front displays.
+
+Daniel Speaking
+: Used when Pastor Daniel is speaking. It features the current slide with a small preview of the next slide. It also includes a clock. Sometimes a countdown, sometimes a elapsed time. When using this layout you also need to add a timer cue and reset it before service start. 
+
+>TODO: We might create two versions of the Daniel layout. One for countdown and the other for elapsed.
+
+##Adding a Stage Display Layout Cue
+
+To define a layout to the message when Daniel is speaking, for example: 
+* Right click on the first slide of the message to get the pop-up menu
+* Select Add Cue > Stage Display Layout > Daniel Speaking
+
+![Add Cue](../../images/sop-stagedisplay-addcue-sdl-zoom.png)
+
+##Adding a Timer Cue
+
+Some layouts, specifically Daniels, may have a times defined within the layout. You have to add a timer cue to the first slide of the message as well which will start the timer. Which timer cue you add depends on which timer is used in the layout.
+
+* Right click on the first slide of the message to get the pop-up menu
+* Select Add Cue > Timer Cue > Daniel Elapsed (example)
+ 
+![Add Timer Cue](../../images/sop-stagedisplay-addcue-timer-zoom.png)
+ 
+>TODO: Consider Renaming the timers that Daniel uses so it it obvious which one to use without poking around. 
+
+After adding a timer cue to the playlist you need to go into the Clocks and Timers dialog and set the timer and hit the reset button (curly arrow). 
+ 
+![Clocks and Timers](../../images/sop-clockstimers.png)
+
 [Back to top](#top)
 
 # Video Loop Controls
@@ -176,19 +216,22 @@ See the three yellow outlines in the image below.
 
 ## Running Triple Wide
 
+> TODO: Write content and reconfigure system to use the triple wide capability.
+
 [Back to top](#top)
 
 # Projectors  
 
 ## Turning the Front projectors On and Off
 
-The projectors are operated using the remote controls. 
+The power for the projectors can be operated two ways:
 
-* The remotes for Front of House are in the black cabinet in the side storage room. Finding the right spot to stand to operate the projector requires a bit of practice. I find centre of the double door right under the exit sign works well, but that is not the only place. 
+* via the web page for each projector
+* Via the CueCommander application on CDWU-0009.
 
 ## Turning the Confidence Projector On and Off
 
-The remote for the balcony projector (aka confidence projector) is usually found near the computer monitor.
+The remote for the balcony projector (aka confidence projector) is  found near the computer monitor. To power off this projector you need to hit the off button twice.
 
 ## Centre Screen Operation
 
@@ -199,32 +242,10 @@ Dropping the projection screen
 
 There is a three way switch located near the floor below power switch #1.
 The screen has automatic stops so you can't damage the screen by not stopping it soon enough.
-The projector does not fill the entire screen so don't drop it all the way.
 
 [Back to top](#top)
 
-## Projector Manager
-This section on the projector manager needs to be be re-written.
-
-### Purpose
-
-Projector Manager is used to manage the two side screen projectors from the computer. They can also be operated from the main floor via remote control.
-
-### Operation
-
-Once starting the program, you can turn the projectors on by right clicking on ‘Sanctuary sides’ and selecting ‘Turn On’, you will see their status change in the list to the right. To turn them off, follow the similar procedure. I recommend that you leave mediashout running with something on screen when turning the projectors off, that way you have a strong visual confirmation that they are off- because the screen goes blank.
-
-Projectors can be operated individually by right clicking on just east or west. This can be useful if you just want to see how something looks – you don’t need both of them on.
-
-Also when individually selected, advanced control functions are available on the control tab, but there is no need to change any of those settings for normal operation. Please consult with Terry before doing so.
-
 ### Trouble Shooting
-
-Communication error
-: Operation of Projector Manager is dependent on the church network which can sometimes cause problems. If the program cannot communicate with the projectors then you can still turn them on using the manual remote control. It is kept in the black cabinet in the audio storage room. You need to stand on the main floor in the area of the exit sign to work properly.
-
-No video signal message
-: Usual cause is that the red switch under the desk has not been turned on. It is possible that the wrong input is selected on the projector – the ‘RGB1’ input is the only one to be used.
 
 Filter needs cleaning
 : Please advise Terry.
@@ -238,18 +259,26 @@ The easiest way to operate the presentation switch (Asset Tag ZVKU-A001) is from
 On the page, click the output you want to change, and the input you want to tie it to. There is a little number in the output box which tells you which input it is tied to. The screen will go black for a few seconds while it makes the change.
 
 You can do a similar thing direcly on the front panel using the OUT and IN buttons.  The unit is located under the desk near the computer.
-```{r fig.height=2}
-img <- readJPEG("../../images/sop-gear-vs88dt-1.jpg") 
-  
-g <- rasterGrob(img, interpolate=TRUE)
 
-ggplot() +  
-  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
-  ggtitle("Matrix Video Switch", subtitle="Front Panel")
-```
+![Matrix Video Swtich](../../images/sop-gear-vs88dt-1.jpg)
+
+
 [Back to top](#top)
 
 # Troubleshooting
+
+##Stage Display appears on the front Projectors
+
+The problem - two scenarios:
+
+#. Propresenter has confused which video out is for the front and which is for the  rear. 
+#. The video matrix is routed the video feeds incorrectly. This is much less likely.
+
+Recover steps:
+* Go into the settings for Propresenter. (use the Propresenter top menu) 
+* go to the Displays Tab
+* Swap the "SD" and "Output" rectangles - drag one on top of the other. If that doesn't fix it, do it one more time. 
+* if still not fixed check the routing on the Video Matrix. Outputs 1 through 4 should be sourced from inputs 1 through 4 respectively.
 
 ## Projector screens are Red
 
@@ -267,7 +296,9 @@ Alternate:
 * go to the video matrix and change the routing of output 1, 2 and 3 to come from the confidence display. 
 * change the Propresenter stage display settings to be the primary output.
 
-## Projectors show only grey (which is actually the secondary monitor bg colour)
+## Projectors show only grey
+
+Grey is the secondary monitor Background Colour. An easy way to verify the scneario is to open a Finder window and drag it onto a projector screen. If it appears there then you know the video path is working.  
 
 The problem:
 
@@ -288,7 +319,9 @@ The problem:
 Recovery:
 
 * Option A:
-    * Turn the data path off and on again (Haven’t actually test this to see if it is effective, yet)
+    * Turn the data path off and on again. This will cause the mac to reset all of its video output as well. 
+    * Restart Propresenter - Proresenter doesn't like to have its video outputs reset while it is running.
+    
 * Option B:
     * On a Web browser, go to the fx4 web page http://192.168.0.192 
     * Select Wall Designer
@@ -296,7 +329,17 @@ Recovery:
     * Navigate to … Dropbox/UAC_Software/DatapathFX4/2017-12-27 sw.wdl (or a more recent file in the same location)
     * Go to the devices tab, right click on the fx4 graphic, select assign, enter the ip address (192168.0.192) and then apply settings button on the left hand side.
     * All projectors will be disrupted for about 20 seconds when you do this.
-    * Propresenter may need to be restarted.
+    * Propresenter will need to be restarted.
+
+* Option C: (not fully documented)
+    * Quit Propresenter 
+    * On the Mac, open the SwitcherX settings application 
+    * Go to the Custom resoutions tab 
+    * Select the 1080p60 mode. And apply. 
+    * The mac video system will reset. 
+    * Restart Propresenter.
+    
+Option C is likely the fastest an least disruptive approach. The duration of the disruption will be from when you apply the correct resolution until Propresenter fully restarts.    
 
 Alternate:
 * No easy alternate.
@@ -305,12 +348,12 @@ Alternate:
 
 The problem:
 
-* network trouble
+* Network trouble
+
 Recovery:
 
 * Use the grey Sony remote controls to turn them on.
 * You need to be pretty much directly below each projection screen and point the remote at the projector. One remote will do all three but have the change the selector switch for each projector (not sure if the switch is labelled 1,2,3 or A,B,C.) The east screen is the “first” ( A or 1).
-
 
 # Appendix
 
