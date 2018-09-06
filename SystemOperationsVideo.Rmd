@@ -307,10 +307,10 @@ There are two types of macros we have defined:
     * Run 22 setup Pre-message MP
     * Run 23 setup DSK1 and dsk2
 2. -    
-3. __Do__ start recorder 1
-4. __Do__ stop recorder 1
-5. __Do__ start recorder 2
-6. __Do__ stop recorder 2
+3. __Do__ Start Service 
+4. __Do__ Stop Service
+5. __Do__ start Message
+6. __Do__ stop Message
 7. __Do__ Start of message logos and start recording
     1. Run  MP setup 22
     2. Run DSK setup 23
