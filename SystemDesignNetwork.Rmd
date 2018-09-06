@@ -9,6 +9,12 @@ output:
     toc: yes
 ---
 
+```{r options, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+options(knitr.table.format = "html") 
+```
+
 ```{r setup, include=FALSE}
 require(readr)
 require(dplyr)
@@ -16,10 +22,6 @@ require(readxl)
 require(knitr)
 require(formattable)
 require(kableExtra)
-
-knitr::opts_chunk$set(echo = FALSE)
-knitr::opts_chunk$set(warning = FALSE)
-options(knitr.table.format = "html") 
 
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"

@@ -24,8 +24,12 @@ options(knitr.table.format = "html") # latex for pdf
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname <- paste(path, inventoryfile, sep="/")
-
 ```
+
+```{r functions}
+source("commonFunctions.R")
+```
+
 
 # Introduction
 This document provides basic operating information for each of the Audio systems at UAC.
@@ -101,3 +105,7 @@ None.
 
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. THe source is found here `r paste0(getwd(),  "/", knitr::current_input())`.
+
+#Change History
+
+`r commit.log.html( knitr::current_input() )`

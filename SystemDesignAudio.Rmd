@@ -8,15 +8,19 @@ output:
   pdf_document:
     toc: yes
 ---
+```{r options, echo=FALSE, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+```
 
-```{r setup, include=FALSE}
+```{r setup}
 require(readr)
 require(dplyr)
 require(readxl)
 require(knitr)
 require(formattable)
+```
 
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+```{r getdata}
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname <- paste(path, inventoryfile, sep="/")
@@ -32,6 +36,10 @@ ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   ,
 Tech_Inventory <- read_excel(fname, 
                             sheet = "TechInventory", col_types=ct)
 
+```
+
+```{r functions}
+source("commonFunctions.R")
 ```
 
 # Introduction
@@ -289,3 +297,7 @@ Tech_Inventory %>%
 
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r knitr::current_input()`
+
+#Change History
+
+`r commit.log.html( knitr::current_input() )`

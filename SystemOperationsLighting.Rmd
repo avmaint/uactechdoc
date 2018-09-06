@@ -9,7 +9,12 @@ output:
     toc: yes
 ---
 
-```{r packages, include=FALSE}
+```{r options, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+```
+
+```{r packages }
 require(readr)
 require(dplyr)
 require(readxl)
@@ -21,9 +26,8 @@ require(kableExtra)
 require(lubridate)
 ```
 
-```{r options, echo=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-options(knitr.table.format = "html") # latex for pdf 
+```{r functions}
+source("commonFunctions.R")
 ```
 
 ```{r getdata}
@@ -637,3 +641,7 @@ The correct settings need to be set by ensuring you have the "UAC" universe sele
 
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/", knitr::current_input())`.
+
+#Change History
+
+`r commit.log.html( knitr::current_input() )`
