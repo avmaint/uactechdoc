@@ -343,13 +343,14 @@ dmxmap %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-## DMX Details
+## Channel and DMX Details
 
 > TODO: The Balcony Easy/West Bar assignments need to be updated post Aug 2018 changes.
 
 ```{r}
 dmx.details %>% 
-  select(-x, -y, -z) %>%
+  select(Channel, DMX.Lo, Circuit, Location, Type, 
+         InsturmentCount, Mode, Usage) %>%
   kable(align="l") %>%
   column_spec( 1,  bold = TRUE ) %>%
   kable_styling("striped", full_width = TRUE)
