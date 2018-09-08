@@ -44,3 +44,33 @@ commit.log.html <- function(file.name) {
             kable_styling("striped", full_width = TRUE)
   )
 }
+
+# Functions to get data used by most of the reports.
+
+#globals
+path <-"~/Documents/UACTech/SystemDocumentation"
+inventoryfile <- "TechInventory.xlsx"
+fname <- paste(path, inventoryfile, sep="/")
+
+get.network <- function() {
+  return(read_excel(fname, 
+                    sheet = "Network")
+  )
+}
+
+get.inventory <- function() {
+  ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
+            "text", "text" , "text"   ,
+            "text" , "text", "text", "text", "date", "text",    
+            "text","numeric","text","numeric","numeric","numeric"     
+  )
+  
+  return( read_excel(fname, 
+                               sheet = "TechInventory", col_types=ct) 
+  )
+}
+
+get.further <- function() {
+  return( read_excel(fname, sheet = "Further")
+          )
+}

@@ -51,13 +51,16 @@ for (f in files) {
 chromecmd <- "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome"
 chromeopt <- "--headless --disable-gpu --print-to-pdf "
 
-for (f in files) {
+for (f in  files ) {
 
-  sfile <- paste0(trgdir, "/", f, ".html"  )
+  html.file <- paste0(trgdir, "/", f, ".html"  )
+  pdf.file  <- paste0(trgdir, "/", f, ".pdf"   )
 
-  cmd <- paste(chromecmd, chromeopt, sfile)
+  cmd <- paste(chromecmd, chromeopt, html.file)
   print(cmd)
-  #system(cmd)
+  system(cmd) # convert to pdf
+  
+  system2("mv", args=paste("output.pdf", pdf.file) )
 }
   
 print("Complete.")

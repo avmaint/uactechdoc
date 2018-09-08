@@ -1,5 +1,5 @@
 ---
-title: "System Design - Video"
+title: "System Design - Projection"
 author: "Terry Doner"
 date: "`r format(Sys.time(), '%B %d %Y')`"
 output: 
@@ -7,35 +7,28 @@ output:
         toc: true
 ---
 
-```{r setup, include=FALSE}
+```{r options, include=FALSE}
+options(knitr.table.format = "html") 
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
+```
+
+```{r packages}
 require(readr)
 require(dplyr)
 require(readxl)
 require(knitr)
 require(formattable)
 require(kableExtra)
+```
 
-options(knitr.table.format = "html") 
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+```{r functions}
+source("commonFunctions.R")
+```
 
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
-
-#NetworkInventory <- read_excel(fname, sheet = "Network")
-NetworkInventory <- read_excel(fname, 
-                            sheet = "Network")
-
-ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
-          "text", "text" , "text"   ,
-   "text" , "text", "text", "text", "date", "text",    
-  "text","numeric","text","numeric","numeric","numeric"     
-)
-
-Tech_Inventory <- read_excel(fname, 
-                            sheet = "TechInventory", col_types=ct) 
-further <- read_excel(fname, sheet = "Further")
-
+```{r data, include=FALSE}
+NetworkInventory <- get.network()
+Tech_Inventory   <- get.inventory()
+further          <- get.further() 
 ```
 
 ## Introduction
