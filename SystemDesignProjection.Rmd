@@ -342,3 +342,7 @@ knitr::kable(Video_Inventory  )   %>%
 
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(), "/",   knitr::current_input())`.
+
+#Change History
+
+`r commit.log.html( knitr::current_input() )`
