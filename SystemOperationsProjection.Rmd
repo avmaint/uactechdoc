@@ -9,7 +9,13 @@ output:
     toc: yes
 ---
 
-```{r setup, include=FALSE}
+```{r options, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning = FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+```
+
+
+```{r packages }
 require(readr)
 require(dplyr)
 require(readxl)
@@ -18,16 +24,14 @@ require(jpeg)
 require(grid)
 require(ggplot2)
 require(kableExtra)
+```
 
-knitr::opts_chunk$set(echo = FALSE)
-options(knitr.table.format = "html") # latex for pdf 
+```{r functions}
+source("commonFunctions.R")
+```
 
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-
-fname <- paste(path, inventoryfile, sep="/")
-
-NetworkInventory <- read_excel(fname, sheet = "Network")
+```{r data}
+NetworkInventory <- get.network()
 ```
 
 # Introduction
@@ -38,6 +42,17 @@ Our projection system is quite flexible and allows for numerous video sources to
 ProPresenter is the primary tool we use for display Lyrics, message support graphics, announcements and other such visuals. The ProPresenter visuals are also used to broadcast and record our services, which is managed by the video crew.
 
 At times you will also need to change the video routing for special features such as baptism. 
+
+[Back to top](#top)
+
+#Sunday Morning Rundown
+
+#. Powering Up
+    * before waking up the Mac, first ensure the video mixer is turned on (switch#4). This will avoid problems later.
+#. Add the sermon powerpoint to the script and ensure the stage display cues are set for the sermon, the very first song and the first song after the sermon.
+#. In cooperation with the audio engineer, test any videos that are part of the program.
+#. Consider your background choices and if they are a good match to the mood of the music. 
+    * Discuss colour choices with the lighting operator. Lyric backgrounds and lighting colours should support each other. 
 
 [Back to top](#top)
 
@@ -449,3 +464,7 @@ MS is a flexible, powerful program. This tutorial has just touched on some of th
 
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/", knitr::current_input())`.
+
+#Document Change History
+
+`r commit.log.html( knitr::current_input() )`
