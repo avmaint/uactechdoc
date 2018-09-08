@@ -25,14 +25,13 @@ require(ggplot2)
 library(kableExtra)
 ```
 
-```{r data}
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
-```
-
 ```{r functions}
 source("./commonFunctions.R")
+```
+
+```{r data}
+network.data <- get.network()
+further <- get.further()
 ```
 
 # Introduction
@@ -52,7 +51,33 @@ This document provides basic operating information for Video Mixing at Unionvill
 
 [Back to top](#top)
 
+#Sunday Morning Rundown
+
+These are the basic steps you need to do on Sunday morning. See the various sections in this document for a detailed explanation.
+
+#. Turn on the power for the video mixer and the cameras. 
+    * [Turning it on and off](#turning-it-on-and-off)
+#. Ensure both memory cards in the recorders and formatted.
+    * [Formatting a card](#formattting-a-card)
+#. Run the "Do Setup pre-service" macro
+    * [Standard Macros Defined for UAC](#standard-macros-defined-for-uac)
+#. Get the Livestream running
+    * [Livestreaming](#livestreaming)
+#. Review the "Order of Service" for the morning and look for items that may require special attention and planning. 
+    * Examples include: communion, baptism, solos, dramas, videos, etc.
+    * You may choose to pre-define a camera position for that item
+#. Check to see who is preaching this morning and make sure we have the correct Lower 3rd title loaded into media player 2
+    * [Using the built-in Media Player](#using-the-built-in-media-player)
+#. Fine tune the camera settings
+    * [Camera Settings](#camera-settings)
+#. By 9:30 ensure the lobby TV is on and at that time should be displaying the annoucement loop. By 10:00 it should be showing video mixer program.
+    * Detailed instructions need to be written.
+
+[Back to top](#top)
+
 #Turning it on and off
+
+The video mixer will likely have been turned on by the audio engineer. If by chance the Propresenter computer was awoke before you will not see its video feed. See the troubleshooting section for corrective steps.
 
 Main Power
 : On - Flip the switch at the top of the tabletop rack - lableled "Power Swtich #4".
@@ -290,7 +315,7 @@ There are three ways to run macros:
 3. FUTURE: From a preset in CueCommander
     1. Not yet implemented. 
 
-###Standard Macros Defined for UAC:
+###Standard Macros Defined for UAC
 
 There are two types of macros we have defined:
 
@@ -501,6 +526,45 @@ The stream will be scheduled to go live at 10am.
 * at the end of the service, ckick "Stop Streaming".
 
 > TODO: Need to refine the instructinos for 10am. We need to incorporate the "We will be stating shortly" scene as well; perhaps combine it with the Date scene. 
+
+[Back to top](#top)
+
+#Camera Settings
+
+The cameras revert to default settings when powered on. The defaults are not the best for out environment. We need to make some adjustments each day. 
+
+Each camera has a web page where we can make these updates. Open Safari and then for each camera do these steps:
+
+#. Enter the address for a camera in the address bar. They will be on the left bookmark bar but if not, listed here as well.
+```{r addresses}
+network.data  %>% 
+  filter(AssetTag %in% c("ZVCU-A001","ZVCU-A002","ZVCU-A003")) %>% 
+  select( AssetTag, URL , Notes ) %>%
+    kable(align="l") %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
+```
+
+#. At the top of the page, click on "Setting" and the on the left "Video" and the "Picture" tab
+    * You should **not** be challenged for a userid and password, but if you are skip these steps and let Terry know.
+#. Change Exposure Mode to "Iris Priority" 
+    * This instructs the camera to we are going to set the lens aperture (Iris) otherselves, and the camera will control the other exposure settings. 
+#. Change Exposure Compensatoin to "-4"
+    * This instructs the camera to make the image a little bit darker than it thinks it should be. We are trying to get good face exposure.
+#. Change Iris to "F1.6"
+    * This forces the camera to take in the maximum amount of light.
+#. Change White balance Mode to "Indoor"
+    * This tells the camera that the lighting will tend to be a warmer shade than standard daylight. (There is a "Standard"). The default make skin tones too orange.
+#. Change High Resolution mode to "On"
+    * Use the maximum resolution the camera is capable of.
+#. Change Aperture to "0"
+    * Maximum light 
+#. At the bottom of the page, click the "Ok" button. 
+    * You will be able to see the chnages take effect.
+
+Here is a screenshot of the page with the settings applied.
+
+![Camera settings](../../images/sov-camerasettings.png)
 
 [Back to top](#top)
 

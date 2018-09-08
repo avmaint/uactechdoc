@@ -41,9 +41,42 @@ playback <- read_excel(fname, sheet = "CS40.Playback")
 # Introduction
 This document provides basic operating information for each of the major AV systems at Unionville Alliance Church.
 
+Purpose of the lighting system:
+
+* Necessary to help the hearing impaired ( roughly 10% of the population) to lip read
+* Supports video recording
+* Helps draw attention to the central item – conversely makes it easier to ignore clutter
+* Helps audience to focus and concentrate
+* Reinforces the message (spoken or sung)
+
+There are two mechanisms to control the lighting: 
+
+* A touch panel located on the main floor by the south east auditorium doors. Users can select one of several preset configurations. 
+* For more sophisticated control, The primary lighting control console  is an ETC ColorSource 40AV console.  It is used for all lighting operations more sophisticated than can be accomplished via the touchpad panel.
+
 [Back to top](#top)
 
-# Lighting
+#Sunday Morning Rundown
+
+>TODO: This section will need to be modified after we finish the installation.
+
+These are the steps to follow for a normal Sunday morning.
+
+#. Turn on the power. 
+    * Including the console, the balcony closet, and the sconse lights.
+#. Operate each of your basic playbacks to ensure things are working correctly.
+    * In particular look at the fixtures on the stage floor. They sometimes get moved, unplugged, or reprogrammed. Make sure everything turns on and is aimed correctly.
+#. Review the "Order of Service" and look for any special features that need special lighting. 
+    * Examples include, Baptisms, Communion, Solos, Dramas
+    * Decide on what your look will be for that program segement
+#. Decide on your colour choices for the morning
+    * Listen to the songs; are they fast or slow, loud or quiet, what is the mood of the lyrics? What colours would be support the mood?
+    * Review your colour choices with the lyric/presentation operator 
+    * Consider the colour theme for the series as well. 
+
+[Back to top](#top)
+
+# Lighting Power
 
 > This section needs to be rewritten post the 2018 upgrades.
 
@@ -433,6 +466,8 @@ Top Hat
 
 [Back to top](#top)
 
+#Appendix
+
 #Operating QLC+ (Computer based)
 
 QLC+ is a free software based lighting control platform that offers many useful features. 
@@ -633,11 +668,6 @@ The correct settings need to be set by ensuring you have the "UAC" universe sele
 
 [Back to top](#top) 
 
-#Operating the Express Console
-
->To be written.
-
-[Back to top](#top)
 
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/", knitr::current_input())`.
