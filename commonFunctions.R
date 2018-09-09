@@ -35,7 +35,7 @@ commit.log.html <- function(file.name) {
   
   o <- system2(cmd, args=args, stdout=TRUE)
   
-  df <- read.csv(text=o, col.names=c("id", "user", "date", "message"))
+  df <- read.csv(text=o, col.names=c("id", "user", "date", "message"), header=FALSE)
   
   return( df %>% 
             select(user, date, message) %>%
