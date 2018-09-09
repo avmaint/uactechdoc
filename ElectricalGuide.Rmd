@@ -19,15 +19,19 @@ require(knitr)
 require(kableExtra)
 ```
 
+```{r functions}
+source("commonFunctions.R")
+```
+
+
 ```{r getdata}
 path <-"~/Documents/UACTech/SystemDocumentation/data"
-#path <- "../../data"
 electricalfile <- "Electrical.xlsx"
 fname <- paste(path, electricalfile, sep="/")
-panels <- read_excel( fname, sheet = "Panels")
-nodes <- read_excel(fname, sheet = "Boxes")
-routes <- read_excel(fname, sheet = "Routes")
 
+panels <- read_excel( fname, sheet = "Panels")
+nodes  <- read_excel(fname, sheet = "Boxes")
+routes <- read_excel(fname, sheet = "Routes")
 lutron <- read_excel(fname, sheet = "Lutron")
 ```
 
@@ -197,3 +201,7 @@ lutron %>%
 
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/",  knitr::current_input())`.
+
+#Document Change History
+
+`r commit.log.html( knitr::current_input() )`
