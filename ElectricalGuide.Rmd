@@ -23,7 +23,6 @@ require(kableExtra)
 source("commonFunctions.R")
 ```
 
-
 ```{r getdata}
 path <-"~/Documents/UACTech/SystemDocumentation/data"
 electricalfile <- "Electrical.xlsx"
@@ -34,8 +33,6 @@ nodes  <- read_excel(fname, sheet = "Boxes")
 routes <- read_excel(fname, sheet = "Routes")
 lutron <- read_excel(fname, sheet = "Lutron")
 ```
-
-> as of 1993/03/12
 
 <strong><large>
 
