@@ -74,3 +74,38 @@ get.further <- function() {
   return( read_excel(fname, sheet = "Further")
           )
 }
+
+num2time  <- function(s) {
+  hr <- floor(24 * s)
+  mi <- round((24*s - hr ) * 60)
+  
+  if (nchar(hr) == 1) {
+    hr <-paste0("0",hr)
+  }
+  
+  if (nchar(mi) == 1) {
+    mi <- paste0("0", mi)
+  }
+  
+  return( paste0( hr, ":", mi ) )
+}
+
+get.activities <- function() {
+  f <- paste0(path, "/data/", "SystemOperationsGuide.xlsx")
+  ct <- c("numeric" ,"numeric", "text", "numeric","text", "text","text", "text", "text", "text"  )
+  
+  activities <- read_excel(f, 
+                   sheet = "linear",
+                   col_types=ct)  %>% 
+        rowwise() %>%
+        mutate(Time = num2time(Time1) )
+  
+  return(activities)
+}
+
+get.events <- function() {
+  events <- get.activities() %>%
+    select(Time1, Time, Event ) %>%
+    unique()
+  return(events)
+} 

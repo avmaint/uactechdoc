@@ -10,7 +10,12 @@ output:
 classoption: landscape
 ---
 
-```{r setup, include=FALSE}
+```{r options, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+```
+
+```{r packages}
 require(readr)
 require(readxl)
 require(knitr)
@@ -18,16 +23,17 @@ require(formattable)
 require(tidyr)
 require(dplyr)
 require(kableExtra)
+```
 
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-options(knitr.table.format = "html") # latex for pdf 
+```{r functions}
+source("commonFunctions.R")
+```
 
-base <-  "~/Documents/UACTech/SystemDocumentation"
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
-further <- read_excel(fname, sheet = "Further")
 
+```{r getdata}
+Activities <- get.activities()
+Events <- get.events() 
+further <- get.further()
 ```
 
 # Introduction
@@ -36,39 +42,7 @@ This document provides an overall view of what needs to happen during Sunday mor
 
 The activities described are structured according to these milestone events. The times are approximate.  
 
-```{r getdata, echo=FALSE, asis=TRUE}
- 
-f <- paste0(base, "/", "SystemOperationsGuide.xlsx")
-
-ct <- c("numeric" ,"numeric", "text", "numeric","text", "text","text", "text", "text", "text"  )
-#"blank", "numeric", "date" or "text"
-
-df <- read_excel(f, 
-                 sheet = "linear",
-                 col_types=ct) 
- 
-num2time  <- function(s) {
-  hr <- floor(24 * s)
-  mi <- round((24*s - hr ) * 60)
-
-  if (nchar(hr) == 1) {
-     hr <-paste0("0",hr)
-   }
-  
-  if (nchar(mi) == 1) {
-    mi <- paste0("0", mi)
-  }
-  
-  return( paste0( hr, ":", mi ) )
-}
-
-df <- df %>% rowwise() %>%
-  mutate(Time = num2time(Time1)         )
-
-Events <- df %>%
-              select(Time1, Time, Event ) %>%
-              unique()
-
+```{r events, echo=FALSE, asis=TRUE}
 Events %>% 
   select(Time, Event ) %>% 
   kable() %>%
@@ -81,7 +55,7 @@ Events %>%
 #Summary
 
 ```{r summary}
-df %>%  
+Activities %>%  
   group_by(  Time, Event, Who) %>%
   summarise(Detail = paste(What, collapse="; ") ) %>% 
   select(Time, Event, Who, Detail ) %>%  
@@ -95,13 +69,13 @@ df %>%
     kable_styling("striped", full_width = FALSE)
 ```
 
-#Details
+#Rundown by Position and Time
 
 ```{r details, results="asis"}
 #Rundown by Position and Time
 
-positions <- df %>% select(Who) %>% unique() %>% as.list()
-times     <- df %>% select(Time1) %>% unique()%>% as.list()
+positions <- Activities %>% select(Who) %>% unique() %>% as.list()
+times     <- Activities %>% select(Time1) %>% unique()%>% as.list()
 out <- ""
 
 for (i in  positions$Who  ) {
@@ -115,11 +89,11 @@ for (i in  positions$Who  ) {
     
     hdr <- paste0("<h3>", s, " - ", n,"</h3>") 
       
-    this <- df %>%
+    this <- Activities %>%
        filter(Who == p) %>%
        filter(Time1 == t) %>%
         select(  Where, Where2, What, How, Fallback) %>%
-        kable() %>%
+        kable(caption=paste("Postion:", p, "@", s)) %>%
         kable_styling("striped", full_width = FALSE)
 
      out <- paste(out, hdr, this)
@@ -134,3 +108,7 @@ for (i in  positions$Who  ) {
 `r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
 
 [Back to top](#top)
+
+#Change History
+
+`r commit.log.html( knitr::current_input() )`
