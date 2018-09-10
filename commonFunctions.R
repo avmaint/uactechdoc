@@ -92,7 +92,7 @@ num2time  <- function(s) {
 
 get.activities <- function() {
   f <- paste0(path, "/data/", "SystemOperationsGuide.xlsx")
-  ct <- c("numeric" ,"numeric", "text", "numeric","text", "text","text", "text", "text", "text"  )
+  ct <- c("numeric" ,"numeric", "text", "numeric",rep("text",7) )
   
   activities <- read_excel(f, 
                    sheet = "linear",

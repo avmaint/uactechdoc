@@ -24,6 +24,7 @@ require(grid)
 require(ggplot2)
 require(kableExtra)
 require(lubridate)
+require(tidyr)
 ```
 
 ```{r functions}
@@ -34,8 +35,9 @@ source("commonFunctions.R")
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname   <- paste(path, inventoryfile, sep="/")
-further <- read_excel(fname, sheet = "Further")
+further <- get.further()
 playback <- read_excel(fname, sheet = "CS40.Playback")
+activities <- get.activities()
 ```
 
 # Introduction
@@ -60,19 +62,23 @@ There are two mechanisms to control the lighting:
 
 >TODO: This section will need to be modified after we finish the installation.
 
+>TODO: fix indentation errors in the Details column in the below table. 
+
 These are the steps to follow for a normal Sunday morning.
 
-#. Turn on the power. 
-    * Including the console, the balcony closet, and the sconse lights.
-#. Operate each of your basic playbacks to ensure things are working correctly.
-    * In particular look at the fixtures on the stage floor. They sometimes get moved, unplugged, or reprogrammed. Make sure everything turns on and is aimed correctly.
-#. Review the "Order of Service" and look for any special features that need special lighting. 
-    * Examples include, Baptisms, Communion, Solos, Dramas
-    * Decide on what your look will be for that program segement
-#. Decide on your colour choices for the morning
-    * Listen to the songs; are they fast or slow, loud or quiet, what is the mood of the lyrics? What colours would be support the mood?
-    * Review your colour choices with the lyric/presentation operator 
-    * Consider the colour theme for the series as well. 
+
+```{r rundown}
+p <- "Lights"
+activities %>%
+       filter(Who == p) %>%
+        mutate(Time = num2time(Time1)) %>%
+        replace_na(list(Details="", How="", 
+                               Fallback="", Where="", Where2="")) %>%
+        select(Time ,  Where, Where2, What, Details) %>%
+        kable(caption=paste("Rundown for Postion:", p)) %>%
+        kable_styling("striped", full_width = FALSE)
+```
+
 
 [Back to top](#top)
 
@@ -414,7 +420,7 @@ playback %>%
 
 The other playback faders are used to control individual groups of lights. The first six have a designated special purpose for sound triggers.
 
-> Consider swapping Towers and Sconse.
+> Consider swapping Towers and Sconce.
 
 There are terms used in these descirptions to describe areas of the room that you need to know.
 
@@ -424,7 +430,7 @@ Flares
 House
 : All Pendants plus the under balcony pot lights
 
-Sconse
+Sconce
 : The wall mounted fixtures that light the outer aisles
 
 Scrim
@@ -466,10 +472,10 @@ keypad <- tribble(
   ~Number, ~Name, ~Description,
 
   1, "Off", "Off",
-  2, "Security", "A subset of lights on medium (sconse plus maybe some of the house lights)",
+  2, "Security", "A subset of lights on medium (sconce plus maybe some of the house lights)",
   3, "Basic", "Front centre lit bright - rest of room medium - funerals / weddings plus some accents",
   4, "BSF", "More light Downlight On stage - otherwise #4",
-  5, "Sconse only", "(Might be redundant with 2)",
+  5, "Sconce only", "(Might be redundant with 2)",
   6, "Auditorium House", "Auditorium House lights full White",
   7, "Stage lights",  "Stage lights full white",
   8, "Janitor", "Most everything on full white (stage ketra plus house): 6+7"
