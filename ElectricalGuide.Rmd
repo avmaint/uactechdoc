@@ -201,4 +201,6 @@ This document is compiled by merging text and data together using rmarkdown. The
 
 #Document Change History
 
+This lists the changes made to the document text content. The electrical details are stored separately and not listed here.
+
 `r commit.log.html( knitr::current_input() )`
