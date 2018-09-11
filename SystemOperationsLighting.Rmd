@@ -78,9 +78,7 @@ activities %>%
         kable(caption=paste("Rundown for Postion:", p)) %>%
         kable_styling("striped", full_width = FALSE) %>%
         collapse_rows(columns = 1:2  )
-
 ```
-
 
 [Back to top](#top)
 
