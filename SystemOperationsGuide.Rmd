@@ -47,7 +47,7 @@ Events %>%
   select(Time, Event ) %>% 
   kable() %>%
   column_spec(1  , width = "10em") %>%
-  kable_styling("striped", full_width = FALSE)
+  kable_styling("striped", full_width = FALSE, position="center")
 ```
 
 [Back to top](#top)
@@ -68,6 +68,31 @@ Activities %>%
     column_spec(3:7 , width = "10em") %>%
     kable_styling("striped", full_width = FALSE)
 ```
+
+#Rundown by Time
+
+```{r}
+times     <- Activities %>% select(Time1) %>% unique()%>% as.list()
+out <- ""
+
+for (t in times$Time1) {
+    
+    s <- num2time(t)
+    n <- Events[Events$Time==s,]$Event 
+    
+    hdr <- paste0("<h3>", s, " - ", n,"</h3>") 
+      
+    this <- Activities %>%
+       filter(Time1 == t) %>%
+       arrange(Item) %>%
+        select(Who,  Where, Where2, What, How, Details, Fallback) %>%
+        kable( ) %>%
+        kable_styling("striped", full_width = TRUE)
+
+     out <- paste(out, hdr, this)
+}
+```
+`r out`
 
 #Rundown by Position and Time
 
