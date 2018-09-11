@@ -521,9 +521,7 @@ If the playbacks do not seem to work
 
 [Back to top](#top)
 
-# Appendix
-
-## Lighting Terminology
+#Lighting Terminology
 
 Channel
 : In the context of lighting at UAC, a channel is a configuration item in the colorSource console. It controls one to many DMX addresses. If the console knows what kind of instrument a channel is assigned to, it is automatically configured for the correct behaviours (colour, strobe, etc). 
@@ -765,7 +763,6 @@ The correct settings need to be set by ensuring you have the "UAC" universe sele
 ![Correct Output Settings](../../images/sol-qlc-io-detail.png)
 
 [Back to top](#top) 
-
 
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/", knitr::current_input())`.
