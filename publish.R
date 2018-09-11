@@ -32,8 +32,8 @@ files <- c(
   "TeamDesign",
   "ElectricalGuide",
           
-  "index"
-          #"SystemOperationsGuide"
+  "index",
+          "SystemOperationsGuide"
           #"InventoryManagement",
           #", "TechTeamIntro"
 )
