@@ -7,6 +7,11 @@ output:
         toc: true
 ---
 
+```{r options, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+```
+
 ```{r setup, include=FALSE}
 require(readr)
 require(dplyr)
@@ -15,27 +20,44 @@ require(knitr)
 require(jpeg)
 require(grid)
 require(ggplot2)
-
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
-options(knitr.table.format = "html") # latex for pdf 
-```
-
-```{r data}
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
+require(kableExtra)
+require(tidyr)
 ```
 
 ```{r functions}
 source("commonFunctions.R")
 ```
 
+```{r data}
+inventoryfile <- get.inventory()
+activities <- get.activities()
+```
 
 # Introduction
 This document provides basic operating information for each of the Audio systems at UAC.
 
 [Back to top](#top)
 
+#Sunday Morning Rundown
+    
+These are the steps to follow for a normal Sunday morning.
+
+```{r rundown}
+p <- "Audio"
+activities %>%
+       filter(Who == p) %>%
+        mutate(Time = num2time(Time1)) %>%
+        replace_na(list(Details="", How="", 
+                               Fallback="", Where="", Where2="")) %>%
+        select(Time, Event, Where, Where2, What, Details) %>%
+        kable(caption=paste("Rundown for Postion:", p)) %>%
+        kable_styling("striped", full_width = FALSE) %>%
+        collapse_rows(columns = 1:2  )
+```    
+
+[Back to top](#top)
+
+#Power On and Off
 ## Power On
  
 There are three numbered swtiches located in the balcony required to turn the system on

@@ -23,6 +23,7 @@ require(jpeg)
 require(grid)
 require(ggplot2)
 library(kableExtra)
+require(tidyr)
 ```
 
 ```{r functions}
@@ -31,6 +32,7 @@ source("./commonFunctions.R")
 
 ```{r data}
 network.data <- get.network()
+activities <- get.activities()
 further <- get.further()
 ```
 
@@ -72,6 +74,19 @@ These are the basic steps you need to do on Sunday morning. See the various sect
     * [Camera Settings](#camera-settings)
 #. By 9:30 ensure the lobby TV is on and at that time should be displaying the annoucement loop. By 10:00 it should be showing video mixer program.
     * Detailed instructions need to be written.
+    
+```{r rundown}
+p <- "Video"
+activities %>%
+       filter(Who == p) %>%
+        mutate(Time = num2time(Time1)) %>%
+        replace_na(list(Details="", How="", 
+                               Fallback="", Where="", Where2="")) %>%
+        select(Time , Event,  Where, Where2, What, Details) %>%
+        kable(caption=paste("Rundown for Postion:", p)) %>%
+        kable_styling("striped", full_width = FALSE) %>%
+        collapse_rows(columns = 1:2  )
+```    
 
 [Back to top](#top)
 
