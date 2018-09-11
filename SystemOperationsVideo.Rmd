@@ -55,25 +55,7 @@ This document provides basic operating information for Video Mixing at Unionvill
 
 #Sunday Morning  Rundown
 
-These are the basic steps you need to do on Sunday morning. See the various sections in this document for a detailed explanation.
-
-#. Turn on the power for the video mixer and the cameras. 
-    * [Turning it on and off](#turning-it-on-and-off)
-#. Ensure both memory cards in the recorders and formatted.
-    * [Formatting a card](#formattting-a-card)
-#. Run the "Do Setup pre-service" macro
-    * [Standard Macros Defined for UAC](#standard-macros-defined-for-uac)
-#. Get the Livestream running
-    * [Livestreaming](#livestreaming)
-#. Review the "Order of Service" for the morning and look for items that may require special attention and planning. 
-    * Examples include: communion, baptism, solos, dramas, videos, etc.
-    * You may choose to pre-define a camera position for that item
-#. Check to see who is preaching this morning and make sure we have the correct Lower 3rd title loaded into media player 2
-    * [Using the built-in Media Player](#using-the-built-in-media-player)
-#. Fine tune the camera settings
-    * [Camera Settings](#camera-settings)
-#. By 9:30 ensure the lobby TV is on and at that time should be displaying the annoucement loop. By 10:00 it should be showing video mixer program.
-    * Detailed instructions need to be written.
+These are the basic steps you need to do on Sunday morning. See the various sections in this document for a detailed explanation. 
     
 ```{r rundown}
 p <- "Video"
