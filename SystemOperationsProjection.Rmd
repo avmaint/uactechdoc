@@ -48,17 +48,8 @@ At times you will also need to change the video routing for special features suc
 [Back to top](#top)
 
 #Sunday Morning Rundown
-
-#. Powering Up
-    * before waking up the Mac, first ensure the video mixer is turned on (switch#4). This will avoid problems later.
-    *[Turning Projectors on and off](#turning-the-front-projectors-on-and-off)
-#. Add the sermon powerpoint to the script and ensure the stage display cues are set for the sermon, the very first song and the first song after the sermon.
-#. In cooperation with the audio engineer, test any videos that are part of the program.
-#. Consider your background choices and if they are a good match to the mood of the music. 
-    * Discuss colour choices with the lighting operator. Lyric backgrounds and lighting colours should support each other. 
     
 These are the steps to follow for a normal Sunday morning.
-
 
 ```{r rundown}
 p <- "Presenter"
