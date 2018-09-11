@@ -24,6 +24,7 @@ require(jpeg)
 require(grid)
 require(ggplot2)
 require(kableExtra)
+require(tidyr)
 ```
 
 ```{r functions}
@@ -32,6 +33,7 @@ source("commonFunctions.R")
 
 ```{r data}
 NetworkInventory <- get.network()
+activities <- get.activities()
 ```
 
 # Introduction
@@ -54,6 +56,21 @@ At times you will also need to change the video routing for special features suc
 #. In cooperation with the audio engineer, test any videos that are part of the program.
 #. Consider your background choices and if they are a good match to the mood of the music. 
     * Discuss colour choices with the lighting operator. Lyric backgrounds and lighting colours should support each other. 
+    
+These are the steps to follow for a normal Sunday morning.
+
+
+```{r rundown}
+p <- "Presenter"
+activities %>%
+       filter(Who == p) %>%
+        mutate(Time = num2time(Time1)) %>%
+        replace_na(list(Details="", How="", 
+                               Fallback="", Where="", Where2="")) %>%
+        select(Time ,  Where, Where2, What, Details) %>%
+        kable(caption=paste("Rundown for Postion:", p)) %>%
+        kable_styling("striped", full_width = FALSE)
+```    
 
 [Back to top](#top)
 
