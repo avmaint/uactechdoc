@@ -1,6 +1,11 @@
-# Render all tech documents  
-# and
-# move to published documents folder.
+# Update all tech documents  
+# If the source has been updated since last publication, 
+# then render create a pdf and put the results in the publication directory 
+
+#It doesn't consider dependencies so if a jpg, gv or common function is changed it wil lnot be published.
+#It doesn't consider database changes either
+
+#TODO: also consider the inventory or rundown data in the publication decision
 
 srcdir <-  "~/Documents/UACTech/SystemDocumentation/github/uactechdoc"
 trgdir <- "~/Dropbox/UAC_Tech_Docs"
@@ -51,9 +56,9 @@ for (f in files) {
   if (rmd.mt > html2.mt) {  
     #render
     rmarkdown::render(rmd.file, output_format = "html_document")
-    cmd <- paste("mv", html1.file, trgdir)
   
     #move it to target
+    cmd <- paste("mv", html1.file, trgdir)
     system(cmd)
   
     #make pdf
@@ -67,7 +72,6 @@ for (f in files) {
     } else {
       print(paste(f, "Update not required.")) 
       results <- rbind(results, data.frame(file=f, action="not updated"))
-      
     }
 }
 
