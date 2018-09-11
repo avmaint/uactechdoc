@@ -2,8 +2,13 @@
 # and
 # move to published documents folder.
 
-srcdir <-  "~/Documents/UACTech/SystemDocumentation/github/uactechdoc/"
+srcdir <-  "~/Documents/UACTech/SystemDocumentation/github/uactechdoc"
 trgdir <- "~/Dropbox/UAC_Tech_Docs"
+
+chromecmd <- "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome"
+chromeopt <- "--headless --disable-gpu --print-to-pdf "
+
+results <- data.frame()
 
 files <- c( 
   "SystemDesignAudio",
@@ -28,48 +33,43 @@ files <- c(
           #", "TechTeamIntro"
 )
 
-#files <- c("SystemAdministrationGuide")
-
-print(paste("files:", files))
+#files <- c("SystemAdministrationGuide") # For Testing
 
 for (f in files) {
   
   print(paste("Processing:", f))
   
-  rmd <- paste0(srcdir, f, '.Rmd')
-  print(paste("Rendering", rmd))
-  rmarkdown::render(rmd, output_format = "html_document")
+  rmd.file   <- paste0(srcdir, "/", f, '.Rmd' )
+  html2.file <- paste0(trgdir, "/", f, ".html" )
+  html1.file <- paste0(srcdir, "/", f, '.html' )
+  pdf.file   <- paste0(trgdir, "/", f, ".pdf"  )
   
-  html <- paste0(srcdir, f, '.html')
-  cmd <- paste("mv", html, trgdir)
+  #get modification times
+  rmd.mt <- file.info(rmd.file)$mtime
+  html2.mt <- file.info(html2.file)$mtime
   
-  print(paste("Moving:", cmd))
+  if (rmd.mt > html2.mt) {  
+    #render
+    rmarkdown::render(rmd.file, output_format = "html_document")
+    cmd <- paste("mv", html1.file, trgdir)
   
-  system(cmd)
+    #move it to target
+    system(cmd)
+  
+    #make pdf
+    cmd <- paste(chromecmd, chromeopt, html2.file)
+    system(cmd)  
+  
+    #rename it
+    system2("mv", args=paste("output.pdf", pdf.file) )
+    
+    results <- rbind(results, data.frame(file=f, action="updated"))
+    } else {
+      print(paste(f, "Update not required.")) 
+      results <- rbind(results, data.frame(file=f, action="not updated"))
+      
+    }
 }
 
-chromecmd <- "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome"
-chromeopt <- "--headless --disable-gpu --print-to-pdf "
-
-for (f in  files ) {
-
-  html.file <- paste0(trgdir, "/", f, ".html"  )
-  pdf.file  <- paste0(trgdir, "/", f, ".pdf"   )
-
-  cmd <- paste(chromecmd, chromeopt, html.file)
-  print(cmd)
-  system(cmd) # convert to pdf
-  
-  system2("mv", args=paste("output.pdf", pdf.file) )
-}
-  
+print(results)
 print("Complete.")
-
-# TODO Explore ways to also produce PDF
-#  Option 1  - use chrome headless for the conversion
-# alias chromeX="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome" 
-# /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --headless --disable-gpu --print-to-pdf  file:///Users/donert/Dropbox/UAC_Tech_Docs/SystemOperationsVideo.html
-# chromeX 
-
-#TODO: Add change log report to each document:
-#git log --date=local --pretty=format:"%h%x09%an%x09%ad%x09%s" -- SystemOperationsLighting.Rmd
