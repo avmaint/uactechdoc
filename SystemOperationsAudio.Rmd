@@ -36,6 +36,14 @@ activities <- get.activities()
 # Introduction
 This document provides basic operating information for each of the Audio systems at UAC.
 
+Purpose of our Sound System:
+
+* Necessary to help the hearing impaired ( roughly 10% of the population) 
+* Supports video recording
+* Helps draw attention to the central item – conversely makes it easier to ignore other noise 
+* Helps audience to focus and concentrate
+* Reinforces the message (spoken or sung)
+
 [Back to top](#top)
 
 #Sunday Morning Rundown
