@@ -69,6 +69,8 @@ There are three numbered swtiches located in the balcony required to turn the sy
 Allow a 10 second pause between flipping each swtich.
 
 After the console has fully started, you would typically want to recall the default scene so all settings are in a known good state.
+
+> Although not part of the audio system it is the audio engineer who turns on portions of lighting and video system as well
  
 [Back to top](#top) 
 
@@ -82,15 +84,27 @@ Power off is the opposite sequence from power on.  Provide a 30 second pause bet
 
 ## The Two Consoles
 
->To Be written. 
+We have two audio consoles in the auditorium. The main console and a sub console to provide expanded input capacity.
+
+Most vocal and stage instruments are wired into the main console (M7CL). Addtional inputs for wireless beltpacks, computers, and palyback machines come in via the sub console. The outputs of the sub console are routed into the corresponding busses of the main console.
+
+The monitor mix busses on both consoles are numbered the same. 
+
+Scene recall on the main console will cause the same numbered scene to be recalled on the sub console as well. 
 
 ## Scene Recall 
 
->To Be written. 
+>TODO: write content
+
+Scenes are a collection of settings that can be stored and recalled together. This is a very effective way of getting to a good known state. We have defined scene #1 and our base scene to use for most things. It is locked so it can not be easily overwritten. If you would like to make a change to this base scene, please discuss with Terry and Mark.
+
+To recall the base scene ... 
+
+>TODO: Need to write instructions and add pictures.
 
 ## Operating a Channel
 
->To Be written. 
+>TODO: write content
  
 [Back to top](#top) 
 
@@ -99,7 +113,7 @@ Power off is the opposite sequence from power on.  Provide a 30 second pause bet
 To record the sermon or teaching for publication on the web site.
 Also serves as a backup for the CD recording.
 
-Key Points:
+Key Steps:
 
 #. Place a blank CD into the recorder and close the tray. It will take a few moments to recognize the disc type.
 #. Press the Auto/Manual (or is it tracking) button on the left hand side to select whether you want new tracks created automatically or not.
@@ -115,9 +129,34 @@ Key Points:
 
 [Back to top](#top)
 
+#Monitors
+
+>TODO: write content
+
+[Back to top](#top)
+
+#Operating the Wireless Microphones
+
+>TODO: write content
+
+[Back to top](#top)
+
 #Audio Terminology
-   
-None.  
+
+Amplifier
+: An audio component that take low-level inputs, from a console, and amplifies them to the power level required to drive a speaker. 
+
+Bus
+: Refers to a logical structure within the console where multiple channels (sources) can contribute an audio signal.
+
+Channel aka Strip
+: refers to an input in the console. Typically this is a microphone input or an instrument.
+
+Direct Box
+: A device, usually a box, which can interface an instrument, like a electronic keyboard, to an audio console.
+
+Scene
+: A collection of setting which can be saved and recalled as a group.
 
 [Back to top](#top)
 
