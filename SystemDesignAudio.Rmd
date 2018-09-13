@@ -8,8 +8,9 @@ output:
   pdf_document:
     toc: yes
 ---
-```{r options, echo=FALSE, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+```{r options, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
+options(knitr.table.format = "html") # latex for pdf 
 ```
 
 ```{r setup}
@@ -18,28 +19,16 @@ require(dplyr)
 require(readxl)
 require(knitr)
 require(formattable)
-```
-
-```{r getdata}
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
-
-NetworkInventory <- read_excel(fname, sheet = "Network")
-
-ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
-          "text", "text" , "text"   ,
-   "text" , "text", "text", "text", "date", "text",    
-  "text","numeric","text","numeric","numeric","numeric"     
-)
-
-Tech_Inventory <- read_excel(fname, 
-                            sheet = "TechInventory", col_types=ct)
-
+require(kableExtra)
 ```
 
 ```{r functions}
 source("commonFunctions.R")
+```
+
+```{r getdata}
+NetworkInventory <- get.network()
+Tech_Inventory <- get.inventory()
 ```
 
 # Introduction
@@ -71,11 +60,7 @@ There are a variety of microphone inputs that come from the stage as well as CD 
 ```{r top1}
 DiagrammeR::grViz("sda-inputs.gv" )
 
-selected.at <- c( "CDWU-0009", "ZAKU-0002","ZAKU-0001" ) %>%  data.frame(AssetTag=.)
-
-merge( Tech_Inventory, selected.at) %>% 
-    select(AssetTag, Manufacturer, Model, Desc ) %>%
-    formattable(align="l")
+print_inv(c( "CDWU-0009", "ZAKU-0002","ZAKU-0001" ), Tech_Inventory)
 ```
 
 [Back to top](#top)
@@ -134,12 +119,12 @@ This is the standard input map for the M7.
 |40|LVox 8|Beta 58|Vocal Snake|
 |41|Hn 1|AKG 419 or SM 57||
 |42|Hn 2|AKG 419 or SM 57||
-|43|HH L vox 1|Senn HH wireless|Wireless|
-|44|HH L vox 2|Senn HH wireless|Wireless|
-|45|HH L vox 3|Senn HH wireless|Wireless|
-|46|HH L vox 4|Senn HH wireless|Wireless|
-|47|HH L vox 5|Senn HH wireless|Wireless|
-|48|HH L vox 6|Senn HH wireless|Wireless|
+|43|unused| | |
+|44|unused| | |
+|45|unused| | |
+|46|unused| | |
+|47|unused| | |
+|48|unused| | |
 |STR1|Effect 1 Return|Rev Plate|stereo inputs|
 |STR2|Effect 2 Return|Rev Hall||
 |STR3|Effect 3 Return|Mono Delay||
@@ -151,16 +136,16 @@ THe DM1000 inputs are all located in the FoH mix position.
 
 |Ch #|Input|Mic/DI|Notes|
 |----|----|----|----|
-|1|Lav 1|Sennhesier|Wireless|
-|2|Lav 2|Sennhesier|Wireless|
-|3|Lav 3|Sennhesier|Wireless|
-|4|Lav 4|Sennhesier|Wireless|
-|5|Lav 5|Sennhesier|Wireless|
-|6|Lav 6|Sennhesier|Wireless|
-|7|Lav 7|AT|Wireless|
-|8|Lav 8|AT|Wireless|
-|9|Lav 9|AT|Wireless|
-|10|Lav 10|AT|Wireless|
+|1|HH 1|Shure|Wireless|
+|2|HH 2|Shure|Wireless|
+|3|Lav 1|Shure|Wireless|
+|4|Lav 2|Shure|Wireless|
+|5|unused| | |
+|6|unused| | |
+|7|unused| | |
+|8|unused| | |
+|9|unused| | |
+|10|unused| | |
 |11|CD L||Tascam CD-01U|
 |12|CD R||Tascam CD-01U|
 |13|Comp L|||
@@ -248,25 +233,23 @@ The user defined keys allow the operator to quickly acccess common features.
 
 Now lets finish our journey the the speakers.  
 
-```{r top2}
+```{r outputs}
 DiagrammeR::grViz("sda-outputs.gv")
 
-selected.at <- c( "ZAKU-0001", "ZAKU-0002", "ZVKU-A003"  ) %>%  data.frame(AssetTag=.)
-
-merge( Tech_Inventory, selected.at) %>% 
-    select(AssetTag, Manufacturer, Model, Desc ) %>%
-    formattable(align="l")
+print_inv(c( "ZAKU-0001", "ZAKU-0002", "ZVKU-A003"  ), Tech_Inventory)
 ```
 
 [Back to top](#top)
 
 # Network Details
 Some of the audio system components have network (tcp/ip specicially) connectivity requriements. The primary audio console can be remotely operated from an iPad, so other devices also must be on the network as well, but they are personal devices and not part of this inventory. In the balcony, network switch NPHU-0004 provides wired access.    
+
 ```{r} 
  NetworkInventory %>% 
   filter(Category=="Audio") %>% 
   select(Location, Usage, Device, MAC, IP, URL, Notes) %>%
-  kable() 
+  kable()  %>%
+    kable_styling("striped", full_width = TRUE)
 ```
 
 [Back to top](#top)
@@ -286,7 +269,8 @@ cs = c("AssetTag", "Qty"  ,
 Tech_Inventory %>%  
           filter( Category=="Audio" , InService== "Y") %>%  
           dplyr::select(one_of(cs)) %>% 
-          knitr::kable(   )  
+          kable(   )   %>%
+    kable_styling("striped", full_width = TRUE)
 ```
 
 [Back to top](#top)

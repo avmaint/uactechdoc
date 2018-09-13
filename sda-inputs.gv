@@ -1,6 +1,6 @@
 digraph topology1 { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Audio Inputs (as of 2017-08-22)",
+      label="Audio Inputs (as of 2018-09-12)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10,
@@ -8,19 +8,24 @@ node [shape=Mrecord, tooltip="" , fontsize = 10,
       gradientangle=270]
       
 dm1k [label="{
-  {{<i1>1-6 }|{<i2>4-10}|{<i3>11-12}|{<i4>13-14}|{<i5>15-16}|{<i6>?}|{<i7>29-30}}
+  {{<i1>1-2 }|
+  {<i2>3-4}|
+  {<i3>11-12}|
+  {<i4>13-14}|
+  {<i5>15-16}|
+  {<i6>?}|
+  {<i7>29-30}}
   |{Yamaha\nDM1000}|
   {{ <link>Slot 1\nOut} } }"]
     
 foh [label="{ FoH\nInputs
-|{<o1>Lavs 1-6 
-| <o2>Lavs 4-10
+|{<o1>HH 1-2 
+| <o2>Lavs 1-2
 | <o3>CD 01U
-| <o4>Computer\nCDWU-0009
+| <o4>Computer\nCDMU-A001
 | <o5>DVD
 | <o6>CD 5disc
 | <o7>VCR
-| <o8>HH 1-6
 } }"]  
       
 foh:o1 -> dm1k:i1      
@@ -41,7 +46,6 @@ m7 [label="
 }
 "]
 
-foh:o8 -> m7:i1
 dm1k:link -> m7:link
 
 stage [label="{ Stage\nInputs
