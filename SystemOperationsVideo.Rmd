@@ -322,8 +322,6 @@ There are two types of macros we have defined:
 
 >You can fire a macro from the software using the macro menu or from the ATEM by pressing the macro button follow by the number.
 
->TODO: Verify that these numbers are correct.
-
 1. __Do__ Setup pre-service
     * Run 21 setup USK
     * Run 22 setup Pre-message MP
