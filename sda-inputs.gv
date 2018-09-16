@@ -1,52 +1,48 @@
 digraph topology1 { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Audio Inputs (as of 2018-09-12)",
+      label="Audio Inputs (as of 2018-09-13)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10,
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
-dm1k [label="{
-  {{<i1>1-2 }|
-  {<i2>3-4}|
-  {<i3>11-12}|
-  {<i4>13-14}|
-  {<i5>15-16}|
-  {<i6>?}|
-  {<i7>29-30}}
-  |{Yamaha\nDM1000}|
-  {{ <link>Slot 1\nOut} } }"]
+dm1k [label="Yamaha\nDM1000" fontsize=20 ]
     
-foh [label="{ FoH\nInputs
-|{<o1>HH 1-2 
-| <o2>Lavs 1-2
-| <o3>CD 01U
-| <o4>Computer\nCDMU-A001
-| <o5>DVD
-| <o6>CD 5disc
-| <o7>VCR
-} }"]  
-      
-foh:o1 -> dm1k:i1      
-foh:o2 -> dm1k:i2
-foh:o3 -> dm1k:i3
-foh:o4 -> dm1k:i4
-foh:o5 -> dm1k:i5
-foh:o6 -> dm1k:i6
-foh:o7 -> dm1k:i7
+cd01u -> dm1k
+cd5 -> dm1k
+vcr -> dm1k
 
-m7 [label="
-   {{
-  <i1>42-48
-| <i2>1-42  
- }
-| {    Yamaha\nM7CL} |{
-<link>Slot 1\nIn}
+m7 [label="Yamaha\nM7CL" fontsize=20 ]
+
+cdmua001 [label="Presentation Computer|CDMU-A001"]
+zamua001 [label="Wirelees receiver|ZAMU-A001"]
+cd01u    [label="cd player cd01u| "]
+cd5      [label="cd player 5-disc|ZAPU-0001"]
+vcr      [label="Sony VCR| "]
+dvd      [label="Sony DVD| "]
+
+zamub001 [label="(future) Wirelees receiver|ZAMU-B001"]
+zamub002 [label="(future) Wirelees receiver|ZAMU-B002"]
+zamub003 [label="(future) Wirelees receiver|ZAMU-B003"]
+
+{zamua001 zamub001 cdmua001} -> dm1k
+{zamub001 zamub002 zamub003} -> m7
+ 
+subgraph cluster_rear { label="FoH Inputs Rear Desk"
+cdmua001
+ zamua001
+ zamub001
+ zamub002
+ zamub003
 }
-"]
 
-dm1k:link -> m7:link
+subgraph cluster_front { label="FoH Inputs Front Desk"
+ cd01u
+ cd5
+ dvd
+ vcr
+}
 
 stage [label="{ Stage\nInputs
 |{<o1>1-42 
@@ -56,5 +52,4 @@ stage [label="{ Stage\nInputs
 stage:o1 -> m7:i2
 
 {rank=same; dm1k m7   }
-{rank=same; foh stage}
- } 
+  } 

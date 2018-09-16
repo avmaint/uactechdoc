@@ -1,6 +1,6 @@
 digraph overview { 
-graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Audio Overview (as of 2018-09-12)", 
+graph [overlap = true, fontsize = 24, rankdir=LR 
+      label="Audio Overview (as of 2018-09-13)", 
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
@@ -11,52 +11,43 @@ mics [label="Microphones"]
 ppcomputer [label="ProPresenter\nComputer"]
 otherinputs [label="Other Inputs"]
 
-consoles [label="Audio Mix\nConsoles"]
-
 mics        -> consoles
 ppcomputer  -> consoles  
 otherinputs -> consoles
 
-dsp [label="House Processors"]
+consoles  -> videomixer
+
+subgraph cluster_foh {label="FoH"   fontsize = 20
+  consoles [label="Audio Mix\nConsoles"]
+  dsp [label="House Processors"]
+  videomixer [label="Video\nMixer"]
+}
+
+subgraph cluster_inputs {label="Inputs" fontsize = 20
+mics
+ppcomputer
+otherinputs
+}
+
+subgraph cluster_amps { label="Amplifiers" fontsize = 20
+  houseamp [label="Front of House\nAmplifiers"]
+  monitoramp [label="Monitor\nAmplifiers"]  
+  lobbyamp [label="Lobby\nAmplifier"]
+}
+
+subgraph cluster_spkrs {label="Speakers"
+  monitorspeakers [label="Monitor\nSpeakers"] 
+  lobbyspeakers [label="Lobby\nSpeakers"]
+  housespeakers [label="Front of House\nSpeakers"]
+}
+ 
 consoles  -> dsp  
-
-houseamp [label="Front of House\nAmplifiers"]
-
 dsp  -> houseamp 
-houseamp -> housespeakers 
-
-housespeakers [label="Front of House\nSpeakers"]
-
-lobbyamp [label="Lobby\nAmplifier"]
-
-lobbyspeakers [label="Lobby\nSpeakers"]
+houseamp -> housespeakers  
 
 consoles    -> lobbyamp
 lobbyamp    -> lobbyspeakers
- 
-monitoramp [label="Monitor\nAmplifiers"]  
- 
-monitorspeakers [label="Monitor\nSpeakers"] 
- 
+
 consoles  -> monitoramp 
 monitoramp  -> monitorspeakers 
-
-videomixer [label="Video\nMixer"]
-
-consoles  -> videomixer
-
-Node [shape=plaintext, fillcolor=white, fontsize = 6]
-stamp [label= <<table>
-<tr><td>Title</td>
-    <td>Audio Overview</td>
-</tr>    
-<tr><td>As of</td>
-    <td>2018-09-12</td>
-</tr>
-</table>> ]  
-
-{rank=same;  lobbyspeakers  housespeakers monitorspeakers}
-{rank=same;  lobbyamp       houseamp      monitoramp}
-{rank=same;  lobbyspeakers stamp}
-
 } 

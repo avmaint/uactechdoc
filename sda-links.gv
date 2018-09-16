@@ -1,0 +1,22 @@
+digraph topology1 { 
+graph [overlap = true, fontsize = 30, rankdir=TB 
+      label="Console Links (as of 2018-09-13)",
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" , fontsize = 10,
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+      
+dm1k [label="
+   {Yamaha\nDM1000}|
+  {{ <link>Slot 1\nOut} }|{<midi>midi in} "]
+
+m7 [label="
+    {  Yamaha\nM7CL} |
+    <link>Slot 1\nIn |
+    <midi>midi out}
+"]
+
+dm1k:link -> m7:link
+m7:midi -> dm1k:midi
+} 

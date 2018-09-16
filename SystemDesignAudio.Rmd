@@ -45,7 +45,7 @@ Purpose:
 [Back to top](#top)
  
 # Configuration
-The descriptions of the configurations will generally start at the input side of the system and work towrds the outputs.
+The descriptions of the configurations will generally start at the input side of the system and work towards the outputs.
 
 ```{r overview}
 DiagrammeR::grViz("sda-overview.gv")
@@ -53,22 +53,16 @@ DiagrammeR::grViz("sda-overview.gv")
 
 [Back to top](#top)
  
-## Microphones and Other Inputs
+##Inputs
 
 There are a variety of microphone inputs that come from the stage as well as CD players, tape players and computer inputs in the balcony. These all are fed into one of two audio mix consoles: A Yamaha M7CL-48 and a Yamaha DM1000. The M7CL is the primary console while the DM1000 handles inputs located at the mix position.
-  
-```{r top1}
+
+>TODO: Consider refactoring this diagram by console. That is a diagram for the DM1k and a diagram for the M7CL.
+
+```{r inputdia}
 DiagrammeR::grViz("sda-inputs.gv" )
-
-print_inv(c( "CDWU-0009", "ZAKU-0002","ZAKU-0001" ), Tech_Inventory)
 ```
-
-[Back to top](#top)
- 
-## Audio Mix Consoles
-
-As introduced in the earlier section there are two primary mix consoles in the Santurary System. Both of these consoles are digital with full scene store and recall. Recalling scene 001 on the M7CL will cause both consoles to reset to our standard starting point which is an excellent foundation for 95% of the services we run in a year. 
-
+  
 ### M7CL Input Assignments
 
 Having a consistent wiring plan helps make system more predictable and easier for all audio engineers to use. The consistent wiring plan is also essentail to leveage the power of console's scene recall feature. It minimizies the amount of rewiring required.
@@ -131,6 +125,8 @@ This is the standard input map for the M7.
 |STR4|Effect 4 Return|Chorus||
 |||||
 
+>TODO: Later in 2018 we will be adding additional Wireless Handhelds. These will likely occupy channels 33-42. The wired vocals will move to channels 43-48. We will also be adding DANTE based routing options, with the addtional of a dante interface card in each of the DM1K and thr M7CL.
+
 ### DM1000 Inputs
 THe DM1000 inputs are all located in the FoH mix position. 
 
@@ -156,9 +152,48 @@ THe DM1000 inputs are all located in the FoH mix position.
 |Omni 2|VCR R|Fader 30||
 |Omni 3|Cass L|Fader 31||
 |Omni 4|Cass R|Fader 32||
+| | | | |
+
+>TODO: Later in 2018 we will be adding additonal wirless beltpacks. These will occupy channels 1-6. We will also be adding DANTE based routing options, with the addtional of a dante interface card in each of the DM1K and thr M7CL.   
+
+```{r top1}
+print_inv(c( "CDMU-A001", "ZAKU-0002",
+             "ZAKU-0001", "ZAMU-A001", "ZAPU-0001" ), Tech_Inventory)
+```
+
+[Back to top](#top)
+ 
+##Front of House
+
+###Consoles
+
+As introduced in the earlier section there are two primary mix consoles in the Santurary System. Both of these consoles are digital with full scene store and recall. Recalling scene 001 on the M7CL will cause both consoles to reset to our standard starting point which is an excellent foundation for 95% of the services we run in a year. 
+
+The DM1000 (sometimes referred to as DM1K) is the secondary console which colelcts the inputs for most of the FOH located gear: players, computers, and some of the wireless receivers. It in turn supplies audio to the main console via bus level links (via IO cards on each console). 
+
+The M7CL is the primary mixing consol for vocal and instrumentals. The outputs from this console drive the house, lobby and monitor speakers.
+
+There are some additional outboard components which complete the signal path. The main house output flows through a TC Electronics Finalizer, which provides multi-band compression. The output of that then goes two directions. one channel feeds the audio recording subsystem and the other feeds into the FOH DSP- and BSS soundweb.
+
+The monitor amps are feed directly from the M7CL. The house amps are feed from the soundweb.
+
+```{r fohdia}
+DiagrammeR::grViz("sda-foh.gv" )
+```
+
+###Other FoH gear
+
+
+>TODO: write content
 
 ### Console Links
 There is an IO exapnsion card in each of the two consoles. This enables console-to-console communication. The busses in the DM1000 console are linked to the busses in the M7 using these cards. The FLow is from the DM1000 to the M7. The link cards are in slot one of each console.
+
+There is also a midi link between the two which enables synchronized scene recall.
+
+```{r linkdia}
+DiagrammeR::grViz("sda-links.gv" )
+```
 
 #### DM1K Slot 1 Ouput Assignments
 
@@ -229,15 +264,22 @@ The user defined keys allow the operator to quickly acccess common features.
 [Back to top](#top)
 
 
-## Outputs
+## Amplifiers
 
 Now lets finish our journey the the speakers.  
 
 ```{r outputs}
 DiagrammeR::grViz("sda-outputs.gv")
+```
 
+```{r}
 print_inv(c( "ZAKU-0001", "ZAKU-0002", "ZVKU-A003"  ), Tech_Inventory)
 ```
+
+
+##Speakers
+
+>TODO: Write content
 
 [Back to top](#top)
 
