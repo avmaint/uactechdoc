@@ -220,6 +220,33 @@ After adding a timer cue to the playlist you need to go into the Clocks and Time
  
 ![Clocks and Timers](../../images/sop-clockstimers.png)
 
+##Lyrics on Stage Display Only
+
+There is an article about this:   https://support.renewedvision.com/article/165-using-the-stage-display-to-its-full-potential.  It talks about using CMD-0 as well as using the Cue Palette (Suppress the Slide on Output)
+
+These are the steps to use the Cue Palette method:
+
+1. First slide is Background.  Add "Stage Display Layout" here. The grpahic shows selecting "Default", you should most likely choose "Worship Static".
+![Add Cue](../../images/sov-lyricsonrear-01.png)
+
+
+2. On 2nd slide, add the Cue Palette to suppress Slide Output. This will pop the cue palette menu. 
+
+![Cue Palette Menu](../../images/sov-lyricsonrear-02.png)
+
+Then from the Cue Palaete, drag the "Stage Display" cue onto the second slide.
+![Cue Palette](../../images/sov-lyricsonrear-03.png)
+
+Next we need to select the "Suppress Slide on Output" Option and click "Done". 
+![Suppress on Output](../../images/sov-lyricsonrear-04.png)
+
+3. On the final slide, usually a blank, Add another Cue Palette to enable Slide Output. Select "Enable Slide on Output", and click "Done".
+![Enable on Output](../../images/sov-lyricsonrear-05.png)
+
+4. Finally, test the entire sequence from the previous song thourgh to the next song to make sure it all flows correctly.
+
+Thanks for Jackson for figuring this out.
+
 [Back to top](#top)
 
 # Video Loop Controls
