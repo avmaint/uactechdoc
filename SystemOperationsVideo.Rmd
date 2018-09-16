@@ -331,9 +331,7 @@ There are two types of macros we have defined:
 2. -    
 3. __Do__ Start Service 
 4. __Do__ Stop Service
-5. __Do__ start Message
-6. __Do__ stop Message
-7. __Do__ Start of message logos and start recording
+5. __Do__ Start Message
     1. Run  MP setup 22
     2. Run DSK setup 23
     3. Run start recorder 2 
@@ -342,7 +340,7 @@ There are two types of macros we have defined:
     6. remove DSK1, Fire DSK2 
     7. Pause for 3s
     8. Remove DSK2
-8. __Do__ end of message and stop recorder
+6. __Do__ Stop Message
     1. Set post msg trailer mp1 24  
     2. Fire mp1
     2. Pause 3s
@@ -350,6 +348,8 @@ There are two types of macros we have defined:
     3. Run stop recorder 2
     5. fire camera 2
     6. FTB
+7.  
+8.
 9. 
 10. 
 11. 
