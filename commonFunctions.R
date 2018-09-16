@@ -70,6 +70,11 @@ get.inventory <- function() {
   )
 }
 
+get.dmxdetails <- function() {
+  return( read_excel(fname, 
+                            sheet = "DMX.Details" ))
+}
+
 get.further <- function() {
   return( read_excel(fname, sheet = "Further")
           )

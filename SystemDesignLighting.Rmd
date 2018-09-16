@@ -40,25 +40,13 @@ fin <- function(f, i) {
 }
 ```
 
-
 ```{r getdata, include=FALSE}
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
+NetworkInventory <- get.network()
 
-NetworkInventory <- read_excel(fname, sheet = "Network")
+Tech_Inventory <- get.inventory()
 
-ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
-          "text", "text" , "text"   , 
-   "text" , "text", "text", "text", "date", "text",    
-  "text","numeric","text","numeric","numeric","numeric"     
-)
+dmx.details <- get.dmxdetails() 
 
-Tech_Inventory <- read_excel(fname, 
-                            sheet = "TechInventory", col_types=ct)
-
-dmx.details <- read_excel(fname, 
-                            sheet = "DMX.Details" )
 #stage and room reference points
 stage.refs <- tribble(
 ~group, ~name, ~type,        ~x,      ~y,      ~z,   ~notes,
@@ -92,7 +80,6 @@ balcony.refs <- tribble(
   "balcony", "b4", "ref",       12,    -35,       0,  "position guessed",
   "balcony", "b5", "ref",        6,    -31,       0,  "position guessed"
 )
-
 ```
 
 ```{r walls}
