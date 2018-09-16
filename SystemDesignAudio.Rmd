@@ -273,13 +273,30 @@ DiagrammeR::grViz("sda-outputs.gv")
 ```
 
 ```{r}
-print_inv(c( "ZAKU-0001", "ZAKU-0002", "ZVKU-A003"  ), Tech_Inventory)
+print_inv(c( "ZAKU-0001", "ZAKU-0002", "ZVKU-A003",
+             "ZAHU-0001","ZAHU-0002","ZAHU-0005","ZAHU-0006"), Tech_Inventory)
 ```
-
 
 ##Speakers
 
 >TODO: Write content
+
+We have speakers in several locatoins:
+
+* Main cluster for Front of House which is suspended in front of the stage.
+* Monitor speakers on the stage floor
+* FoH fill speakers above the balcony and underneath the balcony
+* in the lobby ceiling
+
+```{r}
+cs <- c("ZASU-0001-0002",
+"ZASU-0003-0005",
+"ZASU-0006-0011",
+"ZASU-0012-0019",
+"ZASU-0020-0021")
+
+print_inv(cs , Tech_Inventory)
+```
 
 [Back to top](#top)
 
