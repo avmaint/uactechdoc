@@ -58,10 +58,14 @@ get.network <- function() {
 }
 
 get.inventory <- function() {
-  ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
-            "text", "text" , "text"   ,
-            "text" , "text", "text", "text", "date", "text",    
-            "text","numeric","text","numeric","numeric","numeric"     
+  ct <- c( rep("text",2), 
+           "numeric" , 
+           rep("text",10),    
+           "date", 
+           rep("text",2), 
+           "numeric", 
+           "text", 
+           rep("numeric",3)      
   )
   
   return( read_excel(fname, 
