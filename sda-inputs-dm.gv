@@ -1,0 +1,39 @@
+digraph topology1 { 
+graph [overlap = true, fontsize = 30, rankdir=LR 
+      label="Audio Inputs (as of 2018-09-17)",
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" , fontsize = 10,
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+      
+dm1k [label="Yamaha\nDM1000" fontsize=20 ]
+
+cdmua001 [label="Presentation Computer|CDMU-A001"]
+zamua001 [label="Wirelees receiver|ZAMU-A001"]
+cd01u    [label="CD player cd01u| "]
+cd5      [label="CD player 5-disc|ZAPU-0001"]
+vcr      [label="Sony VCR| "]
+dvd      [label="Sony DVD| "]
+
+zamub001 [label="(future) Wirelees receiver|ZAMU-B001"] 
+
+{zamua001 zamub001 cdmua001} -> dm1k
+cd01u -> dm1k
+cd5 -> dm1k
+vcr -> dm1k
+
+subgraph cluster_rear { label="Rear Desk" fontsize=15
+  cdmua001
+  zamua001
+  zamub001
+}
+
+subgraph cluster_front { label="Front Desk" fontsize=15
+ cd01u
+ cd5
+ dvd
+ vcr
+}
+
+} 

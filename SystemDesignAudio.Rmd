@@ -57,12 +57,10 @@ DiagrammeR::grViz("sda-overview.gv")
 
 There are a variety of microphone inputs that come from the stage as well as CD players, tape players and computer inputs in the balcony. These all are fed into one of two audio mix consoles: A Yamaha M7CL-48 and a Yamaha DM1000. The M7CL is the primary console while the DM1000 handles inputs located at the mix position.
 
->TODO: Consider refactoring this diagram by console. That is a diagram for the DM1k and a diagram for the M7CL.
-
-```{r inputdia}
-DiagrammeR::grViz("sda-inputs.gv" )
+```{r inputdia-m7}
+DiagrammeR::grViz("sda-inputs-m7.gv" )
 ```
-  
+
 ### M7CL Input Assignments
 
 Having a consistent wiring plan helps make system more predictable and easier for all audio engineers to use. The consistent wiring plan is also essentail to leveage the power of console's scene recall feature. It minimizies the amount of rewiring required.
@@ -128,7 +126,12 @@ This is the standard input map for the M7.
 >TODO: Later in 2018 we will be adding additional Wireless Handhelds. These will likely occupy channels 33-42. The wired vocals will move to channels 43-48. We will also be adding DANTE based routing options, with the addtional of a dante interface card in each of the DM1K and thr M7CL.
 
 ### DM1000 Inputs
-THe DM1000 inputs are all located in the FoH mix position. 
+
+```{r inputdia-dm}
+DiagrammeR::grViz("sda-inputs-dm.gv" )
+```
+
+The DM1000 inputs are all located in the FoH mix position. 
 
 |Ch #|Input|Mic/DI|Notes|
 |----|----|----|----|
@@ -160,6 +163,8 @@ THe DM1000 inputs are all located in the FoH mix position.
 print_inv(c( "CDMU-A001", "ZAKU-0002",
              "ZAKU-0001", "ZAMU-A001", "ZAPU-0001" ), Tech_Inventory)
 ```
+
+>TODO: add inventory items for the FoH Rack
 
 [Back to top](#top)
  
