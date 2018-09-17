@@ -48,9 +48,8 @@ commit.log.html <- function(file.name) {
 # Functions to get data used by most of the reports.
 
 #globals
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
+path <- file.path("~", "Documents", "UACTech", "SystemDocumentation")
+fname <- file.path(path, "TechInventory.xlsx" )
 
 get.network <- function() {
   return(read_excel(fname, 
