@@ -188,8 +188,6 @@ Program and Preview buttons
 
 ![Program and Preview, Lower Left](../../images/sov-ProgramPreview.jpg)
 
-
-    
 CUT and AUTO Buttons (Next to Slider)
 : In the centre at the bottom the are two buttons.
 
@@ -320,7 +318,7 @@ There are two types of macros we have defined:
 * “Setup” macros are meant to change configurations  and are used as part of the DO macros. This way we can change a setting without re-recording the entire DO macro.
     * The “Do Setup” macro is a hybrid. It executes all of the pre-service setup macros. 
 
->You can fire a macro from the software using the macro menu or from the ATEM by pressing the macro button follow by the number.
+>Best Practice: You can fire a macro from the software using the macro menu or from the ATEM by pressing the macro button follow by the number.
 
 1. __Do__ Setup pre-service
     * Run 21 setup USK
@@ -808,7 +806,7 @@ Some simple notes for now. Since our cameras are now ceiling mounted, this isn't
 [Back to top](#top)
 
 # Document Source
-This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/", knitr::current_input())`.
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
 
 #Change History
 

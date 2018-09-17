@@ -987,7 +987,7 @@ Intensity of zero is stop. The closer to 50 the slower it rotates. 1-49 and 50-1
 `r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
 
 # Document Source
-This document is compiled by merging text and data together using rmarkdown. The source is found here `r paste0(getwd(),  "/", knitr::current_input())`.
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(),  knitr::current_input())`.
 
 going direct to pdf requires some trickery 'cause Diagrammer doesn't support than directly. here is a hack which would beed to be conditional on html versus pdf output.
 
