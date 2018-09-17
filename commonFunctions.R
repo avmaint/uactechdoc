@@ -1,8 +1,13 @@
 ## A library of common functions used within this collection of Rmds.
 
-# This function takes a list of asset tags and the inventory  returns a formatted kable table of the results. 
-# It will force a stop if there is a mismatch.
-# The inventory must have certain columns of data within it.
+#' This function takes a list of asset tags and the inventory  returns a formatted kable table of the results. 
+#' It will force a stop if there is a mismatch.
+#' The inventory must have certain columns of data within it.
+#' 
+#' @param items a list of asset tags which will be used to select items from the inventory
+#' @param inventory A data frame containing the full list of items. It is expected to be the result of get.inventory()
+#' @return returns formatted html of the selected items.
+#' 
 print_inv <- function(items, inventory) {
   
   selected <- items %>% 
@@ -20,12 +25,14 @@ print_inv <- function(items, inventory) {
     kable_styling("striped", full_width = TRUE)
 }
 
-#Function to retrieve and format the git commit history for a file. 
-#Meant to tack on to the end of the each document.
-#takes a file name, returns html formatted table
-#filename meant to be provided 
-#intended usage: commit.log.html( knitr::current_input() )
-
+#' Function to retrieve and format the git commit history for a file. 
+#' Meant to tack on to the end of the each document.
+#'
+#' @param file.name the name of a source file name to be found in git
+#' @return html formatted history of commits.
+#' @examples 
+#'  commit.log.html( knitr::current_input() )
+#'  
 commit.log.html <- function(file.name) {
   
   cmd <- "git"
@@ -57,6 +64,8 @@ get.network <- function() {
   )
 }
 
+#' retrieves the inventory database
+#' @return a data frame containing the inventory database
 get.inventory <- function() {
   ct <- c( rep("text",2), 
            "numeric" , 
@@ -73,16 +82,25 @@ get.inventory <- function() {
   )
 }
 
+#' retrieves the dmx details
+#' @return a data frame containing the dmx details
 get.dmxdetails <- function() {
   return( read_excel(fname, 
                             sheet = "DMX.Details" ))
 }
 
+#' retrieves the further information list
+#' @return a data frame containing the further information items
 get.further <- function() {
   return( read_excel(fname, sheet = "Further")
           )
 }
 
+#' Converts a excel formatted time value to string
+#' used by get.activities()
+#' @param s an excel time value
+#' @return a string representation of the time
+#' 
 num2time  <- function(s) {
   hr <- floor(24 * s)
   mi <- round((24*s - hr ) * 60)
@@ -98,8 +116,10 @@ num2time  <- function(s) {
   return( paste0( hr, ":", mi ) )
 }
 
+#' retrieves the activities list from the systems operations guide data
+#' @return a data frame containing the activities
 get.activities <- function() {
-  f <- paste0(path, "/data/", "SystemOperationsGuide.xlsx")
+  f <- file.path(path, "data", "SystemOperationsGuide.xlsx")
   ct <- c("numeric" ,"numeric", "text", "numeric",rep("text",7) )
   
   activities <- read_excel(f, 
@@ -111,6 +131,8 @@ get.activities <- function() {
   return(activities)
 }
 
+#' retrieves the event list
+#' @return a data frame containing the events
 get.events <- function() {
   events <- get.activities() %>%
     select(Time1, Time, Event ) %>%
