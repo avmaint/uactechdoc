@@ -284,14 +284,16 @@ print_inv(c( "ZAKU-0001", "ZAKU-0002", "ZVKU-A003",
 
 ##Speakers
 
->TODO: Write content
-
-We have speakers in several locatoins:
+We have speakers in several locations:
 
 * Main cluster for Front of House which is suspended in front of the stage.
 * Monitor speakers on the stage floor
 * FoH fill speakers above the balcony and underneath the balcony
 * in the lobby ceiling
+
+The FoH cluster is positioned to make the cross-over between the side and centre speaker fall down the centre two aisles. There is some high frequency fall off in the front two rows.
+
+The monitors speakers should be wired for __at most__ two speakers per channel (amp). 
 
 ```{r}
 cs <- c("ZASU-0001-0002",
