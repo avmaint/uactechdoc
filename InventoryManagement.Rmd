@@ -9,21 +9,27 @@ output:
     toc: yes
 ---
 
-```{r setup, include=FALSE}
+```{r options, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+```
+
+```{r package }
 require(readr)
 require(dplyr)
 require(tidyr)
 require(readxl)
 require(knitr)
-require(formattable)
 require(kableExtra)
+```
 
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-options(knitr.table.format = "html") # latex for pdf 
+```{r functions}
+source("commonFunctions.r")
+```
 
-setwd("~/Documents/UACTech/SystemDocumentation")
-
-source('./functions.R')
+```{r data}
+Tech_Inventory   <- get.inventory()
+NetworkInventory <- get.network()
 ```
 
 # Introduction
@@ -32,27 +38,7 @@ This document provides various reports on the technical inventory of UAC. The in
 
 The items in the Network category is only subset of the church's broader inventory. It is only the items directly connected to AV Technical systems. 
 
-```{r inventory, echo=FALSE, asis=TRUE}
-ct <- c(  "text"  , "text" ,  "numeric" , 
-          "text", "text" , "text"   ,
-          "text", "text" , "text"   ,
-   "text" , "text", "text", "text", "date", "text",    
-  "text","numeric","text","numeric","numeric","numeric"     
-)
-
-Tech_Inventory <- read_excel("TechInventory.xlsx", 
-                            sheet = "TechInventory", col_types=ct)
-
-NetworkInventory <- read_excel("TechInventory.xlsx", sheet = "Network")
-
-cs = c("Qty"  ,
-  "Manufacturer" ,
-  "Model"  , 
-  "Qty",
-  "Location"  ,
-  "Type" ,
-  "Desc"     )
-
+```{r inventory,   asis=TRUE}
 Inventory_Overview <- Tech_Inventory %>%  
   mutate( TotalValue=  Qty*UnitValue  ) %>%        
   group_by(Category) %>%
@@ -102,7 +88,6 @@ kable(top_5 , format.args = list(big.mark = ','), align=c("l","l","l","r","r") )
 
 ## Investments by Room
 ```{r}
-
 byLocation <- Tech_Inventory %>% 
     filter(InService != "N") %>%
     mutate( ExtendedValue = Qty*UnitValue ) %>%
@@ -163,7 +148,7 @@ pastdue <- eol %>%
   summarise(Value=sum(Value))
 
 totalpastdue <- sum(pastdue$Value)
-totalpastdue.df <- data.frame(Category="Total",            Value=totalpastdue)
+totalpastdue.df <- data.frame(Category="Total",  Value=totalpastdue)
 
 pastdue <- rbind(pastdue, totalpastdue.df)
 
@@ -173,7 +158,6 @@ eol.base  <- Tech_Inventory %>%
     select(Category, AssetTag, Manufacturer,	Model, 
          Desc, TotalValue, EolYear) %>%
     arrange(Category, Manufacturer,	Model)
-
 ```
 
 [Back to top](#top)
@@ -240,7 +224,6 @@ kable(pastdue,
   kable_styling("striped", full_width = TRUE)
 ```
 
-
 In the next table, a breakdown by category and year of obsolescence. Years prior to `r window.first.year ` and years following `r window.last.year ` have been consolidated.
 
 ```{r}
@@ -254,7 +237,6 @@ kable(forecast,
 ## Year-by-Year Breakdown
 
 The next few listings are of the gear which should be replaced in that year, or earlier. Sometimes there are components that should be replaced together but fall into different years. 
-
 ```{r}
 printEOL <- function(data, 
                      yr, 
@@ -322,9 +304,6 @@ knitr::kable(not_in_service , format.args = list(big.mark = ',') ) %>%
 
 [Back to top](#top)
 
-
-[Back to top](#top)
-
 #Vendor Spend by Year
 
 ```{r}
@@ -351,8 +330,6 @@ kable(agg,
               caption="vendor spend by year" ) %>%
   kable_styling("striped", full_width = TRUE)
 ```
-
-
 
 [Back to top](#top)
 

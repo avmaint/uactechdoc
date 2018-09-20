@@ -139,3 +139,15 @@ get.events <- function() {
     unique()
   return(events)
 } 
+
+printCurrency <- function(value, currency.sym="$", digits=2, sep=",", decimal=".") {
+  paste(
+    currency.sym,
+    formatC(value, 
+            format = "f", 
+            big.mark = sep, 
+            digits=digits, 
+            decimal.mark=decimal),
+    sep=""
+  )
+}
