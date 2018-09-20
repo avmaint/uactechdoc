@@ -1,0 +1,434 @@
+---
+title: "UAC Technical Inventory Report"
+author: "Terry Doner, Technical Director"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output:
+  html_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+require(readr)
+require(dplyr)
+require(tidyr)
+require(readxl)
+require(knitr)
+require(formattable)
+require(kableExtra)
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+
+setwd("~/Documents/UACTech/SystemDocumentation")
+
+source('./functions.R')
+```
+
+# Introduction
+
+This document provides various reports on the technical inventory of UAC. The inventory has been divided up into multiple categories and is summarized in this table. 
+
+The items in the Network category is only subset of the church's broader inventory. It is only the items directly connected to AV Technical systems. 
+
+```{r inventory, echo=FALSE, asis=TRUE}
+ct <- c(  "text"  , "text" ,  "numeric" , 
+          "text", "text" , "text"   ,
+          "text", "text" , "text"   ,
+   "text" , "text", "text", "text", "date", "text",    
+  "text","numeric","text","numeric","numeric","numeric"     
+)
+
+Tech_Inventory <- read_excel("TechInventory.xlsx", 
+                            sheet = "TechInventory", col_types=ct)
+
+NetworkInventory <- read_excel("TechInventory.xlsx", sheet = "Network")
+
+cs = c("Qty"  ,
+  "Manufacturer" ,
+  "Model"  , 
+  "Qty",
+  "Location"  ,
+  "Type" ,
+  "Desc"     )
+
+Inventory_Overview <- Tech_Inventory %>%  
+  mutate( TotalValue=  Qty*UnitValue  ) %>%        
+  group_by(Category) %>%
+  summarise(ItemCount = n(), Value=sum(TotalValue)) %>%
+  arrange(desc(Value))
+
+grand <- printCurrency( sum(Inventory_Overview$Value) )
+ic <- sum(Inventory_Overview$ItemCount)
+lastrow <- data.frame(Category="Total",
+                      ItemCount=ic,
+                      Value=grand
+                      )
+
+Inventory_Overview$Value <- printCurrency(Inventory_Overview$Value)
+
+Inventory_Overview <-rbind(Inventory_Overview, lastrow)
+
+kable(Inventory_Overview,
+             format.args = list(big.mark = ','),
+             align=c("l","r","r"))  %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+[Back to top](#top)
+
+# Top Investments
+The top 5 valued items in each category. If we have several of a thing then we base this on the value of the aggregate.
+```{r top, echo=FALSE}
+top_5 <- Tech_Inventory %>% 
+    filter(InService != "N") %>%
+    filter(!is.na(Manufacturer)  ) %>%
+    mutate( ExtendedValue = Qty*UnitValue ) %>%
+    group_by(Category, Manufacturer, Model ) %>% 
+    summarise(TotalValue=sum(ExtendedValue), Qty=sum(Qty) ) %>%
+    group_by(Category) %>% 
+    top_n(5, TotalValue) %>% 
+    arrange(Category, desc(TotalValue)) %>%
+    select(Category, Manufacturer, Model, Qty, TotalValue)
+
+top_5$TotalValue <- printCurrency(top_5$TotalValue ) 
+
+kable(top_5 , format.args = list(big.mark = ','), align=c("l","l","l","r","r") ) %>%
+  kable_styling("striped", full_width = TRUE) 
+```
+
+[Back to top](#top)
+
+## Investments by Room
+```{r}
+
+byLocation <- Tech_Inventory %>% 
+    filter(InService != "N") %>%
+    mutate( ExtendedValue = Qty*UnitValue ) %>%
+    group_by(Building, Floor, Room ) %>% 
+    summarise(TotalValue=sum(ExtendedValue), Qty=sum(Qty) ) %>%
+    arrange( desc(TotalValue)) 
+
+byLocation$TotalValue <- printCurrency(byLocation$TotalValue )
+
+kable(byLocation , format.args = list(big.mark = ','), align=c("l","l","l","r","r") ) %>%
+  kable_styling("striped", full_width = TRUE)
+
+```
+
+```{r}
+now <- format(Sys.time(), "%Y") %>% as.numeric()
+
+offset <- 1 #number of years to shift the window - use this if working on the next fiscal year view in the prior calendar year.
+
+window.size <- 5 #years
+
+window.first.year <- now+offset
+window.last.year <- window.first.year + window.size
+
+eol <- Tech_Inventory %>% 
+    filter(InService != "N", EolYear > 0) %>%
+    mutate( TotalValue=  trunc(Qty*UnitValue)  ) %>%
+  select(Category, Manufacturer,	Model, 
+         Desc, TotalValue, EolYear) %>%
+  group_by(EolYear, Category) %>%
+  summarise( Value=sum(TotalValue))
+
+mkGroup <- function(y) {
+  
+  if (y < window.first.year) {
+  paste(" ", window.first.year-1, "and prior" ) # force sort to top
+  } else if (y > window.last.year) {
+  paste(window.last.year+1, "and beyond")
+  } else {
+  as.character(y)
+  }
+}
+
+forecast <- Tech_Inventory %>% 
+    filter(InService != "N", EolYear > 0) %>%
+    mutate( TotalValue=  trunc(Qty*UnitValue)  ) %>%
+    rowwise() %>%
+    mutate( EoL_Year = mkGroup( EolYear ) ) %>%
+    select(Category, Manufacturer,	Model, 
+                     Desc, TotalValue, EoL_Year) %>%
+    group_by(EoL_Year, Category) %>%
+    summarise( Value=sum(TotalValue)) %>%
+    spread(  key=Category, value=Value, fill="")
+
+pastdue <- eol %>% 
+  filter(EolYear < now) %>%
+  group_by(Category) %>%
+  summarise(Value=sum(Value))
+
+totalpastdue <- sum(pastdue$Value)
+totalpastdue.df <- data.frame(Category="Total",            Value=totalpastdue)
+
+pastdue <- rbind(pastdue, totalpastdue.df)
+
+eol.base  <- Tech_Inventory %>% 
+    filter(InService != "N", EolYear > 0) %>%
+    mutate( TotalValue=  trunc(Qty*UnitValue)  ) %>%
+    select(Category, AssetTag, Manufacturer,	Model, 
+         Desc, TotalValue, EolYear) %>%
+    arrange(Category, Manufacturer,	Model)
+
+```
+
+[Back to top](#top)
+
+# Equipment End-of-Life
+The purpose of the end-of-life discussion is to contribute to the fiscal planning process. What should we budget for next year needs to include the expenditure to 'keep the lights on'. 
+
+Equipment has a limited service life and when it reaches a certain age it should be replaced before it fails. It is important to note that the dollar amount is based on the original (or estimated) purchase cost and as such is only a rough indicator for the amount to budget. Like-for-like replacement is not always the right choice as needs may have changed or the appropriate technology choice.
+
+There are several ways to look at our inventory situation: 
+
+* By Ministry
+* By Category (Audio, Video, etc)
+* By Year. 
+
+The tables that follow will do just that.
+
+## By Ministry
+The "by ministry" view is an approximation derirved from location. Some locations, Fellowship Hall specifically, are hard to classify in this manner. (It is part of children at this point). 
+
+```{r}
+# mapping locatoin to ministry
+Location_Ministry_map <- tribble(
+  ~Location, ~Ministry, 
+"EastStorage", "Adult",
+"Balcony",     "Adult",
+"WestStorage", "Adult",
+"Stage",       "Adult",
+"Boardroom",   "Youth",
+"FellowshipHall", "Children",
+"BalconyCabinet", "Adult",
+"Electrical",     "Other",
+"Lobby" ,        "Adult",
+"Nursery",        "Adult",       
+"BalconyCloset", "Adult",
+"Library",        "Adult",
+"Coliseum"  ,     "Children",
+"Server Room",    "Other"   
+) 
+
+ministry <- merge(Tech_Inventory, Location_Ministry_map) %>% 
+    filter(InService != "N", EolYear > 0) %>%
+    mutate( TotalValue=  trunc(Qty*UnitValue)  ) %>%
+    rowwise() %>%
+    mutate( EoL_Year = mkGroup( EolYear ) ) %>%
+    select(Ministry, Manufacturer,	Model, 
+                     Desc, TotalValue, EoL_Year) %>%
+    group_by(EoL_Year, Ministry) %>%
+    summarise( Value=sum(TotalValue)) %>%
+    spread(  key=Ministry, value=Value, fill="")
+
+kable(ministry, 
+              format.args = list(big.mark = ','),
+              caption="Obsolescence forecast by year and ministry" ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+## By Category
+
+```{r eval=FALSE}
+kable(pastdue, 
+              format.args = list(big.mark = ','),
+              caption="Overdue Investments Summary" ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+
+In the next table, a breakdown by category and year of obsolescence. Years prior to `r window.first.year ` and years following `r window.last.year ` have been consolidated.
+
+```{r}
+kable(forecast,
+             caption="Obsolescence forecast by year and category",
+             format.args = list(big.mark = ','),
+             align=c("l","r","r","r","r")) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+## Year-by-Year Breakdown
+
+The next few listings are of the gear which should be replaced in that year, or earlier. Sometimes there are components that should be replaced together but fall into different years. 
+
+```{r}
+printEOL <- function(data, 
+                     yr, 
+                     txt="Equipment which should replaced in") { 
+
+if  ( nrow(data) > 0 ) {  
+    result <- kable(data,
+                    caption=paste(txt, yr) ) %>%
+              kable_styling("striped", full_width = TRUE)
+    } else { 
+  result <- paste("No equipment will reach end of life in", yr)
+             }
+  result
+}
+
+eol.base %>% filter(EolYear < window.first.year ) %>% 
+  printEOL( window.first.year,
+            "Equipment which should have been replaced prior to" )
+
+eol.base %>% 
+  filter(EolYear == now+0) %>% printEOL( window.first.year+0)
+    
+eol.base %>% 
+  filter(EolYear == now+1) %>% printEOL( window.first.year+1)
+
+eol.base %>% 
+  filter(EolYear == now+2) %>% printEOL( window.first.year+2)
+
+eol.base %>% 
+  filter(EolYear == now+3) %>% printEOL( window.first.year+3)
+ 
+```
+
+[Back to top](#top)
+
+# Serial Numbers for all items > $1000 value
+
+This list maybe of interest when looking at insurance aspects, or if there is every a theft.
+
+```{r}
+
+Tech_Inventory %>% 
+  filter(UnitValue*Qty >1000) %>%
+  arrange(Manufacturer, Model, SN) %>%
+  select(Manufacturer, Model, SN, Location) %>%
+  knitr::kable() %>%
+  kable_styling("striped", full_width = TRUE)
+
+```
+
+[Back to top](#top)
+
+# Not In Service
+Equipment that is no longer in service. Much of this can be disposed, sold or donated.
+
+```{r nis, echo=FALSE}
+not_in_service <- Tech_Inventory %>% 
+    filter(InService == "N") %>%
+    select(Category, Manufacturer,	Model, Desc, Qty) %>%
+    arrange(Category ) 
+
+knitr::kable(not_in_service , format.args = list(big.mark = ',') ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+[Back to top](#top)
+
+
+[Back to top](#top)
+
+#Vendor Spend by Year
+
+```{r}
+temp <-  Tech_Inventory  %>% 
+    filter(InService != "N" ) %>%
+    mutate( TotalValue=  trunc(Qty*UnitValue)  ) %>%
+    mutate( PurcYear = format(PurcDate, format="%Y")) %>%
+    select(PurcFrom,   TotalValue, PurcYear) %>%
+    group_by(PurcYear, PurcFrom) %>%
+    summarise( Value=sum(TotalValue)) 
+    
+rowtotal <- temp %>%
+            group_by(PurcFrom) %>%
+            summarise(Total = sum( Value))
+
+vendor <- temp %>% 
+  spread(  key=PurcYear, value=Value, fill="")
+
+agg <- merge(vendor, rowtotal) %>%
+        arrange(desc(Total))
+
+kable(agg, 
+              format.args = list(big.mark = ','),
+              caption="vendor spend by year" ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+
+
+[Back to top](#top)
+
+#Data Quality Reports
+
+This section provides reporting on the Quality of the Technical Inventory. Each of these lists should (ideally) be empty.
+ 
+`r limit <- 2500` 
+## High Value Assets (>$ `r limit` ) without AssetTag
+ 
+Nothing should be listed.  
+```{r} 
+Tech_Inventory %>% 
+      filter( is.na(AssetTag) ) %>% 
+      filter( UnitValue > limit ) %>%
+  kable(align="l")  %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+`r dt <- 2015` 
+## New Assets (Newer than `r dt` ) without AssetTag
+`r limit <- 100 `
+With a purchase price exceeding $`r limit`. Nothing should be listed.
+ 
+```{r} 
+Tech_Inventory %>% 
+      filter( is.na(AssetTag) ) %>% 
+      filter( AcqYear > dt ) %>%
+      filter( UnitValue > limit ) %>%
+      kable(align="l")  %>%
+      kable_styling("striped", full_width = TRUE)
+```
+
+## All Asset Tags are unique
+Nothing should be listed.
+```{r}
+Tech_Inventory %>% 
+      filter( !is.na(AssetTag) ) %>% 
+      select(AssetTag) %>%
+      group_by(AssetTag) %>%
+      summarise(n=n()) %>%
+      filter(n>1) %>%
+      kable(align="l")  %>%
+      kable_styling("striped", full_width = TRUE)
+```
+
+`r limit <- 1500`
+
+## High-Valued Assets without serial numbers (> $`r limit`).
+Nothing should be listed.
+```{r}
+Tech_Inventory %>% 
+      filter( is.na(SN) ) %>% 
+      filter( UnitValue > limit ) %>%
+      select(AssetTag, Manufacturer, Model, Desc, UnitValue) %>%
+      kable(align="l")  %>%
+      kable_styling("striped", full_width = TRUE)
+```
+
+```{r eval=FALSE}
+x <- Tech_Inventory %>% 
+    filter(InService != "N") %>%
+    mutate( ExtendedValue = Qty*UnitValue ) %>%
+    filter(is.na(Location ) ) %>% 
+    arrange(desc(tv))  
+
+    print(nrow(x))
+    print(sum(x$tv))
+
+    x %>%
+      select(Manufacturer,	Model,Desc, tv) %>%
+    kable(align="l")  %>%
+    kable_styling("striped", full_width = TRUE)
+```
+
+[Back to top](#top)
+
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
