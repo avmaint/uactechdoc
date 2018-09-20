@@ -56,9 +56,8 @@ Inventory_Overview$Value <- printCurrency(Inventory_Overview$Value)
 
 Inventory_Overview <-rbind(Inventory_Overview, lastrow)
 
-kable(Inventory_Overview,
-             format.args = list(big.mark = ','),
-             align=c("l","r","r"))  %>%
+Inventory_Overview %>% 
+  kable(format.args = list(big.mark = ','), align=c("l","r","r"))  %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
@@ -80,7 +79,8 @@ top_5 <- Tech_Inventory %>%
 
 top_5$TotalValue <- printCurrency(top_5$TotalValue ) 
 
-kable(top_5 , format.args = list(big.mark = ','), align=c("l","l","l","r","r") ) %>%
+top_5 %>%
+  kable( format.args = list(big.mark = ','), align=c("l","l","l","r","r") ) %>%
   kable_styling("striped", full_width = TRUE) 
 ```
 
@@ -97,9 +97,9 @@ byLocation <- Tech_Inventory %>%
 
 byLocation$TotalValue <- printCurrency(byLocation$TotalValue )
 
-kable(byLocation , format.args = list(big.mark = ','), align=c("l","l","l","r","r") ) %>%
+byLocation %>%
+  kable(format.args = list(big.mark = ','), align=c("l","l","l","r","r") ) %>%
   kable_styling("striped", full_width = TRUE)
-
 ```
 
 ```{r}
@@ -163,7 +163,7 @@ eol.base  <- Tech_Inventory %>%
 [Back to top](#top)
 
 # Equipment End-of-Life
-The purpose of the end-of-life discussion is to contribute to the fiscal planning process. What should we budget for next year needs to include the expenditure to 'keep the lights on'. 
+The purpose of the end-of-life discussion is to contribute to the fiscal planning process. What should we budget for next year needs to include the expenditure to 'keep the lights on'.
 
 Equipment has a limited service life and when it reaches a certain age it should be replaced before it fails. It is important to note that the dollar amount is based on the original (or estimated) purchase cost and as such is only a rough indicator for the amount to budget. Like-for-like replacement is not always the right choice as needs may have changed or the appropriate technology choice.
 
@@ -209,28 +209,28 @@ ministry <- merge(Tech_Inventory, Location_Ministry_map) %>%
     summarise( Value=sum(TotalValue)) %>%
     spread(  key=Ministry, value=Value, fill="")
 
-kable(ministry, 
-              format.args = list(big.mark = ','),
-              caption="Obsolescence forecast by year and ministry" ) %>%
+ministry %>%
+  kable(format.args = list(big.mark = ','),
+        caption="Obsolescence forecast by year and ministry" ) %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
 ## By Category
 
 ```{r eval=FALSE}
-kable(pastdue, 
-              format.args = list(big.mark = ','),
-              caption="Overdue Investments Summary" ) %>%
+pastdue %>%
+  kable(format.args = list(big.mark = ','),
+        caption="Overdue Investments Summary" ) %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
 In the next table, a breakdown by category and year of obsolescence. Years prior to `r window.first.year ` and years following `r window.last.year ` have been consolidated.
 
 ```{r}
-kable(forecast,
-             caption="Obsolescence forecast by year and category",
-             format.args = list(big.mark = ','),
-             align=c("l","r","r","r","r")) %>%
+forecast %>%
+  kable(caption="Obsolescence forecast by year and category",
+        format.args = list(big.mark = ','),
+        align=c("l","r","r","r","r")) %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
@@ -267,7 +267,6 @@ eol.base %>%
 
 eol.base %>% 
   filter(EolYear == now+3) %>% printEOL( window.first.year+3)
- 
 ```
 
 [Back to top](#top)
@@ -284,7 +283,6 @@ Tech_Inventory %>%
   select(Manufacturer, Model, SN, Location) %>%
   knitr::kable() %>%
   kable_styling("striped", full_width = TRUE)
-
 ```
 
 [Back to top](#top)
@@ -298,7 +296,8 @@ not_in_service <- Tech_Inventory %>%
     select(Category, Manufacturer,	Model, Desc, Qty) %>%
     arrange(Category ) 
 
-knitr::kable(not_in_service , format.args = list(big.mark = ',') ) %>%
+not_in_service %>% 
+  kable( format.args = list(big.mark = ',') ) %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
@@ -325,9 +324,9 @@ vendor <- temp %>%
 agg <- merge(vendor, rowtotal) %>%
         arrange(desc(Total))
 
-kable(agg, 
-              format.args = list(big.mark = ','),
-              caption="vendor spend by year" ) %>%
+agg %>%
+  kable(format.args = list(big.mark = ','),
+        caption="vendor spend by year" ) %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
@@ -345,8 +344,8 @@ Nothing should be listed.
 Tech_Inventory %>% 
       filter( is.na(AssetTag) ) %>% 
       filter( UnitValue > limit ) %>%
-  kable(align="l")  %>%
-  kable_styling("striped", full_width = TRUE)
+      kable(align="l")  %>%
+      kable_styling("striped", full_width = TRUE)
 ```
 
 `r dt <- 2015` 
