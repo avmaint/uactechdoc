@@ -1,7 +1,7 @@
 ---
 title: "UAC Technical Inventory Report"
 author: "Terry Doner, Technical Director"
-date: "`r format(Sys.time(), '%B %d %Y')`"
+date: "`r format(Sys.time(), '%B %d %Y %H:%M')`"
 output:
   html_document:
     toc: yes
@@ -273,12 +273,11 @@ eol.base %>%
 
 # Serial Numbers for all items > $1000 value
 
-This list maybe of interest when looking at insurance aspects, or if there is every a theft.
+This list maybe of interest when looking at insurance aspects, or if there is every a theft. Only "in service" items included.
 
 ```{r}
-
 Tech_Inventory %>% 
-  filter(UnitValue*Qty >1000) %>%
+  filter(InService != "N", UnitValue*Qty >1000) %>%
   arrange(Manufacturer, Model, SN) %>%
   select(Manufacturer, Model, SN, Location) %>%
   knitr::kable() %>%
@@ -331,6 +330,29 @@ agg %>%
 ```
 
 [Back to top](#top)
+
+#Inventory that can be sold
+
+```{r}
+Tech_Inventory %>%
+  filter(InService == "N", Disposition == "Sell") %>%
+  select(AssetTag, Manufacturer, Model, SN, tv, DisposedValue,
+         DisposedComment) %>%
+  kable() %>%
+      kable_styling("striped", full_width = TRUE)
+```
+
+
+#Inventory that has been or can be Donated
+
+```{r}
+Tech_Inventory %>%
+  filter(InService == "N", Disposition %in% c("Donate", "Donated")) %>%
+  select(AssetTag, Manufacturer, Model, SN, Disposition, tv, DisposedValue,
+         DisposedComment) %>%
+  kable() %>%
+      kable_styling("striped", full_width = TRUE)
+```
 
 #Data Quality Reports
 

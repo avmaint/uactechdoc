@@ -74,7 +74,11 @@ get.inventory <- function() {
            rep("text",2), 
            "numeric", 
            "text", 
-           rep("numeric",3)      
+           rep("numeric",3),
+           "text",    #Disposed Y/N
+           "numeric", #DisposedYear
+           "numeric", #DisposedValue
+           "text"     #DisposedComment
   )
   
   return( read_excel(fname, 
