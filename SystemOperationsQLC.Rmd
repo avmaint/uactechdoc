@@ -1,0 +1,248 @@
+---
+title: "System Operations - Lighting QLC Guide"
+author: "Terry Doner"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output:
+  html_document:
+    toc: yes
+---
+
+```{r options, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+```
+
+```{r packages }
+require(readr)
+require(dplyr)
+require(readxl)
+require(knitr)
+require(jpeg)
+require(grid)
+require(ggplot2)
+require(kableExtra)
+require(lubridate)
+require(tidyr)
+```
+
+```{r functions}
+source("commonFunctions.R")
+```
+
+```{r getdata}
+further <- get.further()
+```
+
+
+# Introduction
+
+This document provides basic operating information for the lighting system using the QLC+ Software. 
+
+
+#Operating QLC+ (Computer based)
+
+QLC+ is a free software based lighting control platform that offers many useful features. 
+
+We are currently running the software on the VideoMac (CDMU-A002). The software is free so you could install it at home and learn how to use it. [Download here.](http://www.qlcplus.org/)
+
+The following is written based on V4 of the software. (Version 5 will be a major change some point in the future.)
+
+There are some good videos that give a pretty good overview:
+
+#. The Offical Tutorial
+: These can be found [here](http://www.qlcplus.org/tutorials.html). Tutorials #1,2 and #4 are most relevant to what we do.
+
+#. User Interface specific
+: [This](https://youtu.be/a7Arrx7XrRs) one covers the interface from the perspective of the Virtual Console.
+
+The primary interface is the Virtual Console. QLC+ allows complete customization of what that interface looks like. What we operate is different than what you will see in the tutorials because it is customized to what we want and need. 
+Our current interface design is oriented towards simple operations where we have a handful of presets that select as the service progresses.
+
+Along the bottom of the screen there is a row of tabs that change the aspect of the program you are working with. One the screen they look like this, the active tabe is blue.
+
+![Tabs](../../images/sol-qlc-tabs.png)
+
+The purpose of each is:
+
+Fixtures
+: Defines the characteristcis of each fixture. For example, the DMX channel number assignment. For a simple dimmer, there would be only one. For a more sophisticated LED fixture there could be lots.
+
+Functions
+: Functions are groupings of fixtures with set channel levels for each included fixture. it can also include a fade-in and fade-out time. We assign functions to buttons on the virtrual console.
+
+Shows
+: We won't be using this normally
+
+Virtual Console
+: The virtual console is configured by us to suit our operational needs. This is the area we use most. It has its own section below.
+
+Simple Desk
+: The simple desk provides a slider for every channel. We don't typically operate the system from here, but sometimes it is handy for setup or trouble shooting. If you find a light that won't go off, check to make sure it is not being forced on from the simple desk.
+
+Input/Outputs
+: In normal operation we wont need to use this but may if we need to trouble shoot a problem.
+
+
+We will know go into several of them in detail, starting with what we use most.
+
+##Virtual Console
+
+![The Virtual Console Tab](../../images/sol-qlc-tabs.png)
+
+We have configured our virtual console to be mostly buttons. Each button is associated with a function, and a function is a collection of settings. Functions will be discussed in detail below.
+
+When a button is active, it will have a green border around it. (Or it could be orange - when a function is linked to two buttons the one that is clicked will be green, and the other will be orange.)
+
+###Design and Operate Mode
+
+In the upper right of the screen you will see a row of controls that look like this:
+
+![Design mode - green triangle will transition to Operate](../../images/sol-qlc-controls1.png)
+
+or this:
+
+![Operate mode - red sqaure will transition to Run](../../images/sol-qlc-controls2.png)
+
+The difference is the very last control. The presence of the green triangle indicates you are in design mode, and clicking that control will take you into operate mode. Think of the green arrow as 'play' - ready to go.
+
+The presence of the red button indicates you are in operate mode. This is the mode that you would be in most of the time during a service. Pressing the red square says 'stop' and places you back into design mode.
+
+Swithing back to design mode will not affect the current lighting look.
+
+###Frames
+The buttons are grouped inside frames, some frames are red and others are black. The frame colour tells you how the buttons will behave.
+
+Red Frames
+: These are called solo frames. Only one button at a time can be active (green border). When one button in a solo frame is active and another one in the same frame is pushed, it will dectivate the former button (like old fashioned car radios).
+
+Black Frames
+: Multiple buttons can active at the same time.
+
+###Expanding and collapsing frames
+
+Frames can be expanded and collapsed. This is useful for frames you don't always want to be visible on the screen. Clicking this icon will toggle the expanded or contracted view.
+  
+![This is what the expand / collapse icon looks like.](../../images/sol-qlc-expand.png)
+
+###Enabling and disabling a frame
+
+A frame's function can be disabled completely. This is useful if you want to prevent an accidental click on a function you don't need at the moment or if it is an automated function you want to turn off - for example an audio trigger.
+
+![This is the enable / disable icon. It has a green shade when enabled.](../../images/sol-qlc-enable.png)
+
+[Back to top](#top) 
+
+##Functions
+
+![The functions tab ](../../images/sol-qlc-functions.png)
+
+The functions tab is the second most used tab within the program. You would use this mosly when setting up a service. At UAC is is mostly used for defining scenes.
+
+Within the main window there is the Scenes hierachy of objects. 
+
+![scenes](../../images/sol-qlc-function-scene.png)
+
+Within that there will be folders of scene defintions. There are a few folders for generic things, for exmaple there is one called "Preset Scenes", and there are others which have been created for specfic events. 
+
+![The Preset Scenes Group](../../images/sol-qlc-preset-scenes.png)
+
+When selecting one of those items, a window opens up at the bottom which has all of settings for that scene, which can be a lot.
+
+This is what one of them coould look like (This is one called "PS 1 Walkin").
+
+![Sample Scene](../../images/sol-qlc-scene-general.png)
+
+There is a whole row of icons across the top. The purpose of each of those, that matter to us, will be breifly discussed. 
+ 
+![Enables or Disables Channels](../../images/sol-qlc-scene-enable.png) 
+ 
+When a fixtures is selected, these icons allow you to activate (or deactivate) the channels for the selected fixture. You can observe this behaviour by looking at the row of checkboxes above each slider.
+ 
+![Fixture selector](../../images/sol-qlc-functions-scene-arrows.png) 
+
+This is a shortcut to step across the list of fixtures.
+
+![The Timer](../../images/sol-qlc-functions-timer.png)
+
+Clicking on the clock icon pops up the timer details.
+
+The timer is a commonly used feature. By default, when a function is activated it happens instantly. Likewise when turn it off. The timer lets us define transition times to make them more gradual. A good rule of thumb is 5 seconds is slow enough that it will be hardly noticed. 
+
+You cane set the "fade in" and "fade out" times independently.
+
+The detailed settings are shown below.
+
+![Timer Details](../../images/sol-qlc-functions-timerdetail.png)
+
+![Preview](../../images/sol-qlc-scene-preview.png)
+
+>To be written. 
+
+![Fixture Details](../../images/sol-qlc-scene-fixture-details.png)
+
+>To be written
+
+[Back to top](#top) 
+
+##Fixtures
+
+![Fixtures Tab](../../images/sol-qlc-tab-fixtures.png)
+
+This is where we define all of the lighting instruments we have installed and since that doesn't change often we don't need to use it often.
+
+You might refer to this section if you are trying to follow the configurtation. 
+
+"*Fixture Groups*" and "*Channel Groups*" are two kinds of configurations that are defined here, there is a toggle which allows you to choose which you are working with. 
+
+**Fixture Groups**
+
+![Fixture Groups Selected](../../images/sol-qlc-fixtures-fgroups.png)
+
+This is the defintion of each individual fixture. Select one to see the overview of the defintion. The key peice of information you would typical want is the "Address Range" and "Channel" information. More information can be see by using the "Wrench and Screwdriver" icon to see the properties details.
+
+**Channel Groups**
+
+![Channel Groups Selected](../../images/sol-qlc-fixtures-cgroups.png)
+
+Channel Groups are useful to group together similar channels from several fixtures to operate as a unit. For example if we want all light bars to behave the same we could define a channel group. 
+
+There is a trade-off between using the individual fixtures in a function and a channel group, particularly with RGB fixtures. When using the individual fixutres you can set the colour using the palette icon in the scene editor. If a channel group is used, you lose that feature and you have to set the colours manually.
+
+**Other Controls**
+
+![Add and Remove Buttons](../../images/sol-qlc-fixtures-main.png)
+
+Use the "+" or "-" to add or remove a fixture or a channel group. Use the "wrench and screwdriver" to make changes.
+
+[Back to top](#top) 
+
+##Simple Desk
+
+![Simple Desk Tab](../../images/sol-qlc-tab-simple.png)
+
+The Simple Desk provides a slider for each channel. You would typically not want to run a show this way, instead it is most useful to test a lamp or a connection in isolation. If you modify a level on the simple desk, that strip will turn red. You need to remember to click the "X" at the bottom of the strip to release control. If you run across a scenario where a light seems to be stuck on, check the Simple Desk. There is likely a "red" strip with a set level.
+
+[Back to top](#top) 
+
+##Input/Output
+
+![Input/Output Tab](../../images/sol-qlc-tab-io.png)
+
+The Input/Output tab is another area which is not likely to be used on a regular basis. If the program doesn't seem to control tihngs like it should, you need to check these settings. 
+
+The correct settings need to be set by ensuring you have the "UAC" universe selected and then the "DMX USB" output box is checked. 
+
+![Correct Output Settings](../../images/sol-qlc-io-detail.png)
+
+[Back to top](#top) 
+
+`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
+
+[Back to top](#top)
+
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
+
+#Change History
+
+`r commit.log.html( knitr::current_input() )`
