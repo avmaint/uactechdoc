@@ -67,18 +67,17 @@ get.network <- function() {
 #' retrieves the inventory database
 #' @return a data frame containing the inventory database
 get.inventory <- function() {
-  ct <- c( rep("text",2), 
-           "numeric" , 
-           rep("text",10),    
-           "date", 
-           rep("text",2), 
-           "numeric", 
-           "text", 
-           rep("numeric",3),
+  ct <- c( rep("text",2),    # AssetTag, Category
+           rep("numeric",3), # Qty UnitValue AcqValue
+           rep("text",10),   # Manufacturer	Model	Building	Floor	Room	Location	Type	Desc	SN	InService
+           "date",           # PurcDate
+           rep("text",2),    # PurcFrom Invoice
+           "text",           # Comments	
+           rep("numeric",2), #  AcqYear	EolYear
            "text",    #Disposed Y/N
            "numeric", #DisposedYear
            "numeric", #DisposedValue
-           "text"     #DisposedComment
+           rep("text",2)     #DisposedComment, Destination
   )
   
   return( read_excel(fname, 

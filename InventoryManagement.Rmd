@@ -21,6 +21,7 @@ require(tidyr)
 require(readxl)
 require(knitr)
 require(kableExtra)
+require(treemap)
 ```
 
 ```{r functions}
@@ -37,6 +38,8 @@ NetworkInventory <- get.network()
 This document provides various reports on the technical inventory of UAC. The inventory has been divided up into multiple categories and is summarized in this table. 
 
 The items in the Network category is only subset of the church's broader inventory. It is only the items directly connected to AV Technical systems. 
+
+>ToDO: adjust filter throughout report to exclude disposed equipment consistently.
 
 ```{r inventory,   asis=TRUE}
 Inventory_Overview <- Tech_Inventory %>%  
@@ -60,6 +63,17 @@ Inventory_Overview %>%
   kable(format.args = list(big.mark = ','), align=c("l","r","r"))  %>%
   kable_styling("striped", full_width = TRUE)
 ```
+
+Or in a picture with a specfic focus on Audio, Lighting and Video.
+
+```{r tm}
+Tech_Inventory %>% 
+  filter(InService == "Y") %>%
+  filter(Category %in% c("Audio", "Lighting", "Video")) %>%
+  treemap(index=c("Category","Type"), vSize="AcqValue")
+
+```
+
 
 [Back to top](#top)
 
@@ -336,7 +350,7 @@ agg %>%
 ```{r}
 Tech_Inventory %>%
   filter(InService == "N", Disposition == "Sell") %>%
-  select(AssetTag, Manufacturer, Model, SN, tv, DisposedValue,
+  select(AssetTag, Manufacturer, Model, SN, AcqValue, DisposedValue,
          DisposedComment) %>%
   kable() %>%
       kable_styling("striped", full_width = TRUE)
@@ -345,15 +359,44 @@ Tech_Inventory %>%
 
 #Inventory that has been or can be Donated
 
+##Turtle Mountain Bible Camp
+
+This camp is in the middle of Manitoba farm land and won't likely encounter any interference problems.
+
 ```{r}
 Tech_Inventory %>%
   filter(InService == "N", Disposition %in% c("Donate", "Donated")) %>%
-  select(AssetTag, Manufacturer, Model, SN, Disposition, tv, DisposedValue,
-         DisposedComment) %>%
+  filter(DispositionDestination == "TMBC") %>%
+  select(AssetTag, Manufacturer, Model, SN,  Qty, Desc  ) %>%
   kable() %>%
       kable_styling("striped", full_width = TRUE)
 ```
 
+##In2One - Stouffville
+Graham Clinton has always had a great creative vision and the new building they have acquired has wonderful architectural features which can really play well with light. Some items have already been shipped, others pendings
+
+
+
+```{r}
+Tech_Inventory %>%
+  filter(InService == "N", Disposition ==  "Donated" ) %>%
+  filter(DispositionDestination == "In2One") %>%
+  select(AssetTag, Manufacturer, Model, SN, Qty, Desc,
+           DisposedComment ) %>%
+  kable(caption="Shipped") %>%
+      kable_styling("striped", full_width = TRUE)
+```
+
+```{r}
+Tech_Inventory %>%
+  filter(InService == "N", Disposition == "Donate" ) %>%
+  filter(DispositionDestination == "In2One") %>%
+  select(AssetTag, Manufacturer, Model, SN,  Qty, Desc,
+          DisposedComment ) %>%
+  arrange(DisposedComment) %>%
+  kable(caption="Pending") %>%
+      kable_styling("striped", full_width = TRUE)
+```
 #Data Quality Reports
 
 This section provides reporting on the Quality of the Technical Inventory. Each of these lists should (ideally) be empty.
