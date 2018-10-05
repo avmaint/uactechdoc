@@ -35,9 +35,11 @@ source("commonFunctions.R")
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname   <- paste(path, inventoryfile, sep="/")
-further <- get.further()
 playback <- read_excel(fname, sheet = "CS40.Playback")
+
+further <- get.further()
 activities <- get.activities()
+dmx.details <- get.dmxdetails() 
 ```
 
 # Introduction
@@ -491,6 +493,10 @@ keypad %>%
 **Keypad operations are diabled when the main console is powered on. **
 
 [Back to top](#top)
+
+#Lighting Plots (Table of contents placeholder)
+
+`r knit_child('commonLightingPlots.Rmd', quiet=TRUE)`
 
 # Blinds and Shades
 
