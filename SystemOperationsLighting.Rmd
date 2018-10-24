@@ -184,26 +184,19 @@ Some instruments can have a gobo or break up pattern installed. This is typicall
 
 #. Turn on 'Furhman' unit under rear desk / east end - big red switch
     + As of the Fall 2017, this is to be left on at all times. This is temporary as I work through a configuration problem.
-#. ensure that only one control cable is plugged in either to the express console or the computer interface.    
 #. Go to closet
-#. Turn on power bar in closet (scroller power). This is very important.
+#. Turn on power bar in closet.
 #. Turn on big switch up high
-#. Double check that the scrollers have power (little red light on the scroller). If they don't have power, then using the lights will melt the GEL strings. This is bad.
-#. Wait five minutes for the warm-up macro to run.
-#. Before running the light you must enure that the red lights on the bottom of the scrollers is on. If not the #3 in the power on sequence might have been skipped. The scrollers will be damaged if those light are not on.
-
-> It is very important to ensure the scroller power is on.
 
 ## Power Off
 
 #. To turn off, reverse the order and turn off.
 
-> When leaving the system for the day ensure that the control cable is connected to the epxress console (and not the computer.)
+> When leaving the system for the day ensure that lower level control panel has control.
 
 [Back to top](#top)
 
 #Controlling the Lighting System - New
-> Effective once the 2018 lighting upgrades are complete.
 
 Basic operations of the house lights can be accomplished by using the touchpad are the front of the auditorium (office side doors). One of several scenes can be selected. However, once the main lighting console is turned on, it takes over control of the system and this panel is disabled. See the section below for more details.
 

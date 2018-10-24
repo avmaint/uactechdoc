@@ -19,42 +19,33 @@ console:hdmi   -> matrix:i8
 
 optoisolator [label="{{<i1>dmx|<i2>dmx}|Optical Isolator\nZLIU-0003|{<o1>dmx|<o2>dmx|<o3>dmx|<o4>dmx}}"]
 
-interface [label="{<i>dmx|I/F 501\nZLIU-0001|<o>microplex}"] 
 usbdmx [label="{<i>usb|Interface\nZLIP-0001|<o>dmx}"] 
-
-demux [label="{<i>dmx|Interface\nZLIU-0002|analog}"]
 
 pathway [label="{<i>dmx|Pathway\nZLIU-A001|{<o1>dmx|<o2>dmx|<o3>dmx|<o4>dmx}}"]
 
-chromaq [label="{<i>dmx|Scroller Control\nZLIU-0004|{<o1>dmx|<o2>4pin}}"]
-
 n3 [label="{<i>dmx|Ketra N3\nZLIU-A003|<o>KetraNet}"]
+
+stage [label="stagebox\nfeed"]
+topbar [label="stage\ntopbar"]
+fohbar [label="FoH bar"]
+balebar [label="Balcony\nEast bar"]
+balwbar [label="Balcony\nWest bar"]
+
+optoisolator -> balebar
+optoisolator -> balwbar
 
 chromaq:o1 -> pathway
 pathway:o1 -> n3 [label="port to be confirmed"]
 pathway:o2 -> stage
 pathway:o3 -> topbar
 pathway:o4 -> fohbar
- 
-nrd1 [label="{<i>microplex|NSI Dimmer\nZLEU-0001}"] 
-nrd2 [label="{<i>microplex|NSI Dimmer\nZLEU-0002}"] 
-
-analogdimmer1 [label="{<i>analog|LMI Dimmer\nZLEU-0003}"] 
-analogdimmer2 [label="{<i>analog|LMI Dimmer\nZLEU-0004}"] 
 
 console:dmx1 -> optoisolator:i1
 
-interface:o -> nrd1:dmx
-interface:o -> nrd2:dmx
-
 optoisolator:o1 -> interface:dmx     
 optoisolator:o2 -> demux:i
-optoisolator:o3 -> chromaq:i
-
+ 
 usbdmx:o -> optoisolator:i2
-
-demux -> analogdimmer1
-demux -> analogdimmer2
 
 Node [shape=plaintext, fillcolor=white]
 stamp [label= <<table>
@@ -62,7 +53,7 @@ stamp [label= <<table>
     <td>Control Topology</td>
 </tr>    
 <tr><td>As of</td>
-    <td>2018-08-20</td>
+    <td>2018-10-23</td>
 </tr>
    
 </table>> ]  

@@ -101,11 +101,11 @@ pots.w <- tribble(
 "Down Stage",     "w04",    "F",   179.5/12, 11+2/12, 19+7/12, "4-10 from front edge",
 "Wall",     "w05",    "S",   239/12,   15+8/12, 19+6/12, 
                                         "2-10 from side wall. y guessed",
-"Mid Stage",     "w06",    "F",   27/12,    9+1/12,  22+1/12, "",
-"Mid Stage",     "w07",    "F",   87.5/12,  10+5/12, 21+12/12, "",
-"Centre1",     "w08",    "VWF",   11/12,    13+6/12, 21+2/12,  "",
-"Centre2",     "w09",    "VWF",   60.5/12,  14+1/12, 21,       "",
-"Centre3",     "w10",   "VWF",   118/12,   16+3/12, 20+5/12,  "",
+"Centre",     "w06",    "F",   27/12,    9+1/12,  22+1/12, "",
+"Centre",     "w07",    "F",   87.5/12,  10+5/12, 21+12/12, "",
+"Centre",     "w08",    "VWF",   11/12,    13+6/12, 21+2/12,  "",
+"Centre",     "w09",    "VWF",   60.5/12,  14+1/12, 21,       "",
+"Centre",     "w10",   "VWF",   118/12,   16+3/12, 20+5/12,  "",
 "Wall",     "w11",   "S",   14+8/12,  20+4/12, 18+2/12,  
                 "y guessed. 14 inch riser. 2-3 from wall"  ,
 "Up Stage",     "w12",   "WF",   23/12,    18+6/12, 19+4/12, "7 inch riser",
@@ -120,8 +120,6 @@ pots.e <- pots.w %>%
 
 all.pots <- rbind(pots.e, pots.w)
 ```
-
-
 
 #Lighting Plots
 
@@ -154,7 +152,7 @@ Zoom in on the stage.
 ```{r clpzoomstage}
   channels <-  dmx.details %>% 
   filter(!is.na(x)) %>%
-  filter(   between(Channel,18,48) | Channel == 77 )
+  filter(   between(Channel,18,48) | Channel == 67 )
 
 ggplot() + 
   coord_equal() +
@@ -168,7 +166,7 @@ ggplot() +
 
 ##Stage Pots
 
->TODO: Revist the details in light of a pending decision to collapse the three centre groups to a single group and channel.
+> In October 2018, the groups "Mid Stage" and "Centre1", "Centre2", and "Centre3" were all collapsed in to "Centre" .
 
 ```{r clpstagepots}
 chs <- dmx.details %>% filter(Location == "Stage Pots") %>% select(Channel, Usage)
@@ -186,34 +184,34 @@ ggplot() +
 
 ##House Pendants
 
->TODO: Channels are not correct. Positions are only notional guesses and not complete. 
+>TODO: Positions are only notional guesses and not complete. 
 
 ```{r clppendants, echo=FALSE}
 pendants <- tribble(
   ~Channel, ~x,  ~y, ~sz,
-  98,      -35,  -10,  1, 
-  99,      -35,  -10,  7,
-  98,       35,  -10,  1, 
-  99,       35,  -10,  7,
-  97,      -10,  -10,  1, 
-  96,      -10,  -10,  7,
-  97,       10,  -10,  1, 
-  96,       10,  -10,  7,
+  77,      -35,  -10,  1, 
+  76,      -35,  -10,  7,
+  75,       35,  -10,  1, 
+  74,       35,  -10,  7,
+  79,      -10,  -10,  1, 
+  78,      -10,  -10,  7,
+  79,       10,  -10,  1, 
+  78,       10,  -10,  7,
   
-  98,      -45,  -25,  1, 
-  99,      -45,  -25,  7,
-  98,       45,  -25,  1, 
-  99,       45,  -25,  7,
-  97,      -10,  -25,  1, 
-  96,      -10,  -25,  7,
-  97,       10,  -25,  1, 
-  96,       10,  -25,  7,
+  77,      -45,  -25,  1, 
+  76,      -45,  -25,  7,
+  75,       45,  -25,  1, 
+  74,       45,  -25,  7,
+  79,      -10,  -25,  1, 
+  78,      -10,  -25,  7,
+  79,       10,  -25,  1, 
+  78,       10,  -25,  7,
   
 #balcony
-  95,       10,  -40, 3,
-  95,      -10,  -40, 3, 
-  95,       10,  -50, 3,
-  95,      -10,  -50, 3
+  73,       10,  -40, 3,
+  73,      -10,  -40, 3, 
+  73,       10,  -50, 3,
+  73,      -10,  -50, 3
 
 ) 
 
@@ -237,18 +235,17 @@ ggplot() +
 
 
 ##Sconse
->TODO: Correct channels numbers. Positions are only guesses based on memory. 
+>TODO: Positions are only guesses based on memory. 
 
 ```{r clpsconse}
-
 sconse1 <- tribble(
   ~Item, ~Channel, ~x, ~y,
-  1,           99, -38, 0,
-  2,           99, -45, -9,
-  3,           99, -53,  -18,
-  4,           99, -49, -31,
-  5,           99, -40, -40,
-  6,           99, -32, -48
+  1,           71, -38, 0,
+  2,           71, -45, -9,
+  3,           71, -53,  -18,
+  4,           71, -49, -31,
+  5,           71, -40, -40,
+  6,           71, -32, -48
 )
 sconse2 <- sconse1 %>%
   mutate(Item=Item+6) %>%
@@ -268,6 +265,50 @@ ggplot() +
 ```
 
 ##Under the Balcony
-Detailed plot not shown. All lights are on Channel X. There are 24 Ketra pot lights. 
+Detailed plot is illustrative - They are not correctly placed. There are 24 Ketra pot lights. 
 
->TODO: Need to fill in channel number above.
+>TODO: Correct placement
+
+```{r clpubal, echo=FALSE}
+ubal <- tribble(
+  ~Channel, ~x,  ~y, ~sz, 
+# under balcony
+  72,        3,  -37, 3,
+  72,       -3,  -37, 3,
+  72,        9,  -40, 3,
+  72,       -9,  -40, 3,
+  72,       14,  -40, 3,
+  72,      -14,  -40, 3,
+  72,       20,  -40, 3,
+  72,      -20,  -40, 3,
+  72,       25,  -37, 3,
+  72,      -25,  -37, 3,
+  72,       30,  -33, 3,
+  72,      -30,  -33, 3,
+
+  72,        3,  -50, 3,
+  72,       -3,  -50, 3,
+  72,        9,  -50, 3,
+  72,       -9,  -50, 3,
+  72,       14,  -50, 3,
+  72,      -14,  -50, 3,
+  72,       20,  -50, 3,
+  72,      -20,  -50, 3,
+  72,       25,  -47, 3,
+  72,      -25,  -47, 3,
+  72,       30,  -43, 3,
+  72,      -30,  -43, 3
+
+) 
+
+ggplot() + 
+    geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
+    geom_point(data=ubal, aes(x=x, y=y, size=8), color="lightblue" ) +
+    geom_text(data=ubal, aes(x=x, y=y, label=Channel )) +  
+    geom_segment(data=balc.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
+    coord_equal() + theme(legend.position="none") + 
+    scale_size_identity() +     
+    coord_cartesian(xlim=c(-40,40),  ylim = c(-65, -25))
+
+  #ylim(-65,-25)
+```
