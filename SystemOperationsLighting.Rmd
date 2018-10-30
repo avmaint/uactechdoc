@@ -29,6 +29,7 @@ require(tidyr)
 
 ```{r functions}
 source("commonFunctions.R")
+source("commonLightingKeypad.R")
 ```
 
 ```{r getdata}
@@ -60,14 +61,38 @@ There are two mechanisms to control the lighting:
 
 [Back to top](#top)
 
-#Sunday Morning  Rundown
+#Operating the Keypad
+
+There is a simple lighting control panel located next to the auditorium doors by the main office (south east). It enables the house lights to set according to several preset looks, of which there are 8. (Terry can change these as needed. Details in the System Desgin Guide.) These presets operate like "radio buttons", that is, selecting one preset, deselects the previous preset. 
+
+The keypad and the main console work together. The controls are added together; brightest wins. This means than if either control says a ligth is on, it will be on. 
+
+> as of Oct 25, these have not yet been programmed. There are some blanks available. 
+
+> The sconce lights also have an timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well. The timer is porgrammed to turn on the sconse during the evening hours (up to midnight), and Sunday morning.
+
+> TODO: need to describe behaviours for: single click, double click, press and hold.
+
+```{r keypad}
+keypad <-  get_keypad_buttons()  %>% rename(Description = B_Description)
+
+keypad %>%
+  arrange(Button) %>%
+  kable(align="l") %>%
+  column_spec( 1,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE) %>%
+    row_spec(1:nrow(keypad), color="blue")
+```
+
+[Back to top](#top)
+
+#Sunday Morning Rundown
 
 >TODO: This section will need to be modified after we finish the installation.
 
 >TODO: fix indentation errors in the Details column in the below table. 
 
 These are the steps to follow for a normal Sunday morning.
-
 
 ```{r rundown}
 p <- "Lights"
@@ -81,98 +106,6 @@ activities %>%
         kable_styling("striped", full_width = FALSE) %>%
         collapse_rows(columns = 1:2  )
 ```
-
-[Back to top](#top)
-
-#The Functions of Light
-
-Stage lighting has multiple functions, including:
-
-Selective visibility
-: The ability to see what is occurring on stage. Any lighting design will be ineffective if the viewers cannot see the characters, unless this is the explicit intent.
-
-Revelation of form
-: Altering the perception of shapes onstage, particularly three-dimensional stage elements.
-
-Focus
-: Directing the audience's attention to an area of the stage or distracting them from another.
-
-Mood
-: Setting the tone of a scene. Harsh red light has a different effect than soft lavender light.
-
-Location and time of day
-: Establishing or altering position in time and space. Blues can suggest night time while orange and red can suggest a sunrise or sunset. Use of mechanical filters ("gobos") to project sky scenes, the Moon, etc.
-
-Projection/stage elements
-: Lighting may be used to project scenery or to act as scenery onstage.
-Plot (script): A lighting event may trigger or advance the action onstage and off.
-
-Composition
-: Lighting may be used to show only the areas of the stage which the designer wants the audience to see, and to "paint a picture".[4][5]
-
-Effect
-: In pop and rock concerts or DJ shows or raves, colored lights and lasers may be used as a visual effect.
-
-[Back to top](#top)
-
-#The Qualities of Light
-
-##Intensity
-
-The intensity of a luminaire (lighting instrument or fixture) depends on a number of factors including its lamp power, the design of the instrument (and its efficiency), optical obstructions such as colour gels or mechanical filters, the distance to the area to be lit and the beam or field angle of the fixture, the colour and material to be lit, and the relative contrasts to other regions of illumination.
-
-[Back to top](#top)
-
-##Color
-
-Every color has some kind of emotion tied to it, and color is just one way that we can express mood. There are some generally accepted relationships between moods and feelings and basic colors:
-
-Red
-: Anger, fear, jealousy, hot, fire
-
-Pink
-: Love, light, delicate, love
-
-Yellow
-: Exciting, bright, flashy, cheerful
-
-Amber
-: Awakening, morning, raw, rustic
-
-Green
-: Organic, calming, natural, mysterious
-
-Purple
-: Regal, powerful, majesty
- 
-Aqua
-: Gentle, simple, water
-
-Blue
-: Water, night, calm, cool, somber
-
-White
-: Open, raw
-
-This is a very simplified way of sharing moods with you, as there are so many more shades that each have their own character and moods. For example faster songs tend to go best in red, yellow, or other bright colors, and slower songs look great in blues, purples and greens.
-
-There are entire books written on colour theory and their emotional effects. We also have the ability to mix colours together which adds even more nuance to our decisions. You can choose a completely monochromatic theme, say varied shades of blue. Or a 2-colour combo using complimentary colours, such as blue and yellow. Or Triadic colors, which are like complementary colors, but in a triangle across the color wheel.
-
-Whatever your colour choices, it is best if there is agreement bewteen the lighting colours and the colours used in the video backgrounds.
-
-[Back to top](#top)
-
-##Focus
-
-The focus is where an instrument is pointed. The final focus should place the "hot spot" of the beam at the actor's head level when standing at the centre of the instrument's assigned "focus area" on the stage. Position refers to the location of an instrument in the theater's fly system or on permanent pipes in front-of-house locations. Hanging is the act of placing the instrument in its assigned position.
-
-[Back to top](#top)
-
-##Beam
-
-Beam refers to the shape, quality and evenness of a lamp's output. The pattern of light an instrument makes is largely determined by a number factors about the instruments design.
-
-Some instruments can have a gobo or break up pattern installed. This is typically a thin sheet of metal with a shape cut into it. It is inserted into the instrument near its aperture. Gobos, or templates, come in many shapes, but often include leaves, waves, stars and similar patterns.
 
 [Back to top](#top)
 
@@ -196,7 +129,7 @@ Some instruments can have a gobo or break up pattern installed. This is typicall
 
 [Back to top](#top)
 
-#Controlling the Lighting System - New
+#Controlling the Lighting System
 
 Basic operations of the house lights can be accomplished by using the touchpad are the front of the auditorium (office side doors). One of several scenes can be selected. However, once the main lighting console is turned on, it takes over control of the system and this panel is disabled. See the section below for more details.
 
@@ -206,7 +139,7 @@ Advanced operations of house and theatre lighting is acccomplished via the light
 
 #Operating the ColorSource 40AV Console
 
-In the August 2018 we will be installing a new lighting console. This will replace our current complicated solution consisting of the old Express console during the week, the computer program on Sunday morning, and the brown box for the house lights. The new console will be able to control all of that and more.
+THis is the primary and most capable way of controlling almost all lighting in the auditorium. Simple operations are fairly simple and yet it is not too hard to create some sophiscticated looks.  
 
 ##Learning
 
@@ -455,38 +388,6 @@ playback %>%
 
 [Back to top](#top)
 
-##Operating the Keypad
-
-There is a simple lighting control panel located in the Usher's room. It enables the house lights to set according to several pre-defined looks. 
-
-> These looks are ideas. The final set has to be no more than 5.
-
-
-```{r keypad}
-keypad <- tribble(
-  ~Number, ~Name, ~Description,
-
-  1, "Off", "Off",
-  2, "Security", "A subset of lights on medium (sconce plus maybe some of the house lights)",
-  3, "Basic", "Front centre lit bright - rest of room medium - funerals / weddings plus some accents",
-  4, "BSF", "More light Downlight On stage - otherwise #4",
-  5, "Sconce only", "(Might be redundant with 2)",
-  6, "Auditorium House", "Auditorium House lights full White",
-  7, "Stage lights",  "Stage lights full white",
-  8, "Janitor", "Most everything on full white (stage ketra plus house): 6+7"
-)
-
-keypad %>%
-  arrange(Number) %>%
-  kable() %>%
-  column_spec( 1,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
-```
-
-**Keypad operations are diabled when the main console is powered on. **
-
-[Back to top](#top)
-
 #Lighting Plots (Table of contents placeholder)
 
 `r knit_child('commonLightingPlots.Rmd', quiet=TRUE)`
@@ -517,6 +418,100 @@ If a blind pops out of its track.
 
 If the playbacks do not seem to work
 : Two things to check. 1) ensure you are in playback mode and that the playback master is up. See Instructions in the Simple Console Operations section. 
+
+[Back to top](#top)
+
+#Lighting Tutorial
+
+##The Functions of Light
+
+Stage lighting has multiple functions, including:
+
+Selective visibility
+: The ability to see what is occurring on stage. Any lighting design will be ineffective if the viewers cannot see the characters, unless this is the explicit intent.
+
+Revelation of form
+: Altering the perception of shapes onstage, particularly three-dimensional stage elements.
+
+Focus
+: Directing the audience's attention to an area of the stage or distracting them from another.
+
+Mood
+: Setting the tone of a scene. Harsh red light has a different effect than soft lavender light.
+
+Location and time of day
+: Establishing or altering position in time and space. Blues can suggest night time while orange and red can suggest a sunrise or sunset. Use of mechanical filters ("gobos") to project sky scenes, the Moon, etc.
+
+Projection/stage elements
+: Lighting may be used to project scenery or to act as scenery onstage.
+Plot (script): A lighting event may trigger or advance the action onstage and off.
+
+Composition
+: Lighting may be used to show only the areas of the stage which the designer wants the audience to see, and to "paint a picture".[4][5]
+
+Effect
+: In pop and rock concerts or DJ shows or raves, colored lights and lasers may be used as a visual effect.
+
+[Back to top](#top)
+
+##The Qualities of Light
+
+###Intensity
+
+The intensity of a luminaire (lighting instrument or fixture) depends on a number of factors including its lamp power, the design of the instrument (and its efficiency), optical obstructions such as colour gels or mechanical filters, the distance to the area to be lit and the beam or field angle of the fixture, the colour and material to be lit, and the relative contrasts to other regions of illumination.
+
+[Back to top](#top)
+
+###Color
+
+Every color has some kind of emotion tied to it, and color is just one way that we can express mood. There are some generally accepted relationships between moods and feelings and basic colors:
+
+Red
+: Anger, fear, jealousy, hot, fire
+
+Pink
+: Love, light, delicate, love
+
+Yellow
+: Exciting, bright, flashy, cheerful
+
+Amber
+: Awakening, morning, raw, rustic
+
+Green
+: Organic, calming, natural, mysterious
+
+Purple
+: Regal, powerful, majesty
+ 
+Aqua
+: Gentle, simple, water
+
+Blue
+: Water, night, calm, cool, somber
+
+White
+: Open, raw
+
+This is a very simplified way of sharing moods with you, as there are so many more shades that each have their own character and moods. For example faster songs tend to go best in red, yellow, or other bright colors, and slower songs look great in blues, purples and greens.
+
+There are entire books written on colour theory and their emotional effects. We also have the ability to mix colours together which adds even more nuance to our decisions. You can choose a completely monochromatic theme, say varied shades of blue. Or a 2-colour combo using complimentary colours, such as blue and yellow. Or Triadic colors, which are like complementary colors, but in a triangle across the color wheel.
+
+Whatever your colour choices, it is best if there is agreement bewteen the lighting colours and the colours used in the video backgrounds.
+
+[Back to top](#top)
+
+###Focus
+
+The focus is where an instrument is pointed. The final focus should place the "hot spot" of the beam at the actor's head level when standing at the centre of the instrument's assigned "focus area" on the stage. Position refers to the location of an instrument in the theater's fly system or on permanent pipes in front-of-house locations. Hanging is the act of placing the instrument in its assigned position.
+
+[Back to top](#top)
+
+###Beam
+
+Beam refers to the shape, quality and evenness of a lamp's output. The pattern of light an instrument makes is largely determined by a number factors about the instruments design.
+
+Some instruments can have a gobo or break up pattern installed. This is typically a thin sheet of metal with a shape cut into it. It is inserted into the instrument near its aperture. Gobos, or templates, come in many shapes, but often include leaves, waves, stars and similar patterns.
 
 [Back to top](#top)
 

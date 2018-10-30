@@ -9,6 +9,11 @@ node [shape=Mrecord, tooltip="" ,
       
 console [label="{Lighting Control|ETC CS40AV\nZLKU-B001|{<hdmi>hdmi|<dmx1>DMX 1|<dmx2>DMX 2}}"]
 
+echo [label="{Touch Pad\nAsset Tag|<p>prop}"]
+echo2 [label="{{<p>prop|<bt>bluetooth}|echo node|dmx}"]
+
+echo:p -> echo2:p
+
 computer [label="{{Computer\nCDWU-0009}|{ <o1>usb|<o2>usb }}"]
 
 n1 [label="{<i>usb|Ketra N1\nZLIU-A002|KetraNet}"]

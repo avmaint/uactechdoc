@@ -24,6 +24,7 @@ require(kableExtra)
 
 ```{r functions}
 source("commonFunctions.R")
+source("commonLightingKeypad.R")
 
 circleFun <- function( x= 0, y=0 , r=1, npoints=50, start=0, end=2, fill="black"){
   tt <- seq(start*pi, end*pi, length.out=npoints)
@@ -168,7 +169,81 @@ merge( Tech_Inventory, selected.at) %>%
 
 [Back to top](#top)
 
+##Keypad Control
 
+There is a simple lighting control panel located next to the auditorium doors by the main office (south east). It enables the house lights to set according to several pre-defined looks. 
+
+The keypad and the main console work together. The controls are added together; brightest wins. This means than if either control says a ligth is on, it will be on. 
+
+> as of Oct 25, these have not yet been programmed. There are some blanks available. 
+
+> The sconce lights also have an timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well.
+
+ 
+
+The programming is managed via the app which communicates via bluetooth. There is a configuration menu item in the app. There are three items that each contribute to the configuration.
+
+> TODO: Fill in the details of the tasks which can be accomplished via each of these three sections.
+
+Access BT Interface
+: yada
+
+Inspire 8 Button
+: Button Config 
+
+DMX Scene Controller
+: The second page is where the ZONE defintions are managed, including the DMX assignments and the instrument footprint (RGB, IRGBS, etc).
+
+> TODO -need to define behaviours for: single click, double click, press and hold.
+
+```{r getKeypadData}
+keypad <-  get_keypad_buttons() 
+keypad2preset <- get_keypad2preset()
+preset2zone   <- get_preset2zone()
+zones2dmx     <- get_zones2dmx()
+```
+
+```{r}
+keypad %>%
+  arrange(Button) %>%
+  kable() %>%
+  column_spec( 1,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE) %>%
+    row_spec(1:nrow(keypad), color="blue")
+```
+ 
+Control of the ADJ Ultrabar 12 devices presents a challenge. These are configured as 6 or 12 channels devices. This DMX footprint is not directly supported by the echo equipment.  We have assumed that we can tell the echo that these are four channel devices (RGBW) and skip the following 8 DMX addresses. This needs to be tested. (Simialr story for the UB6).
+
+>Note: Any one device can only belong to one Zone.
+ 
+```{r dumpzones}
+#Zones to DMX mappings
+zones2dmx %>%
+  arrange(Zone) %>%
+  kable() %>%
+  kable_styling("striped", full_width = TRUE)  %>%
+    row_spec(1:nrow(zones2dmx), color="blue")
+```
+
+```{r configReport}
+rs <- keypad %>%
+  merge(keypad2preset) %>%
+  merge(preset2zone )
+
+require(sqldf)  
+rs <- sqldf("Select Button, Name, Preset, z.Zone, B_Description, Z_Description, Details 
+            from zones2dmx as z, rs as rs 
+            where z.Zone = rs.Zone
+            ")
+# no idea why merge didn't work!
+
+rs %>%  
+  arrange(Button, Zone) %>%
+  kable() %>%
+  #column_spec( 1,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE  ) %>%
+    row_spec(1:nrow(rs), color="blue")
+```
 
 ##DMX Address Map
 > The NSI dimmers are not in actve use but still have assigned addresses.
