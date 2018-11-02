@@ -5,7 +5,7 @@ get_keypad_buttons <- function() {
   keypad <- tribble(
     ~Button, ~Name, ~B_Description,
     
-    1, "-", "",  
+    1, ".", "",  
     2, "-", "",
     
     3, "Ambience", "Use for walkin - intermission", 
@@ -28,73 +28,97 @@ get_keypad2preset <- function() {
 get_preset2zone <- function() {
   preset2zone <- tribble(
     ~Preset, ~Zone, ~Details,
-    7      ,     7, "100% Cool White",
-    7      ,     5, "100% Cool White",
+    7,           2, "100% Cool White",
+    7,           1, "100% Cool White",
+    7,           3, "100% Cool White",
+    7,           4, "100% Cool White",
     
-    8      ,     5, "80% Warm White",
+    8,           1, "80% Warm White",
     
+    3,           1, "75% Blue",
     3,           5, "75% Blue",
-    3,           6, "75% Blue",
-    3,           7, "80% Warm White",
-    3,           8, "80% Warm White",
-    3,           9, "80% Warm White",
-    3,          11, "75% Blue",
+    3,           2, "80% Warm White",
+    3,           4, "80% Warm White",
+    3,           3, "80% Warm White",
+    3,          7, "75% Blue",
     3,          12, "75% Blue",
     3,          13, "100% Blue",
-    3,          14, "100% Magenta",
-    3,          16, "100%",
+    3,          8, "100% Magenta",
+    3,          10, "100%",
     
+    4,           1, "75% Warm White",
     4,           5, "75% Warm White",
-    4,           6, "75% Warm White",
-    4,           7, "80% Warm White",
-    4,           8, "80% Warm White",
-    4,           9, "80% Warm White",
-    4,          10, "80% Warm White",
-    4,          11, "75% L.Pink",
+    4,           2, "80% Warm White",
+    4,           4, "80% Warm White",
+    4,           3, "80% Warm White",
+    4,          6, "80% Warm White",
+    4,          7, "75% L.Pink",
     4,          12, "75% L.Pink",
     4,          13, "100% Blue",
-    4,          14, "100% Pink",   
+    4,          8, "100% Pink",   
     
+    5,           1, "75% Warm White",
     5,           5, "75% Warm White",
-    5,           6, "75% Warm White",
-    5,           7, "80% Warm White",
-    5,           8, "80% Warm White",
-    5,           9, "80% Warm White",
-    5,          10, "80% Warm White",
-    5,          11, "75% L.Pink",
+    5,           2, "80% Warm White",
+    5,           4, "80% Warm White",
+    5,           3, "80% Warm White",
+    5,          6, "80% Warm White",
+    5,          7, "75% L.Pink",
     5,          12, "75% L.Pink",
     5,          13, "100% Blue",
-    5,          14, "100% Pink",
-    5,          16, "100%",
+    5,          8, "100% Pink",
+    5,          10, "100%",
     
-    6,           5, "75% Warm White",
-    6,           7, "30% Warm White",
-    6,           8, "30% Warm White",
-    6,           9, "30% Warm White",
-    6,          11, "75% L.Pink",
+    6,           1, "75% Warm White",
+    6,           2, "30% Warm White",
+    6,           4, "30% Warm White",
+    6,           3, "30% Warm White",
+    6,          7, "75% L.Pink",
     6,          12, "75% L.Pink",
     6,          13, "50% Blue",
-    6,          14, "50% Pink",
-    6,          16, "100%" 
+    6,          8, "50% Pink",
+    6,          10, "100%" 
   )
 return(preset2zone)
 }
 
 get_zones2dmx <- function() {
+  
+#plus_n : 
+#input:  takes a string of space delimited numbers, and an integer n
+#returns: a string with n added to each of the original numbers.
+#usage: The ADJ Ultrabar12s have been programmed in 12 channel model (RGBWAU..I...). 
+#There is no Echo profile to support that so we have split the control into a colour and an intensity zone.     
+
+  plus_n <- function(nums, n) { 
+    nums <- strsplit(nums,"[[:space:]]") %>% 
+      unlist() %>% 
+       as.integer()
+      
+      as.character(nums + n) %>% paste(collapse=" ")  
+  }
+  
   zones <- tribble(
-    ~Zone, ~Z_Description,        ~DMX, 
-    5,  "Sconce",              "160" ,
-    6,  "Stage pots",          "151 154 157",
-    7,  "House pendants wide", "163 166 169",
-    8,  "Under Balcony",       "500",
-    9,  "Upper Balcony",       "503",
-    10, "All thrust",          "1 2 3 5 6 7",
-    11, "All vocals",          "22 27 32 37 42 47",
-    12, "Walls",               "219 231 243 255 267 279 291 303 315 327 339 351 363 375",
-    13, "Towers",              "62 68 74 80",
-    14, "Floor flares",        "172 177 182 187 192 197 202",
-    15, "Floor bars",          "470",
-    16, "Cross",               "458"
-  )
+    ~Zone, ~Z_Description,     ~Profile, ~DMX, 
+    1,  "Sconce",              "RGB",    "160" ,
+    2,  "House Pendants Wide", "RGB",    "163 166 169",
+    3,  "Upper Balcony",       "RGB",    "503",
+    4,  "Under Balcony",       "RGB",    "500",
+    5,  "Stage pots",          "RGB",    "151 154 157",
+    6, "All Thrust",          "I",      "1 2 3 5 6 7",
+    7, "All Vocals",          "IRGBS",  "22 27 32 37 42 47",
+    8, "Floor Flares",        "IRGBS",  "172 177 182 187 192 197 202",
+    9, "Floor Bars",          "RGB",    "470", # not used?
+    10, "Cross",               "I",      "458", #wont work due to DMX path
+    
+    12, "Wall Colour",         "RGBW",   t<-"219 231 243 255 267 279 291 303 315 327 339 351 363 375",
+    11, "Wall Intensity",      "I",       plus_n(t,9),
+    
+    14, "Bulkhead Colour",     "RGBW",   "0 0 0 0", # not sure of the profile for bulkhead.
+    13, "Bulkhead Intensity",  "I",      "", #BH Colour +9",
+    
+    15, "Towers",              "RGBW",   "62 68 74 80"  #Amber and UV missed
+
+    ) %>% arrange(Zone)
   return(zones)
 }

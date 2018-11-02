@@ -63,8 +63,8 @@ lp1:o2 -> bulkhead
 lp1:o3032 -> balcony  
 lp1:o4448 -> distro
 balcony -> nsi
-nsi -> balconyeast  
-nsi -> balconywest  
+
+lp1 -> amppanel
 
 bulkhead -> topbar
 bulkhead -> points

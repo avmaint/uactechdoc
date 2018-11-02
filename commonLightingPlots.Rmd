@@ -186,6 +186,15 @@ ggplot() +
 
 >TODO: Positions are only notional guesses and not complete. 
 
+Pendants over the main floor sections
+
+* Each pendant has two groups of lamps. An outer group of four lamps and an inner single lamp group. The four outer lamps have a wide beam spread, the inner one is narrow. They are colour colour controllable (LED RGB).
+* The pendants over the "A" and "E" sections (extreme east and west sections) are independently controllable from the middle sections. 
+
+Pendants over the Balcony
+
+* These pendants have only the outer group of lamps. 
+
 ```{r clppendants, echo=FALSE}
 pendants <- tribble(
   ~Channel, ~x,  ~y, ~sz,
@@ -233,8 +242,11 @@ ggplot() +
     coord_equal() + theme(legend.position="none") + scale_size_identity()
 ```
 
+##Sconce (Sconse along the main floor perimeter)
 
-##Sconse
+* These lamps are RGB lamps.
+* There is also a pair of 3-way light swtiches at the entrance doors that can turn off the lights. These are controlled via a two-way switch located by the south-east and north-east doors. The control at the south-east door has a programmable timer. This is to ensure that there is some lighting in the evenings between dusk and midnight to enable safe passage.
+
 >TODO: Positions are only guesses based on memory. 
 
 ```{r clpsconse}
@@ -265,7 +277,10 @@ ggplot() +
 ```
 
 ##Under the Balcony
-Detailed plot is illustrative - They are not correctly placed. There are 24 Ketra pot lights. 
+    
+Each Pot under the Balcony is an RGB lamp.
+
+The plot is illustrative - They are not correctly placed. There are 24 Ketra pot lights. 
 
 >TODO: Correct placement
 

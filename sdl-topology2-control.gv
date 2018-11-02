@@ -7,40 +7,45 @@ node [shape=Mrecord, tooltip="" ,
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
- 
-touchpad [label="{Main Floor Touchpad\nZLKU-B002|KetraNet}"]
+subgraph cluster_avroom {  label='AV Room'
+  ZLIUA003 [label="{<i>dmx|Ketra N3\nZLIU-A003|{<d>dmx|<k>kn}}"]
+  ZLIUB001 [label="{<i>dmx|Ketra N3\nZLIU-B001|{<d>dmx|<k>kn}}"] 
+  ZLIUB002 [label="{<i>dmx|Ketra N3\nZLIU-B002|{<d>dmx|<k>kn}}"] 
+  ZLIUB003 [label="{<i>dmx|Ketra N3\nZLIU-B003|{<d>dmx|<k>kn}}"] 
+  pathway  [label="Pathway\nZLIU-A001"]
+}
 
-computer [label="{{Computer\nCDWU-0009}|{ <o1>usb|<o2>usb }}"]
-
-n1 [label="{<i>usb|Ketra N1\nZLIU-A002|KetraNet}"]
-computer:o2 -> n1:i
-
-n3 [label="{<i>dmx|Ketra N3\nZLIU-A003|<o>KetraNet}"]
-
-pathway [label="Pathway\nZLIU-A001"]
-console [label="Console\nETC CS 40AV\nZLKU-B001"]
-optoisolator [label="Optical Isolator\nZLIU-0003"]
+subgraph cluster_balcony {  label='Balcony'
+  console [label="{Console\nETC CS 40AV\nZLKU-B001|dmx}"]
+  computer [label="{{Computer\nCDWU-0009}|{ <usb>usb }}"]
+  n1 [label="{<i>usb|Ketra N1\nZLIU-A002|KetraNet}"]
+  optoisolator [label="Optical Isolator\nZLIU-0003"]
+}
 
 ketranet [label="Ketranet\nMesh\nNetwork"]
 
-touchpad -> ketranet
+computer:usb -> n1:i
+pathway:o1 -> ZLIUA003 [label="port to be confirmed"]
 
-pathway:o1 -> n3 [label="port to be confirmed"]
- 
+ZLIUA003:d -> ZLIUB001:i
+ZLIUB001:d -> ZLIUB002:i
+ZLIUB002:d -> ZLIUB003:i
 
-ketran4_1 [label="{<i>Ketra N4 Controller\nZLIU-B001|KetraNet}"] 
-ketran4_2 [label="{<i>Ketra N4 Controller\nZLIU-B002|KetraNet}"] 
-ketran4_3 [label="{<i>Ketra N4 Controller\nZLIU-B003|KetraNet}"] 
-
-ketranet -> ketran4_1
-ketranet -> ketran4_2
-ketranet -> ketran4_3
-n3       -> ketranet
+ZLIUA003:k, ZLIUB001:k, ZLIUB002:k, ZLIUB003:k -> ketranet  
 n1       -> ketranet
 
 console:dmx1 -> optoisolator:i1
 optoisolator -> pathway 
 
+subgraph cluster_room { label='Room'
+  ketraStage         [label="Pots over stage"]  
+  ketraSconce        [label="Sconce Lights"]
+  ketraUnderPots     [label="Under Balcony Pots"]
+  ketraUpperPendants [label="Upper Balcony Pendants"]
+  ketraHousePendant  [label="Main House Pendants"]
+}
+
+ketranet -> ketraStage, ketraSconce, ketraUnderPots, ketraUpperPendants, ketraHousePendant
   
 Node [shape=plaintext, fillcolor=white]
 stamp [label= <<table>
@@ -48,12 +53,10 @@ stamp [label= <<table>
     <td>Control Topology - KetraNet</td>
 </tr>    
 <tr><td>As of</td>
-    <td>2018-08-20</td>
+    <td>2018-10-31</td>
 </tr>
-   
 </table>> ]  
 
-{rank=same; stamp   ketran4_1 ketran4_2 ketran4_3}
-{rank=same; console computer touchpad }
-{rank=same; n1 n3 }
- } 
+{rank=same; computer stamp   }
+{rank=same; console computer   }
+} 
