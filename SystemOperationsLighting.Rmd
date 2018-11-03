@@ -332,6 +332,8 @@ Also the playback master must be up. It is the second slider from the left at th
 
 The first 5 sliders (#21-#26) on the bottom row are programmed to looks that are useful for a simple service. These sliders (as well as others) can be used in combination to build a look.
 
+###Playback Map
+
 ```{r simple}
 playback %>%
   #arrange(Playback) %>%
