@@ -193,28 +193,50 @@ Pendants over the main floor sections
 
 Pendants over the Balcony
 
-* These pendants have only the outer group of lamps. 
+* These pendants have only the outer group of lamps. The two inner pendants have two channels. The diagram exagertes the distance between them so the channel numbers can be read.
 
 ```{r clppendants, echo=FALSE}
 pendants <- tribble(
   ~Channel, ~x,  ~y, ~sz,
-  73,      -35,  -10,  1, #L+R Spot 
-  69,      -35,  -10,  7, #L+R Wash
-  73,       35,  -10,  1, #L+R Spot
-  69,       35,  -10,  7, #L+R Wash
-  68,      -10,  -10,  1, #Main Spot
-  71,      -10,  -10,  7, #Main Wash
-  68,       10,  -10,  1, #Main Spot
-  71,       10,  -10,  7, #Main Wash
+  73,      -30,  -0,  1, #L+R Spot 
+  69,      -30,  -0,  7, #L+R Wash
+  73,       30,  -0,  1, #L+R Spot
+  69,       30,  -0,  7, #L+R Wash
+
+  73,      -26,  -10,  1, #L+R Spot 
+  69,      -26,  -10,  7, #L+R Wash
+  73,       26,  -10,  1, #L+R Spot
+  69,       26,  -10,  7, #L+R Wash  
   
-  73,      -45,  -25,  1, #L+R Spot
-  69,      -45,  -25,  7, #l+R Wash
-  73,       45,  -25,  1, #L+R Spot 
-  69,       45,  -25,  7, #L+R Wash
-  68,      -10,  -25,  1, #Main Spot
-  71,      -10,  -25,  7, #Main Wash
-  68,       10,  -25,  1, #Main Spot
-  71,       10,  -25,  7, #Main Wash
+  73,      -41,  -10,  1, #L+R Spot
+  69,      -41,  -10,  7, #l+R Wash
+  73,       41,  -10,  1, #L+R Spot 
+  69,       41,  -10,  7, #L+R Wash
+  
+  73,      -34,  -20,  1, #L+R Spot
+  69,      -34,  -20,  7, #l+R Wash
+  73,       34,  -20,  1, #L+R Spot 
+  69,       34,  -20,  7, #L+R Wash    
+    
+  73,      -54,  -22,  1, #L+R Spot
+  69,      -54,  -22,  7, #l+R Wash
+  73,       54,  -22,  1, #L+R Spot 
+  69,       54,  -22,  7, #L+R Wash
+  
+  68,      -10,  -8,  1, #Main Spot
+  71,      -10,  -8,  7, #Main Wash
+  68,       10,  -8,  1, #Main Spot
+  71,       10,  -8,  7, #Main Wash
+  
+  68,      -10,  -16,  1, #Main Spot
+  71,      -10,  -16,  7, #Main Wash
+  68,       10,  -16,  1, #Main Spot
+  71,       10,  -16,  7, #Main Wash
+  
+  68,      -10,  -27,  1, #Main Spot
+  71,      -10,  -27,  7, #Main Wash
+  68,       10,  -27,  1, #Main Spot
+  71,       10,  -27,  7, #Main Wash
   
 #balcony
   32,        5,  -43, 1, #Balcony Booth
@@ -223,8 +245,8 @@ pendants <- tribble(
   72,        9,  -46, 3, #Balcony Wash
   72,       -9,  -46, 3, #Balcony Wash
 
-  72,       21,  -45, 3, #Balcony Wash
-  72,      -21,  -45, 3  #Balcony Wash
+  72,       25,  -45, 3, #Balcony Wash
+  72,      -25,  -45, 3  #Balcony Wash
 
 ) 
 
@@ -256,12 +278,12 @@ ggplot() +
 ```{r clpsconse}
 sconse1 <- tribble(
   ~Item, ~Channel, ~x, ~y,
-  1,           31, -38, 0,
-  2,           31, -45, -9,
-  3,           31, -53,  -18,
-  4,           31, -49, -31,
-  5,           31, -40, -40,
-  6,           31, -32, -48
+  1,           31, -39,   -3,
+  2,           31, -45,   -9,
+  3,           31, -51,  -15,
+  4,           31, -57,  -21,
+  5,           31, -49,  -32,
+  6,           31, -40,  -41
 )
 sconse2 <- sconse1 %>%
   mutate(Item=Item+6) %>%

@@ -57,7 +57,7 @@ Purpose of the lighting system:
 There are two mechanisms to control the lighting: 
 
 * A keypad located on the main floor by the south east auditorium doors. Users can select one of several preset configurations. 
-* For more sophisticated control, The primary lighting control console  is an ETC ColorSource 40AV console.  It is used for all lighting operations more sophisticated than can be accomplished via the touchpad panel.
+* For more sophisticated control, The primary lighting control console  is an ETC ColorSource 40AV console.  It is used for all lighting operations more sophisticated than can be accomplished via the keypad panel.
 
 [Back to top](#top)
 
@@ -131,7 +131,7 @@ activities %>%
 
 #Controlling the Lighting System
 
-Basic operations of the house lights can be accomplished by using the touchpad are the front of the auditorium (office side doors). One of several scenes can be selected. However, once the main lighting console is turned on, it takes over control of the system and this panel is disabled. See the section below for more details.
+Basic operations of the house lights can be accomplished by using the keypad at the front of the auditorium (office side doors). One of several scenes can be selected. During Sunday morning service, or other events when there is an operator in the balcony, the "Off" button should be selected. See the section below for more details.
 
 Advanced operations of house and theatre lighting is acccomplished via the lighting console in the balcony. See the section below for more details.
 
@@ -141,7 +141,116 @@ Advanced operations of house and theatre lighting is acccomplished via the light
 
 This is the primary and most capable way of controlling almost all lighting in the auditorium. Simple operations are fairly simple and yet it is not too hard to create some sophiscticated looks.  
 
-##Learning
+##Simple Console Operations
+In our standard settings, we use the *playback* mode to run our basic scenes. You must be in playback mode for this to work. A quick check is to look at the numbered buttons below the faders; if they are a pale purple and green then you are in the right mode. 
+
+There is a button on the left side of the screen that you touch to select playback mode; the yellow arrow in the picture below points at it.
+
+![Playback Mode - The yellow arrow points at the button](../../images/sol-cs40-playback.png)
+
+Also the playback master must be up. It is the second slider from the left at the top of the screen. 
+
+![Playback Master Fader - The yellow arrow points at the button Playback master](../../images/sol-cs40av-pb-master.jpg)
+
+The first 5 sliders (#21-#26) on the bottom row are programmed to looks that are useful for a simple service. These sliders (as well as others) can be used in combination to build a look.
+
+###Playback Map
+
+```{r simple}
+playback %>%
+  #arrange(Playback) %>%
+  filter(IsSimple =="Y") %>%
+  select(-IsSimple) %>%
+  kable() %>%
+  column_spec( 1,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+[Back to top](#top)
+
+##Intermediate Console Operations
+
+The other playback faders are used to control individual groups of lights. The first six have a designated special purpose for sound triggers.
+
+> Consider swapping Towers and Sconce.
+
+There are terms used in these descirptions to describe areas of the room that you need to know.
+
+Flares
+: similar in location to the towers, these are cone shaped lights which can be used to provide a contrasting overlay to the towers.
+
+House
+: All Pendants plus the under balcony pot lights
+
+Sconce
+: The wall mounted fixtures that light the outer aisles
+
+Scrim
+: portable white translucent panels on stage - currently white
+
+Stage Pots
+: The lights recessed mounted into the ceiling of the stage
+
+Towers
+: These are wide pillars of light that wash up the walls beside the screens
+
+Wall Wash
+: These are the ceiling mounted perimeter lights that wash down the walls including the bulkhead sideways wash.
+
+All of these have a group of three playbacks that are programmed for RGB. This provides an easy way to set the colour of that entire group by adjsuting the relative blend of red, green and blue.
+
+Some of the playback groups, for example the House, also have a fourth slider which is straight white. This is a quick way of getting to white for that group. 
+
+```{r intermediate}
+playback %>%
+#  arrange(Playback) %>%
+  select(-IsSimple) %>%
+  kable() %>%
+  column_spec( 1:2,   bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+[Back to top](#top)
+
+#Lighting Plots (Table of contents placeholder)
+
+`r knit_child('commonLightingPlots.Rmd', quiet=TRUE)`
+
+# Blinds and Shades
+
+We have two ways of controlling the light the enters the sanctuary via the exterior windows: semi-transparent shades and blackout blinds.
+
+### Shade Operation
+
+The shades are operated manually. There is a chrome chain in each window which runs the shade up or down.  
+
+### Blind Operation
+
+The blackout blinds operate on four banks of three blinds (one bank per wall). The switches are under the second desk near the computer.
+They are labelled: SE, NE, SW, and NW, which stands for the combinations of South, East, North and West.
+
+Each switch has three positions: Up, center and down. The Up and Down positions move the blinds in that direction. Centre is ‘off’, but does not stop a blind mid-way. When a blind is set to move in a direction it will do so until it is fully up or fully down. There are internal limit switches that will stop the blind at the limit. The switch does not have to be returned to the centre position.
+
+To stop a blind mid-way while travelling, momentarily flick the switch in the opposite direction and then return the switch to centre. If you pause too long in the opposite direction the blind will reverse direction rather than stop.
+
+When the service is over, please ensure that the blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.
+
+### Troubleshooting
+
+If a blind pops out of its track. 
+: Running the blinds up and down a **little** bit at a time can sometimes get them back in their track. An assistant at the blind can reach in behind and help guide them in. If it is more than a few inches, a ladder may be required to reinsert the blind into the track.
+
+If the playbacks do not seem to work
+: Two things to check. 1) ensure you are in playback mode and that the playback master is up. See Instructions in the Simple Console Operations section. 
+
+[Back to top](#top)
+
+#Lighting Tutorial
+
+In the sections to follow you will find specific videos for our video console as well as more general lighting concepts. 
+
+
+##Console Video Series
 
 There are 20 videos in the ColorSource Video Learning Series. The model we will have is the ColorSource 40AV. This list of videos is tagged into three categories: Basic, Intermediate and Advanced.  
 
@@ -318,113 +427,6 @@ vids %>%
 
 [Back to top](#top)
 
-
-##Simple Console Operations
-In our standard settings, we use the *playback* mode to run our basic scenes. You must be in playback mode for this to work. A quick check is to look at the numbered buttons below the faders; if they are a pale purple and green then you are in the right mode. 
-
-There is a button on the left side of the screen that you touch to select playback mode; the yellow arrow in the picture below points at it.
-
-![Playback Mode - The yellow arrow points at the button](../../images/sol-cs40-playback.png)
-
-Also the playback master must be up. It is the second slider from the left at the top of the screen. 
-
-![Playback Master Fader - The yellow arrow points at the button Playback master](../../images/sol-cs40av-pb-master.jpg)
-
-The first 5 sliders (#21-#26) on the bottom row are programmed to looks that are useful for a simple service. These sliders (as well as others) can be used in combination to build a look.
-
-###Playback Map
-
-```{r simple}
-playback %>%
-  #arrange(Playback) %>%
-  filter(IsSimple =="Y") %>%
-  select(-IsSimple) %>%
-  kable() %>%
-  column_spec( 1,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
-```
-
-[Back to top](#top)
-
-##Intermediate Console Operations
-
-The other playback faders are used to control individual groups of lights. The first six have a designated special purpose for sound triggers.
-
-> Consider swapping Towers and Sconce.
-
-There are terms used in these descirptions to describe areas of the room that you need to know.
-
-Flares
-: similar in location to the towers, these are cone shaped lights which can be used to provide a contrasting overlay to the towers.
-
-House
-: All Pendants plus the under balcony pot lights
-
-Sconce
-: The wall mounted fixtures that light the outer aisles
-
-Scrim
-: portable white translucent panels on stage - currently white
-
-Stage Pots
-: The lights recessed mounted into the ceiling of the stage
-
-Towers
-: These are wide pillars of light that wash up the walls beside the screens
-
-Wall Wash
-: These are the ceiling mounted perimeter lights that wash down the walls including the bulkhead sideways wash.
-
-All of these have a group of three playbacks that are programmed for RGB. This provides an easy way to set the colour of that entire group by adjsuting the relative blend of red, green and blue.
-
-Some of the playback groups, for example the House, also have a fourth slider which is straight white. This is a quick way of getting to white for that group. 
-
-```{r intermediate}
-playback %>%
-#  arrange(Playback) %>%
-  select(-IsSimple) %>%
-  kable() %>%
-  column_spec( 1:2,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
-```
-
-[Back to top](#top)
-
-#Lighting Plots (Table of contents placeholder)
-
-`r knit_child('commonLightingPlots.Rmd', quiet=TRUE)`
-
-# Blinds and Shades
-
-We have two ways of controlling the light the enters the sanctuary via the exterior windows: semi-transparent shades and blackout blinds.
-
-### Shade Operation
-
-The shades are operated manually. There is a chrome chain in each window which runs the shade up or down.  
-
-### Blind Operation
-
-The blackout blinds operate on four banks of three blinds (one bank per wall). The switches are under the second desk near the computer.
-They are labelled: SE, NE, SW, and NW, which stands for the combinations of South, East, North and West.
-
-Each switch has three positions: Up, center and down. The Up and Down positions move the blinds in that direction. Centre is ‘off’, but does not stop a blind mid-way. When a blind is set to move in a direction it will do so until it is fully up or fully down. There are internal limit switches that will stop the blind at the limit. The switch does not have to be returned to the centre position.
-
-To stop a blind mid-way while travelling, momentarily flick the switch in the opposite direction and then return the switch to centre. If you pause too long in the opposite direction the blind will reverse direction rather than stop.
-
-When the service is over, please ensure that the blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.
-
-### Troubleshooting
-
-If a blind pops out of its track. 
-: Running the blinds up and down a **little** bit at a time can sometimes get them back in their track. An assistant at the blind can reach in behind and help guide them in. If it is more than a few inches, a ladder may be required to reinsert the blind into the track.
-
-If the playbacks do not seem to work
-: Two things to check. 1) ensure you are in playback mode and that the playback master is up. See Instructions in the Simple Console Operations section. 
-
-[Back to top](#top)
-
-#Lighting Tutorial
-
 ##The Functions of Light
 
 Stage lighting has multiple functions, including:
@@ -521,7 +523,6 @@ Some instruments can have a gobo or break up pattern installed. This is typicall
 
 Channel
 : In the context of lighting at UAC, a channel is a configuration item in the colorSource console. It controls one to many DMX addresses. If the console knows what kind of instrument a channel is assigned to, it is automatically configured for the correct behaviours (colour, strobe, etc). 
-
 Dimmmer
 : A device which regulates the power sent to a lighting instrument (typically incandescent) this allows the intensity of the instrument to be varied. Usually DMX controlled, but could be controlled via an analog or proprietary protocols.
 
