@@ -44,7 +44,7 @@ dmx.details <- get.dmxdetails()
 ```
 
 # Introduction
-This document provides basic operating information for each of the major AV systems at Unionville Alliance Church.
+This document provides basic operating information for Lighting systems for the auditorium at Unionville Alliance Church.
 
 Purpose of the lighting system:
 
@@ -57,19 +57,23 @@ Purpose of the lighting system:
 There are two mechanisms to control the lighting: 
 
 * A keypad located on the main floor by the south east auditorium doors. Users can select one of several preset configurations. 
-* For more sophisticated control, The primary lighting control console  is an ETC ColorSource 40AV console.  It is used for all lighting operations more sophisticated than can be accomplished via the keypad panel.
+* For more sophisticated control there is a lighting control console located in the balcony (an ETC ColorSource 40AV console).  It is used for all lighting operations more sophisticated than can be accomplished via the keypad panel.
 
 [Back to top](#top)
 
 #Operating the Keypad
 
-There is a simple lighting control panel located next to the auditorium doors by the main office (south east). It enables the house lights to set according to several preset looks, of which there are 8. (Terry can change these as needed. Details in the System Desgin Guide.) These presets operate like "radio buttons", that is, selecting one preset, deselects the previous preset. 
+There is a simple lighting keypad located next to the auditorium doors by the main office (south east). It enables the house lights to set according to several preset looks, of which there are 8. (Terry can change these as needed. Details in the System Desgin Guide.) These presets operate like "radio buttons", that is, selecting one preset, deselects the previous preset. 
+
+The OFF preset should be selected when the room is not in use.
+
+A button turns blue when it is selected, orange otherwise.
 
 The keypad and the main console work together. The controls are added together; brightest wins. This means than if either control says a light is on, it will be on. For a light to be off, both must say it is off. 
 
-> as of Oct 25, these have not yet been programmed. 
+> as of Nov 6, these have not yet been programmed. 
 
-> The sconce lights also have an timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well. The timer is porgrammed to turn on the sconse during the evening hours (up to midnight), and Sunday morning.
+The sconce lights also have an timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well. The timer is porgrammed to turn on the sconse during the evening hours (up to midnight), and Sunday morning.
 
 > TODO: need to describe behaviours for: single click, double click, press and hold.
 
@@ -120,6 +124,8 @@ activities %>%
 #. Go to closet
 #. Turn on power bar in closet.
 #. Turn on big switch up high
+
+![The switch in the red box](../../images/sol-BalconyClosetPower.png)
 
 ## Power Off
 
