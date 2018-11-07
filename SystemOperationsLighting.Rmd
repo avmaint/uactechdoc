@@ -131,7 +131,7 @@ activities %>%
 
 #. To turn off, reverse the order and turn off.
 
-> When leaving the system for the day ensure that lower level control panel has control.
+> When leaving the system for the day ensure that lower level keypad is set of "off" (The button will be blue). 
 
 [Back to top](#top)
 
@@ -147,6 +147,8 @@ Advanced operations of house and theatre lighting is acccomplished via the light
 
 This is the primary and most capable way of controlling almost all lighting in the auditorium. Simple operations are fairly simple and yet it is not too hard to create some sophiscticated looks.  
 
+* What cannot be controlled from the console? The balcony railing lights, and the sconce light swtich (but if the sconce light switch is 'on' the console can control the sconce lights.) The emergency lighting is a completly independent system as well and is activated when there is a power outage.
+
 ##Simple Console Operations
 In our standard settings, we use the *playback* mode to run our basic scenes. You must be in playback mode for this to work. A quick check is to look at the numbered buttons below the faders; if they are a pale purple and green then you are in the right mode. 
 
@@ -158,9 +160,16 @@ Also the playback master must be up. It is the second slider from the left at th
 
 ![Playback Master Fader - The yellow arrow points at the button Playback master](../../images/sol-cs40av-pb-master.jpg)
 
-The first 5 sliders (#21-#26) on the bottom row are programmed to looks that are useful for a simple service. These sliders (as well as others) can be used in combination to build a look.
-
 ###Playback Map
+```{r}
+simplePlaybackCount <- playback %>%
+    filter(IsSimple =="Y") %>%
+    nrow()
+```
+
+There are `r simplePlaybackCount` playbacks that are useful for simple operations. The first three listed (#8,9 and 10) are for the absolute most basic functions. 
+
+The remaining playbacks listed are the first 5 sliders (#21-#26) on the bottom row. They are programmed to looks that are useful for a simple service. These sliders (as well as others) can be used in combination to build a look.
 
 ```{r simple}
 playback %>%
@@ -169,7 +178,8 @@ playback %>%
   select(-IsSimple) %>%
   kable() %>%
   column_spec( 1,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
+  kable_styling("striped", full_width = TRUE) %>%
+  row_spec(1:3, bold=T, background = "lightgrey")
 ```
 
 [Back to top](#top)
@@ -177,8 +187,6 @@ playback %>%
 ##Intermediate Console Operations
 
 The other playback faders are used to control individual groups of lights. The first six have a designated special purpose for sound triggers.
-
-> Consider swapping Towers and Sconce.
 
 There are terms used in these descirptions to describe areas of the room that you need to know.
 
@@ -203,9 +211,11 @@ Towers
 Wall Wash
 : These are the ceiling mounted perimeter lights that wash down the walls including the bulkhead sideways wash.
 
-All of these have a group of three playbacks that are programmed for RGB. This provides an easy way to set the colour of that entire group by adjsuting the relative blend of red, green and blue.
+All of these have a group of three playbacks that are programmed for RGB. This provides an easy way to set the colour of that entire group by adjsuting the relative blend of red, green and blue. Alternately you can select the channels and pick a colour using the colour chips.
 
-Some of the playback groups, for example the House, also have a fourth slider which is straight white. This is a quick way of getting to white for that group. 
+Some of the light groups, for example the House, also have a fourth slider which is straight white. This is a quick way of getting to white for that group. 
+
+>Note: if during the service there is a fire alarm, it would be appropriate to bring all house lights to full white. 
 
 ```{r intermediate}
 playback %>%
@@ -232,14 +242,14 @@ The shades are operated manually. There is a chrome chain in each window which r
 
 ### Blind Operation
 
-The blackout blinds operate on four banks of three blinds (one bank per wall). The switches are under the second desk near the computer.
+The blackout blinds operate as four banks of three blinds (one bank per wall). The switches are under the rear desk near the east end.
 They are labelled: SE, NE, SW, and NW, which stands for the combinations of South, East, North and West.
 
-Each switch has three positions: Up, center and down. The Up and Down positions move the blinds in that direction. Centre is ‘off’, but does not stop a blind mid-way. When a blind is set to move in a direction it will do so until it is fully up or fully down. There are internal limit switches that will stop the blind at the limit. The switch does not have to be returned to the centre position.
+Each switch has three positions: up, center and down. The up and down positions move the blinds in that direction. Centre is ‘off’, but does not stop a blind mid-way. When a blind is set to move in a direction it will do so until it is fully up or fully down. There are internal limit switches that will stop the blind at the limit. The switch does not have to be returned to the centre position.
 
 To stop a blind mid-way while travelling, momentarily flick the switch in the opposite direction and then return the switch to centre. If you pause too long in the opposite direction the blind will reverse direction rather than stop.
 
-When the service is over, please ensure that the blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.
+**When the service is over, please ensure that the blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.**
 
 ### Troubleshooting
 

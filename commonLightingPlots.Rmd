@@ -127,10 +127,10 @@ The several following diagrams in this section illustrate the physical layout of
 
 Each channel maps to one or more DMX addresses and is documented in the [DMX Details](#channel-and-dmx-details) section. 
 
-These diagrams are approximations dimension wise.  Also someone simplified. The stage has some rounded corners at the front which are not depcited. As well the stage is not quite symmetrical. 
+These diagrams are approximations dimension wise, also somewhat simplified. The stage has some rounded corners at the front which are not depcited. As well the physical stage is not quite symmetrical. 
 
 ##Theartrical Channels
-This first diagram shows full room and all theatrical fixtures, but excludes the architectural fixtures (i.e. Excludes house lights, stage pots, sconse, house pendants and under balcony pots.)
+This first diagram shows full room and all theatrical fixtures, and so excludes the architectural fixtures (i.e. Excludes house lights, stage pots, sconse, house pendants and under balcony pots.)
 
 ```{r clptchan, echo=FALSE}
   channels <-  dmx.details %>% filter(!is.na(x))
@@ -188,12 +188,12 @@ ggplot() +
 
 Pendants over the main floor sections
 
-* Each pendant has two groups of lamps. An outer group of four lamps and an inner single lamp group. The four outer lamps have a wide beam spread, the inner one is narrow. They are colour colour controllable (LED RGB).
+* Each pendant has two groups of lamps. An outer group of four lamps and an inner single lamp . The four outer lamps have a wide beam spread, the inner one is narrow. They are colour colour controllable (LED RGB).
 * The pendants over the "A" and "E" sections (extreme east and west sections) are independently controllable from the middle sections. 
 
 Pendants over the Balcony
 
-* These pendants have only the outer group of lamps. The two inner pendants have two channels. The diagram exagertes the distance between them so the channel numbers can be read.
+* These pendants have only two lamps. The two inner pendants have two channels. The diagram exagertes the distance between them so the channel numbers can be read. These two provide lighting for the technical teams for setting up.
 
 ```{r clppendants, echo=FALSE}
 pendants <- tribble(
@@ -268,12 +268,12 @@ ggplot() +
     coord_equal() + theme(legend.position="none") + scale_size_identity()
 ```
 
-##Sconce (Sconse along the main floor perimeter)
+##Sconce (Main floor perimeter)
 
 * These lamps are RGB lamps.
-* There is also a pair of 3-way light swtiches at the entrance doors that can turn off the lights. These are controlled via a two-way switch located by the south-east and north-east doors. The control at the south-east door has a programmable timer. This is to ensure that there is some lighting in the evenings between dusk and midnight to enable safe passage.
+* There is a pair of 3-way light swtiches at the entrance doors that can turn off the lights. These are controlled via a switch located by the south-east and north-east doors. The control at the south-east door has a programmable timer. This is to ensure that there is some lighting in the evenings between dusk and midnight to enable safe passage.
 
->TODO: Positions are only guesses based on memory. 
+>Note: Positions are notional. 
 
 ```{r clpsconse}
 sconse1 <- tribble(
