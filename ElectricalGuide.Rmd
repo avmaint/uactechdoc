@@ -184,18 +184,6 @@ DiagrammeR::grViz("eg-routes.gv" )
 ```	
 
 [Back to top](#top)
- 
-#Lutron Dimmers
->Needs to be updated as a result of lighting projects in 2017/2018
-
-```{r echo=FALSE}
-lutron %>% 
-  kable() %>%
-    column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
-```
-
-[Back to top](#top)
 
 # Schematic Diagram
 
