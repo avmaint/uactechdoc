@@ -524,7 +524,7 @@ The stream will be scheduled to go live at 10am.
 
 #Camera Settings
 
-The cameras revert to default settings when powered on. The defaults are not the best for out environment. We need to make some adjustments each day. 
+The cameras recall their settings for preset 1 when powered on. This includes the video settings documented here. You should not need to adjust these regularly.
 
 Each camera has a web page where we can make these updates. Open Safari and then for each camera do these steps:
 
