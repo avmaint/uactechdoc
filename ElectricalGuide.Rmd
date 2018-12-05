@@ -62,6 +62,7 @@ Changes that have been made since 1993:
     + Lutron Decommissioning for rest of House
     + circuits added from bulkhead panel to new FoH Lights
     + LMI dimmer decommissioning
+    + removal of Lobby thermostat as a result of Heating installation to lobby.
 
 Please notify Terry Doner of any changes or corrections for inclusion in the next release of these notes.
 
