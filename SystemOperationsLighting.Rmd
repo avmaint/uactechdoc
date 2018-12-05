@@ -232,6 +232,8 @@ playback %>%
 
 `r knit_child('commonLightingPlots.Rmd', quiet=TRUE)`
 
+[Back to top](#top)
+
 # Blinds and Shades
 
 We have two ways of controlling the light the enters the sanctuary via the exterior windows: semi-transparent shades and blackout blinds.
@@ -251,13 +253,17 @@ To stop a blind mid-way while travelling, momentarily flick the switch in the op
 
 **When the service is over, please ensure that the blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.**
 
-### Troubleshooting
+# Troubleshooting   
 
 If a blind pops out of its track. 
 : Running the blinds up and down a **little** bit at a time can sometimes get them back in their track. An assistant at the blind can reach in behind and help guide them in. If it is more than a few inches, a ladder may be required to reinsert the blind into the track.
 
+
 If the playbacks do not seem to work
 : Two things to check. 1) ensure you are in playback mode and that the playback master is up. See Instructions in the Simple Console Operations section. 
+
+If the lights are on and the console doesn't seem to have control
+: Verify that the console has some control by turining something else on. If that works then it is likely that a keypad preset is forcing the lights on. Go to the keypad on press "Off".
 
 [Back to top](#top)
 

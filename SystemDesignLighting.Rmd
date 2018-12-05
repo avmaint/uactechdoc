@@ -179,7 +179,7 @@ The keypad and the main console work together. The controls are added together; 
 
 > The sconce lights has a timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well.
 
-```{r}
+```{r keypadtop}
 DiagrammeR::grViz("sdl-topology2-keypad.gv")
 ```
 
@@ -194,7 +194,7 @@ The programming is managed via the Echo Access app which communicates via blueto
 > TODO: Fill in the details of the tasks which can be accomplished via each of these three sections.
 
 Access BT Interface
-: To be written
+: The second page is where you assign names
 
 Inspire 8 Button
 : Associates Button actions to presets.
@@ -213,7 +213,7 @@ preset2zone   <- get_preset2zone()
 zones2dmx     <- get_zones2dmx()
 ```
 
-```{r}
+```{r keypad}
 keypad %>%
   arrange(Button) %>%
   kable() %>%
@@ -226,7 +226,7 @@ Control of the ADJ Ultrabar 12 devices on the walls presents a challenge. These 
 
 >Note: Any one DMX address can only belong to one Zone.
  
-```{r dumpzones}
+```{r zoneConfig}
 #Zones to DMX mappings
 zones2dmx %>%
   arrange(Zone) %>%
@@ -234,6 +234,7 @@ zones2dmx %>%
   kable_styling("striped", full_width = TRUE)  %>%
     row_spec(1:nrow(zones2dmx), color="blue")
 ```
+
 
 ```{r configReport}
 rs <- keypad %>%
