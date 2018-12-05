@@ -31,7 +31,6 @@ fname <- paste(path, electricalfile, sep="/")
 panels <- read_excel( fname, sheet = "Panels")
 nodes  <- read_excel(fname, sheet = "Boxes")
 routes <- read_excel(fname, sheet = "Routes")
-lutron <- read_excel(fname, sheet = "Lutron")
 ```
 
 <strong><large>
