@@ -49,7 +49,8 @@ CHECK IT OUT BEFORE STARTING WORK.
 
 Changes that have been made since 1993:
 
-* pre 2000 - addition of Youth building. No details documented.
+* pre 2000 - addition of Youth building. 
+    + No details documented.
 * circa 2000 - Technical Power Panel on Main floor and revamp of balcony power
 * 2016 Installtion of the HVAC system
 * 2016 Installation of lobby thermostat
