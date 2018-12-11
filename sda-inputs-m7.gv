@@ -15,10 +15,10 @@ stage [label="{ Stage\nInputs
 m7 [label="Yamaha\nM7CL" fontsize=20 ]
 
 subgraph cluster_rear { label="Rear Desk" fontsize=15
-  zamua001 [label="(future) Wirelees receiver|ZAMU-A001"]
-  zamub001 [label="(future) Wirelees receiver|ZAMU-B001"]
-  zamub002 [label="(future) Wirelees receiver|ZAMU-B002"]
-  zamub003 [label="(future) Wirelees receiver|ZAMU-B003"]
+  zamua001 [label="Wirelees receiver|ZAMU-A001"]
+  zamub001 [label="Wirelees receiver|ZAMU-B001"]
+  zamub002 [label="Wirelees receiver|ZAMU-B002"]
+  zamub003 [label="Wirelees receiver|ZAMU-B003"]
 }
 
 {zamub001 zamub002 zamub003} -> m7
