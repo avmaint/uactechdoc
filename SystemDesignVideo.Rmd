@@ -20,20 +20,14 @@ require(knitr)
 require(kableExtra)
 ```
 
-```{r getdata}
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
-
-ct <- c(  "text", "text",  "numeric", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "date", "text", "text", "numeric", "text", "numeric", "numeric", "numeric"     
-)
-
-Tech_Inventory <- read_excel(fname, sheet = "TechInventory", col_types=ct)
-NetworkInventory <- read_excel(fname, sheet = "Network")
+```{r functions}
+source("./commonFunctions.R")
 ```
 
-```{r functions}
-source("./commonFunctions.R") 
+```{r getdata}
+Tech_Inventory <- get.inventory()
+network.data <- get.network()
+further <- get.further()
 ```
 
 ## Introduction
@@ -213,10 +207,49 @@ print_inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002", "ZVCU-A001",
            "ZVRU-A001", "ZVRU-A002", "ZVIU-A004"), Tech_Inventory)
 ```
 
+#Camera Settings
+
+The cameras recall their settings for preset 1 when powered on. This includes the video settings documented here. You should not need to adjust these regularly. If you need to reference the procedure to adjust the camera settings, see the Video system desgin guide.
+
+Each camera has a web page where we can make these updates. Open Safari and then for each camera do these steps:
+
+#. Enter the address for a camera in the address bar. They will be on the left bookmark bar but if not, listed here as well.
+```{r addresses}
+network.data  %>% 
+  filter(AssetTag %in% c("ZVCU-A001","ZVCU-A002","ZVCU-A003")) %>% 
+  select( AssetTag, URL , Notes ) %>%
+    kable(align="l") %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
+```
+
+#. At the top of the page, click on "Setting" and the on the left "Video" and the "Picture" tab
+    * You should **not** be challenged for a userid and password, but if you are skip these steps and let Terry know.
+#. Change Exposure Mode to "Iris Priority" 
+    * This instructs the camera to we are going to set the lens aperture (Iris) otherselves, and the camera will control the other exposure settings. 
+#. Change Exposure Compensatoin to "-4"
+    * This instructs the camera to make the image a little bit darker than it thinks it should be. We are trying to get good face exposure.
+#. Change Iris to "F1.6"
+    * This forces the camera to take in the maximum amount of light.
+#. Change White balance Mode to "Indoor"
+    * This tells the camera that the lighting will tend to be a warmer shade than standard daylight. (There is a "Standard"). The default make skin tones too orange.
+#. Change High Resolution mode to "On"
+    * Use the maximum resolution the camera is capable of.
+#. Change Aperture to "0"
+    * Maximum light 
+#. At the bottom of the page, click the "Ok" button. 
+    * You will be able to see the chnages take effect.
+
+Here is a screenshot of the page with the settings applied.
+
+![Camera settings](../../images/sdv-camerasettings.png)
+
+[Back to top](#top)
+
 # Network Details
 
 ```{r} 
-NetworkInventory %>% 
+network.data %>% 
 filter(Category=="Video") %>% 
 select(Location, Usage, Device, MAC, IP, URL, Notes) %>%
 kable() %>%
