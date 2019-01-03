@@ -307,13 +307,54 @@ print_inv(cs , Tech_Inventory)
 
 [Back to top](#top)
 
+#Dante Configuration
+
+Dante enables certain audio devices to route audio signals using standard network technologies. Routing is managed via software provided by Audinate called "Dante Controller".  
+
+Several audio devices are Dante capable, including both mixers, the Shure wireles microphones and the computers.
+
+As well as the controller software there are two other software titles that provide the capabiliites. 
+
+Dante Virtual Soundcard
+: This title is licensed for all three computers and enables the computer to send and receive multiple channels of audio over the network as if it were attached via a traditional sound card.
+ 
+ 
+Dante VIA
+: This title is also licensed for all three computers. It enables the routing of audio for specific applications within the computer and also within the Dante network.
+
+
+Dante Controller
+: This is free software. It is used to manage the Dante network and provides virtual patchbay capabilities to link sources (transmitters) and sinks (receivers).
+
+Visit https://www.audinate.com to learn more about Dante. 
+
+##Dante Standard Patch
+TODO: add the patch matrix
+
+
+##Dante Network Topology
+This is the network topology.
+```{r}
+DiagrammeR::grViz("sda-dante.gv")
+```
+
+```{r}
+cs <- c("ZAIU-B001", "ZAIU-B002" ,
+        "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003",
+         "NSCU-A003", "NSCU-A004", 
+        "CDWU-0009", "CDMU-A001", "CDMU-A002" 
+        )
+
+print_inv(cs , Tech_Inventory)
+```
+
 # Network Details
-Some of the audio system components have network (tcp/ip specicially) connectivity requriements. The primary audio console can be remotely operated from an iPad, so other devices also must be on the network as well, but they are personal devices and not part of this inventory. In the balcony, network switch NPHU-0004 provides wired access.    
+Some of the audio system components have network (tcp/ip specicially) connectivity requriements. The primary audio console can be remotely operated from an iPad, so other devices also must be on the network as well, but they are personal devices and not part of this inventory. In the balcony, network switch NSCU-A003 provides wired access.    
 
 ```{r} 
  NetworkInventory %>% 
   filter(Category=="Audio") %>% 
-  select(Location, Usage, Device, MAC, IP, URL, Notes) %>%
+  select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
   kable()  %>%
     kable_styling("striped", full_width = TRUE)
 ```
