@@ -186,13 +186,15 @@ The monitor amps are feed directly from the M7CL. The house amps are feed from t
 DiagrammeR::grViz("sda-foh.gv" )
 ```
 
+[Back to top](#top)
+
 ###Other FoH gear
 
 
 >TODO: write content
 
 ### Console Links
-There is an IO exapnsion card in each of the two consoles. This enables console-to-console communication. The busses in the DM1000 console are linked to the busses in the M7 using these cards. The FLow is from the DM1000 to the M7. The link cards are in slot one of each console.
+There is are adat IO exapnsion card in each of the two consoles. This enables console-to-console communication. The busses in the DM1000 console are linked to the busses in the M7 using these cards. The Flow is from the DM1000 to the M7. The link cards are in slot one of each console.
 
 There is also a midi link between the two which enables synchronized scene recall.
 
@@ -200,26 +202,37 @@ There is also a midi link between the two which enables synchronized scene recal
 DiagrammeR::grViz("sda-links.gv" )
 ```
 
-#### DM1K Slot 1 Ouput Assignments
+More detail about the Dante configuration can be found in the Dante section.
 
-| Bus     | \ | Usage |
-|-----------|-|-------------|
-| Aux 1-6   | | Monitor 1-6 |
-| Aux 8     | | Record      |
-| Aux 15-16 | | Stereo LR   |
-|           | |             |
+```{r lnks}
+links <- tribble(
+~Console, ~Slot, ~Direction, ~Channel, ~Assignment,
+"DM1K", 1, "Out", "1-6",   "Monitor 1-6",
+"DM1K", 1, "Out", "8",     "Record",
+"DM1K", 1, "Out", "15-16", "Stereo LR",
+"M7CL", 1, "In",  "1-6",   "Mix 1-6",
+"M7CL", 1, "In",  "8",     "Mix 14",
+"M7CL", 1, "In",  "13-14", "Cue LR",
+"M7CL", 1, "In",  "15-16", "Stereo LR",
+"M7CL", 1, "In",  "16",    "Mono",
+"M7CL", 2, "In",  "1-10",  "Wireless Handheld",
+"DM1K", 2, "In",  "1-6",   "Wireless Beltpack"
+)
 
-#### M7CL Slot 1 Input Assignments
+#todo apply row groupings on the Console and Slot / direction columnes
+links %>%
+  kable( ) %>%
+    kable_styling("striped", full_width = TRUE) %>%
+    group_rows("DM1K Slot 1 Out", 1, 3) %>%
+    group_rows("M7CL Slot 1 In", 4, 8) %>% 
+    group_rows("M7CL Slot 2 In", 9, 9) %>% 
+    group_rows("DM1K Slot 2 In", 10, 10) 
+   # collapse_rows(columns = 1:3 )
+  
+```
 
-| Input | \ | Bus Assignment |
-|-----------|-|-------------|
-| 1-6   |   | Mix 1-6       |
-| 8     |   | Mix 14        |
-| 13-14 |   | Cue LR        |
-| 15-16 |   | Stereo LR     |
-| 16    |   | Mono          |
-|           | |             |
-
+[Back to top](#top)
+ 
 
 ### M7 Mix Bus Usage
 
@@ -265,13 +278,11 @@ The user defined keys allow the operator to quickly acccess common features.
 |12|Talkback - operator to stage communication|
 |||
 
-
 [Back to top](#top)
-
 
 ## Amplifiers
 
-Now lets finish our journey the the speakers.  
+Now lets finish our journey to the speakers.  
 
 ```{r outputs}
 DiagrammeR::grViz("sda-outputs.gv")
@@ -326,11 +337,185 @@ Dante VIA
 Dante Controller
 : This is free software. It is used to manage the Dante network and provides virtual patchbay capabilities to link sources (transmitters) and sinks (receivers).
 
-Visit https://www.audinate.com to learn more about Dante. 
+Visit https://www.audinate.com to learn more about Dante. Audinate have a very good certification series of videos on youtube.
 
 ##Dante Standard Patch
 TODO: add the patch matrix
 
+
+```{r try , eval=FALSE}
+# scratch segemnt to play with column subsetting
+a <- c( 1, NA, NA, NA)
+b <- c(NA, 1, NA,NA)
+c <- c(6, 7, 8, NA)
+d <- data.frame(cbind(a,b,c)) 
+d
+#d %>% select_if(~sum(!is.na(.)) > 0) 
+#d[complete.cases(d)]
+
+#d %>% filter_all( all_vars( is.na(.))   )
+
+#d %>% na.omit()
+
+#d[ rowSums(is.na(d)) < length(d),  ]
+
+d %>% mutate(t = rowSums(., na.rm=TRUE))
+```
+
+
+```{r matixdata}
+devices <- tribble(
+~AssetTag, ~Desc, ~isTransmitter, ~isReceiver,
+"ZAIU-B001", "IO card in M7CL", TRUE, TRUE,
+"ZAIU-B002", "IO card in DM1K", TRUE, TRUE,
+"ZAMU-A001", "SHURE ULXD",      TRUE, FALSE,
+"ZAMU-B001", "SHURE ULXD",      TRUE, FALSE,
+"ZAMU-B002", "SHURE ULXD",      TRUE, FALSE,
+"ZAMU-B003", "SHURE ULXD",      TRUE, FALSE,
+"CDWU-0009", "Computer",        TRUE, TRUE,
+"CDMU-A001", "Computer",        TRUE, TRUE,
+"CDMU-A002", "Computer",        TRUE, TRUE
+)
+
+io.card <- data.frame(AssetTag="",
+                      Dir=c(rep("T",16),rep("R",16)),
+                      Num=c(seq(1,16), seq(1,16)) )
+ZAIUB001 <- io.card
+ZAIUB001$AssetTag <- "ZAIU-B001" 
+ZAIUB002 <- io.card
+ZAIUB002$AssetTag <- "ZAIU-B002"
+
+shure <- data.frame(AssetTag="",
+                      Dir= rep("T",4) ,
+                      Num= seq(1,4)  )
+
+ZAMUA001 <- shure  
+ZAMUA001$AssetTag <- "ZAMU-A001" 
+
+ZAMUB001 <- shure
+ZAMUB001$AssetTag <- "ZAMU-A001" 
+
+ZAMUB002 <- shure
+ZAMUB002$AssetTag <- "ZAMU-B002" 
+
+ZAMUB003 <- shure
+ZAMUB003$AssetTag <- "ZAMU-B003" 
+
+comp <- data.frame(AssetTag="",
+                   Dir=c(rep("T",2),rep("R",2)),
+                   Num=c(seq(1,2),  seq(1,2)) )
+
+CDWU0009 <- comp  
+CDMUA001 <- comp  
+CDMUA002 <- comp
+CDWU0009$AssetTag <- "CDWU-0009"  
+CDMUA001$AssetTag <- "CDMU-A001"  
+CDMUA002$AssetTag <- "CDMU-A002"
+
+channels <- rbind(ZAIUB001, ZAIUB002,
+                  ZAMUA001, ZAMUB001, ZAMUB002, ZAMUB003,
+                  CDWU0009, CDMUA001, CDMUA002)
+
+channels$Name <- paste0(channels$AssetTag,"-",channels$Num)
+# channels %>%
+#     kable()
+
+xmtrs <- channels %>% filter(Dir=="T")
+rcvrs <- channels %>% filter(Dir=="R")
+
+col.names <- xmtrs %>% select(Name) 
+col.names <- as.vector(col.names)
+row.keys <- rcvrs %>% select(Name, Num)
+
+routing <- data.frame(matrix(ncol=nrow(xmtrs)+1, nrow=38))
+colnames(routing) <- c("Name", col.names$Name)
+
+r2 <- rcvrs %>% select(Name )
+routing$Name <- r2$Name
+
+pairs <- tribble(
+  ~x, ~r,
+  #wireless Handhelds
+  "ZAMU-A001-1",  "ZAIU-B001-1",
+  "ZAMU-A001-2",  "ZAIU-B001-2",
+  "ZAMU-A001-3",  "ZAIU-B001-3",
+  "ZAMU-A001-4",  "ZAIU-B001-4",
+  "ZAMU-B001-1",  "ZAIU-B001-5",
+  "ZAMU-B001-2",  "ZAIU-B001-6",
+  "ZAMU-B001-3",  "ZAIU-B001-7",
+  "ZAMU-B001-4",  "ZAIU-B001-8",
+  "ZAMU-B002-1",  "ZAIU-B001-9",
+  "ZAMU-B002-2",  "ZAIU-B001-10",
+  
+  #wireless beltpacks
+  "ZAMU-B002-3",  "ZAIU-B002-1",
+  "ZAMU-B002-4",  "ZAIU-B002-2",
+  "ZAMU-B003-1",  "ZAIU-B002-3",
+  "ZAMU-B003-2",  "ZAIU-B002-4",
+  "ZAMU-B003-3",  "ZAIU-B002-5",
+  "ZAMU-B003-4",  "ZAIU-B002-6"
+)
+
+for (i in 1:nrow(pairs)) {
+  x <- pairs[i,]$x
+  r <- pairs[i,]$r
+  routing[routing$Name == r,x] <- 1
+}
+
+#routing$rs <- rowSums(routing, na.rm = TRUE)
+
+routing %>% mutate( rs = rowSums( .[,2:nc] ,na.rm=TRUE)) %>% View()
+
+```
+
+
+```{r printmatixall}
+
+#todo: for printing - remove rows and columns which are all NA 
+
+routing  %>% 
+    mutate( rs = rowSums( .[,2:ncol(.)] ,na.rm=TRUE)) %>%
+    filter(rs >0) %>%
+    select(-rs) %>%
+    kable(caption="Whole Routing Matrix", format = "html") %>%
+    kable_styling("striped" , full_width= F) %>%
+    row_spec(0, angle=-90) %>%
+    kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+
+```{r printmatixhh}
+
+#todo: for printing - remove rows and columns which are all NA 
+
+routing %>% #[ rowSums(is.na(routing)) < length(routing)-1,  ]%>%
+    select("Name", starts_with("ZAMU-A"),
+                   starts_with("ZAMU-B001"),
+                  "ZAMU-B002-1", "ZAMU-B002-2"
+           ) %>%    
+    mutate( rs = rowSums( .[,2:ncol(.)] ,na.rm=TRUE)) %>%
+    filter(rs >0) %>%
+    select(-rs) %>%
+    kable(caption="Wireless Handheld Sources", format = "html") %>%
+    kable_styling("striped" , full_width= F) %>%
+    row_spec(0, angle=-90) %>%
+     kable_styling(bootstrap_options = c("striped", "hover"))
+
+
+```
+
+```{r printmatrixbp}
+routing[ rowSums(is.na(routing)) < length(routing)-1,  ] %>%
+    select("Name",  
+                   starts_with("ZAMU-B003"),
+                  "ZAMU-B002-3", "ZAMU-B002-4"
+           ) %>%
+      select_if(~sum(!is.na(.)) > 0) %>% #eliminate columns with no mappings
+
+    kable(caption="Wireless Beltpacks Sources", format = "html") %>%
+    kable_styling("striped" , full_width= F) %>%
+    row_spec(0, angle=-90)
+```
 
 ##Dante Network Topology
 This is the network topology.
