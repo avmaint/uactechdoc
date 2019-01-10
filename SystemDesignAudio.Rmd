@@ -219,7 +219,6 @@ links <- tribble(
 "DM1K", 2, "In",  "1-6",   "Wireless Beltpack"
 )
 
-#todo apply row groupings on the Console and Slot / direction columnes
 links %>%
   kable( ) %>%
     kable_styling("striped", full_width = TRUE) %>%
@@ -324,6 +323,8 @@ Dante enables certain audio devices to route audio signals using standard networ
 
 Several audio devices are Dante capable, including both mixers, the Shure wireles microphones and the computers.
 
+The Dante card in the M7CL is set as the preferred master clock and the first channel on that card is tied to the console clock.
+
 As well as the controller software there are two other software titles that provide the capabiliites. 
 
 Dante Virtual Soundcard
@@ -339,31 +340,26 @@ Dante Controller
 
 Visit https://www.audinate.com to learn more about Dante. Audinate have a very good certification series of videos on youtube.
 
-##Dante Standard Patch
-TODO: add the patch matrix
-
-
-```{r try , eval=FALSE}
-# scratch segemnt to play with column subsetting
-a <- c( 1, NA, NA, NA)
-b <- c(NA, 1, NA,NA)
-c <- c(6, 7, 8, NA)
-d <- data.frame(cbind(a,b,c)) 
-d
-#d %>% select_if(~sum(!is.na(.)) > 0) 
-#d[complete.cases(d)]
-
-#d %>% filter_all( all_vars( is.na(.))   )
-
-#d %>% na.omit()
-
-#d[ rowSums(is.na(d)) < length(d),  ]
-
-d %>% mutate(t = rowSums(., na.rm=TRUE))
+##Dante Network Topology
+This is the network topology.
+```{r}
+DiagrammeR::grViz("sda-dante.gv")
 ```
 
+```{r}
+cs <- c("ZAIU-B001", "ZAIU-B002" ,
+        "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003",
+         "NSCU-A003", "NSCU-A004", 
+        "CDWU-0009", "CDMU-A001", "CDMU-A002" 
+        )
 
-```{r matixdata}
+print_inv(cs , Tech_Inventory)
+```
+
+##Dante Standard Patch
+The patching between inputs and output is managed by "Dante Controller" software on a computer.  
+  
+```{r matrixdata}
 devices <- tribble(
 ~AssetTag, ~Desc, ~isTransmitter, ~isReceiver,
 "ZAIU-B001", "IO card in M7CL", TRUE, TRUE,
@@ -417,18 +413,15 @@ channels <- rbind(ZAIUB001, ZAIUB002,
                   CDWU0009, CDMUA001, CDMUA002)
 
 channels$Name <- paste0(channels$AssetTag,"-",channels$Num)
-# channels %>%
-#     kable()
 
 xmtrs <- channels %>% filter(Dir=="T")
 rcvrs <- channels %>% filter(Dir=="R")
 
-col.names <- xmtrs %>% select(Name) 
-col.names <- as.vector(col.names)
-row.keys <- rcvrs %>% select(Name, Num)
+col.names <- xmtrs %>% select(Name) %>% pull()
+row.keys  <- rcvrs %>% select(Name, Num)
 
 routing <- data.frame(matrix(ncol=nrow(xmtrs)+1, nrow=38))
-colnames(routing) <- c("Name", col.names$Name)
+colnames(routing) <- c("Name", col.names) 
 
 r2 <- rcvrs %>% select(Name )
 routing$Name <- r2$Name
@@ -461,17 +454,9 @@ for (i in 1:nrow(pairs)) {
   r <- pairs[i,]$r
   routing[routing$Name == r,x] <- 1
 }
-
-#routing$rs <- rowSums(routing, na.rm = TRUE)
-
-routing %>% mutate( rs = rowSums( .[,2:nc] ,na.rm=TRUE)) %>% View()
-
 ```
 
-
-```{r printmatixall}
-
-#todo: for printing - remove rows and columns which are all NA 
+```{r printmatixall, eval=FALSE}
 
 routing  %>% 
     mutate( rs = rowSums( .[,2:ncol(.)] ,na.rm=TRUE)) %>%
@@ -486,51 +471,35 @@ routing  %>%
 
 ```{r printmatixhh}
 
-#todo: for printing - remove rows and columns which are all NA 
-
-routing %>% #[ rowSums(is.na(routing)) < length(routing)-1,  ]%>%
+routing %>%  
     select("Name", starts_with("ZAMU-A"),
                    starts_with("ZAMU-B001"),
                   "ZAMU-B002-1", "ZAMU-B002-2"
            ) %>%    
+    select(-contains(".")) %>% #Dont know how these columns are created
     mutate( rs = rowSums( .[,2:ncol(.)] ,na.rm=TRUE)) %>%
     filter(rs >0) %>%
     select(-rs) %>%
+    mutate_all(funs(ifelse(is.na(.), "", .))) %>%
     kable(caption="Wireless Handheld Sources", format = "html") %>%
     kable_styling("striped" , full_width= F) %>%
     row_spec(0, angle=-90) %>%
-     kable_styling(bootstrap_options = c("striped", "hover"))
-
-
+    kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
 ```{r printmatrixbp}
-routing[ rowSums(is.na(routing)) < length(routing)-1,  ] %>%
+routing %>%  
     select("Name",  
                    starts_with("ZAMU-B003"),
                   "ZAMU-B002-3", "ZAMU-B002-4"
            ) %>%
-      select_if(~sum(!is.na(.)) > 0) %>% #eliminate columns with no mappings
-
+    mutate( rs = rowSums( .[,2:ncol(.)] ,na.rm=TRUE)) %>%
+    filter(rs >0) %>%
+    select(-rs) %>%
+    mutate_all(funs(ifelse(is.na(.), "", .))) %>%
     kable(caption="Wireless Beltpacks Sources", format = "html") %>%
     kable_styling("striped" , full_width= F) %>%
-    row_spec(0, angle=-90)
-```
-
-##Dante Network Topology
-This is the network topology.
-```{r}
-DiagrammeR::grViz("sda-dante.gv")
-```
-
-```{r}
-cs <- c("ZAIU-B001", "ZAIU-B002" ,
-        "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003",
-         "NSCU-A003", "NSCU-A004", 
-        "CDWU-0009", "CDMU-A001", "CDMU-A002" 
-        )
-
-print_inv(cs , Tech_Inventory)
+    row_spec(0, angle=-90 )
 ```
 
 # Network Details
