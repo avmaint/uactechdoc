@@ -1,0 +1,174 @@
+---
+title: "graph"
+author: "Terry Doner"
+date: '2019-01-27'
+output: html_document
+---
+
+A test of producing data-driven network graphics. 
+Easy to show physical connectivity (Layer 1), more difficult to also show phyiscal location on the same diagram.
+
+In this test the connectivity is encoded in this script. A more general implementation would add the "distribution layer switch" information to the NetworkInventory database. 
+
+```{r options, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
+```
+
+```{r eval=FALSE}
+install.packages("ggraph")
+install.packages("tidygraph")
+```
+
+```{r packages}
+require(ggraph)
+require(tidygraph)
+require(kableExtra)
+require(dplyr)
+require(readxl)
+require(tidyr)
+```
+ 
+```{r funcs}
+source("/Users/donert/Documents/UACTech/SystemDocumentation/github/uactechdoc/commonFunctions.R")
+#/Users/donert/Documents/UACTech/SystemDocumentation/github/uactechdoc
+```
+ 
+```{r data}
+NetworkInventory <- get.network()
+TechInventory <- get.inventory()
+```
+ 
+```{r net_map}
+
+net_map  <- tribble(
+  ~from, ~to, 
+  "rogers", "router",
+  "router", "NSCU-A001",
+  "NSCU-A001", "NSCU-A003",
+  "NSCU-A001", "NSCU-A002",
+  "NSCU-A001", "NSCU-A005",
+  "NSCU-A001", "ap21",
+  
+  "NSCU-A002", "ap11",
+  "NSCU-A002", "ap12",
+  "NSCU-A002", "ap13",
+  "NSCU-A002", "ap14",
+  "NSCU-A002", "ap15",
+  
+  "NSCU-A005", "ZVVU-A001",
+  "NSCU-A005", "ZVVU-A002",
+  "NSCU-A005", "ZVVU-A003",
+  "NSCU-A005", "ap23",
+  "NSCU-A005", "ap24",
+  "NSCU-A005", "ap25",
+  
+  "NSCU-A003", "ZAKU-0001",
+  "NSCU-A003", "ZAKU-0002",
+  "NSCU-A003", "ZAMU-A001",
+  "NSCU-A003", "ZAMU-B001",
+  "NSCU-A003", "ZAMU-B002",
+  "NSCU-A003", "ZAMU-B003",
+  "NSCU-A003", "ZAIU-B001",
+  "NSCU-A003", "ZAIU-B002",
+  
+  "NSCU-A003", "NSCU-A004",
+
+  "NSCU-A004", "ZVCU-A001",
+  "NSCU-A004", "ZVCU-A002",
+  "NSCU-A004", "ZVCU-A003",
+  "NSCU-A004", "ZVKU-A004",
+  "NSCU-A004", "ZVRU-A001",
+  "NSCU-A004", "ZVRU-A002",
+  "NSCU-A004", "ZVKU-A002",
+  "NSCU-A004", "ZVKU-A001",
+  "NSCU-A004", "ZLKU-B001",
+
+  "NSCU-A004", "CDMU-A001",
+  "NSCU-A004", "CDMU-A002",
+  "NSCU-A004", "CDWU-0009"
+)
+```
+
+```{r}
+graph <- as_tbl_graph(net_map ) %>% 
+    mutate(Type = ifelse( centrality_degree(mode = 'out')  >0,  "Core" , "Edge" )) %>%
+    mutate(Type = ifelse( substr(name,1, 2) =="ap", "WAP", Type) ) %>%
+    filter(Type=="Core")
+```
+
+```{r}
+ggraph(graph, layout = 'kk') + 
+    geom_edge_fan(aes(alpha = ..index..), show.legend = FALSE) + 
+    theme_graph(foreground = 'steelblue', fg_text_colour = 'white') +
+    geom_node_label(aes(label=name, fill=Type), alpha=0.5)
+```
+ 
+```{r}
+get_AssetTags <- function(fromto) {
+  at <- net_map %>% 
+    gather("Dir", "AssetTag", from:to ) %>% 
+    select(AssetTag) %>% 
+    unique()
+  
+  return(at)
+}
+
+graph_it <- function(data, node) { 
+  gd <- data %>% filter(from==node )
+
+gr <- as_tbl_graph(gd) %>% 
+    mutate(Type = ifelse( centrality_degree(mode = 'out')  >0,  "Core" , "Edge" )) %>%
+    mutate(Type = ifelse( substr(name,1, 2) =="ap", "WAP", Type) )
+
+a<- ggraph(gr, layout = 'nicely') + 
+    geom_edge_fan(aes(alpha = ..index..), show.legend = FALSE) + 
+    theme_graph(foreground = 'steelblue', fg_text_colour = 'white') +
+    geom_node_label(aes(label=name, fill=Type), alpha=0.5) +
+    theme(legend.position="none")
+
+selected.at <- as_tibble(gr) %>%
+               mutate(AssetTag = name) 
+
+b <- merge(NetworkInventory, selected.at) %>% 
+    select(AssetTag, Location, Device, Usage) %>%
+    kable(align="l")  
+
+list(graph=a,data=b)
+}
+```
+
+```{r}
+o <- graph_it(net_map , "NSCU-A001")
+o$graph
+o$data
+o <- graph_it(net_map , "NSCU-A002")
+o$graph
+o$data
+o <- graph_it(net_map , "NSCU-A003")
+o$graph
+o$data
+o <- graph_it(net_map , "NSCU-A004")
+o$graph
+o$data
+o <- graph_it(net_map , "NSCU-A005")
+```
+ 
+```{r scratch, eval=FALSE}
+
+
+selected.at <- get_AssetTags(net_map)
+
+merge(NetworkInventory, selected.at) %>% 
+    select(AssetTag, Location, Device, Usage) %>%
+    kable(align="l")
+
+```
+ 
+ location hierarchy
+ org
+ --campus
+ ---building
+ ----level
+ -----room
+ ------container (rack/desk)
+ -------position (u count from top, U21-2/3 = 21 units down, 2nd of 3 devices)
