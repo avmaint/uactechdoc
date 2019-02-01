@@ -458,7 +458,7 @@ Why #2 for Skype? In this situation you would want the skype video output (from 
 
 # Livestreaming
 
-We now stream our entire service to "FaceBook Live". This is how it works. The "Program" output from the ATEM is wired into the into of the "Web Presenter" box. Its output is feed via USB to the into of the computer. The computer sees that devices as a web cam.
+We stream our entire service to "FaceBook Live". This is how it works. The "Program" output from the ATEM is wired into the into of the "Web Presenter" box. Its output is feed via USB to the into of the computer. The computer sees that devices as a web cam.
 
 ```{r}
 d <- 'digraph livestreaming { 
@@ -478,7 +478,7 @@ rswitch [
     {{<al>AudioL}|{<ar>AudioR}|
       {<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}
       |{<i5>sdi|In5}|{<i6>sdi|In6}|{<i7>sdi|In7}|{<i8>sdi|In8}}
-      |{Recording Switcher|ZVKU-A003}|
+      |{Recording Switcher  (ZVKU-A003)}|
       {{Out1|<o1>sdi}|{Out2|<o2>sdi}|{Out3|<o3>sdi}|{Out4|<o4>sdi}|{Aux|<aux>sdi}|{mv|<mv>hdmi}}
     }"
 ]
@@ -486,18 +486,18 @@ rswitch [
 webp [
   label="{
     <i1>sdi|in1
-    |{Web Presenter|ZVIU-A004}
+    |{Web Presenter (ZVIU-A004)}
     |<o1>usb
     }"
   tooltip="BMD Web Presenter"
 ]
-cdmua002 [label="{{<usb>usb}|{iMac 21|CDMU-A002}|{<ethernet>ethernet}}"]
+cdmua002 [label="{{<usb>usb}|{iMac 21 (CDMU-A002)}|{<ethernet>ethernet}}"]
 
 rswitch:o3 -> webp:i1 
 webp:o1 -> cdmua002:usb
 cdmua002:ethernet -> Facebook
      
-} '
+}'
 
 DiagrammeR::grViz(d)
 ```
@@ -506,14 +506,24 @@ We use a program called OBS to stream the web cam feed to facebook live.
 
 * (It is free to download and use, and runs on Windows and Mac. So you can install it on your own machine if you want to become familiar with it.)
 
-The is the details of the setup.
+__The is the details of the setup__
 
-* Sometime during the week, Kris (or another facebook admin) will generate a streaming key and place in the  week's dropbox folder in a file called "live stream key.txt" or something similar. It would like something like "444241729362798?ds=1&a=ATiKDmZGnUEDUDV1". 
+__During the Week__
+
+Kris (or another facebook admin) will generate a streaming key and place in the  week's dropbox folder in a file called "live stream key.txt" or something similar. It would like something like "444241729362798?ds=1&a=ATiKDmZGnUEDUDV1". 
 The stream will be scheduled to go live at 10am.
-* open OBS and go into Settings, and then the "Stream" section. Paste the key into the "Stream Key" field. Press "ok"
-* at about 9:30am, press the "Start Streaming" button. It will then change to be the "stop streaming" button. Verify that the connection is working in a couple of ways: 1) the streaming button changed from "Start Streaming" to "Stop Streaming", 2) in the bottom right of the OBS screen there is a small green square indicating that our bit rate is good. 
+
+__Sunday - Approximately 9:30 am __
+
+* Open OBS (computer) and go into Settings, and then the "Stream" section. Paste the key into the "Stream Key" field. Press "ok"
+* Press the "Start Streaming" button. It will then change to be the "stop streaming" button. Verify that the connection is working in a couple of ways: 
+    #. The streaming button changed from "Start Streaming" to "Stop Streaming", 
+    #. in the bottom right of the OBS screen there is a small green square indicating that our bit rate is good. 
 * From the scene list select the scene "02 Announcement Clock", and then click the  "transition" button.
-* at 10am select the scene "xx web presenter with date", and click "transition".
+
+__At 10:00am__
+
+* Via OBS, select the scene "xx web presenter with date", and click "transition".
 * after a few seconds, select the "xx Web Presenter scene", and click "transition".
 * check to make sure we are still streaming.
 * at the end of the service, ckick "Stop Streaming".
@@ -576,10 +586,6 @@ Now to touch up the audio.
 
 #. Drag and drop AuDynamicsProcessor (from the left side) on to the audio track.
 ![Dynamics Processor](../../images/sov-edit-AUDynamics.png)
-
-#. Right click on the audio track to get the menu and select "Clip Attributes", select "embedded Channel 2" for both tracks.
-![Clip Attributes Menu](../../images/sov-edit-ClipAttributesMenu.png)
-![Source Channel](../../images/sov-edit-SourceChannel.png)
 
 ## Deliver tab
 
@@ -683,20 +689,29 @@ In finder you will see the media card along the left side. Beside that there is 
 * When approaching a transition, line up a camera to anticpate what is coming. You may prefer a long shot camera until you establish exactly where the action is happening.
 * When a transition will involve a significant change in scene brightness, manually  adjust camera exposure for what is coming, rather than for the darkness. 
 
-## Typical service structure 
+#Troubleshooting
 
-Our typical service content should follow a standard structure. 
+__Missing the video feed from ProPresenter (Lyrics)__
 
-* Intro Bumper - this will be short and video - less than 10 seconds.
-* (Optional) Selected camera shots with Lyrics as an insert or visa versa.
-* The message portion of the video would contain:
-    * Series Bumper
-    * Message Bumper which would introduce the topic for the week (this could be a static image)
-    * A lower 3rd to introduce the speaker.
-* Exit trailer (thinking a static image in which we could overlay PiP) which would contain
-    * © Copyright 2017 Unionville Alliance Church
-    * Our CCLI License notice
-    * A hook to our web site
+* This is likely caused by the Propresnter computer being awaken before the video recording system. 
+* To fix, there are a few different ways, all of which reset the output resolution of the Mac (CDMU-A001)
+    #. Power cycle the FX4 (power switch on the back)
+    #. pull up the Mac display settings and change it to something and change it back - it should reset. 
+    #. OPen Wall Designer and reload the Fx4 settings.
+* In all cases the projectors will flicker as they resync and Propresenter will need to be restarted.
+
+__No video signal visible in OBS, but it is visible on Web Presenter__
+ 
+* Pull the plug and reinsert on the USB into to the computer (CDMU-A002) labelled CDMU-A002
+
+__The video image on OBS is 'frozen' (and WebPresenter too)__
+
+* The recorders are in playback mode. Press record and stop and it should be fixed.
+
+__Don't see lyric overlay as expected (when pressing "Key 1 Cut")__
+
+* If macro 1 was not run, run it.
+* Check to ensure that the Upstream Key settings in the software is set to the first tab (Luma).
 
 #Appendix
 
