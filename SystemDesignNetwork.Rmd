@@ -5,8 +5,6 @@ date: "`r format(Sys.time(), '%B %d %Y')`"
 output:
   html_document:
     toc: yes
-  pdf_document:
-    toc: yes
 ---
 
 ```{r options, include=FALSE}
@@ -15,51 +13,49 @@ knitr::opts_chunk$set(warning = FALSE)
 options(knitr.table.format = "html") 
 ```
 
-```{r setup, include=FALSE}
+```{r functions}
+source("commonFunctions.R")
+```
+ 
+```{r packages, include=FALSE}
 require(readr)
 require(dplyr)
 require(readxl)
 require(knitr)
 require(formattable)
 require(kableExtra)
+```
 
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
-
-ct <- c(  "text"  , "text" ,  "numeric" , "text", "text" , "text"   , 
-          "text", "text" , "text"   , 
-   "text" , "text", "text", "text", "date", "text",    
-  "text","numeric","text","numeric","numeric","numeric"     
-)
-
-TechInventory <- read_excel(fname, 
-                            sheet = "TechInventory", col_types=ct)
-
-NetworkInventory <- read_excel(fname, sheet = "Network")
-
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
-further <- read_excel(fname, sheet = "Further")
+```{r getdata}
+NetworkInventory <- get.network()
+TechInventory <- get.inventory()
 ```
 
 #Introduction
 
 This document provides key technical documentation for the Network subsystems at UAC that are relevant to the AV system.
 
-**The contents document the state as is expected in September 2017**.
+The network is used for these purposes:
+
+#. Production Management - specifically use of servcices like Dropbox, Planning Centre Online, Song Select, Vimeo and the church website.
+#. Pre/Post Service Content Distribution - Pre service is typically handled via Dropbox services. Post Service consists of uploads of audio to the church website and the service recording to Vimeo
+#. Device Control - many devices depend on the network for operational controls. Examples: the projectors, cameras, recorders.
+#. LiveStreming via Facebook Live . **Bandwidth Critical**
+#. Audio media stremaing via Dante **Bandwidth Critical**
+#. Video media stremaing via NDI and RTSP **Bandwidth Critical**
 
 [Back to top](#top)
 
 #Overall Switch Topology
+
+>Todo : As of Jan 2019 new HP wireless access points have been added to the network, and this is relfected in the overall topology view. The asset tags are not recorded here.  They are also not recorded in the AV inventory database.
 
 ```{r overalltopology}
 st <-' 
 digraph overall { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Overall Switch Topology\n(as of 2017-08-10)",
+      label="Overall Switch Topology\n(as of 2019-01-01)",
       fontname = Helvetica, bgcolor=white
       ]
  
@@ -68,12 +64,12 @@ node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
 
 subgraph cluster_1 { label="Server Room"
       isp [label="Server room in office"] 
-      serverroom [label="NSCU-A001", tooltip="Cisco SG250-26P"]
+      nscua001 [label="NSCU-A001", tooltip="Cisco SG250-26P"]
 }
 
 subgraph cluster_electrical { 
   label="Electrial Room"
-  electrical [label="NSCU-A002"]
+  nscua002 [label="NSCU-A002"]
 }
 
 subgraph cluster_library {
@@ -98,18 +94,53 @@ subgraph cluster_balcony {
 
   balconyfront [label="NSCU-A003" tooltip="Cisco SG250-26P"]
   balconyrear  [label="NSCU-A004"  tooltip="Cisco SG250-26P"]
-  wifibalcony  [label="{WiFi UAC_Balcony|AT#}"     tooltip="wifi"]
-  wifiguest    [label="{WiFi UAC_Guest|AT#}"       tooltip="wifi"]
+
+  ap23 [label="ap23", tooltip="HP IAP-315"]
+  ap24 [label="ap24", tooltip="HP IAP-315"]
+
 }
 
-isp -> serverroom [label="simplified"]
-serverroom -> electrical
-serverroom -> balconyfront  
+subgraph cluster_bsmt {
+  label="Basement"
+
+  ap11 [label="ap1", tooltip="HP IAP-315"]
+  ap12 [label="ap1", tooltip="HP IAP-315"]
+  ap13 [label="ap1", tooltip="HP IAP-315"]
+  ap14 [label="ap1", tooltip="HP IAP-315"]
+  ap15 [label="ap1", tooltip="HP IAP-315"]
+}
+
+subgraph cluster_office {
+  label="Office"
+
+  ap21 [label="ap21", tooltip="HP IAP-315"]
+}
+
+subgraph cluster_lobby {
+  label="Lobby"
+
+  ap22 [label="ap22", tooltip="HP IAP-315"]
+}
+
+nscua001 -> ap21
+nscua005 -> ap22
+nscua005 -> ap23
+nscua005 -> ap24
+
+nscua002 -> ap11
+nscua002 -> ap12
+nscua002 -> ap13
+nscua002 -> ap14
+nscua002 -> ap15
+
+isp -> nscua001 [label="simplified"]
+nscua001 -> nscua002
+nscua001 -> nscua005
+nscua001 -> balconyfront  
 balconyfront -> library
 balconyfront -> nscua005
 balconyfront -> balconyrear
-balconyfront -> wifibalcony 
-balconyfront -> wifiguest 
+ 
 library -> youth
 } 
 '
@@ -127,10 +158,62 @@ merge(TechInventory, selected.at) %>%
 ```
 
 [Back to top](#top)
+
+#Wifi 
+
+From an AV Technical Production perspective, our Wifi network is not normally used for media transport, but rather for control functions. Examples include:
+
+* Audiante Dante Controller
+* Shure Wireless Workbench
+* Renewed Vision Propresenter Remote
+* Yamaha Studio Manager
+* ETC Web control / Lighting Console
+* etc
+
+We have used them for NDI video trnasport from cell phone to a production computer. 
+
+There is a network of nine wireless access points distributed around the building (Hewlett Packard Enterprise IAP-315).  These WAPs support three SSIDs, each of which has specifc purposes:
+
+```{r}
+ssid <- tribble(
+  ~SSID, ~Usage, ~Access, ~Bandwidth, ~MAC_Registration, ~Filtering,
+"UAC",
+"General Public",
+"Internet Only",
+"Lowest",
+"Not Required",
+"L03",
+
+"UAC-SD",
+"Staff Devices",
+"Internet Only",
+"Medium",
+"Required",
+"L02" ,
+
+"UAC-SR",
+"Church Devices",
+"Internet and Internal",
+"Unrestricted",
+"Required",
+"L01"
+)
+
+ssid %>%
+  kable()  %>%
+  kable_styling("striped", full_width = FALSE)
+```
+
+> Only UAC-SR has access to internal network devices. In order to control any systems or stream media to a production computer over the wifi network, the device would need to be on the UAC-SR network.
+
+The are content filtering rules applied to the network which blocks access to sites which are contrary to church policies. These rules should not cause any operational problems. If connection challenges arise it is good to know that they are in place. 
+
+
+[Back to top](#top)
   
 #AV Rack Room
  
- ```{r audiorack}
+```{r audiorack}
 ar <-' 
 digraph overall { 
   
@@ -165,60 +248,116 @@ DiagrammeR::grViz(ar, height=350)
 
 ```{r, trdetails}
 selected.at <- c( "ZVVU-A001", "ZVVU-A002",  
-                  "ZVVU-A003", "NSCU-A005" , "ZAHU-0001") %>%  data.frame(AssetTag=.)
+                  "ZVVU-A003", "NSCU-A005" ) %>%  data.frame(AssetTag=.)
 
 merge(NetworkInventory, selected.at) %>% 
     select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
+    formattable(align="l")
+
+selected.at <- c( "ZAHU-0001") %>%  data.frame(AssetTag=.)
+
+merge(TechInventory, selected.at) %>% 
+    select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) %>%
     formattable(align="l")
 ```
 
 [Back to top](#top)
 
-#Balcony 
-##Front Desk
+#Balcony Front Desk
  
 ```{r BalconyFrontSwitch}
-ar <-' 
+ar1 <-' 
  graph bfs { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Balcony Front Rack Topology\n(as of 2017-08-10)",
+      label="Balcony Front Rack Topology\n(as of 2019-01-26)",
       fontname = Helvetica, bgcolor=white, rankdir=LR
       ]
  
 node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
       gradientangle=270 fontname = Helvetica ]
       
-   subgraph cluster_zahu0004 { label="ZAHU-0004 rack"  tooltip="Front desk Rack"
+   subgraph cluster_zahu0004 { label="Rack: ZAHU-0004"  tooltip="Front desk Rack"
 
-         balconyfront [label="{Balcony Front|NSCU-A003}"
+         nscua003 [label="{Balcony Front|NSCU-A003}"
                         tooltip="Cisco SG250-26P"]
 
    }
 
-m7cl         [label="{Audio Console|ZAKU-0001}" tooltip="Yamaha M7CL"] 
+m7cl         [label="{Audio Console|M7CL - ZAKU-0001}" tooltip="Yamaha M7CL"] 
 frontguest   [label="Guest Computer" tooltip="Guest as needed"]
 
-balconyfront -- m7cl
-balconyfront -- frontguest
+zaiub001 [label="{Dante|{ZAIU-B001|M7CL (ZAKU-0001)}}"]
+zaiub002 [label="{Dante|{ZAIU-B002|DM1K (ZAKU-0002)}}"]
+
+nscua003 -- m7cl
+nscua003 -- frontguest
+
+nscua003 -- zaiub001  
+nscua003 -- zaiub002  
 
 } 
 '
 
-DiagrammeR::grViz(ar, height=350)
+ar2 <-' 
+ graph bfs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Balcony Front Rack Topology\n(as of 2019-01-26)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+      
+   subgraph cluster_zahu0004 { label="Rack: ZAHU-0004"  tooltip="Front desk Rack"
+
+         nscua003 [label="{Balcony Front|NSCU-A003}"
+                        tooltip="Cisco SG250-26P"]
+
+   }
+
+subgraph cluster_rack { label="Rack: ZAHU-0005"
+
+zamua001 [label="{Dante|{Wireless Receiver|ZAMU-A001}}"]
+zamub001 [label="{Dante|{Wireless Receiver|ZAMU-B001}}"]
+zamub002 [label="{Dante|{Wireless Receiver|ZAMU-B002}}"]
+zamub003 [label="{Dante|{Wireless Receiver|ZAMU-B003}}"]
+}
+
+nscua003 -- zamua001  
+nscua003 -- zamub001  
+nscua003 -- zamub002  
+nscua003 -- zamub003  
+} 
+'
+
+DiagrammeR::grViz(ar1, height=350)
+DiagrammeR::grViz(ar2, height=350)
 ```
 
 ```{r, fddetails}
-selected.at <- c( "ZAKU-0001" ,"NSCU-A003" ) %>%  data.frame(AssetTag=.)
+selected.at <- c( "ZAKU-0001", "NSCU-A003",
+                  "ZAIU-B001", "ZAIU-B002",
+                  "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003",
+                  "ZAKU-0002"
+                  ) %>%  
+  data.frame(AssetTag=.)
 
 merge(NetworkInventory, selected.at) %>% 
     select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
     formattable(align="l")
+
+selected.at <- c( "ZAHU-0004") %>%  data.frame(AssetTag=.)
+
+merge(TechInventory, selected.at) %>% 
+    select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) %>%
+    formattable(align="l")
 ```
 
-## Rear Desk
+#Balcony Rear Desk
 
-The rear switch topology has been broken out to the East and West sides so the diagrams are more readable. The Cameras are arbitrarily assigned to the west side.
+The rear switch topology has been broken out into multiple diagrams so they are more readable.  
 
 ```{r BalconyRearSwitch }
 brs.west <-' 
@@ -244,23 +383,47 @@ recorder1  [label="{BMD Recorder 1|ZVRU-A001}", tooltip="BMD HyperDeck Mini"]
 recorder2  [label="{BMD Recorder 2|ZVRU-A002}", tooltip="BMD HyperDeck Mini"]
 } 
 atem       [label="{Recording Switcher|ZVKU-A003}", tooltip="BMD ATEM Television Pro HD"]
-rmip       [label="{Camera Control|ZVKU-A004}", tooltip="Sony RMIP10"]
-camera1    [label="{Robo Camera|ZVCU-A001}", tooltip="Sony SRG360SHE "]
-camera2    [label="{Robo Camera|ZVCU-A002}", tooltip="Sony SRG360SHE "]
-camera3    [label="{Robo Camera|ZVCU-A003}", tooltip="Sony SRG360SHE"]
+ 
 cdmua002 [label="{Video Computer|CDMU-A002}", tooltip="TBD "]
 
 balconyrear -- recorder1
 balconyrear -- recorder2
 balconyrear -- atem
-balconyrear -- rmip
-balconyrear -- camera1 [label="PoE+"]
-balconyrear -- camera2 [label="PoE+"]
-balconyrear -- camera3 [label="PoE+"]
   
 balconyrear -- cdmua002
 } 
 '
+
+brs.cams <-' 
+graph bfs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Balcony Rear Rack (Cameras) Topology\n(as of 2019-01-25)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+  
+  subgraph cluster_zvhu0002 { label="ZVHU-0002 rack"  tooltip="Rear Desk Rack"
+
+balconyrear [label="{Balcony Rear|NSCU-A004}" tooltip="Cisco SG250-26P"]
+
+  }
+
+rmip       [label="{Camera Control|ZVKU-A004}", tooltip="Sony RMIP10"]
+
+camera1    [label="{Robo Camera|ZVCU-A001}", tooltip="Sony SRG360SHE "]
+camera2    [label="{Robo Camera|ZVCU-A002}", tooltip="Sony SRG360SHE "]
+camera3    [label="{Robo Camera|ZVCU-A003}", tooltip="Sony SRG360SHE"]
+  
+balconyrear -- camera1 [label="PoE+"]
+balconyrear -- camera2 [label="PoE+"]
+balconyrear -- camera3 [label="PoE+"]
+balconyrear -- rmip
+} 
+'
+
 brs.east <-' 
 graph bfs { 
   
@@ -281,6 +444,7 @@ node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
 rearguest  [label="Rear Guest ", tooltip="as needed "]
 cdwu0009   [label="{Mediashout|CDWU-0009}", tooltip="CDWU-0009 Windows"]
 iMac       [label="{ProPresenter|CDMU-A001}", tooltip="Apple iMac27 "]
+cs         [label="{ETC Ligthing Console|ZLKU-B001}"]
 
   subgraph cluster_zvhu0001 { label="ZVHU-0001 rack"  
                               tooltip="Front desk Rack"
@@ -297,12 +461,13 @@ balconyrear -- cdwu0009
 balconyrear -- iMac
 balconyrear -- vs88dt
 balconyrear -- fx4
+balconyrear -- cs
 } 
 '
 
 DiagrammeR::grViz(brs.west, height=350)
 DiagrammeR::grViz(brs.east, height=350)
-
+DiagrammeR::grViz(brs.cams, height=350)
 ```
 
 ```{r, rddetails}
@@ -312,12 +477,20 @@ selected.at <- c( "ZVRU-A001", "ZVRU-A002",  "ZVKU-A003",
                   "NSCU-A004",
                   "CDWU-0009", "CDMU-A001", "CDMU-A002",
                   "ZVKU-A001", "ZVKU-A002",
-                  "NSCU-A004" ) %>%  
+                  "NSCU-A004",
+                  "ZLKU-B001") %>%  
                 data.frame(AssetTag=.)
 
 merge(NetworkInventory, selected.at) %>% 
     arrange(AssetTag) %>%
     select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
+    formattable(align="l")
+
+selected.at <- c("ZVHU-0002") %>%  data.frame(AssetTag=.)
+
+
+merge(TechInventory, selected.at) %>% 
+    select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) %>%
     formattable(align="l")
 ```
 [Back to top](#top)
@@ -330,12 +503,10 @@ NetworkInventory %>%
 select(Location, AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
   formattable(align="l")
 ```
-[Back to top](#top)
 
+```{r mac_needed, eval=FALSE}
 # Devices which are in need of IP Address Allocation
-Allocation is pending delivery of equipment so we can know the MAC address. Once the 2017 upgrade project is complete, this section won't be needed anymore.
-
-```{r}
+#Allocation is pending delivery of equipment so we can know the MAC address.  
 NetworkInventory %>% 
   select(-Category, -Location, -Usage, -Notes, -URL) %>% 
   filter( ! is.na(MAC)  ) %>% 
@@ -350,3 +521,7 @@ NetworkInventory %>%
 
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
+
+#Change History
+
+`r commit.log.html( knitr::current_input() )`
