@@ -45,18 +45,27 @@ net_map <- NetworkInventory %>%
 ```
 
 ```{r}
-core <- as_tbl_graph(net_map ) %>% 
-    mutate(Type = ifelse( centrality_degree(mode = 'out')  >0,  "Core" , "Edge" )) %>%
-    mutate(Type = ifelse( substr(name,1, 2) =="ap", "WAP", Type) ) %>%
-    filter(Type=="Core")
+selected.at <- c("NSCU-A001","NSCU-A002","NSCU-A003",
+                 "NSCU-A004","NSCU-A005",
+                 "MHPL-0004", "Rogers",
+                 "CSWU1"
+                 )
+
+core <- net_map %>%
+        filter( to %in% selected.at) %>%
+        as_tbl_graph() %>%
+        mutate(Type = ifelse( substr(name,1, 4) =="NSCU", "Switch",  "")) %>%
+        mutate(Type = ifelse( substr(name,1, 4) =="MHPL", "Modem",  Type)) %>%
+        mutate(Type = ifelse( substr(name,1, 4) =="CSWU", "Server", Type)) 
 ```
 
 ```{r}
 ggraph(core, layout = 'kk') + 
-    geom_edge_fan(aes(alpha = ..index..), show.legend = FALSE) + 
+    geom_edge_fan(aes(alpha = ..index..),  show.legend = FALSE) + 
     theme_graph(foreground = 'steelblue', fg_text_colour = 'white') +
-    geom_node_label(aes(label=name, fill=Type), alpha=0.5) +
-    theme(legend.position="none")
+    geom_node_label(aes(label=name, fill=Type), size=2.7, alpha=0.5) +
+    theme(legend.position="none" ) +
+    labs(title="Network Core")
 ```
  
 ```{r corechart}
@@ -75,13 +84,16 @@ graph_it <- function(data, node) {
 
 gr <- as_tbl_graph(gd) %>% 
     mutate(Type = ifelse( centrality_degree(mode = 'out')  >0,  "Core" , "Edge" )) %>%
-    mutate(Type = ifelse( substr(name,1, 2) =="ap", "WAP", Type) ) 
+    mutate(Type = ifelse( substr(name,1, 2) =="ap", "WAP", Type) ) %>%
+    mutate(Type = ifelse( substr(name,1, 4) =="NAHU", "WAP", Type) ) 
+
 
 a<- ggraph(gr, layout = 'nicely') + 
     geom_edge_fan(aes(alpha = ..index..), show.legend = FALSE) + 
     theme_graph(foreground = 'steelblue', fg_text_colour = 'white') +
-    geom_node_label(aes(label=name, fill=Type), alpha=0.5) +
-    theme(legend.position="none")
+    geom_node_label(aes(label=name, fill=Type), size=3 ) +
+    theme(legend.position="none") +
+    labs(title=paste("Connectivity for:", node))
 
 selected.at <- as_tibble(gr) %>%
                mutate(AssetTag = name) 
