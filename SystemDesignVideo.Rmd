@@ -9,7 +9,7 @@ output:
 
 ```{r options, echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
-options(knitr.table.format = "html") # latex for pdf 
+options(knitr.table.format = "html")  
 ```
 
 ```{r packages }
@@ -31,13 +31,15 @@ further <- get.further()
 ```
 
 ## Introduction
-This document provides key technical documentation for the video subsystems at UAC. This diagram provides an overview of the major components and leaves out some details.
-
-Frequently throughout this document there will be a diagram or description of some aspect of the installation and following that a listing of the mentioned equipment which provide more detail on the mentioned assets.
+This document provides key technical documentation for the video recording and broadcasting subsystems at UAC. This diagram provides an overview of the major components and leaves out some details.
 
 ```{r}
 DiagrammeR::grViz("sdv-topology0-overview.gv")
 ```
+
+Frequently throughout this document there will be a diagram or description of some aspect of the installation and following that a listing of the mentioned equipment which provide more detail on the mentioned assets.
+
+Every significant inventory item is to have an asset tag - an actual label attached to the device. For the AV gear these tags all start with a Z. For example ZVKU-A001 is the assest tag of the kramer video matrix.
 
 ## Presentation Switcher
 The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats.
@@ -146,6 +148,12 @@ CDMU-A001 MacOS / ProPresenter
 
 CDMU-A002 MacOS / ATEM - OBS
 : This system runs the ATEM switcher software, and OBS (for streaming) and can also run things like Skype. It has a USBC-HDMI adapter that is direct connected to Input 2 of the video mixer.
+
+>todo: fix up connections for CDMU-A002: usb inputs - network and hdmi outputs.
+>todo: web presnter SDI and HDMI inputs.
+>todo: CDMU-A001 outputs need to show usbc-hdmi conversion or comment about it. 
+>todo: remove guest, add coulorsource
+>todo remove vga monitor 
   
 ```{r top1}
 DiagrammeR::grViz("sdv-topology1-computer.gv")
