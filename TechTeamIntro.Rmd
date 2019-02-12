@@ -1,0 +1,98 @@
+---
+title: "Tech Team Intro"
+author: "Terry Doner"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output: 
+    html_document:
+        toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Team Overview
+ 
+What we do as a team ties back to what we are to be doing as the local body of Christ. 
+
+UAC Mission
+: To Lead people to know Jesus Christ and to follow Him passionately.
+
+UAC Vision
+:   Touching our World through Jesus one life at a time!
+ 
+As a tech team we very much lead from the rear - of the sanctuary. But what we do with sound and light is very much upfront. We use those elements on Sunday morning to lead the congregation on a journey. 
+ 
+There are four sub-teams to the tech team.
+
+Audio
+: This team manages the audio console and the sound that we hear
+
+Lighting
+: This team manages our lighting design and operation. 
+
+Presentation
+: This team manages ProPresenter and the things we see on the projection screens
+
+Video
+: This team manages the video recording for distribution within the building, recording, and projection (as needed). Eventually this team will also live stream our services.
+ 
+There is a much more detailed description of each role in [Deep Dive](./TechTeamDeepDive.html) document.
+ 
+#General Logistics
+ 
+The anchor of our Sunday morning activities is the service order (aka cue sheet). It is our guide for what will happen and in what order. We try to get a solid draft of the service order by mid-week (Wednesday) so we can fill in our details and give it to Kesha to review on Thursday. There will also be adjustments to make Sunday morning and we try to put enough effort in during the week to ensure we have the capacity to comfortably deal with things that are truly last minute on Sunday morning. "Planning Centre Online” is our main tool for building and communicating the service order.
+ 
+It is ideal for a volunteer to take a shift at their job every 3 or 4 weeks. More frequent is a lot to ask of somebody and can burn them out. Less frequent and they can become out of practice between rotations. Once again, "Planning Centre Online” is our tool for managing everybody’s schedule.
+ 
+Also, we have rehearsal on Sunday morning at 8:15am. Audio and presentation must be ready to roll by the start of rehearsal.
+ 
+# Our Tools
+
+## Planning Centre Online
+ 
+["Planning Centre Online”](https://www.planningcenteronline.com) (PCO) is pretty important. As a new team members you will receive an invite to the web site. Once you have setup an account and password you will be able to do several key things:
+Manage your contact information
+Configure things like how often you would like to serve
+Block out dates on the calendar for dates when you are not available to serve
+Accept and decline requests to take shift
+View the service order for the services for which you are serving.
+ 
+You can also use your cell phone for these things. There is an app you can load on your phone. And you can accept or decline requests to serve using txt messaging.  
+ 
+There are many training videos available on the internet about how to use PCO. 
+
+### Useful Planning Center Training Videos
+* 
+ 
+##Slack
+ 
+[Slack](https://unionvillealliance.slack.com) is a new tool that we have just begun to use. It is good for discussion about what might be happening on a Sunday. These conversations help us all work together; a forum where we can toss around ideas about an upcoming service (or series) or share tips on various topics. Each of these would have a channel. 
+ 
+Slack is not a replacement for PCO. Slack is where we can talk about ideas and intention. PCO is the actual plan. 
+ 
+We have not broadly invited everybody slack to yet as we are just getting started with it. If you see an invite in your in-box you will know what it is about.   
+ 
+##txt
+ 
+During a service we often use txt messaging to communicate between people who are serving during the service. So it can be a help to have your cell phone with you (on vibrate!) and share your number with the others, particularly Kesha. It is most usually her who needs to inform us of a change or ask us to do something.
+ 
+# Thanks
+Thanks to everybody for the role you play on the team. 
+
+Terry Doner <br/>
+Technical Director<br/>
+Unionville Alliance Church<br/>
+
+
+#Further Information
+
+There are operating guides and design documents for each of the major systems. If you are new to the role, you should start with the Operations Guide. The Design guides are describe how the systems are put together.  
+
+|Topic  |Operations|Design|
+|-------|----------------|------|
+|Audio|[X](./SystemOperationsAudio.html)|[X](./SystemDesignAudio.html)|
+|Lighting|[X](./SystemOperationsLighting.html)|[X](./SystemDesignLighting.html)|
+|Network| |[X](./SystemDesignNetwork.html)|
+|Recording|[X](./SystemOperationsRecording.html)|[X](./SystemDesignRecording.html)|
+|Projection|[X](./SystemOperationsProjection.html)|[X](./SystemDesignProjection.html)|
