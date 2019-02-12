@@ -1,6 +1,6 @@
 digraph outputs { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Audio Outputs (as of 2017-09-08)",
+      label="Audio Outputs (as of 2019-02-11)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" ,  fontsize = 10,
@@ -74,7 +74,6 @@ final [label="
 }
 }
 "]
-
 
 }
 subgraph cluster_foh2 { label="ZAHU-0006"
@@ -221,15 +220,11 @@ m7:o16 -> final:ir
 final:ol -> dom:il
 dom:ol -> rane:il
 
-videoaudio  [label="{{<i1> |<i2> | <i3>} |Video\nAudio Mixer|<o1>}"]
 videomix  [label="{{<i1>ch1|<i2>ch2 } |{Video\nMixer|ZVKU-A003}|<o1>}"]
-
-crowd [label="Crowd Mic"]
 
 rane:o1 -> burner:i1
 rane:o2 -> burner:i2
 rane:o3 -> videomix:i1
- crowd   -> videomix:i2
+rane:o4 -> videomix:i2
 
-{rank=same;  videoaudio  crowd}
-  } 
+} 

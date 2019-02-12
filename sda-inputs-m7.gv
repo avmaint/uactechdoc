@@ -1,6 +1,6 @@
 digraph topology1 { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Audio Inputs for M7CL (as of 2018-09-17)",
+      label="Audio Inputs - M7CL (as of 2019-02-11)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10,
@@ -8,20 +8,19 @@ node [shape=Mrecord, tooltip="" , fontsize = 10,
       gradientangle=270]
 
 stage [label="{ Stage\nInputs
-|{<o1>1-42 
-| <o2>43-48   
+|{<o1>1-32 
+| <o2>41-46   
 } }"]  
 
 m7 [label="Yamaha\nM7CL" fontsize=20 ]
 
-subgraph cluster_rear { label="Rear Desk" fontsize=15
+subgraph cluster_rear { label="Rack ZAHU-0005" fontsize=15
   zamua001 [label="Wirelees receiver|ZAMU-A001"]
   zamub001 [label="Wirelees receiver|ZAMU-B001"]
   zamub002 [label="Wirelees receiver|ZAMU-B002"]
-  zamub003 [label="Wirelees receiver|ZAMU-B003"]
 }
 
-{zamub001 zamub002 zamub003} -> m7
+{zamua001 zamub001 zamub002  } -> m7
 
 stage:o1 -> m7:i2
 }

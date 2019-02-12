@@ -65,65 +65,70 @@ DiagrammeR::grViz("sda-inputs-m7.gv" )
 
 Having a consistent wiring plan helps make system more predictable and easier for all audio engineers to use. The consistent wiring plan is also essentail to leveage the power of console's scene recall feature. It minimizies the amount of rewiring required.
 
-This is the standard input map for the M7.
+The chart which follows is the standard input map if using Scene 002. 
 
-|Ch #	|Input |	Mic/DI	| Notes |
-|------|------|------|------|
-|1|Kick|Beyer M88|Drum Snake|
-|2|Snare|CAD|Drum Snake|
-|3|Tom 1|CAD|Drum Snake|
-|4|Tom 2|CAD|Drum Snake|
-|5|Tom 3|CAD|Drum Snake|
-|6|Tom 4 (floor)|CAD|Drum Snake|
-|7|OH L|AKG 418|Drum Snake|
-|8|OH R|AKG 418|Drum Snake|
-|9|Hat|AKG 418|Drum Snake|
-|10|Djembe - spare (Sn 2)|SM 57|Drum Snake|
-|11|perc 1||Drum Snake|
-|12|perc 2||Drum Snake|
-|13|Bass 1|JDI DI||
-|14|Bass 2|||
-|15|EG 1|SM 57||
-|16|EG 2|||
-|17|AG 1|Pro DI||
-|18|AG 2|||
-|19|B3 lo| SM57 ||
-|20|B3 hi| SM57 ||
-|21|Pno lo|||
-|22|Pno hi|||
-|23|syn 1|Pro DI||
-|24|syn 2|||
-|25|syn 3|||
-|26|syn 4|||
-|27|Str 1|||
-|28|Str 2|||
-|29|Choir 1|AT 853|Set up as required|
-|30|Choir 2|AT 853|Set up as required|
-|31|Choir 3|AT 853|Set up as required|
-|32|Choir 4|||
-|33|LVox 1|Beta 58|Vocal Snake|
-|34|LVox 2|Beta 58|Vocal Snake|
-|35|LVox 3|Beta 58|Vocal Snake|
-|36|LVox 4|Beta 58|Vocal Snake|
-|37|LVox 5|Beta 58|Vocal Snake|
-|38|LVox 6|Beta 58|Vocal Snake|
-|39|LVox 7|Beta 58|Vocal Snake|
-|40|LVox 8|Beta 58|Vocal Snake|
-|41|Hn 1|AKG 419 or SM 57||
-|42|Hn 2|AKG 419 or SM 57||
-|43|unused| | |
-|44|unused| | |
-|45|unused| | |
-|46|unused| | |
-|47|unused| | |
-|48|unused| | |
-|STR1|Effect 1 Return|Rev Plate|stereo inputs|
-|STR2|Effect 2 Return|Rev Hall||
-|STR3|Effect 3 Return|Mono Delay||
-|STR4|Effect 4 Return|Chorus||
-|||||
+```{r m7in}
+m7in <- tribble(
+  ~Channel, ~Usage, ~Type, ~Notes,
+   1,       "Kick",  "Beyer M88", "Drum Snake",
+   2,       "Snare", "CAD",       "Drum Snake",
+   3,       "Tom 1", "CAD",       "Drum Snake",
+   4,       "Tom 2", "CAD",       "Drum Snake",
+   5,       "Tom 3", "CAD",       "Drum Snake",
+   6,       "Tom 4 (floor)", "CAD", "Drum Snake",
+   7,       "OH L","AKG 418",     "Drum Snake",
+   8,       "OH R","AKG 418",     "Drum Snake",
+   9,       "Hat", "AKG 418",     "Drum Snake",
+  10,       "Djembe","SM 57",     "Drum Snake",
+  11,       "perc 1","",          "Drum Snake",
+  12,       "perc 2","",          "Drum Snake",
+  13,       "Bass 1",  "JDI DI",  "",
+  14,       "Bass 2",  "",        "",
+  15,       "EG 1",   "SM 57",    "",
+  16,       "EG 2",   "",         "",
+  17,       "AG 1",   "Pro DI",   "",
+  18,       "AG 2",   "",         "",
+  19,       "B3 lo",   "SM57"  ,   "",
+  20,       "B3 hi",    "SM57" ,   "",
+  21,       "Pno lo",   "",        "Condenser",
+  22,       "Pno hi",    "",       "Condenser",
+  23,       "syn 1",     "Pro DI",  "",
+  24,       "syn 2",     "",        "",
+  25,       "syn 3",      "",       "",
+  26,       "syn 4",      "",       "",
+  27,       "Str 1",      "",       "",
+  28,       "Str 2",      "",       "",
+  29,       "Choir 1", "AT 853","Set up as required",
+  30,       "Choir 2", "AT 853", "Set up as required",
+  31,       "Choir 3", "AT 853", "Set up as required",
+  32,       "Choir 4", "",       "",
+  33,       "Vox HH01",  "Beta 87a", "Dante ZAMU-A001 ch01",
+  34,       "Vox HH02",  "Beta 87a", "Dante ZAMU-A001 ch02",
+  35,       "Vox HH03",  "Beta 87a", "Dante ZAMU-A001 ch03",
+  36,       "Vox HH04",  "Beta 87a", "Dante ZAMU-A001 ch04",
+  37,       "Vox HH05",  "Beta 87a", "Dante ZAMU-B001 ch01",
+  38,       "Vox HH06",  "Beta 87a", "Dante ZAMU-B001 ch02",
+  39,       "Vox HH07",  "Beta 87a", "Dante ZAMU-B001 ch03",
+  40,       "Vox HH08",  "Beta 87a", "Dante ZAMU-B001 ch04",
+  41,       "Front Floor Pocket", "","",
+  42,       "Front Floor Pocket", "","",
+  43,       "Front Floor Pocket", "","",
+  44,       "Front Floor Pocket", "","",
+  45,       "Front Floor Pocket", "","",
+  46,       "Front Floor Pocket", "","",
+  47,      "Vox HH09",  "Beta 87a", "Dante ZAMU-B002 ch01",
+  48,      "Vox HH10",  "Beta 87a", "Dante ZAMU-B002 ch02",
+"STR1",    "Effect 1 Return","Rev Plate", "",
+"STR2",    "Effect 2 Return","Rev Hall",  "",
+"STR3",    "Effect 3 Return","Mono Delay","",
+"STR4",    "Effect 4 Return","Chorus",    ""
+)
 
->TODO: Later in 2018 we will be adding additional Wireless Handhelds. These will likely occupy channels 33-42. The wired vocals will move to channels 43-48. We will also be adding DANTE based routing options, with the addtional of a dante interface card in each of the DM1K and thr M7CL.
+m7in %>% 
+  kable(caption="M7CL Input Map") %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
+```
 
 ### DM1000 Inputs
 
@@ -131,40 +136,43 @@ This is the standard input map for the M7.
 DiagrammeR::grViz("sda-inputs-dm.gv" )
 ```
 
-The DM1000 inputs are all located in the FoH mix position. 
+The DM1000 inputs are all located in the FoH mix position. The chart below describes Scene 002 default defintions.
 
-|Ch #|Input|Mic/DI|Notes|
-|----|----|----|----|
-|1|HH 1|Shure|Wireless|
-|2|HH 2|Shure|Wireless|
-|3|Lav 1|Shure|Wireless|
-|4|Lav 2|Shure|Wireless|
-|5|unused| | |
-|6|unused| | |
-|7|unused| | |
-|8|unused| | |
-|9|unused| | |
-|10|unused| | |
-|11|CD L||Tascam CD-01U|
-|12|CD R||Tascam CD-01U|
-|13|Comp L|||
-|14|Comp R|||
-|15|DVD/Laptop/ipod L|||
-|16|DVD/Laptop/ipod R|||
-|Omni 1|VCR L|Fader 29||
-|Omni 2|VCR R|Fader 30||
-|Omni 3|Cass L|Fader 31||
-|Omni 4|Cass R|Fader 32||
-| | | | |
+```{r dmin}
+dmin <- tribble(
+  ~Channel, ~Usage, ~Type,            ~Notes,
+ 1,        "BP 01", "Shure Wireless", "Dante ZAMU-B002 ch03",
+ 2,        "BP 02", "Shure Wireless", "Dante ZAMU-B002 ch04",
+ 3,        "BP 03", "Shure Wireless", "Dante ZAMU-B003 ch01",
+ 4,        "BP 04", "Shure Wireless", "Dante ZAMU-B003 ch02",
+ 5,        "BP 05", "Shure Wireless", "Dante ZAMU-B003 ch03",
+ 6,        "BP 06", "Shure Wireless", "Dante ZAMU-B003 ch04",
+ 7,        "unused", "" ,             "" ,
+ 8,        "unused", "" ,             "" ,
+ 9,        "unused", "" ,             "" ,
+ 10,       "unused", "" ,             "" ,
+ 11,       "CD L",   "",              "Tascam CD-01U",
+ 12,       "CD R",   "",              "Tascam CD-01U",
+ 13,       "Computer L", "",              "CDMU-A001" ,
+ 14,       "Computer R", ""  ,            "CDMU-A001" ,
+ 15,       "Guest ⅛ᵗʰ L", "", "",
+ 16,       "Guest ⅛ᵗʰ R", "", "" 
+)
 
->TODO: Later in 2018 we will be adding additonal wirless beltpacks. These will occupy channels 1-6. We will also be adding DANTE based routing options, with the addtional of a dante interface card in each of the DM1K and thr M7CL.   
+dmin %>% 
+  kable(caption="DM1000 Input Map") %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
+```
 
 ```{r top1}
 print_inv(c( "CDMU-A001", "ZAKU-0002",
-             "ZAKU-0001", "ZAMU-A001", "ZAPU-0001" ), Tech_Inventory)
+             "ZAKU-0001", "ZAPU-0001",
+             "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003",
+             "ZAIU-B001", "ZAIU-B002",
+             "ZAHU-0005", "ZAHU-0006"
+             ), Tech_Inventory)
 ```
-
->TODO: add inventory items for the FoH Rack
 
 [Back to top](#top)
  
