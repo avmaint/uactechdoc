@@ -154,3 +154,28 @@ printCurrency <- function(value, currency.sym="$", digits=2, sep=",", decimal=".
     sep=""
   )
 }
+
+#Team Data
+get.teamstructure <- function() {
+  return(read_excel(fname, 
+                    sheet = "TeamStructure")
+  )
+}
+
+get.teamskill <- function() {
+  return(read_excel(fname, 
+                    sheet = "TeamSkill")
+  )
+}
+
+get.people <- function() {
+  return(read_excel(fname, 
+                    sheet = "People")
+  )
+}
+
+get.peopleskill <- function() {
+  return(read_excel(fname, 
+                    sheet = "PeopleSkill")
+  )
+}

@@ -26,6 +26,10 @@ require(knitr)
 require(kableExtra)
 ```
 
+```{r functions}
+source("commonFunctions.R")
+```
+
 ```{r data ,results='asis', echo=FALSE}
 path <-"~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
@@ -33,6 +37,14 @@ fname <- paste(path, inventoryfile, sep="/")
 
 org.df <- read_excel(fname, sheet = "TeamOrg")
 org.df$lastName <- substr(org.df$lastName,1,1) #abbreviate last names 
+
+teamstructure <- get.teamstructure()  
+
+teamskill <- get.teamskill()  
+
+people <- get.people(  )
+
+peopleskill <- get.peopleskill()
 
 positionString <- function(s) {
   
@@ -61,10 +73,27 @@ fname <- paste(path, inventoryfile, sep="/")
 
 A clear understanding of the roles and responsibilities within a team is always important. Even more so within a church volunteer environment where are relationships are much more complex than what they might be in a secular workplace. This document outlines the many roles within the Technical Arts organization. 
 
-Let's start with the overall team structure. 
+Let's start with the overall team structure. This represents the structure we have planned, and overtime each of the Lead positions should be replaced by a different name. 
 
-```{r org2, echo=FALSE, results="asis", warning=FALSE }
-org1 <- "
+```{r overallorg  }
+nodes <- merge(teamstructure, teamskill) %>%
+         filter(IsLead == "Y") %>%
+         merge(peopleskill) %>% 
+         merge(people) %>% #now do the formatting
+         mutate(nodename = TeamID) %>%
+         mutate(line1 = paste(FirstName, LastName)) %>%
+         mutate(line2 = Skill) %>%
+         mutate(colour = '#D7F2D5') %>%
+         select(nodename, line1, line2, colour)
+      
+edges <- teamstructure %>%
+         mutate(to   = TeamID) %>%
+         mutate(from = ParentTeamID) %>%
+         filter(from != "boe") %>%
+         filter(to   != "boe") %>%
+         select(from, to)
+
+org.header  <- "
 digraph org { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
       label='Organizational Chart',
@@ -74,36 +103,24 @@ node [shape=Mrecord, tooltip='',  fontsize = 16, style=filled
        ]
 " 
 
-org2 <- org.df %>% 
-          filter(management == "Yes"   ) %>%
-           mutate(node = paste0( gsub(" ", "", who), "[label='", who, "|", position, "'" ,   ",fillcolor=", ifelse(filled=="Yes", "'#D7F2D5 '","'lightsalmon'") , "  ]\n"  ) ) %>%
-           select(node) 
+org.nodes <- nodes %>%
+           mutate(node = paste( nodename, "[label='", line1, "|", line2, "'" ,   ",fillcolor='", colour , "'  ]\n"  ) ) %>%
+           select(node) %>%
+           unlist() %>% paste( collapse=" ")
 
-org2 <- paste(org2$node, collapse = " " )
 
-d1 <- org.df %>%  rename(key = reportsTo)
-d2 <- org.df %>%  rename(key = position)
+org.edges <- edges %>%    
+         mutate(edge = paste0( from, "->", to )) %>% 
+         select(edge) %>%
+         unlist() %>% paste( collapse=" ")
 
-org3 <- merge(x=d1, y=d2, by="key") %>%
-        filter(management.x  == "Yes") %>%
-         select(who.x, who.y ) %>%
-         mutate(edge = paste0( gsub(" ", "", who.y) , 
-                                      "->", 
-                                    gsub(" ", "", who.x) 
-                      )) %>%   
-         select(edge)
+org.footer <- "}"
 
-org3 <- paste(org3$edge, collapse=" ")
-
-#org3 <- ""
-
-org4 <- "}"
-
-org <- paste(org1, org2, org3, org4)
+org <- paste(org.header, org.nodes, org.edges, org.footer)
 
 DiagrammeR::grViz(org)
-```
 
+```
 
 # Job Descriptions
 
@@ -465,16 +482,26 @@ There are no team members.
 `r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
 
 [Back to top](#top)
+
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
 
+#Change History
+ 
+`r commit.log.html( knitr::current_input() )`
 
-#Appendix
-Listing of the staff database:
-```{r dumpdb, echo=FALSE}
-org.df %>% 
-  dplyr::select(who, position,	reportsTo )  %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
+```{r eval=FALSE, echo=FALSE}
+Refactored data model.
 
+1. Team Structure  
+~TeamID, ~TeamName, ~ParentTeamID
+
+2. Team Skill
+~TeamID, ~Skill
+
+3. People
+~PersonID, ~FirstName, ~lastName
+
+4. Person-Skill
+~PersonID, ~Skill
 ```
