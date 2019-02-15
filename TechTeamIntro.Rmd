@@ -46,8 +46,11 @@ Presentation
 
 Video
 : This team manages the video recording for distribution within the building, recording, projection (as needed) and livestreaming.
+
+Stagecraft
+: The stagecraft team manages the physical design elements we place on the stage. 
  
-There is a much more detailed description of each role in [Deep Dive](./TechTeamDeepDive.html) document.
+There is a much more detailed description of each role in [Team Design](./TeamDesign.html) document.
  
 #General Logistics
  
