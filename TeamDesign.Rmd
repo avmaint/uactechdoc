@@ -28,6 +28,47 @@ require(kableExtra)
 
 ```{r functions}
 source("commonFunctions.R")
+
+positionString2 <- function(tid) {
+skid <- subset(teamskill, TeamID == tid & IsLead == "Y")$Skill
+
+pid <- subset(peopleskill,  Skill == skid )$PersonID
+
+p.name <- people %>% filter(PersonID == pid) %>%
+        mutate(Name = paste(FirstName, LastName)) %>%
+        select(Name) %>% 
+        pull()
+
+parent.tid <- subset(teamstructure, TeamID==tid)$ParentTeamID
+
+parent.tn  <- subset(teamstructure, TeamID==parent.tid)$TeamName
+
+parent.skill <- subset(teamskill, TeamID==parent.tid & IsLead == "Y")$Skill 
+
+parent.lead <- subset(peopleskill, Skill==parent.skill)$PersonID
+parent.lead.row <- subset(people, PersonID == parent.lead)
+parent.lead.name <- paste(parent.lead.row$FirstName, parent.lead.row$LastName)
+
+bossTitle ="bt"
+bossName ="bn"
+
+s <- paste0("The ",  skid, " (" , p.name,  ") reports to the ",
+           parent.tn, ". The leader of that team is ",
+            parent.lead.name, ".")
+s}
+
+team.members <- function(tid) {
+  skills.on.team <- subset(teamskill, TeamID == tid)
+  
+  merge(skills.on.team, peopleskill) %>%
+  merge(people) %>%
+  filter(IsLead == "N") %>%
+  arrange(FirstName, LastName) %>%
+  select(FirstName, LastName, Skill) %>%
+  kable(caption = "Team Members") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"),
+  full_width = FALSE)
+}
 ```
 
 ```{r data ,results='asis', echo=FALSE}
@@ -48,25 +89,20 @@ peopleskill <- get.peopleskill()
 
 positionString <- function(s) {
   
-thisname <- org.df %>% dplyr::filter( position == s) %>% dplyr::select(who)
-thisname <- thisname$who %>% as.character()
-
-bossTitle <- org.df %>% dplyr::filter( position == s) %>% dplyr::select(reportsTo)
-bossTitle <- bossTitle$reportsTo  %>% as.character()
-bossName <- org.df %>% dplyr::filter(position == bossTitle) %>% dplyr::select(who)
-bossName <- bossName$who
-
-t <- paste0("The ",  s, " (" , thisname,  ") reports to the ", bossTitle, " (", bossName, ")." )
-
-return(t)
+  thisname <- org.df %>% 
+    dplyr::filter( position == s) %>% 
+    dplyr::select(who)
+  thisname <- thisname$who %>% as.character()
+  
+  bossTitle <- org.df %>% dplyr::filter( position == s) %>% dplyr::select(reportsTo)
+  bossTitle <- bossTitle$reportsTo  %>% as.character()
+  bossName <- org.df %>% dplyr::filter(position == bossTitle) %>% dplyr::select(who)
+  bossName <- bossName$who
+  
+  t <- paste0("The ",  s, " (" , thisname,  ") reports to the ", bossTitle, " (", bossName, ")." )
+  
+  return(t)
 }
-```
-
-```{r data2}
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
-
 ```
 
 #Introduction
@@ -121,6 +157,53 @@ org <- paste(org.header, org.nodes, org.edges, org.footer)
 DiagrammeR::grViz(org)
 
 ```
+
+#Team Descriptions
+
+##Technical Arts Team
+```{r}
+tid <- "tech"
+```
+`r positionString2(tid)`
+
+##Audio Team
+```{r}
+tid <- "audio"
+```
+This team manages the audio console and the sound that we hear.
+`r positionString2(tid)`
+`r team.members(tid)`
+
+##Presentation Team
+```{r}
+tid <- "presentation"
+```
+This team manages ProPresenter and the things we see on the projection screens.
+`r positionString2(tid)`
+`r team.members(tid)`
+
+##Video Team
+```{r}
+tid <- "video"
+```
+This team manages the video recording for distribution within the building, recording, projection (as needed) and livestreaming.
+`r positionString2(tid)`
+`r team.members(tid)`
+
+##Lighting Team
+```{r}
+tid <- "lighting"
+```
+This team manages our lighting design and operation. 
+`r positionString2(tid)`
+`r team.members(tid)`
+
+##Stagecraft Team
+```{r}
+tid <- "stage"
+```
+`r positionString2(tid)`
+`r team.members(tid)`
 
 # Job Descriptions
 
