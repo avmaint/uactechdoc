@@ -49,9 +49,6 @@ parent.lead <- subset(peopleskill, Skill==parent.skill)$PersonID
 parent.lead.row <- subset(people, PersonID == parent.lead)
 parent.lead.name <- paste(parent.lead.row$FirstName, parent.lead.row$LastName)
 
-bossTitle ="bt"
-bossName ="bn"
-
 s <- paste0("The ",  skid, " (" , p.name,  ") reports to the ",
            parent.tn, ". The leader of that team is ",
             parent.lead.name, ".")
@@ -69,16 +66,23 @@ team.members <- function(tid) {
   kable_styling(bootstrap_options = c("striped", "hover"),
   full_width = FALSE)
 }
+
+team.matrix <- function(tid) {
+  
+    skills.on.team <- subset(teamskill, TeamID == tid)
+
+    merge(skills.on.team, peopleskill) %>%
+    merge(people) %>%
+    mutate(Name = paste(FirstName, LastName)) %>%  
+    select(Name, Skill) %>%
+    table() %>%
+    kable(caption="Skills Matrix") %>%
+    kable_styling(bootstrap_options = c("striped", "hover"),
+                   full_width = FALSE)
+}
 ```
 
 ```{r data ,results='asis', echo=FALSE}
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
-
-org.df <- read_excel(fname, sheet = "TeamOrg")
-org.df$lastName <- substr(org.df$lastName,1,1) #abbreviate last names 
-
 teamstructure <- get.teamstructure()  
 
 teamskill <- get.teamskill()  
@@ -160,11 +164,18 @@ DiagrammeR::grViz(org)
 
 #Team Descriptions
 
+```{r}
+ 
+```
+
+
 ##Technical Arts Team
 ```{r}
 tid <- "tech"
 ```
 `r positionString2(tid)`
+
+[Back to top](#top)
 
 ##Audio Team
 ```{r}
@@ -172,7 +183,9 @@ tid <- "audio"
 ```
 This team manages the audio console and the sound that we hear.
 `r positionString2(tid)`
-`r team.members(tid)`
+`r team.matrix(tid)`
+
+[Back to top](#top)
 
 ##Presentation Team
 ```{r}
@@ -180,7 +193,9 @@ tid <- "presentation"
 ```
 This team manages ProPresenter and the things we see on the projection screens.
 `r positionString2(tid)`
-`r team.members(tid)`
+`r team.matrix(tid)`
+
+[Back to top](#top)
 
 ##Video Team
 ```{r}
@@ -188,7 +203,9 @@ tid <- "video"
 ```
 This team manages the video recording for distribution within the building, recording, projection (as needed) and livestreaming.
 `r positionString2(tid)`
-`r team.members(tid)`
+`r team.matrix(tid)`
+
+[Back to top](#top)
 
 ##Lighting Team
 ```{r}
@@ -196,14 +213,17 @@ tid <- "lighting"
 ```
 This team manages our lighting design and operation. 
 `r positionString2(tid)`
-`r team.members(tid)`
+`r team.matrix(tid)`
+
+[Back to top](#top)
 
 ##Stagecraft Team
 ```{r}
 tid <- "stage"
 ```
+The stagecraft team manages the physical design elements we place on the stage. The purpose is to add visual interest to the stage. These physical elements are often illuminated by the lights and can either be abstract or tied into the theme of the season or series.  
 `r positionString2(tid)`
-`r team.members(tid)`
+`r team.matrix(tid)`
 
 # Job Descriptions
 
@@ -215,27 +235,16 @@ All of these positions share some requirements in common:
 
 The description for each position below expands on these with role specifics needs.
 
+[Back to top](#top)
+
 ## Worship Leader
-`r this <- "Worship Leader"`
-`r positionString(this)` 
 
 ###Responsibilities
-The job description of this position is not in the scope of this document.
+The full job description of this position is not in the scope of this document.
+>todo add commentary about the relationship between this job and the rest of these jobs.
+ 
 
-###Team
-The positions reporting to the `r this` are:
-```{r echo=FALSE}
-org.df %>% 
-  dplyr::filter( reportsTo == this ) %>% 
-  dplyr::select(  position, firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
-
-```
-
-## Technical Director
-`r this <- "Technical Director" `
-`r positionString(this)`
+## Technical Manager
 
 ###Responsibilities
 1.	Oversee the operation and maintenance of the sanctuary sound system, theatre lighting, video and computer projection systems and all other AV equipment on campus. This task includes:
@@ -263,19 +272,10 @@ org.df %>%
 7. Manage online service used by the eminstry
     + Example, Dropbox, Vimeo
 
-###Team
-The positions reporting to the `r this` are:
-```{r echo=FALSE}
-org.df %>% dplyr::filter( reportsTo == this ) %>% dplyr::select(  position, firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
- 
-```
+[Back to top](#top)
 
 ## Audio Lead
-`r this <- "Audio Lead"`
-`r positionString(this)`
-
+ 
 ###Responsibilities
 
 1. An appropriate technical knowledge of sound reinforcement.  
@@ -287,40 +287,21 @@ org.df %>% dplyr::filter( reportsTo == this ) %>% dplyr::select(  position, firs
 8. Planning and executing on the long term strategy for the audio systems
 9. The ability to reconfigure the system as needed. 
 
-###Team
-The positions reporting to the `r this` are:
-```{r echo=FALSE}
-org.df %>% dplyr::filter( reportsTo == this ) %>% dplyr::select(  position, firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
- 
-```
+[Back to top](#top)
 
 ## Audio Crew
-`r this <- "Audio Crew"`
-
+ 
 ###Responsibilities
 
 1. Availability during the week for rehearsal. 
 2. Working with the worship leader for each event to ensure all details are understood.
 3. Critical listening of our productions to detect problems and make improvements.
 4. Ensuring audio cues are executed without fault.
-
-###Team
-The team members are:
-```{r echo=FALSE}
-org.df %>% 
-  dplyr::filter( position == this ) %>% 
-  dplyr::select( firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
-
-```
-
+ 
+[Back to top](#top)
 
 ## Lighting Lead
-`r this <- "Lighting Lead"`
-`r positionString(this)`
+ 
 
 ###Responsibilities
 
@@ -334,19 +315,10 @@ org.df %>%
 9. Understanding of the safety principles and practices for working at height.
 10. An understanding of how lighting control systems work and in particular how the system as installed at UAC works. The ability to reconfigure the system as needed. 
 
-###Team
-The positions reporting to the `r this` are:
-```{r echo=FALSE}
-org.df %>% dplyr::filter( reportsTo == this ) %>% 
-  dplyr::select(  position, firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
-
-```
+[Back to top](#top)
 
 ## Lighting Crew
-`r this <- "Lighting Crew"`
-
+ 
 ###Responsibilities
 
 1. Availability during the week for rehearsal. 
@@ -356,19 +328,9 @@ org.df %>% dplyr::filter( reportsTo == this ) %>%
 5. An working understand of colour theory as applied to lighting design. 
 6. An understanding of how lighting control systems work and in particular how the system as installed at UAC works.
 
-###Team
-The team members are:
-```{r echo=FALSE}
-org.df %>% dplyr::filter( position == this ) %>% 
-  dplyr::select( firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
- 
-```
+[Back to top](#top)
  
 ## Presentation Lead
-`r this <- "Presentation Lead"`
-`r positionString(this)`
 
 ###Responsibilities
 
@@ -381,17 +343,9 @@ org.df %>% dplyr::filter( position == this ) %>%
 8. Planning and executing on the long term strategy for the presentation systems
 10. An understanding of how the presentation control systems work as installed at UAC works. The ability to reconfigure the system as needed. 
 
-###Team
-The positions reporting to the `r this` are:
-```{r echo=FALSE}
-org.df %>% dplyr::filter( reportsTo == this ) %>% 
-  dplyr::select(  position, firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
+[Back to top](#top)
 
-```
 ## Presentation Crew
-`r this <- "Presentation Crew"`
 
 ###Responsibilities
 
@@ -402,18 +356,9 @@ org.df %>% dplyr::filter( reportsTo == this ) %>%
 5. An understanding of how the advanced features of ProPresenter work
 6. Ability to operate the video matrix switch to get the right content on the right display.
 
-###Team
-The team members are:
-```{r echo=FALSE}
-org.df %>% dplyr::filter( position == this ) %>% 
-  dplyr::select( firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
+[Back to top](#top)
 
-```
 ## Video Lead
-`r this <- "Video Lead"`
-`r positionString(this)`
 
 ###Responsibilities
 
@@ -427,19 +372,10 @@ org.df %>% dplyr::filter( position == this ) %>%
 10. An understanding of how the video control systems work as installed at UAC works. The ability to reconfigure the system as needed.
 11. An understanding and working ability of video production practises. Specifically camera angle selection, cutting, fading, keying.
 
-###Team
-The positions reporting to the `r this` are:
-```{r echo=FALSE}
-org.df %>% dplyr::filter( reportsTo == this ) %>% 
-  dplyr::select(  position, firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
-
-```
+[Back to top](#top)
 
 ## Video Crew 
-`r this <- "Video Crew"`
-
+ 
 ###Responsibilities
 
 1. Availability during the week for rehearsal. 
@@ -449,19 +385,9 @@ org.df %>% dplyr::filter( reportsTo == this ) %>%
 5. An understanding and working ability of video production practises. Specifically camera angle selection, cutting, fading, keying.
 6. Ensuring that all video media needed for recording or live streaming has been prepared and available for use during the service, such as titles and bumpers. 
 
-###Team
-The team members are:
-```{r echo=FALSE}
-org.df %>% dplyr::filter( position == this ) %>% 
-  dplyr::select( firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
-
-```
+[Back to top](#top)
 
 ## Stagecraft Lead
-`r this <- "Stagecraft Lead"`
-`r positionString(this)`
 
 ###Responsibilities
 
@@ -476,19 +402,10 @@ org.df %>% dplyr::filter( position == this ) %>%
 9. Schedule team activities
 10. Install and deinstall elements as per plan.
 
-###Team
-The positions reporting to the `r this` are:
-```{r echo=FALSE}
-org.df %>% dplyr::filter( reportsTo == this ) %>% 
-  dplyr::select(  position, firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
-
-```
+[Back to top](#top)
 
 ## Stagecraft Crew
-`r this <- "Stagecraft Crew"`
-
+ 
 The stagecraft team constructs things like this. http://pin.it/hD_vg0k
 
 ### Skills needed by the team:
@@ -504,20 +421,10 @@ The stagecraft team constructs things like this. http://pin.it/hD_vg0k
 I would expect we would do a project for every series. Sometimes we may just remix what we already had. Also expect a project for special events.
 
 ###Responsibilities
-
-###Team
-The team members are:
-```{r echo=FALSE}
-org.df %>% dplyr::filter( position == this ) %>% 
-  dplyr::select( firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
-
-```
-
-## WL Assistant 
-`r this <- "WL Assistant"`
-`r positionString(this)`
+ 
+[Back to top](#top)
+ 
+# WL Assistant 
 
 ###Responsibilities
 
@@ -547,18 +454,6 @@ org.df %>% dplyr::filter( position == this ) %>%
 #. Ensure lobby is in order
 #. Before countdown, ensure sanctuary is ready: doors closed, walk-in lighting set, stage clean. 
 #. Ensure fans are turned off before the message
-
-###Team
-
-The positions reporting to the `r this` are:
-```{r echo=FALSE}
-org.df %>% dplyr::filter( reportsTo == this ) %>% 
-  dplyr::select(  position, firstName, lastName) %>% 
-  kable(align="l")  %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
-
-```
-There are no team members.
 
 [Back to top](#top)
 
