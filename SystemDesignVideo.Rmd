@@ -188,7 +188,7 @@ print_inv(c("ZVIU-A001", "ZVKU-A001", "ZVPU-0001", "ZVVU-0002"), Tech_Inventory)
 
 The TV and the Bluray player each have a remote control.
 
-### Recording Topology
+### Recording / Livestream Topology
 The recording topology is quite complex and so it is broken up into peices.
 
 ####Inputs
