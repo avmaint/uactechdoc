@@ -30,6 +30,8 @@ files <- c(
   "TechHomePage",
 
   "TeamDesign",
+  "TechTeamIntro",
+  
   "ElectricalGuide",
           
   "index",
