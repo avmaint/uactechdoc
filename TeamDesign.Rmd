@@ -241,6 +241,7 @@ The description for each position below expands on these with role specifics nee
 
 ###Responsibilities
 The full job description of this position is not in the scope of this document.
+
 >todo add commentary about the relationship between this job and the rest of these jobs.
  
 
