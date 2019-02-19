@@ -33,6 +33,8 @@ files <- c(
   "TechTeamIntro",
   
   "ElectricalGuide",
+  "InventoryManagement",
+  "SystemAdministrationGuide",
           
   "index",
           "SystemOperationsGuide"
