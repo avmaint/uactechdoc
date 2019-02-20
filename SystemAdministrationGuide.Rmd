@@ -5,44 +5,43 @@ date: "`r format(Sys.time(), '%B %d %Y')`"
 output:
   html_document:
     toc: yes
-  pdf_document:
-    toc: yes
 ---
 
-```{r setup, include=FALSE}
+```{r options, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+options(knitr.table.format = "html") 
+```
+
+```{r packages, include=FALSE}
 require(readr)
 require(dplyr)
 require(readxl)
 require(knitr)
 require(formattable)
 require(kableExtra)
+```
 
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-options(knitr.table.format = "html") 
+```{r functions}
+source("commonFunctions.r")
 ```
 
 ```{r getdata}
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
-
-Creds <- read_excel(fname, sheet = "Credentials")
-software <- read_excel(fname, sheet = "Software")
-further <- read_excel(fname, sheet = "Further")
+credentials <- get.credentials()
+software    <- get.software()
 ```
 
 # Introduction
 
-This document provides key administrative documentation for the AV technical systems at UAC. This material is meant to be disclosed to a few people who may need this information to take over the responsibilities of the technical director.  
+This document provides key administrative documentation for the AV technical systems at UAC. This material is meant to be disclosed to a few people who may need this information to take over the responsibilities of the Technical Manager.  
 
 # Credentials
 One can't manage the systems if you cannot get past userids and passwords, so they need to be protected and shared discretly.
 
-Passwords are not revealed in this document, instead the following tables discloses which passwords exist (PasswordKnown). Terry knows these passwords and a copy will be filed with the Office Administrator.
+Passwords are not revealed in this document, instead the following tables discloses which passwords exist (PasswordKnown). Terry knows these passwords and a copy will be filed with the Office Manager.
 
 ## Internal Systems
 ```{r}
-Creds %>% 
+credentials %>% 
   mutate(PasswordKnown = !is.na(Password)) %>%
   filter(AssetOrService=="Asset") %>%
   select(ID,	Userid, PasswordKnown, 	Comment) %>%
@@ -54,7 +53,7 @@ Creds %>%
 ## External Services
   
 ```{r}  
-Creds %>% 
+credentials %>% 
   mutate(PasswordKnown = !is.na(Password)) %>%
   filter(AssetOrService=="Service") %>%
   select(ID, URL,	Userid, PasswordKnown, 	Comment) %>%
@@ -77,6 +76,7 @@ software %>%
   collapse_rows(columns = 1 ) %>%
   kable_styling("striped", full_width = FALSE)
 ```
+
 ##Summary by Title
 ```{r}
 with(software, table(Title , InstalledOn)) %>%
@@ -91,4 +91,8 @@ with(software, table(Title , InstalledOn)) %>%
 [Back to top](#top)
 
 # Document Source
-This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r knitr::current_input()`
+
+#Change History
+
+`r commit.log.html( knitr::current_input() )`

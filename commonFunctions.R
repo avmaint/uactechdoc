@@ -99,6 +99,14 @@ get.further <- function() {
           )
 }
 
+get.credentials <- function() {
+  return( read_excel(fname, sheet = "Credentials"))
+}
+
+get.software <- function() {
+  return( read_excel(fname, sheet = "Software"))
+}
+
 #' Converts a excel formatted time value to string
 #' used by get.activities()
 #' @param s an excel time value
