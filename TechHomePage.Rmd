@@ -6,9 +6,11 @@ Here are all the links to web pages you might need today.
 [Detailed documentation](./index.html) is available.
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-options(knitr.table.format = "html") # latex for pdf 
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options(knitr.table.format = "html")
+```
 
+```{r packages}
 require(readr)
 require(dplyr)
 require(readxl)
@@ -16,11 +18,12 @@ require(knitr)
 require(kableExtra)
 ```
 
-```{r data, include=FALSE}
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
-NetworkInventory <- read_excel(fname, sheet = "Network")
+```{r functions}
+source("commonFunctions.R")
+```
+
+```{r getdata}
+NetworkInventory <- get.network()
 ```
 
 #Projectors
@@ -49,11 +52,11 @@ NetworkInventory %>%
 ```
 
 #Lighting Control
-QLC has to be running on the video iMac for this link to work. The formatting on that web page can sometimes be funky.
+The lighting console has its own web page which provides basic functions.
 
 ```{r} 
 NetworkInventory %>% 
-  filter(AssetTag %in% c("CDMU-A002")) %>% 
+  filter(AssetTag %in% c("ZLKU-B001")) %>% 
   select(Usage, URL, Device, AssetTag,  Notes) %>%
   kable() %>%
   column_spec( 1,  bold = TRUE ) %>%
@@ -64,13 +67,13 @@ NetworkInventory %>%
 ```{r}
 sites <- tribble(
   ~Name, ~URL, ~Notes,
-  "UAC Web Page", "http://www.uachome.org", "",
+  "UAC Web Page",    "http://www.uachome.org", "",
   "Planning Center", "https://www.planningcenteronline.com", "",
-  "Vimeo", "https://vimeo.com/unionvillealliance", "",
-  "Slack", "https://unionvillealliance.slack.com/", "",
-  "Remote Login", "https://remoteassist.neysh.ca/Host", "",
-  "Tech Documents", "Dropbox/UAC_Tech_Docs/", "Location of core documents",
-  "This Page", "Dropbox/UAC_Tech_Docs/TechHomePage.html/TechHomePage.html", ""
+  "Vimeo",           "https://vimeo.com/unionvillealliance", "",
+  "Slack",           "https://unionvillealliance.slack.com/", "",
+  "Remote Login",    "https://remoteassist.neysh.ca/Host", "",
+  "Tech Documents",  "Dropbox/UAC_Tech_Docs/", "Location of core documents",
+  "This Page",       "Dropbox/UAC_Tech_Docs/TechHomePage.html", ""
 )
 
 sites %>%
