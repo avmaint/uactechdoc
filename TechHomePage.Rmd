@@ -1,8 +1,13 @@
 ---
 title: "Tech Home Page"
-output: html_document
+output:
+  html_document:
+    toc: TRUE
+    theme: darkly
+
 ---
 Here are all the links to web pages you might need today. 
+
 [Detailed documentation](./index.html) is available.
 
 ```{r setup, include=FALSE}
@@ -26,8 +31,11 @@ source("commonFunctions.R")
 NetworkInventory <- get.network()
 ```
 
-#Projectors
-To turn on/off the front projectors, use the Control tab on each projector's page. There is a On/Off button in the upper left corner. It takes about 30 seconds before you will see any image and a minute before it is ready. Use the remote for the rear projector.
+# {.tabset .tabset-pills}
+
+##Projectors
+To turn on/off the front projectors, use the Control tab on each projector's page. There is a On/Off button in the upper left corner. It takes about 30 seconds before you will see any image and a minute before it is ready. 
+Use the remote for the rear projector.
 
 ```{r} 
 NetworkInventory %>% 
@@ -39,19 +47,24 @@ NetworkInventory %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-# Video Matrix Switch
-Use this page to change our video routing configuration. The left hand side is the outputs, and the right hand the inputs. There is a number in the lower right corner of the output boxes which tells you which input it is currently linked to. To Change it, click on the output and then the desired input.
+Under development if a utility called "CueCommanderGUI" that will provide one button acces to projector power.
+
+## Video
+
+Use the matric page to change our video routing configuration. The left hand side is the outputs, and the right hand the inputs. There is a number in the lower right corner of the output boxes which tells you which input it is currently linked to. To Change it, click on the output and then the desired input.
+
+The video processor page is sometimes needed to correct video configurations, usually if components get turned on in the wrong sequence. 
 
 ```{r} 
 NetworkInventory %>% 
-  filter(AssetTag=="ZVKU-A001") %>% 
+  filter(AssetTag %in% c("ZVKU-A001", "ZVKU-A002")) %>% 
   select(Usage, URL, Device, AssetTag,  Notes) %>%
   kable() %>%
   column_spec( 1,  bold = TRUE ) %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-#Lighting Control
+##Lighting
 The lighting console has its own web page which provides basic functions.
 
 ```{r} 
@@ -63,33 +76,49 @@ NetworkInventory %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-#Web Sites
+
+
+##Cameras
+Camera defaults are usually good, but if needed you can change the camera settings on these pages. 
+
+```{r} 
+NetworkInventory %>% 
+  filter(AssetTag %in% c(   
+                         "ZVCU-A001", "ZVCU-A002", "ZVCU-A003")) %>% 
+  select(Usage, URL, Device, AssetTag,  Notes) %>%
+  kable() %>%
+  column_spec( 1,  bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+##Network
+Camera defaults are usually good, but if needed you can change the camera settings on these pages. 
+
+```{r} 
+NetworkInventory %>% 
+  filter(AssetTag %in% c("NSCU-A004", "NSCU-A005", "NSCU-A001", "NSCU-A002", "NSCU-A003"    
+                          )) %>% 
+  select(Usage, URL, Device, AssetTag,  Notes) %>%
+  kable() %>%
+  column_spec( 1,  bold = TRUE ) %>%
+  kable_styling("striped", full_width = TRUE)
+```
+
+##Web Sites
 ```{r}
 sites <- tribble(
   ~Name, ~URL, ~Notes,
-  "UAC Web Page",    "http://www.uachome.org", "",
+  "UAC Web Page",    "http://www.uachome.org", "Public View",
   "Planning Center", "https://www.planningcenteronline.com", "",
-  "Vimeo",           "https://vimeo.com/unionvillealliance", "",
-  "Slack",           "https://unionvillealliance.slack.com/", "",
+  "Vimeo",           "https://vimeo.com/unionvillealliance", "Video Upload",
+  "Nucleus",         "https://nucleus.church", "Church web Page administration",
+  "Slack",           "https://unionvillealliance.slack.com/", "Dicussion",
   "Remote Login",    "https://remoteassist.neysh.ca/Host", "",
   "Tech Documents",  "Dropbox/UAC_Tech_Docs/", "Location of core documents",
   "This Page",       "Dropbox/UAC_Tech_Docs/TechHomePage.html", ""
 )
 
 sites %>%
-  kable() %>%
-  column_spec( 1,  bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
-```
-
-#Other Devices
-You likely will never need to use these pages.
-
-```{r} 
-NetworkInventory %>% 
-  filter(AssetTag %in% c("NSCU-A004", "ZVKU-A002", 
-                         "ZVCU-A001", "ZVCU-A002", "ZVCU-A003")) %>% 
-  select(Usage, URL, Device, AssetTag,  Notes) %>%
   kable() %>%
   column_spec( 1,  bold = TRUE ) %>%
   kable_styling("striped", full_width = TRUE)
