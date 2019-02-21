@@ -124,4 +124,6 @@ sites %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-[Back to top](#top)
+##Change Log
+
+`r commit.log.html( knitr::current_input() )`
