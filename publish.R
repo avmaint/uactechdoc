@@ -37,9 +37,9 @@ files <- c(
   "SystemAdministrationGuide",
           
   "index",
-          "SystemOperationsGuide"
-          #"InventoryManagement",
-          #", "TechTeamIntro"
+  "SystemOperationsGuide",
+  "InventoryManagement",
+  "TechTeamIntro"
 )
 
 #files <- c("SystemAdministrationGuide") # For Testing
