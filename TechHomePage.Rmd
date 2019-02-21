@@ -2,7 +2,7 @@
 title: "Tech Home Page"
 output:
   html_document:
-    toc: TRUE
+    toc: FALSE
     theme: darkly
 
 ---
@@ -47,7 +47,7 @@ NetworkInventory %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-Under development if a utility called "CueCommanderGUI" that will provide one button acces to projector power.
+Under development is a utility called "CueCommanderGUI" that will provide one button acces to projector power.
 
 ## Video
 
