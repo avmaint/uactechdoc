@@ -1,7 +1,6 @@
 ---
-title: "UAC Tech Team Documents"
-author: "Terry Doner"
-date: '2018-05-28'
+title: "UAC Tech Team Document Index"
+date: "`r format(Sys.time(), '%B %d %Y')`"
 output: html_document
 ---
 
@@ -17,17 +16,15 @@ require(dplyr)
 require(knitr)
 ```
 
-```{r data}
-path <-"~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname <- paste(path, inventoryfile, sep="/")
+```{r functions}
+source("commonFunctions.R")
 ```
-
-# Overview
-
->To be written 
 
 `r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
 
-# Document Source
+#Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
+
+#Change History
+
+`r commit.log.html( knitr::current_input() )`
