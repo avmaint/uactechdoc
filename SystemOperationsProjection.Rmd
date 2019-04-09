@@ -262,9 +262,83 @@ See the three yellow outlines in the image below.
 !["Changing Video Loop Behaviour" ](../../images/sop_video_loop.jpg)
 [Back to top](#top)
 
-## Running Triple Wide
+# Running Triple Wide
 
-> TODO: Write content and reconfigure system to use the triple wide capability.
+> As of April 2019 we have changed our video projection configuration. Previously Propresenter produced a single wide image (1920x1080) and we repeated it three times on the screens; this is called singlewide. **Now** Propresenter produces a triplewide image (5760x10180, 5760 = 3*1920) and the three screens are treated as one continuous canvas. 
+
+>TODO: add links to renewed vision tutorials on the multiscreen module and props.
+
+The ProPresenter projection output is a triplewide configuration. That is three HD images side by side for a total of 5760x1080 pixels. ProPresenter knows that there are three projection screens. We use cues to control which content is displayed where on that wide canvas. 
+
+There are two kinds of cues that we need to become more familiar with: Props and Multiscreen.
+
+Props
+: A "Prop" is an extra graphic that can float on top of whatever else you have defined and can be turned on and off manually or added as a cue to a slide. The most common usage of Props will be to add the series graphic to the centre screen. There is a multi-screen cue setup for this you just need to add it to the first slide of the message. On the first Sunday of a new series we also need to change the series grpahic in the Props setting. It is also important to add 'Clear Props' cues after the message or any other time it has been turned on. There is "clear Prop" button in the toolbar (upper left) that will clear it if you forgot one.
+
+Multi-screen Cues
+: These cues control which content gets displayed where. There are two main variations. Tile and Stretch. Tile repeats the content across all three, and stretch makes the content span all three.
+
+An example of tile versus stretch:
+
+![Tile](../../images/sop-triplewide-tile.jpg)
+ 
+![Stretch](../../images/sop-triplewide-stretch.jpg)
+
+This tutorial covers Props https://youtu.be/U4bQbLqOjC0 and this one covers the multiscreen features https://youtu.be/OzLyUoKAmDQ .
+
+[Back to top](#top)
+
+##Cues to Add to Documents
+
+To help you get the right cues in the right spot, use these formulas for the different kinds of media.
+
+###Countdown
+
+* Stage Display: "Pre Service Coutdown"
+* MultiScreen: "Song ABC Tile"
+* Clear Props
+
+###Song
+
+* Stage Display: "Worship Lyrics Static Slide"
+* Multiscreen: "Song ABC Stretch" or "Song ABC Tile". The choice is influenced by how well it looks on the screen. Try Stretch first.
+      + The choice of _stretch_ or _tile_ will depend on how the graphic looks. Tile will repeat the graphic three times. Stretch will make one image stretch across all three. 
+      + If you pick ‘stretch’ and it isn’t wide enough, you will need to go into the media properties and change the option to “fill screen”
+* Clear Props
+
+The choice of _stretch_ or _tile_ will depend on how the graphic looks. Tile will repeat the graphic three times. Stretch will make one image stretch across all three. If you pick ‘stretch’ and it isn’t wide enough, you will need to go into the media properties and change the option to “fill screen”
+
+###Message 
+
+* Stage Display: "Kevin Front No Clock"
+* MultiScreen: "Message AC - Series B"
+* Props: Series Graphic
+      + Don't forget to clear props on the next item after the message.
+
+[Back to top](#top)
+
+##Transfering the ProPresenter Playlist to the Streaming Computer
+
+This process sets up the video streaming computer to mirror the main Propresenter slide content. We do this becuase the main system is running at a triple wide resolution (5760x1080) and the stream is only single wide (1920x1080). 
+
+#. First finailize the playlist on the main computer (CDMU-A001)
+#. Move the playlist for today to the top of the list
+#. Convert the playlist to a Non-PCO playlist (if required) - right click on the playlist and select "convert to Non-PCO playlist"
+#. Export it - Right click on the playlist again and select 'Export'
+    + There is this tutorial on exporting: https://youtu.be/VCDpLwQEX6Q
+#, navigate to --- need to decide on locatoin --- ensure that the checkbox is selected to embed media
+#. Move to the streaming computer, CDMU-A002
+#. open Propresenter
+#. Go to File->Import->Import from File
+#. Navigate to CDMU-A001 --- location from above --- and click OK (or Open)
+#. You we likely see some pops ups about existing content. Select the 'apply to all' checkbox and choose 'Overwrite'
+#. Move the newly import playlist to the top of the list.
+#. Go thorugh each song and remove the background graphic and also apply the "UAC Lyrics" template. (Right click and "Remove" the graphic cue. Select the song item in the playlist and apply the "UAC Lyrics" Template either via right-click or the template icon at the top.)
+#. Test that the streaming computer changes slides in-Sync with the main computer. 
+
+> The connectoin between the two computers is defined on the Preferences->Network panel. The synchronization is communicated by playlist number, item number, and slide number, not by name. This is why we make the day's playlist, top of the list (#1 on both machines).
+
+> After Export/Import, Any edits to slide content or sequence on the second computer will need to be repeated on the streaming computer or the export/import will need to be repeated.
 
 [Back to top](#top)
 
@@ -281,12 +355,8 @@ The power for the projectors can be operated two ways:
 
 The remote for the balcony projector (aka confidence projector) is  found near the computer monitor. To power off this projector you need to hit the off button twice.
 
-## Centre Screen Operation
 
-Note
-: As of 2010 the centre projector is no longer in service.
-
-Dropping the projection screen
+## Dropping the OLD projection screen
 
 There is a three way switch located near the floor below power switch #1.
 The screen has automatic stops so you can't damage the screen by not stopping it soon enough.
@@ -346,7 +416,7 @@ Alternate:
 
 ## Projectors show only grey
 
-Grey is the secondary monitor Background Colour. An easy way to verify the scneario is to open a Finder window and drag it onto a projector screen. If it appears there then you know the video path is working.  
+Grey is the secondary monitor Background Colour. An easy way to verify the scenario is to open a Finder window and drag it onto a projector screen. If it appears there then you know the video path is working.  
 
 The problem:
 
@@ -406,6 +476,8 @@ Recovery:
 # Appendix
 
 ## Video Terminology
+
+> TODO: Write content
  
 [Back to top](#top)
 
