@@ -1,7 +1,11 @@
 ---
 title: "UAC Tech Team Document Index"
 date: "`r format(Sys.time(), '%B %d %Y')`"
-output: html_document
+output:
+  html_document:
+    toc: yes
+    number_sections: true
+    theme: cosmo
 ---
 
 ```{r options, include=FALSE, echo=FALSE}

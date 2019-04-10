@@ -2,9 +2,11 @@
 title: "Tech Team Intro"
 author: "Terry Doner"
 date: "`r format(Sys.time(), '%B %d %Y')`"
-output: 
-    html_document:
-        toc: true
+output:
+  html_document:
+    toc: yes
+    number_sections: true
+    theme: cosmo
 ---
 
 ```{r options, message=FALSE, warning=FALSE, echo=FALSE}
