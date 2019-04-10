@@ -1,6 +1,6 @@
 digraph topology1 { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Computer Topology\n(as of 2017-11-11)",
+      label="Computer Topology\n(as of 2019-04-10)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
@@ -17,9 +17,9 @@ rswitch [label="{
   |{Video\nMixer|ZVKU-A001}|
     }"]  
     
-cdwu0009 [label="{{Mediashout 1|CDWU-0009}|{<vga1>vga1|<vga2>vga2|<hdmi>hdmi}}"]
+cdwu0009 [label="{{OBS|CDWU-0009}|{<vga1>vga1|<vga2>vga2|<hdmi>hdmi}}"]
 cdmua001 [label="{{iMac 27|CDMU-A001}|{<usbc1>usbc1|<usbc2>usbc2}}"]
-cdmua002 [label="{{iMac 21|CDMU-A002}|{<usbc1>usbc1|<usbc2>usbc2}}"]
+cdmua002 [label="{{<usbin>usb}|{iMac 21|CDMU-A002}|{<usbc1>usbc1|<usbc2>usbc2}}"]
 
 wp [label="{{ {<i1>sdi|1 }|{<i2>hdmi|2} }|{Web Presenter \n ZVIU-A004}|{<usb>usb}}"]
 
@@ -34,16 +34,16 @@ fx4:o2 -> pswitch:i2
 fx4:o3 -> pswitch:i3
 
 cdmua001:usbc1 -> fx4:dp  
-cdmua001:usbc2 -> pswitch:i4 
+cdmua001:usbc2 -> pswitch:i4 [label="adapter"]
 
 b1monitor [label="{<i>vga|Computer Monitor}"] 
 
 cdwu0009:hdmi -> pswitch:i5
 cdwu0009:vga1 -> b1monitor:i 
 
-guest [label="{{Guest}|{<hdmi>hdmi }}"]
-guest:hdmi -> pswitch:i6
+zlkub001 [label="{{Light Console|ZLKU-B001}|{<hdmi>hdmi }}"]
+zlkub001:hdmi -> pswitch:i6
 
-wp -> cdmua002 
-cdmua002:usbc1 -> rswitch:i2
+wp -> cdmua002:usbin 
+cdmua002:usbc1 -> rswitch:i2 [ label="adapter" ] 
 } 

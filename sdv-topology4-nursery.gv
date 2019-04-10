@@ -1,6 +1,6 @@
 digraph nursery { 
 graph [overlap = true, fontsize = 25, rankdir=TB
-      label="Nursery Topology\n(as of 2017-11-11)",
+      label="Nursery Topology\n(as of 2019-04-10)",
       fontname = Helvetica]
  
 node [shape=Mrecord, style=filled , fillcolor="white:beige" ,fontsize = 10, 
@@ -15,12 +15,10 @@ pswitch [label="{
 node [  tooltip="" ]
 
 subgraph cluster_lobby { label="Nursery" 
-  nbluray    [label="{{BluRay\nZVPU-0001}|<o>hdmi}"]
   c62hdmi1   [label="{<i>HDBaseT| to\nZVIU-A001|<o>hdmi}", tooltip="In nursery"]
-  nurserytv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Nursery\nTV\nZVVU-0002}"]
+  nurserytv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Nursery\nTV\nZVVU-0003}"]
 }
 
 pswitch:o7 -> c62hdmi1:i
 c62hdmi1:o -> nurserytv:i1
-nbluray:o -> nurserytv:i2
 }

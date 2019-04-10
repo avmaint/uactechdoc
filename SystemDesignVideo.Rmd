@@ -32,7 +32,7 @@ network.data <- get.network()
 further <- get.further()
 ```
 
-## Introduction
+# Introduction
 This document provides key technical documentation for the video recording and broadcasting subsystems at UAC. This diagram provides an overview of the major components and leaves out some details.
 
 ```{r}
@@ -43,12 +43,10 @@ Frequently throughout this document there will be a diagram or description of so
 
 Every significant inventory item is to have an asset tag - an actual label attached to the device. For the AV gear these tags all start with a Z. For example ZVKU-A001 is the assest tag of the kramer video matrix.
 
-## Presentation Switcher
+# Presentation Switcher
 The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats.
 
 It has 8 inputs and 8 outputs. It can be controlled via the buttons on the front panel or from it’s built in web page.
-
->TODO: review details of the input list
 
 ```{r}
 psi <- tribble(
@@ -60,8 +58,8 @@ psi <- tribble(
 4, "Confidence",    "Stage display from PP. Meant for the rear projector.",
 5, "VMIX Program",  "Program output from Video Mixer",
 6, "VMIX AUX",      "Aux output from Video Mixer.",
-7, "CDWU-0009",     "Video Output from Windows machine. Usually used from OBS.",
-8, "Lighting Console", "Could also be used for a guest machine." 
+7, "CDWU-0009",     "Video Output from Windows machine. Usually used for OBS.",
+8, "Lighting Console", "This input could also be used for a guest machine." 
 )
 
 pso <- tribble(
@@ -93,7 +91,7 @@ pso <- tribble(
 )
 ```
 
-###Inputs
+##Inputs
 
 ```{r}
 psi %>% 
@@ -102,7 +100,7 @@ psi %>%
     kable_styling("striped", full_width = TRUE)
 ```
 
-###Outputs
+##Outputs
 ```{r}
 pso %>% 
   kable() %>%
@@ -110,7 +108,7 @@ pso %>%
     kable_styling("striped", full_width = TRUE)
 ```
 
-###Configurations
+##Configurations
 The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.  
 
 #### Normal Service Switcher Configuration 
@@ -135,34 +133,34 @@ The display should look like:
 DiagrammeR::grViz("sdv-PScamera.gv", height=300)
 ```
 
-## Topologies
+# Topologies
 There are a lot of components to the system. One big diagram is daunting. It has been broken down into smaller portions to be more consumable. 
 
-### Computer Topology
+## Computer Topology
 
 There are three computers in the system:
 
 CDWU-0009 Windows / OBS / Mediashout
-: The windows system runs OBS or Mediashout and has a dual output video card. One is used for the operator display, and the second for presentation. It also has Powerpoint for Windows installed.
+: This windows 7 system has a dual output video card. One is used for the operator display, and the second for presentation. It normally runs OBS to drive the secondary output typically just for the pre-service announcement loop. It also has Mediashout instaled but rarely used. And it has Powerpoint for Windows installed.
 
 CDMU-A001 MacOS / ProPresenter
 : This system runs ProPresenter and has a built in operator display, and a displayport output to the datapath video processor which split the output to three separate video signals for the front projectors, and a separate video output that drives the rear confidence montitor. It also has Powerpoint for Mac and Keynote installed.
 
-CDMU-A002 MacOS / ATEM - OBS
+CDMU-A002 MacOS / ATEM / OBS / Propresenter
 : This system runs the ATEM switcher software, and OBS (for streaming) and can also run things like Skype. It has a USBC-HDMI adapter that is direct connected to Input 2 of the video mixer.
 
->todo: fix up connections for CDMU-A002: usb inputs - network and hdmi outputs.
->todo: web presnter SDI and HDMI inputs.
->todo: CDMU-A001 outputs need to show usbc-hdmi conversion or comment about it. 
->todo: remove guest, add coulorsource
->todo remove vga monitor 
+>todo: Confirm web presenter SDI and HDMI inputs.
+>todo: is the monitor for CDWU-0009 a vga monitor? 
+>todo: label and document the sdi<>hmdi boxes
   
 ```{r top1}
 DiagrammeR::grViz("sdv-topology1-computer.gv")
-print_inv(c("CDWU-0009","CDMU-A001","CDMU-A002"), Tech_Inventory)
+print_inv(c("CDWU-0009","CDMU-A001","CDMU-A002", "ZLKU-B001",
+            "ZVKU-A003", "ZVKU-A001", "ZVIU-A004", "ZVKU-A002"
+            ), Tech_Inventory)
 ```
 
-### Projection Topology
+## Projection Topology
 There are four projectors in the auditorium, three FoH and one at the rear for confidence. Thet are all feed an hdmi signal via HDBaseT (Over Cat6).
 
 ```{r top2}
@@ -170,41 +168,42 @@ DiagrammeR::grViz("sdv-topology2-projection.gv")
 print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003", "ZVVU-0001"),                    Tech_Inventory)
 ```
 
-###Lobby Topology
+##Lobby Topology
 The TV in the lobby gets its content from the presentation Switcher. For the main service it should get its feed from the video mixer program output.
 
 ```{r l132}
 DiagrammeR::grViz("sdv-topology3-lobby.gv")
 
-print_inv(c("ZVIU-A002", "ZVKU-A001", "ZVVU-0003"), Tech_Inventory)
+print_inv(c("ZVIU-A002", "ZVKU-A001", "ZVVU-0002"), Tech_Inventory)
 ```
 
-### Nursery Topology
+>TODO: document the swap of the lobby and nursery TV. ZVVU-0002 is now in the lobby. ZVVU-0003 is in the nursery. Diagrams and charts have been updated - need to update the inventory database with the new locations.
+
+## Nursery Topology
 The TV in the nursery gets its content from the presentation Switcher. For the main service it should get its feed from the video mixer program output.
 
-Alternately it can be switched to the Bluray player.
 ```{r top3}
 DiagrammeR::grViz("sdv-topology4-nursery.gv")
-print_inv(c("ZVIU-A001", "ZVKU-A001", "ZVPU-0001", "ZVVU-0002"), Tech_Inventory)
+print_inv(c("ZVIU-A001", "ZVKU-A001",   "ZVVU-0003"), Tech_Inventory)
 ```
 
-The TV and the Bluray player each have a remote control.
+The TV has a remote control.
 
-### Recording / Livestream Topology
+## Recording / Livestream Topology
 The recording topology is quite complex and so it is broken up into peices.
 
-####Inputs
+###Inputs
 
 ```{r top5a}
 DiagrammeR::grViz("sdv-topology5-rec-inputs.gv", height=350)
 ```
 
-####Outputs
+###Outputs
 ```{r top5b}
 DiagrammeR::grViz("sdv-topology5-rec-outputs.gv", height=350)
 ```
 
-####Web Presenter
+###Web Presenter
 There are some details on the signal path between the Video Mixer and the Web Presenter that need to be documented.
 
 ```{r topwp}
