@@ -5,8 +5,8 @@ date: "`r format(Sys.time(), '%B %d %Y')`"
 output:
   html_document:
     toc: yes
-  pdf_document:
-    toc: yes
+    number_sections: true
+    theme: cosmo
 ---
 
 ```{r options, include=FALSE}
@@ -91,11 +91,14 @@ Week Specifc (eg. Feb12)
 Announcements
 : This folder is used for the announcement loop graphics we use all the time and has a an expiry date. The files are to be named with the last date a grophic is to be used. If it a grpahic for a specific week, then it should be in that week's folder.
 
+Series Folder
+: This is for graphics which are to be used for an entire series. It contains the centre screen graphic, the lower 3rd graphics for video, the series Welcome graphic, plus other useful backgrounds.
+
 ##Media Resources
 
-This is out main graphic library, for both still and motion graphics. There are some folders for specific purposes and others which are orgnized by a particular graphical theme. 
+This is our main graphic library, for both still and motion graphics. There are some folders for specific purposes and others which are orgnized by a particular graphical theme. 
 
-Many files have keywords in the file names that make them easier to search for. 
+Many files have keywords in the file names that make them easier to search for. For example, you can search by colour, eg "red", or for triplewide content "-tw", or for "cross".
 
 # Remote Login
 
@@ -169,12 +172,17 @@ A PCO playlist is rigidly linked to PCO. You cannot add items or change the orde
 ProPresenter is able to import the contents of a Powerpoint presentation. It creates a document containing static images, which means any animations and transition affects that were part of the powerpoint are lost. You also need to ensure that any special fonts used in the powerpoint are installed on the system.
 
 You execute the import via File > Import > Import from Powerpoint.
-
->TODO Insert Screen shot
+![Import](../../images/sop-ppt-import-1.png)
 
 and then navigate to the powerpoint file. 
 
-Once the import is complete, you can then link the new document to the playlist.
+![Import](../../images/sop-ppt-import-2.png)
+
+ 
+
+Once the import is complete, you can then link the new document to the playlist, and add the multiscreen and prop cues.
+
+If you see a white flash as you transition to the first slide, change the background colour to black. The background colour is displayed first and then the graphic is brought in via the transition.
 
 [Back to top](#top)
 
@@ -186,6 +194,8 @@ Propresenter gives us the ability to display different content on the rear displ
 
 The Stage display layouts are defined in the main Propresenter settings dialog, under the displays tab. We have three primary layouts.
 
+This video tutorial provides a good overview: https://youtu.be/ynqvjqTjv2M
+
 Worship Lyrics - static slide
 : Used for our musical worship portion of the service. It features the lyrics without the backgrounds (except for the first slide) and a small preview of the first few lines of the next slide. 
 
@@ -193,9 +203,7 @@ Kevin Front - no clock
 : Used when Pastor Kevin is speaking. It mirrors the front displays.
 
 Daniel Speaking
-: Used when Pastor Daniel is speaking. It features the current slide with a small preview of the next slide. It also includes a clock. Sometimes a countdown, sometimes a elapsed time. When using this layout you also need to add a timer cue and reset it before service start. 
-
->TODO: We might create two versions of the Daniel layout. One for countdown and the other for elapsed.
+: Used when Pastor Daniel is speaking. It features the current slide with a small preview of the next slide. It also includes a clock, an elapsed time. Add timer cues to the first page of the message slides - reset timer (from cue pallete) and start timer. 
 
 ##Adding a Stage Display Layout Cue
 
@@ -213,12 +221,14 @@ Some layouts, specifically Daniels, may have a times defined within the layout. 
 * Select Add Cue > Timer Cue > Daniel Elapsed (example)
  
 ![Add Timer Cue](../../images/sop-stagedisplay-addcue-timer-zoom.png)
- 
->TODO: Consider Renaming the timers that Daniel uses so it it obvious which one to use without poking around. 
 
 After adding a timer cue to the playlist you need to go into the Clocks and Timers dialog and set the timer and hit the reset button (curly arrow). 
  
 ![Clocks and Timers](../../images/sop-clockstimers.png)
+
+Or add timer cues from the cue palette 
+
+![Timer Cue](../../images/sop-timer-cue.png)
 
 ##Lyrics on Stage Display Only
 
@@ -266,8 +276,6 @@ See the three yellow outlines in the image below.
 
 > As of April 2019 we have changed our video projection configuration. Previously Propresenter produced a single wide image (1920x1080) and we repeated it three times on the screens; this is called singlewide. **Now** Propresenter produces a triplewide image (5760x10180, 5760 = 3*1920) and the three screens are treated as one continuous canvas. 
 
->TODO: add links to renewed vision tutorials on the multiscreen module and props.
-
 The ProPresenter projection output is a triplewide configuration. That is three HD images side by side for a total of 5760x1080 pixels. ProPresenter knows that there are three projection screens. We use cues to control which content is displayed where on that wide canvas. 
 
 There are two kinds of cues that we need to become more familiar with: Props and Multiscreen.
@@ -314,6 +322,7 @@ The choice of _stretch_ or _tile_ will depend on how the graphic looks. Tile wil
 * MultiScreen: "Message AC - Series B"
 * Props: Series Graphic
       + Don't forget to clear props on the next item after the message.
+* Timer Cues as required (reset and start)      
 
 [Back to top](#top)
 
@@ -325,10 +334,10 @@ This process sets up the video streaming computer to mirror the main Propresente
 #. Move the playlist for today to the top of the list
 #. Convert the playlist to a Non-PCO playlist (if required) - right click on the playlist and select "convert to Non-PCO playlist"
 #. Export it - Right click on the playlist again and select 'Export'
-    + There is this tutorial on exporting: https://youtu.be/VCDpLwQEX6Q
-#, navigate to --- need to decide on locatoin --- ensure that the checkbox is selected to embed media
+     + There is this tutorial on exporting: https://youtu.be/VCDpLwQEX6Q
+#. Navigate to --- need to decide on location --- ensure that the checkbox is selected to embed media
 #. Move to the streaming computer, CDMU-A002
-#. open Propresenter
+#. Open Propresenter
 #. Go to File->Import->Import from File
 #. Navigate to CDMU-A001 --- location from above --- and click OK (or Open)
 #. You we likely see some pops ups about existing content. Select the 'apply to all' checkbox and choose 'Overwrite'
@@ -336,7 +345,7 @@ This process sets up the video streaming computer to mirror the main Propresente
 #. Go thorugh each song and remove the background graphic and also apply the "UAC Lyrics" template. (Right click and "Remove" the graphic cue. Select the song item in the playlist and apply the "UAC Lyrics" Template either via right-click or the template icon at the top.)
 #. Test that the streaming computer changes slides in-Sync with the main computer. 
 
-> The connectoin between the two computers is defined on the Preferences->Network panel. The synchronization is communicated by playlist number, item number, and slide number, not by name. This is why we make the day's playlist, top of the list (#1 on both machines).
+> The connection between the two computers is defined on the Preferences->Network panel. The synchronization is communicated by playlist number, item number, and slide number, not by name. This is why we make the day's playlist, top of the list (#1 on both machines).
 
 > After Export/Import, Any edits to slide content or sequence on the second computer will need to be repeated on the streaming computer or the export/import will need to be repeated.
 
@@ -354,7 +363,6 @@ The power for the projectors can be operated two ways:
 ## Turning the Confidence Projector On and Off
 
 The remote for the balcony projector (aka confidence projector) is  found near the computer monitor. To power off this projector you need to hit the off button twice.
-
 
 ## Dropping the OLD projection screen
 

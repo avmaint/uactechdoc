@@ -5,6 +5,8 @@ date: "`r format(Sys.time(),  '%B %d %Y')`"
 output:
   html_document:
     toc: yes
+    number_sections: true
+    theme: cosmo
     toc_depth: 2
 ---
 <a id="top"></a>
