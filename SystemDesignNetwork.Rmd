@@ -7,6 +7,7 @@ output:
     toc: yes
     number_sections: true
     theme: cosmo
+---  
 
 ```{r options, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -49,8 +50,6 @@ The network is used for these purposes:
 
 #Overall Switch Topology
 
->Todo : As of Jan 2019 new HP wireless access points have been added to the network, and this is relfected in the overall topology view. The asset tags are not recorded here.  They are also not recorded in the AV inventory database.
-
 ```{r overalltopology}
 st <-' 
 digraph overall { 
@@ -82,7 +81,6 @@ subgraph cluster_avroom { label="AV Room"
 
     nscua005    [label="NSCU-A005"
                  tooltip="Cisco SG250-26P"]
-   
 }
 
 subgraph cluster_youth { label="Board Room"
@@ -96,31 +94,31 @@ subgraph cluster_balcony {
   balconyfront [label="NSCU-A003" tooltip="Cisco SG250-26P"]
   balconyrear  [label="NSCU-A004"  tooltip="Cisco SG250-26P"]
 
-  ap23 [label="ap23", tooltip="HP IAP-315"]
-  ap24 [label="ap24", tooltip="HP IAP-315"]
+  ap23 [label="NAHU-B007", tooltip="HP IAP-315"]
+  ap24 [label="NAHU-B009", tooltip="HP IAP-315"]
 
 }
 
 subgraph cluster_bsmt {
   label="Basement"
 
-  ap11 [label="ap1", tooltip="HP IAP-315"]
-  ap12 [label="ap1", tooltip="HP IAP-315"]
-  ap13 [label="ap1", tooltip="HP IAP-315"]
-  ap14 [label="ap1", tooltip="HP IAP-315"]
-  ap15 [label="ap1", tooltip="HP IAP-315"]
+  ap11 [label="NAHU-B002", tooltip="HP IAP-315"]
+  ap12 [label="NAHU-B003", tooltip="HP IAP-315"]
+  ap13 [label="NAHU-B004", tooltip="HP IAP-315"]
+  ap14 [label="NAHU-B006", tooltip="HP IAP-315"]
+  ap15 [label="NAHU-B008", tooltip="HP IAP-315"]
 }
 
 subgraph cluster_office {
   label="Office"
 
-  ap21 [label="ap21", tooltip="HP IAP-315"]
+  ap21 [label="NAHU-B001", tooltip="HP IAP-315"]
 }
 
 subgraph cluster_lobby {
   label="Lobby"
 
-  ap22 [label="ap22", tooltip="HP IAP-315"]
+  ap22 [label="NAHU-B005", tooltip="HP IAP-315"]
 }
 
 nscua001 -> ap21
@@ -145,17 +143,31 @@ balconyfront -> balconyrear
 library -> youth
 } 
 '
+#
+# NAHU-B001	Network	Office	na	Wireless Access Point
+# NAHU-B002	Network	bsmt Hallway West	na	Wireless Access Point
+# NAHU-B006	Network	bsmt Hallway East	na	Wireless Access Point
+# NAHU-B008	Network	Fellowship Hall	na	Wireless Access Point
+# NAHU-B003	Network	Room 10 (South West)	na	Wireless Access Point
+# NAHU-B004	Network	Room 1 (South East)	na	Wireless Access Point
+# NAHU-B009	Network	Balcony East	na	Wireless Access Point
+# NAHU-B007	Network	Balcony West	na	Wireless Access Point
+# NAHU-B005	Network	Lobby	na	Wireless Access Point
 
 DiagrammeR::grViz(st, height=350)
 
 selected.at <- c( "NSCU-A001", "NSCU-A002",  "NSCU-A003",
-                  "NSCU-A004", "NSCU-A005") %>%  
+                  "NSCU-A004", "NSCU-A005" ,
+                  "NAHU-B001", "NAHU-B002", "NAHU-B003",
+                  "NAHU-B004", "NAHU-B005", "NAHU-B006",
+                  "NAHU-B007", "NAHU-B008" 
+                   ) %>%  
   data.frame(AssetTag=.)
 
-merge(TechInventory, selected.at) %>% 
-    select(AssetTag, Location, Manufacturer, Model, Desc) %>%
-    formattable(align="l")
-
+merge(NetworkInventory, selected.at) %>% 
+    select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
+    kable(caption="Switch Inventory") %>% 
+    kable_styling("striped", full_width = TRUE)
 ```
 
 [Back to top](#top)
@@ -253,13 +265,15 @@ selected.at <- c( "ZVVU-A001", "ZVVU-A002",
 
 merge(NetworkInventory, selected.at) %>% 
     select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
-    formattable(align="l")
+ kable()  %>%
+  kable_styling("striped", full_width = FALSE)
 
 selected.at <- c( "ZAHU-0001") %>%  data.frame(AssetTag=.)
 
 merge(TechInventory, selected.at) %>% 
     select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) %>%
-    formattable(align="l")
+ kable()  %>%
+  kable_styling("striped", full_width = FALSE)
 ```
 
 [Back to top](#top)
@@ -347,13 +361,15 @@ selected.at <- c( "ZAKU-0001", "NSCU-A003",
 
 merge(NetworkInventory, selected.at) %>% 
     select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
-    formattable(align="l")
+ kable()  %>%
+  kable_styling("striped", full_width = FALSE)
 
 selected.at <- c( "ZAHU-0004") %>%  data.frame(AssetTag=.)
 
 merge(TechInventory, selected.at) %>% 
     select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) %>%
-    formattable(align="l")
+ kable()  %>%
+  kable_styling("striped", full_width = FALSE)
 ```
 
 #Balcony Rear Desk
@@ -485,14 +501,17 @@ selected.at <- c( "ZVRU-A001", "ZVRU-A002",  "ZVKU-A003",
 merge(NetworkInventory, selected.at) %>% 
     arrange(AssetTag) %>%
     select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
-    formattable(align="l")
-
+ kable()  %>%
+  kable_styling("striped", full_width = FALSE)
+  
 selected.at <- c("ZVHU-0002") %>%  data.frame(AssetTag=.)
 
 
 merge(TechInventory, selected.at) %>% 
     select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) %>%
-    formattable(align="l")
+ kable()  %>%
+  kable_styling("striped", full_width = FALSE)
+  
 ```
 [Back to top](#top)
  
@@ -502,7 +521,9 @@ merge(TechInventory, selected.at) %>%
 NetworkInventory %>% 
 #filter(Category=="Video") %>% 
 select(Location, AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
-  formattable(align="l")
+ kable()  %>%
+  kable_styling("striped", full_width = FALSE)
+
 ```
 
 ```{r mac_needed, eval=FALSE}
@@ -512,7 +533,8 @@ NetworkInventory %>%
   select(-Category, -Location, -Usage, -Notes, -URL) %>% 
   filter( ! is.na(MAC)  ) %>% 
   filter(   is.na(IP)   )   %>% 
-   formattable(align="l")
+ kable()  %>%
+  kable_styling("striped", full_width = FALSE)
 ```
 [Back to top](#top)
 
