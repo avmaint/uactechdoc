@@ -15,7 +15,7 @@ pswitch [label="{
 node [  tooltip="" ]
 
 subgraph cluster_lobby { label="Nursery" 
-  c62hdmi1   [label="{<i>HDBaseT| to\nZVIU-A001|<o>hdmi}", tooltip="In nursery"]
+  c62hdmi1   [label="{<i>HDBaseT| to\nZVIU-A002|<o>hdmi}", tooltip="In nursery"]
   nurserytv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Nursery\nTV\nZVVU-0003}"]
 }
 

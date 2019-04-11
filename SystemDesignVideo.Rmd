@@ -176,7 +176,7 @@ There is a network cable that also runs to the lobby TV, and is for future use.
 ```{r l132}
 DiagrammeR::grViz("sdv-topology3-lobby.gv")
 
-print_inv(c("ZVIU-A002", "ZVKU-A001", "ZVVU-0002"), Tech_Inventory)
+print_inv(c("ZVIU-A001", "ZVKU-A001", "ZVVU-0002"), Tech_Inventory)
 ```
 
 >TODO: document the swap of the lobby and nursery TV. ZVVU-0002 is now in the lobby. ZVVU-0003 is in the nursery. 
@@ -190,7 +190,7 @@ The TV in the nursery gets its content from the presentation Switcher. For the m
 
 ```{r top3}
 DiagrammeR::grViz("sdv-topology4-nursery.gv")
-print_inv(c("ZVIU-A001", "ZVKU-A001",   "ZVVU-0003"), Tech_Inventory)
+print_inv(c("ZVIU-A002", "ZVKU-A001",   "ZVVU-0003"), Tech_Inventory)
 ```
 
 The TV has a remote control.
