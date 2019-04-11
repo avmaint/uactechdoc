@@ -171,13 +171,19 @@ print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003", "ZVVU-0001"),    
 ##Lobby Topology
 The TV in the lobby gets its content from the presentation Switcher. For the main service it should get its feed from the video mixer program output.
 
+There is a network cable that also runs to the lobby TV, and is for future use.
+
 ```{r l132}
 DiagrammeR::grViz("sdv-topology3-lobby.gv")
 
 print_inv(c("ZVIU-A002", "ZVKU-A001", "ZVVU-0002"), Tech_Inventory)
 ```
 
->TODO: document the swap of the lobby and nursery TV. ZVVU-0002 is now in the lobby. ZVVU-0003 is in the nursery. Diagrams and charts have been updated - need to update the inventory database with the new locations.
+>TODO: document the swap of the lobby and nursery TV. ZVVU-0002 is now in the lobby. ZVVU-0003 is in the nursery. 
+
+* Diagrams and charts have been updated 
+* Inventory database updated with the new locations.
+* need to confirm what happened to ZVIU-A001 and ZVIU-A002
 
 ## Nursery Topology
 The TV in the nursery gets its content from the presentation Switcher. For the main service it should get its feed from the video mixer program output.

@@ -515,20 +515,23 @@ The stream will be scheduled to go live at 10am.
 
 __Sunday - Approximately 9:30 am __
 
-* Open OBS (computer) and go into Settings, and then the "Stream" section. Paste the key into the "Stream Key" field. Press "ok"
+* Open OBS (on the CDMU-A002 computer) and go into Settings, and then the "Stream" section. Paste the key into the "Stream Key" field. Press "ok"
 * Press the "Start Streaming" button. It will then change to be the "stop streaming" button. Verify that the connection is working in a couple of ways: 
     #. The streaming button changed from "Start Streaming" to "Stop Streaming", 
     #. in the bottom right of the OBS screen there is a small green square indicating that our bit rate is good. 
-* From the scene list select the scene "02 Announcement Clock", and then click the  "transition" button.
+* From the scene list select the scene "xx Web Presenter Starting Shorly", and then click the  "transition" button.
 
 __At 10:00am__
 
-* Via OBS, select the scene "xx web presenter with date", and click "transition".
-* after a few seconds, select the "xx Web Presenter scene", and click "transition".
+* (Assuming we start on time, if late starting then defer until ready)
+* Via OBS, select the "xx Web Presenter scene", and click "transition".
 * check to make sure we are still streaming.
+
+__At 11:15am - when service ends__
+
 * at the end of the service, ckick "Stop Streaming".
 
-> TODO: Need to refine the instructinos for 10am. We need to incorporate the "We will be stating shortly" scene as well; perhaps combine it with the Date scene. 
+> TODO: Need to refine the instructions for 10am. We need to incorporate the "We will be stating shortly" scene as well; perhaps combine it with the Date scene. 
 
 [Back to top](#top)
 
@@ -551,7 +554,7 @@ Our current recording process encodes the video as 1920x1080p60 which produces a
 These instructions are written assuming the use of Davinci Resolve V14 video editing software (free for Mac and Windows). 
 
 #. Transfer to computer
-Take the SD memory card from (usually) recorder #2 and insert it into the back of the video mac computer. (The cards are currently being formatted for MacOS).
+Take the SD memory card from (usually) recorder #2 and insert it into the back of the video mac computer (CDMU-A002). (The cards are currently being formatted for MacOS).
 
 #. Start the program Davinci Resolve.
 It will take a minute to start and then will ask if you want to start a new project (bottom of window). Click "New Project". It will ask for a project name. Choose the date of service, eg "2018-12-31". 
@@ -646,13 +649,18 @@ After selecting that file and clicking the button at the bottom, upload will beg
 
 >TODO. Change the above instructions to specifiy what 'the button' says. "Choose", "Select", "Ok" - not sure. Insert a screenshot.
 
-5. Update the UACHome website
-: Go to the [church web site](http://www.uachome.org) and login, which is at the bottom of the page. Usually the audio is posted first so the page for the sermon would already exist. Go to Sermons page and navigate to the page for this particular sermon. Click 'Edit'. Scroll down to the Video Link field and paste in the URL from Vimeo. Click Save.
+## Update the UACHome website
 
-#. Congratulations - You are almost done
-: The one last thing is to ensure that the memory card gets back to the church for the next service. 
+> TODO: Need to rewrite this due to cut-over to nucleus.
 
-In finder you will see the media card along the left side. Beside that there is a little up-arrow. Click it and then the card will be safe to remove.
+Go to the [church web site](http://www.uachome.org) and login, which is at the bottom of the page. Usually the audio is posted first so the page for the sermon would already exist. Go to Sermons page and navigate to the page for this particular sermon. Click 'Edit'. Scroll down to the Video Link field and paste in the URL from Vimeo. Click Save.
+
+## Congratulations - You are almost done
+The one last thing is to ensure that the memory card is ejected from the computer:
+
+* In finder you will see the media card along the left side. Beside that there is a little up-arrow. Click it and then the card will be safe to remove.
+
+And now return it to its slots in the recorder for the next service. 
 
 [Back to top](#top)
 
@@ -702,7 +710,7 @@ __Missing the video feed from ProPresenter (Lyrics)__
 
 __No video signal visible in OBS, but it is visible on Web Presenter__
  
-* Pull the plug and reinsert on the USB into to the computer (CDMU-A002) labelled CDMU-A002
+* Pull the plug and reinsert on the USB cable going into to the computer (CDMU-A002). The cable has a label "Web Camera".
 
 __The video image on OBS is 'frozen' (and WebPresenter too)__
 
