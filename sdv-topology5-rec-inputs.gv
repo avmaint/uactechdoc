@@ -33,7 +33,7 @@ pswitch [
   label="{
   {
     <i1>In1|<i2>In2|<i3>In3|<i4>In4|<i5>In5| <i6> In6 |<i7>In7|{<i8>In8}}
-  |Presentation Switcher\nZVKU-A001|
+  |Video Matrix\nZVKU-A001|
   {<o1>Out1|<o2>Out2|<o3>Out3|<o4>Out4|<o5>Out5|<o6>Out6 |<o7>Out7|{Out8|<o8>hdmi}} }"]
    
 rmip10 [

@@ -43,7 +43,7 @@ Frequently throughout this document there will be a diagram or description of so
 
 Every significant inventory item is to have an asset tag - an actual label attached to the device. For the AV gear these tags all start with a Z. For example ZVKU-A001 is the assest tag of the kramer video matrix.
 
-# Presentation Switcher
+# Video Matrix
 The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats.
 
 It has 8 inputs and 8 outputs. It can be controlled via the buttons on the front panel or from it’s built in web page.
@@ -169,7 +169,7 @@ print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003", "ZVVU-0001"),    
 ```
 
 ##Lobby Topology
-The TV in the lobby gets its content from the presentation Switcher. For the main service it should get its feed from the video mixer program output.
+The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
 
 There is a network cable that also runs to the lobby TV, and is for future use.
 
@@ -186,7 +186,7 @@ print_inv(c("ZVIU-A001", "ZVKU-A001", "ZVVU-0002"), Tech_Inventory)
 * need to confirm what happened to ZVIU-A001 and ZVIU-A002
 
 ## Nursery Topology
-The TV in the nursery gets its content from the presentation Switcher. For the main service it should get its feed from the video mixer program output.
+The TV in the nursery gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
 
 ```{r top3}
 DiagrammeR::grViz("sdv-topology4-nursery.gv")

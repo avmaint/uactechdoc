@@ -1,13 +1,13 @@
 digraph topology0 { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Overview\n(as of 2019-02-05)",
+      label="Overview\n(as of 2019-04-29)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
-pswitch [label="Presentation\nSwitcher|ZVKU-A001"]
+pswitch [label="Video\nMatrix|ZVKU-A001"]
 rswitch [label="Video\nmixer|ZVKU-A003"]
     
 cdwu0009 [label="OBS or Mediashout|CDWU-0009"]

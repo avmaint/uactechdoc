@@ -465,7 +465,7 @@ cs         [label="{ETC Ligthing Console|ZLKU-B001}"]
 
   subgraph cluster_zvhu0001 { label="ZVHU-0001 rack"  
                               tooltip="Front desk Rack"
-        vs88dt     [label="{Presentation Switcher|ZVKU-A001}", 
+        vs88dt     [label="{Video Matrix|ZVKU-A001}", 
                   tooltip=" Kramer vs88-dt"]
         fx4        [label="{Video Processor|ZVKU-A002}", 
                   tooltip="Datapath fx4 "]

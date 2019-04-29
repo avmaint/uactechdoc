@@ -42,7 +42,7 @@ DiagrammeR::grViz("sdv-topology0-overview.gv")
 ```
 
 
-## Presentation Switcher
+## Video Matrix
 The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats.
 
 It has 8 inputs and 8 outputs. It can be controlled via the buttons on the front panel or from it's built in web page.
@@ -94,7 +94,7 @@ psi %>% kable(align="l")   %>%
 
 [Back to top](#top)
 
-### Presentation Switcher Outputs
+### Video Matrix Outputs
 
 ```{r pso}
 pso <- tribble(
@@ -132,7 +132,7 @@ pso %>% kable(align="l")   %>%
 
 [Back to top](#top)
 
-### Presentation Switcher Configurations
+### Video Matrix Configurations
 The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.  
 
 #### Normal Service Switcher Configuration 
@@ -216,7 +216,7 @@ Tech_Inventory %>%
 [Back to top](#top)
 
 ### Lobby Topology
-The TV in the lobby gets its content from the presentation Switcher. For the main service it should get its feed from the video mixer program output. 
+The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output. 
 
 ```{r topLobby}
 DiagrammeR::grViz("sdv-topology3-lobby.gv")
@@ -237,7 +237,7 @@ merge( Tech_Inventory, selected.at) %>%
 [Back to top](#top)
 
 ### Nursery Topology
-The TV in the nursery gets its content from the presentation Switcher. For the main service it should get its feed from the video mixer program output.
+The TV in the nursery gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
 
 Alternately it can be switched to the Bluray player.
 

@@ -7,7 +7,7 @@ node [shape=record, style=filled , fillcolor="white:beige",fontsize = 10,
       gradientangle=270]
 pswitch [label="{
   {{<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}|{<i5>hdmi|In5}|{<i6>hdmi|In6}|{<i7>hdmi|In7}|{<i8>hdmi|In8}}
-  |Presentation Switcher|ZVKU-A001|
+  |Video Matrix|ZVKU-A001|
   {{Out1|<o1>HDBaseT}|{Out2|<o2>HDBaseT}|{Out3|<o3>HDBaseT}|{Out4|<o4>HDBaseT}|{Out5|<o5>hdmi}|{Out6|<o6>HDBaseT}|{Out7|<o7>HDBaseT}|{Out8|<o8>hdmi} } }"]
   
 node [shape=record, tooltip="" ]
