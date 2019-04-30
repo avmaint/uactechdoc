@@ -20,22 +20,6 @@ rswitch [
     }"
 ]
 
-recorder1 [
-  label="{
-    <i1>sdi|in1
-    |Recorder\nZVRU-A001 
-    }"
-  tooltip="BMD Hyperdeck Studio Mini"
-]
-
-recorder2 [
-  label="{
-    <i1>sdi|in1
-    |Recorder\nZVRU-A002 
-    }"
-  tooltip="BMD Hyperdeck Studio Mini"
-]
-
 wp [label="{{ {<i1>sdi|1 }|{<i2>hdmi|2} }|{Web Presenter \n ZVIU-A004}|{<usb>usb}}"]
 
 cdmua002 [label="{Recoding iMac\nOBS - Livestream|CDMU-A002}"]
@@ -47,8 +31,4 @@ converter -> wp:i2
 rswitch:o4 -> wp:i1
  
 wp -> cdmua002
- 
-rswitch:o1 -> recorder1:i1 
-rswitch:o2 -> recorder2:i1 
-  
 } 

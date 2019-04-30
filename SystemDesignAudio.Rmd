@@ -194,12 +194,46 @@ The monitor amps are feed directly from the M7CL. The house amps are feed from t
 ```{r fohdia}
 DiagrammeR::grViz("sda-foh.gv" )
 ```
+```{r}
+cs <- c( 
+"ZAKU-0001",
+"ZAXU-0002",
+"ZAXU-0001",
+"ZAXU-0003",
+"ZAXU-0004",
+"ZAHU-0001", "ZAHU-0005", "ZAHU-0002", "ZAHU-0001", "ZAHU-0006",
+"ZVKU-A003")
+
+print_inv(cs , Tech_Inventory)
+```
 
 [Back to top](#top)
 
 ###Other FoH gear
 
+These can all be found in the diagram above.
 
+####Finalizer
+
+The finalizer is used to apply multi-band compression to the FOH signal. It gets signal from the Console main stereo bus.
+>TODO: Left or Right or both?
+
+The Left channel goes and the Soundweb or Dominator.
+The Right channel goes and the Soundweb or Dominator.
+
+>TODO: Document settings.
+
+####Rane DA
+
+This is an audio distribution amplifer. 
+
+####Dominator
+
+####SoundWeb
+
+
+
+print_inv(cs , Tech_Inventory)
 >TODO: write content
 
 ### Console Links

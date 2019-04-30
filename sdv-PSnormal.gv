@@ -15,9 +15,7 @@ input:2 -> output:2
 input:3 -> output:3
 input:4 -> output:4
 input:1 -> output:5
-input:2 -> output:8
-
-input:8 -> output:6
-input:8 -> output:7
-input:4 -> output:4 [color=red]
+input:7 -> output:6
+input:5 -> output:7
+input:5 -> output:8
 } 

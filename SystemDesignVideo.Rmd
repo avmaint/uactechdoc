@@ -52,12 +52,12 @@ It has 8 inputs and 8 outputs. It can be controlled via the buttons on the front
 psi <- tribble(
   ~Input, ~Usage,       ~Comment,
 
-1, "TW Left",       "Tripple wide input Left (from PP via fx4)" ,
-2, "TW Centre",     "Tripple wide input Centre (from PP via fx4)", 
-3, "TW Right",      "Tripple wide input Right (from PP via fx4)",
-4, "Confidence",    "Stage display from PP. Meant for the rear projector.",
-5, "VMIX Program",  "Program output from Video Mixer",
-6, "VMIX AUX",      "Aux output from Video Mixer.",
+1, "TW Left",       "Triple wide input Left (from PP via fx4)" ,
+2, "TW Centre",     "Triple wide input Centre (from PP via fx4)", 
+3, "TW Right",      "Triple wide input Right (from PP via fx4)",
+4, "Confidence",    "Stage display from PP for the rear projector.",
+5, "VMixer Program", "Program output from Video Mixer",
+6, "VMixer Aux",     "Aux output from Video Mixer",
 7, "CDWU-0009",     "Video Output from Windows machine. Usually used for OBS.",
 8, "Lighting Console", "This input could also be used for a guest machine." 
 )
@@ -78,16 +78,16 @@ pso <- tribble(
 "Rear Balcony Projector (stage display from PP). Lyrics for singers, etc.",
 5,
 "Video Mix 1",
-"Video mixer input 1",
+"Video mixer input 1 (typically input 1: Propresenter Screen A)",
 6,
-"Video Mix 3",
-"Video mixer input 3",
+"Video Mix 2",
+"Video mixer input 2 (typically input 7: cdwu-0009)",
 7,
 "Lobby",
-"Feed to the Lobby TV.",
+"Feed to the Lobby TV",
 8,
 "Nursery",
-"Feed to the Nursery TV."   
+"Feed to the Nursery TV"   
 )
 ```
 
@@ -116,13 +116,28 @@ The display should look like:
 
 |Input |1|2|3|4|5|6|7|8|
 |-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-|Output|1|0|0|4|1|1|1|0|
+|Output|1|2|3|4|1|1|1|0|
+
+<!--
+TODO: update the display depiction - Should output be on the top?
+-->
 
 ```{r normal}
 DiagrammeR::grViz("sdv-PSnormal.gv", height=300)
 ```
 
-#### Camera Switcher Configuration  
+#### Camera On-screen Configuration  
+
+The goal of this configuration is to get a camera image on the screen - usally the centre screen. 
+
+There is some operational discreation regarding the signal routing choosen. The major consdieration is that a change to the video matrix routing creates a black transition. This can be avoided by leveraging the ATEM Aux mix bus, but does require some replanning.  
+
+The simpliest solution would be to switch output 2 bewtween its normal source of input 2 and input 5 (the video mixer program output).
+
+<!--
+TODO: update the display depiction - Should output be on the top?
+-->
+
 The display should look like:
 
 |Input |1|2|3|4|5|6|7|8|
@@ -132,6 +147,15 @@ The display should look like:
 ```{r camera}
 DiagrammeR::grViz("sdv-PScamera.gv", height=300)
 ```
+
+A more complicated solution:
+
+* Set the video matrix input 2 to output 6 - which is video mixer input 2. 
+* Set the video mixer AUX bus to input 2. 
+* Set the video matrix input 6 (video mixer aux) to outut 2 (centre screen)
+* when you want to go to live camera on the centre screen, you change the video mixer aux bus source to be PROGRAM. 
+
+This more complicated solution provides seamless tranisition between the centre screen image from ProPresenter and the live camera - and back.
 
 # Topologies
 There are a lot of components to the system. One big diagram is daunting. It has been broken down into smaller portions to be more consumable. 
@@ -150,7 +174,9 @@ CDMU-A002 MacOS / ATEM / OBS / Propresenter
 : This system runs the ATEM switcher software, and OBS (for streaming) and can also run things like Skype. It has a USBC-HDMI adapter that is direct connected to Input 2 of the video mixer.
 
 >todo: Confirm web presenter SDI and HDMI inputs.
+
 >todo: is the monitor for CDWU-0009 a vga monitor? 
+
 >todo: label and document the sdi<>hmdi boxes
   
 ```{r top1}
@@ -163,13 +189,19 @@ print_inv(c("CDWU-0009","CDMU-A001","CDMU-A002", "ZLKU-B001",
 ## Projection Topology
 There are four projectors in the auditorium, three FoH and one at the rear for confidence. Thet are all feed an hdmi signal via HDBaseT (Over Cat6).
 
+<!--
+TODO: Need to verify the output type for out5-8
+-->
+
 ```{r top2}
 DiagrammeR::grViz("sdv-topology2-projection.gv")
-print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003", "ZVVU-0001"),                    Tech_Inventory)
+
+print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003", "ZVVU-0001"),
+          Tech_Inventory)
 ```
 
 ##Lobby Topology
-The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
+The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output and during rehersal from CDWU-0009 (OBS annoucement loop).
 
 There is a network cable that also runs to the lobby TV, and is for future use.
 
@@ -178,8 +210,6 @@ DiagrammeR::grViz("sdv-topology3-lobby.gv")
 
 print_inv(c("ZVIU-A001", "ZVKU-A001", "ZVVU-0002"), Tech_Inventory)
 ```
-
->TODO: document the swap of the lobby and nursery TV. ZVVU-0002 is now in the lobby. ZVVU-0003 is in the nursery. 
 
 * Diagrams and charts have been updated 
 * Inventory database updated with the new locations.
@@ -200,24 +230,37 @@ The recording topology is quite complex and so it is broken up into peices.
 
 ###Inputs
 
+A key contraint for the ATEM video mixer is that all inputs must have the same input resolution settings. We have choosen 1080p59.94. 
+
 ```{r top5a}
 DiagrammeR::grViz("sdv-topology5-rec-inputs.gv", height=350)
 ```
 
 ###Outputs
+
+>TODO: verify path to recorders - do they both come directly out of the ATEM, or are they daisy chained?
+
 ```{r top5b}
 DiagrammeR::grViz("sdv-topology5-rec-outputs.gv", height=350)
 ```
 
 ###Web Presenter
-There are some details on the signal path between the Video Mixer and the Web Presenter that need to be documented.
+
+> There are some details on the signal path between the Video Mixer and the Web Presenter that need to be documented.
+
+* THere is only one Aux and yet it we send Aux to both the WP and the video matrix. IT is looped thorugh  the recorder 1. 
+
+<!-- 
+TODO: Document routing details between ATEM and WP. label cables. 
+-->
 
 ```{r topwp}
 DiagrammeR::grViz("sdv-topology6-rec-wp.gv", height=350)
 ```
 
 ```{r}
-print_inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002", "ZVCU-A001",
+print_inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002",
+           "ZVCU-A001", "ZVIU-B001",
            "ZVCU-A002", "ZVCU-A003", "ZVKU-A003",
            "ZVRU-A001", "ZVRU-A002", "ZVIU-A004"), Tech_Inventory)
 ```
