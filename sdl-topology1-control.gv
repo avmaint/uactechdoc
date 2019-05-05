@@ -7,7 +7,7 @@ node [shape=Mrecord, tooltip="" ,
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
-console [label="{Lighting Control|ETC CS40AV\nZLKU-B001|{<hdmi>hdmi|<dmx1>DMX 1|<dmx2>DMX 2}}"]
+console [label="{Lighting Control|ETC CS40AV\nZLKU-C001|{<hdmi>hdmi|<dmx1>DMX 1|<dmx2>DMX 2}}"]
 
 echo [label="{Touch Pad\nAsset Tag|<p>prop}"]
 echo2 [label="{{<p>prop|<bt>bluetooth}|echo node|dmx}"]

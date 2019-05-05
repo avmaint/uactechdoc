@@ -85,7 +85,7 @@ The console is protected from power surges via an opto-isolator/DMX splitter.
 ```{r top1}
 DiagrammeR::grViz("sdl-topology1-control.gv")
 
-selected.at <- c( "ZLKU-B001", "ZLIP-0001", "CDWU-0009",
+selected.at <- c( "ZLKU-C001", "ZLIP-0001", "CDWU-0009",
                   "ZVKU-A001", "ZLIU-0003", "ZLIU-A002",
                      
                    "ZLIU-A001", "ZLIU-A003" 
@@ -153,7 +153,7 @@ DiagrammeR::grViz(topology)
 DiagrammeR::grViz("sdl-topology2-control.gv")
 
 selected.at <- c(
-                "ZLKU-B001", "ZLKU-B002", "CDWU-0009",
+                "ZLKU-C001", "ZLKU-B002", "CDWU-0009",
                 "ZLIU-0003",
                 "ZLIU-A003", "ZLIU-A002", 
               "ZLIU-B001", "ZLIU-B002", "ZLIU-B003" 

@@ -16,7 +16,7 @@ subgraph cluster_avroom {  label='AV Room'
 }
 
 subgraph cluster_balcony {  label='Balcony'
-  console [label="{Console\nETC CS 40AV\nZLKU-B001|dmx}"]
+  console [label="{Console\nETC CS 40AV\nZLKU-C001|dmx}"]
   computer [label="{{Computer\nCDWU-0009}|{ <usb>usb }}"]
   n1 [label="{<i>usb|Ketra N1\nZLIU-A002|KetraNet}"]
   optoisolator [label="Optical Isolator\nZLIU-0003"]

@@ -16,7 +16,7 @@ subgraph cluster_avroom {  label='AV Room'
 
 subgraph cluster_balcony {  label='Balcony'
    optoisolator [label="{dmx|Optical Isolator\nZLIU-0003|{<d1>dmx|<d2>dmx|<d3>dmx}}"]
-     console [label="{Console\nETC CS 40AV\nZLKU-B001|dmx}"]
+     console [label="{Console\nETC CS 40AV\nZLKU-C001|dmx}"]
 }
 
 subgraph cluster_room { label='Auditorium'

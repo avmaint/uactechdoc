@@ -16,7 +16,7 @@ cdmua002 [label="OBS|CDMU-A002"]
 
 fx4 [label="Datapath fx4|ZVKU-A002"]
 wp [label="Web\nPresenter|ZVIU-A004"]
-cs40 [label="Lighting Console|ZLKU-B001"]
+cs40 [label="Lighting Console|ZLKU-C001"]
 facebook [label="Livestream|via Facebook Live"]
 recorders [label="Video\nRecorders"]
 

@@ -181,7 +181,7 @@ CDMU-A002 MacOS / ATEM / OBS / Propresenter
   
 ```{r top1}
 DiagrammeR::grViz("sdv-topology1-computer.gv")
-print_inv(c("CDWU-0009","CDMU-A001","CDMU-A002", "ZLKU-B001",
+print_inv(c("CDWU-0009","CDMU-A001","CDMU-A002", "ZLKU-C001",
             "ZVKU-A003", "ZVKU-A001", "ZVIU-A004", "ZVKU-A002"
             ), Tech_Inventory)
 ```
@@ -267,7 +267,7 @@ print_inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002",
 
 #Camera Settings
 
-The cameras recall their settings for preset 1 when powered on. This includes the video settings documented here. You should not need to adjust these regularly. If you need to reference the procedure to adjust the camera settings, see the Video system desgin guide.
+The cameras recall their settings for preset 1 when powered on. This includes the video settings documented here. You should not need to adjust these regularly. If you need to reference the procedure to adjust the camera settings follows.
 
 Each camera has a web page where we can make these updates. Open Safari and then for each camera do these steps:
 

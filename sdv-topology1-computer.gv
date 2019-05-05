@@ -28,7 +28,7 @@ s2h [label="{<i>sdi|<o>hdmi}"]
 s2h:o -> wp:i2
 
 fx4 [label="{{<dp>Displayport}|{Datapath fx4\nZVKU-A002}|{<o1>hdmi 1|<o2>hdmi 2|<o3>hdmi 3}}"]
-zlkub001 [label="{{Light Console\nZLKU-B001}|{<hdmi>hdmi }}"]
+zlkub001 [label="{{Light Console\nZLKU-C001}|{<hdmi>hdmi }}"]
 
 cdmua001:usbc1 -> fx4:dp  
 cdwu0009:vga1  -> b1monitor:i 

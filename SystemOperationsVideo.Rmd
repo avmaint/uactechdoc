@@ -57,6 +57,8 @@ This document provides basic operating information for Video Mixing at Unionvill
 
 These are the basic steps you need to do on Sunday morning. See the various sections in this document for a detailed explanation. 
     
+>Running Macros: You can do this either from the ATEM or from the control software. If doing it from the control software, ensure that you are on the "Run" tab and not "Create", also you likely want to select "Recall and Run" mode.    
+    
 ```{r rundown}
 p <- "Video"
 activities %>%
@@ -133,10 +135,10 @@ The complete list of external sources:
 : A video feed from the Presetation Switch (ZVKU-A001), which will usuaully be a feed from ProPresenter
 
 #. Input #2
-: A direct feed from the VideoMac (CDMU-A002)
+: A secondary feed from the video matrix. This can be used when the windows machine is being used for native PowerPoint, OBS, or Mediashout. You can also choose a second of the three projected images.
 
 #. Input #3
-: A secondary feed from the presentation Switch. This can be used when the windows machine is being used for native PowerPoint, OBS, or Mediashout. It will also be useful when we implement three independent screens from ProPresenter, you will be able to choose between two of the three projected images.
+: A direct feed from the VideoMac (CDMU-A002)
 
 #. Input #4
 : Not used
@@ -153,18 +155,17 @@ The complete list of external sources:
 #. Input #8
 : PTZ camera #3 - far west side
 
+> As of SPring 2019 the positions of camera 1 and 2 on the inputs have been swapped to temporarily solve the blinking problem on camera 1. 
+
 And there is also the internal media player sources. 
 
-There are two outputs:
-
-* Program
-* Auxillary
+There are two outputs: Program and Auxillary.
 
 The Program output of the video mixer is sent to three different destinations:
 
 * To the presentation switch (ZVKU-A001), where it can be routed to a projectors
 * The two video recorders (ZVRU-A001 and ZVRU-A002)
-* The Web Presenter device (Asset Tag# ?), which is used for live streaming
+* The Web Presenter device (ZVIU-A004), which is used for live streaming
 
 The Auxillary output is sent to two destinations:
 
@@ -297,18 +298,22 @@ A macro is an easy way to automate a sequence of switcher actions so you can rep
 
 ###Running Macros
 
-There are three ways to run macros:
+There are three ways to run macros: From the panel or via the control software.
 
-1. Directly from the panel. 
-    1. Press the macro button and then the number of the macro you wish to execute 
-2. From the ATEM Control Software on the Video Mac (CDMU-A002). 
-    1. Open the application (if not already running) 
-    2. Click on ‘macros’ in the title bar. The macro window is a floating window you can move freely about on your desktop. 
-    3. There is a tab for "Create" and “Run”, click on “Run”
-    4. There is a radio button for “Recall and Run”, select that.
-    5. To run a specific macro just click on the macro name in the grid. 
-3. FUTURE: From a preset in CueCommander
-    1. Not yet implemented. 
+__Running Macros from the panel__
+
+#. Press the macro button and then the number of the macro you wish to execute 
+    
+    
+__Running Macros from the ATEM Control Software__
+ 
+#. On the Video Mac (CDMU-A002), Open the application (if not already running) 
+#. Click on ‘macros’ in the title bar. The macro window is a floating window you can move freely about on your desktop. 
+#. There is a tab for "Create" and “Run”, click on “Run”
+#. There is a radio button for “Recall and Run”, select that.
+#. To run a specific macro just click on the macro name in the grid. 
+
+![Running Macros via Software](../../images/sov-macro-run.JPG)
 
 ###Standard Macros Defined for UAC
 
@@ -317,8 +322,6 @@ There are two types of macros we have defined:
 * “DO” macros are meant for use during the service and execute a set of predefined actions meant for a particular point in time in the service.
 * “Setup” macros are meant to change configurations  and are used as part of the DO macros. This way we can change a setting without re-recording the entire DO macro.
     * The “Do Setup” macro is a hybrid. It executes all of the pre-service setup macros. 
-
->Best Practice: You can fire a macro from the software using the macro menu or from the ATEM by pressing the macro button follow by the number.
 
 1. __Do__ Setup pre-service
     * Run 21 setup USK
@@ -419,7 +422,7 @@ Page 33
 
 We have two solid state recorders, Black Magic Design Hyperdeck Minis (Asset Tags ZVRU-A001 and ZVRU-A002). These record onto SD memory cards. You can observe and verify what is being recorded by looking at the mini screens on the device.
 
-> Ensure that the destination cards have been formatted before you begin recording.
+> Ensure that the destination cards have been formatted before you begin recording. See below.
 
 To start recording
 : Press the white dot button, it will turn red while recording.
@@ -427,7 +430,7 @@ To start recording
 To stop recording
 : Press the white square
 
-> There are also macros that can do the same thing for both recorders.
+> There are also macros that can do the same thing for both recorders: "Start Service", "Stop Service", and "Start Message" and "Stop Message".
 
 The screen will display the amount of time the recording has been going for. If the counter turns red then not much time is left on the cards. The amount of recording time shold be check well before the beginnning of service.  
 
@@ -446,13 +449,15 @@ To format the memory card using the hyperdeck mini:
 
 # Operating Web Presenter
 
-This device enables us to stream our video content live on services like FaceBook Live (This capability hasn't been enabled yet). And can also be used as a source for Skype and to record content.
+This device enables us to stream our video content live on services like FaceBook Live and can also be used as a source for Skype and to record content.
 
 The device is pretty hands off. You should see the source signal on the front display. If not then hit the 'some button - don't recall which' button on recorder #1 as it is a source for the web presenter. 
 
-There is a mini-swticher built into the web presenter. The box is wired to see the ATEM Program output on #1 and the ATEM Aux output on #2. You typically will want the #1 for recording or live streaming. You would likely want #2 for Skype. 
+There is a mini-swticher built into the web presenter. The box is wired to see the ATEM Program output on #1 and the ATEM Aux output on #2. You typically will want the #1 for recording or live streaming. You would likely want #2 for Skype.
 
 Why #2 for Skype? In this situation you would want the skype video output (from CDMU-A002) to go into the ATEM and out on Program to feed the projectors. But you want the video in to Skype to be a camera. Say the centre camera. You would feed the ATEM Aux output the centre camera feed, which goes to input #2. There is a complete separate document on this topic.
+
+>Streaming and Skyping at the same time is not something that has been done yet.
 
 [Back to top](#top)
 

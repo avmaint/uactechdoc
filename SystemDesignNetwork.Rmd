@@ -461,7 +461,7 @@ node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
 rearguest  [label="Rear Guest ", tooltip="as needed "]
 cdwu0009   [label="{Mediashout|CDWU-0009}", tooltip="CDWU-0009 Windows"]
 iMac       [label="{ProPresenter|CDMU-A001}", tooltip="Apple iMac27 "]
-cs         [label="{ETC Ligthing Console|ZLKU-B001}"]
+cs         [label="{ETC Ligthing Console|ZLKU-C001}"]
 
   subgraph cluster_zvhu0001 { label="ZVHU-0001 rack"  
                               tooltip="Front desk Rack"
@@ -495,7 +495,7 @@ selected.at <- c( "ZVRU-A001", "ZVRU-A002",  "ZVKU-A003",
                   "CDWU-0009", "CDMU-A001", "CDMU-A002",
                   "ZVKU-A001", "ZVKU-A002",
                   "NSCU-A004",
-                  "ZLKU-B001") %>%  
+                  "ZLKU-C001") %>%  
                 data.frame(AssetTag=.)
 
 merge(NetworkInventory, selected.at) %>% 
