@@ -181,7 +181,7 @@ CDMU-A002 MacOS / ATEM / OBS / Propresenter
   
 ```{r top1}
 DiagrammeR::grViz("sdv-topology1-computer.gv")
-print_inv(c("CDWU-0009","CDMU-A001","CDMU-A002", "ZLKU-C001",
+print_inv(c("CDWU-0009","CDMU-A001","CDMU-A002", "ZLKU-B001",
             "ZVKU-A003", "ZVKU-A001", "ZVIU-A004", "ZVKU-A002"
             ), Tech_Inventory)
 ```
