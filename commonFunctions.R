@@ -15,6 +15,15 @@ print_inv <- function(items, inventory) {
   
   merged <- merge( inventory, selected) 
   
+  if(length(items) != nrow(merged) ) {
+    diff <- setdiff(selected$AssetTag, inventory$AssetTag)
+    # ToDO: the next line of code has two issues. 
+    #1) if it is executed it will likley fail as the error msg is not a file name
+    #2) It doesn't handle duplicate asset tags.
+    #fundamentlly I don't know how to expose the error condition 
+    system2("cat",  paste('"Undefined in Inventory ', diff,  '"') )
+  }
+  
   stopifnot(length(items) == nrow(merged) )
   
   merged %>% 

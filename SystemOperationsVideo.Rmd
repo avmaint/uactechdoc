@@ -651,11 +651,11 @@ Check the resulting file size, it should be about 2.5GB, less is better. We have
 
 The Auto Upload is the easiest.
 
-### Auto Upload
+__Auto Upload__
 
 The Vimeo app that is installed on the computer (CDMU-A002) is configured to automatically upload any files added to the "VimeoAutoUpload" folder inside the movies folder.
 
-### Vimeo App
+__Vimeo App__
 
 On the videa mac (CDMU-A002) there is a installed application which is the Vimeo helper. You access it via the menu bar at the top. Look for the Vimeo "V" logo.
 
@@ -671,7 +671,8 @@ After selecting that file and clicking the button at the bottom, upload will beg
 
 >TODO. Change the above instructions to specifiy what 'the button' says. "Choose", "Select", "Ok" - not sure. Insert a screenshot.
 
-### Vimeo Website  
+__Vimeo Website__
+
 Open you web browser, go to [Vimeo](http://www.vimeo.com), and logon with userid uacmedia@uachome.org. The password is provided separaetly. Upload the file. It will take some time - 1 to 6 hours has been my experience. Also set the various fields that describe the video:
 
 * Title - use the message title
@@ -686,10 +687,18 @@ After upload, vimeo takes a while to prepare the video for publication - maybe 1
 
 ## Update the UACHome website
 
-> TODO: Need to rewrite this due to cut-over to nucleus.
+> TODO: Need to rewrite this due to cut-over to nucleus. Basic skeleton is here. Need to add some screen shots.
 
-Go to the [church web site](http://www.uachome.org) and login, which is at the bottom of the page. Usually the audio is posted first so the page for the sermon would already exist. Go to Sermons page and navigate to the page for this particular sermon. Click 'Edit'. Scroll down to the Video Link field and paste in the URL from Vimeo. Click Save.
+Go to the vimeo [Vimeo](http://www.vimeo.com), and copy the URL for today's message.
 
+Go to the [church administration web site](https://nucleus.church/user/login) and login, which is at the bottom of the page. 
+
+* Kris in the office can advise regarding the credentials to use
+
+Select the "Sermon Engine" tab and the "Embed Media" Option. Paste in the URL copied from above. 
+
+Fill in the rest of the fields. If you don't have a description, enter a ".".
+ 
 ## Congratulations - You are almost done
 The one last thing is to ensure that the memory card is ejected from the computer:
 

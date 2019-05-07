@@ -91,7 +91,7 @@ pso <- tribble(
 )
 ```
 
-##Inputs
+## Inputs
 
 ```{r}
 psi %>% 
@@ -100,7 +100,7 @@ psi %>%
     kable_styling("striped", full_width = TRUE)
 ```
 
-##Outputs
+## Outputs
 ```{r}
 pso %>% 
   kable() %>%
@@ -108,7 +108,7 @@ pso %>%
     kable_styling("striped", full_width = TRUE)
 ```
 
-##Configurations
+## Configurations
 The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.  
 
 #### Normal Service Switcher Configuration 
@@ -181,8 +181,11 @@ CDMU-A002 MacOS / ATEM / OBS / Propresenter
   
 ```{r top1}
 DiagrammeR::grViz("sdv-topology1-computer.gv")
-print_inv(c("CDWU-0009","CDMU-A001","CDMU-A002", "ZLKU-B001",
-            "ZVKU-A003", "ZVKU-A001", "ZVIU-A004", "ZVKU-A002"
+
+# TODO: fix the code below.
+
+print_inv(c("CDWU-0009","CDMU-A001" ,"CDMU-A002" , "ZLKU-C001"#,
+           # "ZVKU-A003", "ZVKU-A001", "ZVIU-A004", "ZVKU-A002"
             ), Tech_Inventory)
 ```
 
@@ -200,7 +203,7 @@ print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003", "ZVVU-0001"),
           Tech_Inventory)
 ```
 
-##Lobby Topology
+## Lobby Topology
 The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output and during rehersal from CDWU-0009 (OBS annoucement loop).
 
 There is a network cable that also runs to the lobby TV, and is for future use.
@@ -228,7 +231,7 @@ The TV has a remote control.
 ## Recording / Livestream Topology
 The recording topology is quite complex and so it is broken up into peices.
 
-###Inputs
+### Inputs
 
 A key contraint for the ATEM video mixer is that all inputs must have the same input resolution settings. We have choosen 1080p59.94. 
 
@@ -236,7 +239,7 @@ A key contraint for the ATEM video mixer is that all inputs must have the same i
 DiagrammeR::grViz("sdv-topology5-rec-inputs.gv", height=350)
 ```
 
-###Outputs
+### Outputs
 
 >TODO: verify path to recorders - do they both come directly out of the ATEM, or are they daisy chained?
 
@@ -244,7 +247,7 @@ DiagrammeR::grViz("sdv-topology5-rec-inputs.gv", height=350)
 DiagrammeR::grViz("sdv-topology5-rec-outputs.gv", height=350)
 ```
 
-###Web Presenter
+### Web Presenter
 
 > There are some details on the signal path between the Video Mixer and the Web Presenter that need to be documented.
 
@@ -260,12 +263,12 @@ DiagrammeR::grViz("sdv-topology6-rec-wp.gv", height=350)
 
 ```{r}
 print_inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002",
-           "ZVCU-A001", "ZVIU-B001",
+           "ZVCU-A001", "ZVIU-C001",
            "ZVCU-A002", "ZVCU-A003", "ZVKU-A003",
            "ZVRU-A001", "ZVRU-A002", "ZVIU-A004"), Tech_Inventory)
 ```
 
-#Camera Settings
+# Camera Settings
 
 The cameras recall their settings for preset 1 when powered on. This includes the video settings documented here. You should not need to adjust these regularly. If you need to reference the procedure to adjust the camera settings follows.
 
@@ -345,6 +348,6 @@ knitr::kable(Video_Inventory  )  %>%
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r knitr::current_input()`.
 
-#Change History
+# Change History
 
 `r commit.log.html( knitr::current_input() )`
