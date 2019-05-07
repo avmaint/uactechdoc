@@ -53,7 +53,7 @@ This document provides basic operating information for Video Mixing at Unionvill
 
 [Back to top](#top)
 
-#Sunday Morning  Rundown
+# Sunday Morning  Rundown
 
 These are the basic steps you need to do on Sunday morning. See the various sections in this document for a detailed explanation. 
     
@@ -131,31 +131,39 @@ The Video Mixer (Asset Tag# ZVKU-A003) takes many different inputs such as the P
 
 The complete list of external sources:
 
-#. Input #1
-: A video feed from the Presetation Switch (ZVKU-A001), which will usuaully be a feed from ProPresenter
+__Input #1__
 
-#. Input #2
-: A secondary feed from the video matrix. This can be used when the windows machine is being used for native PowerPoint, OBS, or Mediashout. You can also choose a second of the three projected images.
+The primary video feed from the video matrix (ZVKU-A001), which will usuaully be a feed from ProPresenter screen A (left most).
 
-#. Input #3
-: A direct feed from the VideoMac (CDMU-A002)
+__Input #2__
 
-#. Input #4
-: Not used
+A secondary feed from the video matrix (ZVKU-A001). This can be used when the windows computer (CDWU-0009) is being used for native PowerPoint, OBS, or Mediashout. You can also choose a second of the three projected images.
 
-#. Input #5
-: Not used
+__Input #3__
 
-#. Input #6
-: PTZ camera #1 - far east side. <small>There are wiring constraints that prohibits camera 1 from being on input 1. Just in case you are wondering why camera 1 was not input 1, etc.</small> 
+A direct feed from the VideoMac (CDMU-A002).
 
-#. Input #7
-: PTZ camera #2 - centre
+__Input #4__
 
-#. Input #8
-: PTZ camera #3 - far west side
+Not used
 
-> As of SPring 2019 the positions of camera 1 and 2 on the inputs have been swapped to temporarily solve the blinking problem on camera 1. 
+__Input #5__
+
+Not used
+
+__Input #6__
+
+PTZ camera #1 - far east side. <small>There are wiring constraints that prohibits camera 1 from being on input 1. Just in case you are wondering why camera 1 was not input 1, etc.</small> 
+
+__Input #7__
+
+PTZ camera #2 - centre
+
+__Input #8__
+
+PTZ camera #3 - far west side
+
+> As of Spring 2019 the positions of camera 1 and 2 on the inputs have been swapped to temporarily solve the blinking problem on camera 1. 
 
 And there is also the internal media player sources. 
 
@@ -163,13 +171,13 @@ There are two outputs: Program and Auxillary.
 
 The Program output of the video mixer is sent to three different destinations:
 
-* To the presentation switch (ZVKU-A001), where it can be routed to a projectors
+* To the video matrix (ZVKU-A001), where it can be routed to a projector
 * The two video recorders (ZVRU-A001 and ZVRU-A002)
 * The Web Presenter device (ZVIU-A004), which is used for live streaming
 
 The Auxillary output is sent to two destinations:
 
-* The presentation swtich (ZVKU-A001), where it can further routed to any of its outputs. 
+* The video matrix (ZVKU-A001), where it can further routed to any of its outputs. 
 * The Web Presenter (ZVIU-A004) which then becomes an input to the VideoMac (CDMU-A002) for use in programs like Skype or OBS. 
 
 [Back to top](#top)
@@ -231,7 +239,7 @@ Key 1 Fill
 
 # Basic Operation
 
-##Changing Sources
+## Changing Sources
 
 * Decide which source you want to change to 
 * Press the corresponding button on the preview row
@@ -245,6 +253,8 @@ Key 1 Fill
 * Decide on which corner of the screen you wan to have the PiP and press the corresponding DVE PiP Button
 * Press the "Key 1 Fill" button and then press the numbered button below which corresponds to the source you desire in the corner.
 * Finally press the CUT or AUTO button to make the transition.
+
+> The Picture in Picture (PiP) feature uses the Upstrem keyer. If you have set the USK to use as a luma key for lyrics, it will have to be reset to Luma after using PiP.
 
 > <small>To turn PiP off ... I don't remember - fiddle with the BKGD and "Key 1 TIE" buttons.</small>
 
@@ -292,11 +302,11 @@ The system is not currently configured to use these as sources. They are used fo
 
 ## Using Macros
 
-###What is a Macro?
+### What is a Macro?
 
 A macro is an easy way to automate a sequence of switcher actions so you can repeat the sequence at the press of a button. This makes the execution of a complex set of steps easy to do in a hurray and without error.
 
-###Running Macros
+### Running Macros
 
 There are three ways to run macros: From the panel or via the control software.
 
@@ -315,7 +325,7 @@ __Running Macros from the ATEM Control Software__
 
 ![Running Macros via Software](../../images/sov-macro-run.JPG)
 
-###Standard Macros Defined for UAC
+### Standard Macros Defined for UAC
 
 There are two types of macros we have defined:
 
@@ -526,6 +536,10 @@ __Sunday - Approximately 9:30 am __
     #. in the bottom right of the OBS screen there is a small green square indicating that our bit rate is good. 
 * From the scene list select the scene "xx Web Presenter Starting Shorly", and then click the  "transition" button.
 
+__At 9:55am or so__
+
+* Via OBS, select the ""xx Starting Shortly" Scene and transition to that. This will broadcast the main program output with a "We will be starting shortly" ticker along the bottom. This won't be seen by the audience until 10:00am sharp. When we start our service (see next section ... 10:00am), we will transition to the main scene. The starting shortly ticker will only be seen when we start late. 
+
 __At 10:00am__
 
 * (Assuming we start on time, if late starting then defer until ready)
@@ -536,11 +550,9 @@ __At 11:15am - when service ends__
 
 * at the end of the service, ckick "Stop Streaming".
 
-> TODO: Need to refine the instructions for 10am. We need to incorporate the "We will be stating shortly" scene as well; perhaps combine it with the Date scene. 
-
 [Back to top](#top)
 
-#Camera Settings
+# Camera Settings
 
 The cameras recall their settings for preset 1 when powered on. This includes the video settings documented here. You should not need to adjust these regularly. If you need to reference the procedure to adjust the camera settings, see the Video system desgin guide.
 
@@ -554,7 +566,7 @@ We make two video recordings: 1) for the entire serice, and 2) just the message 
 
 Our current recording process encodes the video as 1920x1080p60 which produces a file of about 35GB. We have a hard limit of 5GB per week upload, and upload takes a lot of time. Our goal is to produce a file that is less than 2.5GB.  (That enables a second upload if there is a problem).
 
-#Setup
+# Setup
 
 These instructions are written assuming the use of Davinci Resolve V14 video editing software (free for Mac and Windows). 
 
@@ -568,18 +580,17 @@ There are four tabs which we will use along the botttom of the screen. We will c
 
 ![Resolve UI, Bottom Tabs](../../images/sov-ResolveTabs.png)
 
-##Media
+## Media
 
 #. Use the top menu bar File > Import Media, and then navigate to the memory card. It will appear on the left side of the finder dialogue. The file we want is largest file and likely the last ".mov".
 
-##Edit
+## Edit
 
 #. Drag the imported video from the media bin (top centre left) to the timeline.
 
 #. Check the beginning and end of the recording to make sure it starts and ends well.  If there are any corrections to make, eg trimming the end of the video becuase we didn't end too soon, do that now.
-
  
-##Fairlight (Audio)
+## Fairlight (Audio)
 
 (They call it Fairlight becuase the bought the feature from another company called, Fairlight)
 
@@ -599,6 +610,8 @@ Now to touch up the audio.
 
 It has three subtabs "Video", "Audio" and "File". You will set video parameters on the 'Video' tab, and name the file on the 'File' tab.
 
+__Video SubTab__
+
 ![Deliver UI, Video Audio and File Tabs](../../images/sov-DeliverTabs.jpg)
 
 The parameters on the video tab should be set to these:
@@ -607,10 +620,17 @@ The parameters on the video tab should be set to these:
 * Change the quality to restrict to "7000" kbps. 
 ![Video Tab, Video Parameters](../../images/sov-VideoParameters.jpg)
 
+__Audio Subtab__ 
+
+No changes required on this tab.
+
+__File Subtab__
 
 On the File subtab, and put in today's data as the "custom name", eg 2018-12-31.
 
-#. Click the "Add to Render Queue" button. It will ask where to put the output file - choose the "/Users/avuser/..." option - which will be the first one.
+#. Click the "Add to Render Queue" button. It will ask where to put the output file - choose the "/Users/avuser/Moives/VimeoAutoUpload..." option - which will be the first one.
+
+> The VimeoAutoUpload location is special becuase any video stored there will automatically be uploaded to Vimeo. __Do not__ use this folder as the output destination unless you are sure.  
 
 #. Save the project Command-S just in case there is a failure during rendering.
 
@@ -621,24 +641,21 @@ On the File subtab, and put in today's data as the "custom name", eg 2018-12-31.
 
 ## Upload to Vimeo
 
-Once the rendering is complete, you are ready to upload to Vimeo.
+Once the rendering is complete, you are ready to upload to Vimeo. __>If you selected the VimeoAutoUpload destination above, then you don't need to take further action here.__
 
-Check the resulting file size, it should be about 2.5GB, less is better. We have two ways to upload to Vimeo. The App method is easierto get it up quickly and doesn't require you to know the password.
+Check the resulting file size, it should be about 2.5GB, less is better. We have three ways to upload to Vimeo. 
 
-###Vimeo Website  
-Open you web browser, go to [Vimeo](http://www.vimeo.com), and logon with userid uacmedia@uachome.org. The password is provided separaetly. Upload the file. It will take some time - 1 to 6 hours has been my experience. Also set the various fields that describe the video:
+* Auto Upload
+* Manual Upload using the App.
+* Manual Upload using the vimeo website
 
-* Title - use the message title
-* Description - use the synopsis / teaser text provided
-* All Audiences
-* English
-* Tags: uac, unionvillealliance and whatever else fits the topic
-* Assign a license: creative commons, attribution, no derivaties.
-* also assign it to the collection for the series. 
+The Auto Upload is the easiest.
 
-After upload, vimeo takes a while to prepare the video for publication - maybe 10 or 15 minutes. Once that is complete grab the Share URL for the video and go to the next step.
+### Auto Upload
 
-###Vimeo App
+The Vimeo app that is installed on the computer (CDMU-A002) is configured to automatically upload any files added to the "VimeoAutoUpload" folder inside the movies folder.
+
+### Vimeo App
 
 On the videa mac (CDMU-A002) there is a installed application which is the Vimeo helper. You access it via the menu bar at the top. Look for the Vimeo "V" logo.
 
@@ -653,6 +670,19 @@ It will then open a file finder window where you can navigate to today's video. 
 After selecting that file and clicking the button at the bottom, upload will begin. It takes a minute to get started.
 
 >TODO. Change the above instructions to specifiy what 'the button' says. "Choose", "Select", "Ok" - not sure. Insert a screenshot.
+
+### Vimeo Website  
+Open you web browser, go to [Vimeo](http://www.vimeo.com), and logon with userid uacmedia@uachome.org. The password is provided separaetly. Upload the file. It will take some time - 1 to 6 hours has been my experience. Also set the various fields that describe the video:
+
+* Title - use the message title
+* Description - use the synopsis / teaser text provided
+* All Audiences
+* English
+* Tags: uac, unionvillealliance and whatever else fits the topic
+* Assign a license: creative commons, attribution, no derivaties.
+* also assign it to the collection for the series. 
+
+After upload, vimeo takes a while to prepare the video for publication - maybe 10 or 15 minutes. Once that is complete grab the Share URL for the video and go to the next step.
 
 ## Update the UACHome website
 
@@ -702,7 +732,7 @@ And now return it to its slots in the recorder for the next service.
 * When approaching a transition, line up a camera to anticpate what is coming. You may prefer a long shot camera until you establish exactly where the action is happening.
 * When a transition will involve a significant change in scene brightness, manually  adjust camera exposure for what is coming, rather than for the darkness. 
 
-#Troubleshooting
+# Troubleshooting
 
 __Missing the video feed from ProPresenter (Lyrics)__
 
@@ -726,7 +756,7 @@ __Don't see lyric overlay as expected (when pressing "Key 1 Cut")__
 * If macro 1 was not run, run it.
 * Check to ensure that the Upstream Key settings in the software is set to the first tab (Luma).
 
-#Appendix
+# Appendix
 
 [Back to top](#top)
 
@@ -803,6 +833,6 @@ Some simple notes for now. Since our cameras are now ceiling mounted, this isn't
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
 
-#Change History
+# Change History
 
 `r commit.log.html( knitr::current_input() )`
