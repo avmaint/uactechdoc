@@ -15,11 +15,9 @@ subgraph cluster_avroom {  label='AV Room'
   pathway  [label="Pathway\nZLIU-A001"]
 }
 
-subgraph cluster_balcony {  label='Balcony'
-  console [label="{Console\nETC CS 40AV\nZLKU-C001|dmx}"]
-  computer [label="{{Computer\nCDWU-0009}|{ <usb>usb }}"]
-  n1 [label="{<i>usb|Ketra N1\nZLIU-A002|KetraNet}"]
-  optoisolator [label="Optical Isolator\nZLIU-0003"]
+subgraph cluster_balcony {  label="Balcony"
+   n1       [label="{<i>usb|Ketra N1\nZLIU-A002|KetraNet}"]
+   computer [label="{{Computer\nCDWU-0009}|{ <usb>usb }}"]
 }
 
 ketranet [label="Ketranet\nMesh\nNetwork"]
@@ -33,9 +31,6 @@ ZLIUB002:d -> ZLIUB003:i
 
 ZLIUA003:k, ZLIUB001:k, ZLIUB002:k, ZLIUB003:k -> ketranet  
 n1       -> ketranet
-
-console:dmx1 -> optoisolator:i1
-optoisolator -> pathway 
 
 subgraph cluster_room { label='Room'
   ketraStage         [label="Pots over stage"]  
@@ -53,10 +48,9 @@ stamp [label= <<table>
     <td>Control Topology - KetraNet</td>
 </tr>    
 <tr><td>As of</td>
-    <td>2018-10-31</td>
+    <td>2019-05-22</td>
 </tr>
 </table>> ]  
 
 {rank=same; computer stamp   }
-{rank=same; console computer   }
 } 

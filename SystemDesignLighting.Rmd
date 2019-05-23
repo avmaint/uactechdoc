@@ -49,7 +49,7 @@ Tech_Inventory <- get.inventory()
 dmx.details <- get.dmxdetails() 
 ```
 
-#Introduction
+# Introduction
 This document provides key technical documentation design for the lighting subsystems at UAC. The intended audience of thsi document are the people who need to manage and maintain the system. 
 
 Purpose of the lighting system:
@@ -81,6 +81,10 @@ The handrail lighting in the balcony and the emergency lighting are independent 
 ### DMX Topology
 The console is protected from power surges via an opto-isolator/DMX splitter.
 
+>TODO: Document the details of the echo node and the N3 box connections.
+>TODO: Document the  ETC dmx relay box in the attic.
+>TODO: The chromaq power supply is not in service at this time but will need to be reintorduced when the rotators are installed again.
+
 
 ```{r top1}
 DiagrammeR::grViz("sdl-topology1-control.gv")
@@ -100,54 +104,13 @@ merge( Tech_Inventory, selected.at) %>%
     kable_styling("striped", full_width = TRUE)
 ```
 
-###KetraNet Topology
+### KetraNet Topology
 
->TODO: Exact pathways for the N4 devices not yet established. These two diagrams needs to be merged.
+>TODO: Exact pathways for the N3 devices not yet established.
 
-```{r topology , echo=FALSE}
-topology <- "
-digraph ketra { 
-graph [overlap = true, fontsize = 30, rankdir=LR 
-      label='Ketra System Topology',
-      fontname = Helvetica]
+>TODO: Label rack
 
-node [shape=Mrecord, tooltip='',  fontsize = 16, style=filled  
-      fillcolor='lime']
-
-subgraph cluster_stage { label='Stage'
-   pots     [label='Ketra S38 Pots' ]
-}
-
-subgraph cluster_balcony { label= 'Balcony' 
-  console  [label='Lighting Console|ZLKU-0001'    ]
-  computer [label='Ketra DesignStudio|Windows|CDWU-0009' ]
-  N1       [label='N1'  ]  
-  subgraph cluster_rack {  label='rack' 
-    dmxsplit1 [label= 'dmx Split|ZLIU-0003' ]
-  }
-}
-
-subgraph cluster_avroom {  label='AV Room'
-  subgraph cluster_amp { label= 'Amp Rack'
-    N3       [label='N3|ZLIU-A003'  ]  
-    dmxsplit2 [label= 'DMX Splitter|ZLIU-A001' ]
-}
-}
-
-console -> dmxsplit1 [label='dmx']
-dmxsplit1 -> dmxsplit2 [label='dmx']
-
-dmxsplit2 -> N3  [label='dmx']
-N3 -> pots [label='wireless' ]
-
-computer -> N1 [label='usb'] 
-N1 -> pots [label='wireless']
-
-}
-" 
-DiagrammeR::grViz(topology)
-
-```
+>TODO: fix balcony subgraph
 
 ```{r top2}
 DiagrammeR::grViz("sdl-topology2-control.gv")
@@ -166,18 +129,15 @@ merge( Tech_Inventory, selected.at) %>%
     kable(align="l") %>%
     column_spec( 1,  bold = TRUE ) %>%
     kable_styling("striped", full_width = TRUE)
-
 ```
 
 [Back to top](#top)
 
-##Keypad Topology Control
+## Keypad Topology Control
 
 There is a simple lighting control panel located next to the auditorium doors by the main office (south east). It enables the house lights to set according to several pre-defined looks. 
 
-The keypad and the main console work together. The controls are added together; brightest wins. This means than if either control says a ligth is on, it will be on. 
-
-> as of Oct 25, these have not yet been programmed. There are some blanks available. 
+The keypad and the main console can conflict with each other. When running from the console, the keypad should be in "Console Mode".  
 
 > The sconce lights has a timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well.
 
@@ -208,6 +168,8 @@ DMX Scene Controller
 
 The app also allows for direct control of the presets.
 
+> TODO: update charts with the latest programming
+
 ```{r getKeypadData}
 keypad <-  get_keypad_buttons() 
 keypad2preset <- get_keypad2preset()
@@ -224,7 +186,7 @@ keypad %>%
     row_spec(1:nrow(keypad), color="blue")
 ```
  
-Control of the ADJ Ultrabar 12 devices on the walls presents a challenge. These are configured as 12 address devices. This DMX footprint is not directly supported by the echo equipment.  The workaround is to split these into a colour and Intensity zone.  
+> todo: Control of the ADJ Ultrabar 12 devices on the walls presents a challenge. These are configured as 12 address devices. This DMX footprint is not directly supported by the echo equipment.   
 
 >Note: Any one DMX address can only belong to one Zone.
  
@@ -262,12 +224,11 @@ rs %>%
     row_spec(1:nrow(rs), color="blue")
 ```
 
-##Balcony Railing Lights
+## Balcony Railing Lights
 
 These white only strip lights are dimmable and are manually operated. The swtich is located near the East balcony door.
 
-##DMX Address Map
-> The NSI dimmers are not in actve use but still have assigned addresses.
+## DMX Address Map
 
 ```{r}
 dmxmap <- tribble(
@@ -285,8 +246,7 @@ dmxmap <- tribble(
 86, 213+6-1,    "Wash Bulkhead",
 
 NA , NA, "Rotators - 2 channels each. Will be used in the future.",
-384, 384+8-1, "NO LONGER USED. Can be reused. NRD8000 dimmers in the balcony closet.",
-NA, NA, "NO LONGER USED. LMI dimmers (6x2kx2) in the electrical room"
+384, 384+8-1, "NO LONGER USED."
 )
 
 dmxmap %>%
@@ -309,11 +269,9 @@ dmx.details %>%
 
 [Back to top](#top)
 
-#Power Distribution Systems
+# Power Distribution Systems
 
 >TODO: It is likely that post-August 2018 installs we will decommission the NSI and LMI dimmers. 
-
->TODO: THe Balcony Bar is currently being powered from the powerbar run from a regular wall outlet. This should be changed by an electrician to remove the NSI power and replace with a breaker panel and an array of edison outlets. 
 
 ```{r}
 DiagrammeR::grViz("sdl-topology3-power.gv")
@@ -343,18 +301,18 @@ circuits %>%
 
 [Back to top](#top)
 
-#Lighting Plots (Table of contents placeholder)
+```{r lighting.plots, echo=FALSE, results="asis" }
+# really want to put the knit_child statement in here, but doesn't work. :()
+```
 
 `r knit_child('commonLightingPlots.Rmd', quiet=TRUE)`
 
 [Back to top](#top)
 
-#House Lighting - NEW as of Fall 2018
+# House Lighting
 The house lights consists for many major components:
-
-
     
-##Control
+## Control
 The house lights (except the railing) can be controlled in two ways:
  
 #. Via the keypad panel 
@@ -367,16 +325,15 @@ The house lights (except the railing) can be controlled in two ways:
 
 The commands from these two control points are added together. Essentially the brightest level from either control dicates the brightness of any light. 
     
->TODO: need to add discussion about the sconse light and the interaction between the 3-way switch, timer and touchpad.    
+>TODO: need to add discussion about the sconce light and the interaction between the 3-way switch, timer and touchpad.    
     
-##Programming
+## Programming
 
 > TBD - how to program the touchpad scenes.
 
-
 [Back to top](#top)
 
-#Ketra Design - Stage
+# Ketra Design - Stage
 
 ```{r parms, echo=FALSE, warning=FALSE}
 products <- tribble(
@@ -555,7 +512,7 @@ makeplot(p1)
 
 [goto top](#TOC)
 
-#Ketra Details
+# Ketra Details
 ```{r echo=FALSE}
 rbind(pots.w, pots.e) %>% 
   arrange(group, y, x) %>%
@@ -565,7 +522,7 @@ rbind(pots.w, pots.e) %>%
 ```
 [goto top](#TOC)
 
-##Transition Delay
+## Transition Delay
 The systems supports several profiles:
 
 * RGB  - Red, Green, Blue 
@@ -597,10 +554,10 @@ In this design there are `r G`  groups all using the RGB profile. The expected m
 
 [goto top](#TOC)
 
-#Appendix
+# Appendix
 
-#The Room
-##Measurements
+# The Room
+## Measurements
 ```{r}
   tribble(
   ~Object, ~Feet, ~Inches, 
@@ -620,7 +577,7 @@ In this design there are `r G`  groups all using the RGB profile. The expected m
   kable_styling("striped", full_width = TRUE)
 ```
 
-##Floor Plan
+## Floor Plan
 Reference location "r1" is the "zero" point.
 ```{r room, echo=FALSE}
 ggplot() + 
@@ -681,9 +638,9 @@ Tech_Inventory %>%
 
 [Back to top](#top)
 
-#Appendix
+# Appendix
 
-#Accessories
+# Accessories
 
 ## GOBO Rotators
 >Needs to be updated. DMX info is out-of-date.
@@ -703,7 +660,7 @@ This document is compiled by merging text and data together using rmarkdown. The
 
 going direct to pdf requires some trickery 'cause Diagrammer doesn't support than directly. here is a hack which would beed to be conditional on html versus pdf output.
 
-#Change History
+# Change History
 
 `r commit.log.html( knitr::current_input() )`
 

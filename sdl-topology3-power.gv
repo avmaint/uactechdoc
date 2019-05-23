@@ -7,11 +7,8 @@ node [shape=Mrecord, tooltip="" ,
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
-lp1 [label="{{Panel LP1}|{ <o3032>30,32|<o2>...|<o4448>44,46,48}}"]
-somepanel [label="{{Panel LP?}|{ <o3032>...|<ox>... }}"]
-stage     [label="{<i>41-43|{Stage Outlets}|{ fixtures}}"]
-balconyeast  [label="{<i>1-10|{Balcony East}|{ fixtures}}"]
-balconywest  [label="{<i>11-20|{Balcony West}|{ fixtures}}"]
+balconyeast  [label="{<i>1-10|{Balcony East\nNema 5-15R}|{ fixtures}}"]
+balconywest  [label="{<i>11-20|{Balcony West\nNema 5-15R}|{ fixtures}}"]
 
 fohbar       [label="{FoH Bars\n3 bars|6 4WRD\n7 CS Spots\n4 CS Pars}"]
 topbar       [label="{Stage Overhead Bar|7 CS Pars}"]
@@ -19,20 +16,22 @@ points       [label="{Apron/Points|2 CS Pars}"]
 
 etcrelay  [label="{<i>..|{ETC Power Relay}|{ fixtures}}"]
 
-      
 subgraph cluster_er { label="Electrical Room"
-  somepanel
-  lmi      [label="LMI\nDimmers"]
-  lp1
+  lp1 [label="{{Panel LP1}|{ <o3032>30,32|<o2>...|<o4448>44,46,48}}"]
   distro [label="100 Amp\nDistro"]
 }      
 
 subgraph cluster_bal { label="Balcony"
   balcony     [label="Balcony\nPanel"]
-  nsi         [label="{<i>...|{NSI Dimmers\n2 units}|{ <o>...}}"]
+  patch       [label="{<i>Nema 5-15R|{Nema\nPatch}|{ <o>Nema 5-15P}}"]
   balconyeast
   balconywest
+  chromaq      [label="Rotator\nPower Supply"]
 }
+
+balcony -> patch
+patch -> balconywest
+patch -> balconyeast
 
 subgraph cluster_bulk { label="Bulkhead"
   bulkhead  [label="Bulkhead\nPanel"]
@@ -41,7 +40,7 @@ subgraph cluster_bulk { label="Bulkhead"
 }
 
 subgraph cluster_attic {label="Attic"
-attic [label="{<i>21-32|{Attic Outlets}|{ fixtures}}"]
+attic [label="{<i>21-32|{Attic Outlets\nNema L2-20}|{ fixtures}}"]
 etcrelay
 }
 
@@ -51,19 +50,15 @@ subgraph cluster_amp {label="Audio Amp Room"
 
 subgraph cluster_stage {label="Stage Floor"
   stagepars [label="7 CS Pars\n6 AW bars\n4ADJ bars"]
+  stage     [label="{<i>41-43|{Stage Outlets\nNema L2-20}|{fixtures}}"]
 }
 
 amppanel -> stagepars
 
-somepanel:ox -> lmi
-lmi -> stage  
-lmi -> attic
-
 lp1:o2 -> bulkhead
 lp1:o3032 -> balcony  
 lp1:o4448 -> distro
-balcony -> nsi
-
+ 
 lp1 -> amppanel
 
 bulkhead -> topbar
@@ -76,10 +71,10 @@ stamp [label= <<table>
     <td>Power Topology</td>
 </tr>    
 <tr><td>As of</td>
-    <td>2018-08-21</td>
+    <td>2019-05-23</td>
 </tr>
 </table>> ]  
 
 {rank=same; stamp  fohbar    }
-
- } 
+{rank=same; lp1  amppanel    }
+}

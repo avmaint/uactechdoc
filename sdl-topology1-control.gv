@@ -9,22 +9,12 @@ node [shape=Mrecord, tooltip="" ,
       
 console [label="{Lighting Control|ETC CS40AV\nZLKU-C001|{<hdmi>hdmi|<dmx1>DMX 1|<dmx2>DMX 2}}"]
 
-echo [label="{Touch Pad\nAsset Tag|<p>prop}"]
-echo2 [label="{{<p>prop|<bt>bluetooth}|echo node|dmx}"]
+keypad [label="{Keypad Pad\nAsset Tag?|<p>unison}"]
+echo2 [label="{{<p>unison|<bt>bluetooth|<dmx>dmx}|echo node|dmx}"]
 
-echo:p -> echo2:p
-
-computer [label="{{Computer\nCDWU-0009}|{ <o1>usb|<o2>usb }}"]
-
-n1 [label="{<i>usb|Ketra N1\nZLIU-A002|KetraNet}"]
-computer:o2 -> n1:i
-
-matrix [label="{<i>Input 8\nhdmi|Video Matrix\nZVKU-A001}"]
-console:hdmi   -> matrix:i8
+keypad:p -> echo2:p  
 
 optoisolator [label="{{<i1>dmx|<i2>dmx}|Optical Isolator\nZLIU-0003|{<o1>dmx|<o2>dmx|<o3>dmx|<o4>dmx}}"]
-
-usbdmx [label="{<i>usb|Interface\nZLIP-0001|<o>dmx}"] 
 
 pathway [label="{<i>dmx|Pathway\nZLIU-A001|{<o1>dmx|<o2>dmx|<o3>dmx|<o4>dmx}}"]
 
@@ -39,7 +29,11 @@ balwbar [label="Balcony\nWest bar"]
 optoisolator -> balebar
 optoisolator -> balwbar
 
-chromaq:o1 -> pathway
+optoisolator -> chromaq
+chromaq:o1 -> echo2:dmx
+chromaq -> rotators
+echo2 -> pathway
+
 pathway:o1 -> n3 [label="port to be confirmed"]
 pathway:o2 -> stage
 pathway:o3 -> topbar
@@ -47,22 +41,16 @@ pathway:o4 -> fohbar
 
 console:dmx1 -> optoisolator:i1
 
-optoisolator:o1 -> interface:dmx     
-optoisolator:o2 -> demux:i
- 
-usbdmx:o -> optoisolator:i2
-
 Node [shape=plaintext, fillcolor=white]
 stamp [label= <<table>
 <tr><td>Title</td>
     <td>Control Topology</td>
 </tr>    
 <tr><td>As of</td>
-    <td>2018-10-23</td>
+    <td>2019-05-22</td>
 </tr>
    
 </table>> ]  
 
 {rank=same; stamp n3}
-{rank=same; console computer}
  } 
