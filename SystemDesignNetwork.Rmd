@@ -33,7 +33,7 @@ NetworkInventory <- get.network()
 TechInventory <- get.inventory()
 ```
 
-#Introduction
+# Introduction
 
 This document provides key technical documentation for the Network subsystems at UAC that are relevant to the AV system.
 
@@ -48,7 +48,7 @@ The network is used for these purposes:
 
 [Back to top](#top)
 
-#Overall Switch Topology
+# Overall Switch Topology
 
 ```{r overalltopology}
 st <-' 
@@ -172,7 +172,7 @@ merge(NetworkInventory, selected.at) %>%
 
 [Back to top](#top)
 
-#Wifi 
+# Wifi 
 
 From an AV Technical Production perspective, our Wifi network is not normally used for media transport, but rather for control functions. Examples include:
 
@@ -224,7 +224,7 @@ The are content filtering rules applied to the network which blocks access to si
 
 [Back to top](#top)
   
-#AV Rack Room
+# AV Rack Room
  
 ```{r audiorack}
 ar <-' 
@@ -278,7 +278,7 @@ merge(TechInventory, selected.at) %>%
 
 [Back to top](#top)
 
-#Balcony Front Desk
+# Balcony Front Desk
  
 ```{r BalconyFrontSwitch}
 ar1 <-' 
@@ -372,7 +372,7 @@ merge(TechInventory, selected.at) %>%
   kable_styling("striped", full_width = FALSE)
 ```
 
-#Balcony Rear Desk
+# Balcony Rear Desk
 
 The rear switch topology has been broken out into multiple diagrams so they are more readable.  
 
@@ -545,6 +545,6 @@ NetworkInventory %>%
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
 
-#Change History
+# Change History
 
 `r commit.log.html( knitr::current_input() )`
