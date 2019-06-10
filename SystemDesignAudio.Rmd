@@ -54,7 +54,7 @@ DiagrammeR::grViz("sda-overview.gv")
 
 [Back to top](#top)
  
-##Inputs
+## Inputs
 
 There are a variety of microphone inputs that come from the stage as well as CD players, tape players and computer inputs in the balcony. These all are fed into one of two audio mix consoles: A Yamaha M7CL-48 and a Yamaha DM1000. The M7CL is the primary console while the DM1000 handles inputs located at the mix position.
 
@@ -177,9 +177,9 @@ print_inv(c( "CDMU-A001", "ZAKU-0002",
 
 [Back to top](#top)
  
-##Front of House
+## Front of House
 
-###Consoles
+### Consoles
 
 As introduced in the earlier section there are two primary mix consoles in the Santurary System. Both of these consoles are digital with full scene store and recall. Recalling scene 001 on the M7CL will cause both consoles to reset to our standard starting point which is an excellent foundation for 95% of the services we run in a year. 
 
@@ -209,11 +209,11 @@ print_inv(cs , Tech_Inventory)
 
 [Back to top](#top)
 
-###Other FoH gear
+### Other FoH gear
 
 These can all be found in the diagram above.
 
-####Finalizer
+#### Finalizer
 
 The finalizer is used to apply multi-band compression to the FOH signal. It gets signal from the Console main stereo bus.
 >TODO: Left or Right or both?
@@ -223,18 +223,89 @@ The Right channel goes and the Soundweb or Dominator.
 
 >TODO: Document settings.
 
-####Rane DA
+#### Rane DA
 
 This is an audio distribution amplifer. 
 
-####Dominator
+#### Dominator II
 
-####SoundWeb
+The settings for this device are all manual and not "storeable", except here:
 
+```{r}
+dom <- tribble(
+  ~Parameter, ~Setting,
+  "Input Gain", "0",
+  "Process", "In",
+  "LF EQ", "0",
+  "XOver1", "100",
+  "HF EQ", "-2",
+  "XOver2", "34",
+  "Release", "23",
+  "Stereo Coupling", "On",
+  "RCH Density", "0",
+  "Fine", "+2",
+  "Range", "-10",
+  "Course", "12"
+)
 
+dom %>% 
+  kable(caption="Dominator Settings", align=c("l","r")) %>%
+    kable_styling("striped", full_width = FALSE) %>%
+      column_spec( 1,  bold = TRUE )
+
+```
+
+#### SoundWeb
+
+The soundweb settings are all stored in memory. 
+
+#### Lobby Speakers
+
+One of the outputs of the RANE DA is connected to the lobby amplifier, a Stuart Audio Hub. This in turn drives four 10W amplifiers which are mounted on the speakers in the lobby ceiling. Signal and power distribution is via Cat5 cable (it is __not__ ethernet). 
+
+```{r lobby}
+lobby <-' 
+graph bfs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Lobby Audio Topology\n(as of 2019-06-10)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+  
+  subgraph cluster_rack { label="ZVHU-____ rack"  
+                              tooltip="Front desk Rack"
+        rane                       
+        ZAAU0009 [label="{Audio Hub|ZAAU-009}", 
+                      tooltip="Stuart"]
+  }
+
+ZAAU0010A  [label="Speaker with Amp\nZAAU-0010 A", tooltip="Speaker"]
+ZAAU0010B  [label="Speaker with Amp\nZAAU-0010 B", tooltip="Speaker"]
+ZAAU0010C  [label="Speaker with Amp\nZAAU-0010 C", tooltip="Speaker"]
+ZAAU0010D  [label="Speaker with Amp\nZAAU-0010 D", tooltip="Speaker"]
+ 
+rane -- ZAAU0009  
+ZAAU0009 -- ZAAU0010A [label="cat5"]
+ZAAU0009 -- ZAAU0010B [label="cat5"]
+ZAAU0009 -- ZAAU0010C [label="cat5"]
+ZAAU0009 -- ZAAU0010D [label="cat5"]
+} 
+'
+
+DiagrammeR::grViz(lobby, height=350)
+```
+
+#### Inventory details for this section
+
+```{r}
+cs <- c("ZAXU-0003", "ZAXU-0004", "ZAAU-0009", "ZAAU-0010")
 
 print_inv(cs , Tech_Inventory)
->TODO: write content
+
+```
 
 ### Console Links
 There is are adat IO exapnsion card in each of the two consoles. This enables console-to-console communication. The busses in the DM1000 console are linked to the busses in the M7 using these cards. The Flow is from the DM1000 to the M7. The link cards are in slot one of each console.
@@ -335,7 +406,7 @@ print_inv(c( "ZAKU-0001", "ZAKU-0002", "ZVKU-A003",
              "ZAHU-0001","ZAHU-0002","ZAHU-0005","ZAHU-0006"), Tech_Inventory)
 ```
 
-##Speakers
+## Speakers
 
 We have speakers in several locations:
 
@@ -360,7 +431,7 @@ print_inv(cs , Tech_Inventory)
 
 [Back to top](#top)
 
-#Dante Configuration
+# Dante Configuration
 
 Dante enables certain audio devices to route audio signals using standard network technologies. Routing is managed via software provided by Audinate called "Dante Controller".  
 
@@ -383,7 +454,7 @@ Dante Controller
 
 Visit https://www.audinate.com to learn more about Dante. Audinate have a very good certification series of videos on youtube.
 
-##Dante Network Topology
+## Dante Network Topology
 This is the network topology.
 ```{r}
 DiagrammeR::grViz("sda-dante.gv")
@@ -399,7 +470,7 @@ cs <- c("ZAIU-B001", "ZAIU-B002" ,
 print_inv(cs , Tech_Inventory)
 ```
 
-##Dante Standard Patch
+## Dante Standard Patch
 The patching between inputs and output is managed by "Dante Controller" software on a computer.  
   
 ```{r matrixdata}
@@ -586,6 +657,6 @@ Tech_Inventory %>%
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r knitr::current_input()`
 
-#Change History
+# Change History
 
 `r commit.log.html( knitr::current_input() )`
