@@ -48,7 +48,7 @@ Purpose of our Sound System:
 
 [Back to top](#top)
 
-#Sunday Morning Rundown
+# Sunday Morning Rundown
     
 These are the steps to follow for a normal Sunday morning.
 
@@ -67,7 +67,7 @@ activities %>%
 
 [Back to top](#top)
 
-#Power On and Off
+# Power On and Off
 ## Power On
  
 There are three numbered swtiches located in the balcony required to turn the system on
@@ -139,19 +139,19 @@ Key Steps:
 
 [Back to top](#top)
 
-#Monitors
+# Monitors
 
 >TODO: write content
 
 [Back to top](#top)
 
-#Operating the Wireless Microphones
+# Operating the Wireless Microphones
 
 >TODO: write content
 
 [Back to top](#top)
 
-#Audio Terminology
+# Audio Terminology
 
 Amplifier
 : An audio component that take low-level inputs, from a console, and amplifies them to the power level required to drive a speaker. 
@@ -177,6 +177,6 @@ Scene
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. THe source is found here `r file.path(getwd(), knitr::current_input())`.
 
-#Change History
+# Change History
 
 `r commit.log.html( knitr::current_input() )`

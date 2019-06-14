@@ -47,7 +47,7 @@ At times you will also need to change the video routing for special features suc
 
 [Back to top](#top)
 
-#Sunday Morning Rundown
+# Sunday Morning Rundown
     
 These are the steps to follow for a normal Sunday morning.
 
@@ -80,7 +80,7 @@ You are welcome to watch all of them, but I would highlight a few specifically t
 
 [Back to top](#top)
 
-#How we Organize our files
+# How we Organize our files
 
 ## Dropbox ServiceFiles
 ServiceFiles is meant for shorter term content and provide a means for content creators to contribute content remotely.
@@ -94,7 +94,7 @@ Announcements
 Series Folder
 : This is for graphics which are to be used for an entire series. It contains the centre screen graphic, the lower 3rd graphics for video, the series Welcome graphic, plus other useful backgrounds.
 
-##Media Resources
+## Media Resources
 
 This is our main graphic library, for both still and motion graphics. There are some folders for specific purposes and others which are orgnized by a particular graphical theme. 
 
@@ -186,7 +186,7 @@ If you see a white flash as you transition to the first slide, change the backgr
 
 [Back to top](#top)
 
-#Stage Display
+# Stage Display
 
 Propresenter gives us the ability to display different content on the rear display for the stage team to see that is different from what the audience sees. Since it helps give them confidence, it is sometimes called the confidence display as well. 
 
@@ -213,7 +213,7 @@ To define a layout to the message when Daniel is speaking, for example:
 
 ![Add Cue](../../images/sop-stagedisplay-addcue-sdl-zoom.png)
 
-##Adding a Timer Cue
+## Adding a Timer Cue
 
 Some layouts, specifically Daniels, may have a times defined within the layout. You have to add a timer cue to the first slide of the message as well which will start the timer. Which timer cue you add depends on which timer is used in the layout.
 
@@ -230,7 +230,7 @@ Or add timer cues from the cue palette
 
 ![Timer Cue](../../images/sop-timer-cue.png)
 
-##Lyrics on Stage Display Only
+## Lyrics on Stage Display Only
 
 There is an article about this:   https://support.renewedvision.com/article/165-using-the-stage-display-to-its-full-potential.  It talks about using CMD-0 as well as using the Cue Palette (Suppress the Slide on Output)
 
@@ -296,17 +296,17 @@ This tutorial covers Props https://youtu.be/U4bQbLqOjC0 and this one covers the 
 
 [Back to top](#top)
 
-##Cues to Add to Documents
+## Cues to Add to Documents
 
 To help you get the right cues in the right spot, use these formulas for the different kinds of media.
 
-###Countdown
+### Countdown
 
 * Stage Display: "Pre Service Coutdown"
 * MultiScreen: "Song ABC Tile"
 * Clear Props
 
-###Song
+### Song
 
 * Stage Display: "Worship Lyrics Static Slide"
 * Multiscreen: "Song ABC Stretch" or "Song ABC Tile". The choice is influenced by how well it looks on the screen. Try Stretch first.
@@ -316,7 +316,7 @@ To help you get the right cues in the right spot, use these formulas for the dif
 
 The choice of _stretch_ or _tile_ will depend on how the graphic looks. Tile will repeat the graphic three times. Stretch will make one image stretch across all three. If you pick ‘stretch’ and it isn’t wide enough, you will need to go into the media properties and change the option to “fill screen”
 
-###Message 
+### Message 
 
 * Stage Display: "Kevin Front No Clock"
 * MultiScreen: "Message AC - Series B"
@@ -326,7 +326,7 @@ The choice of _stretch_ or _tile_ will depend on how the graphic looks. Tile wil
 
 [Back to top](#top)
 
-##Transfering the ProPresenter Playlist to the Streaming Computer
+## Transfering the ProPresenter Playlist to the Streaming Computer
 
 This process sets up the video streaming computer to mirror the main Propresenter slide content. We do this becuase the main system is running at a triple wide resolution (5760x1080) and the stream is only single wide (1920x1080). 
 
@@ -393,7 +393,7 @@ You can do a similar thing direcly on the front panel using the OUT and IN butto
 
 # Troubleshooting
 
-##Stage Display appears on the front Projectors
+## Stage Display appears on the front Projectors
 
 The problem - two scenarios:
 
@@ -578,6 +578,6 @@ MS is a flexible, powerful program. This tutorial has just touched on some of th
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
 
-#Document Change History
+# Document Change History
 
 `r commit.log.html( knitr::current_input() )`

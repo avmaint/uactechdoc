@@ -74,7 +74,7 @@ activities %>%
 
 [Back to top](#top)
 
-#Turning it on and off
+# Turning it on and off
 
 The video mixer will likely have been turned on by the audio engineer. If by chance the Propresenter computer was awoke before you will not see its video feed. See the troubleshooting section for corrective steps.
 
