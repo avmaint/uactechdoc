@@ -205,7 +205,7 @@ Kevin Front - no clock
 Daniel Speaking
 : Used when Pastor Daniel is speaking. It features the current slide with a small preview of the next slide. It also includes a clock, an elapsed time. Add timer cues to the first page of the message slides - reset timer (from cue pallete) and start timer. 
 
-##Adding a Stage Display Layout Cue
+## Adding a Stage Display Layout Cue
 
 To define a layout to the message when Daniel is speaking, for example: 
 * Right click on the first slide of the message to get the pop-up menu
@@ -327,6 +327,8 @@ The choice of _stretch_ or _tile_ will depend on how the graphic looks. Tile wil
 [Back to top](#top)
 
 ## Transfering the ProPresenter Playlist to the Streaming Computer
+
+> This doesn't not need to be done normally. The most common reasons to do this would be 1) a problem with the video link bewtween the computer and the ATEM, or a desire to have completely different formatting for the same content.
 
 This process sets up the video streaming computer to mirror the main Propresenter slide content. We do this becuase the main system is running at a triple wide resolution (5760x1080) and the stream is only single wide (1920x1080). 
 
