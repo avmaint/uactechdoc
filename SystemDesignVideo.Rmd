@@ -322,21 +322,13 @@ kable() %>%
 
 ```{r inventory, echo=FALSE, asis=TRUE}
 
-cs = c("Qty"  ,
-  "Manufacturer" ,
-  "Model"  , 
-  "Qty",
-  "Location"  ,
-  "Type" ,
-  "Desc"     )
-
-Video_Inventory <- Tech_Inventory %>%  
-          filter( Category=="Video" , InService== "Y") %>%  
-          dplyr::select(one_of(cs))   
-
-knitr::kable(Video_Inventory  )  %>%
-    column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
+items <- Tech_Inventory %>%  
+          filter( Category=="Video" ,
+                  InService== "Y", !is.na(AssetTag)) %>%  
+          select(AssetTag) %>%
+          pull()
+  
+print_inv(items, Tech_Inventory)
 ```
 
 [Back to top](#top)
