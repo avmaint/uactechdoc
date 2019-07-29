@@ -31,9 +31,9 @@ source("commonFunctions.R")
 NetworkInventory <- get.network()
 ```
 
-#Click on the tabs  {.tabset .tabset-pills}
+# Click on the tabs  {.tabset .tabset-pills}
 
-##Projectors
+## Projectors
 To turn on/off the front projectors, use the Control tab on each projector's page. There is a On/Off button in the upper left corner. It takes about 30 seconds before you will see any image and a minute before it is ready. 
 Use the remote for the rear projector.
 
@@ -64,7 +64,7 @@ NetworkInventory %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-##Lighting
+## Lighting
 The lighting console has its own web page which provides basic functions.
 
 ```{r} 
@@ -76,9 +76,7 @@ NetworkInventory %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-
-
-##Cameras
+## Cameras
 Camera defaults are usually good, but if needed you can change the camera settings on these pages. 
 
 ```{r} 
@@ -91,7 +89,7 @@ NetworkInventory %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-##Network
+## Network
 Camera defaults are usually good, but if needed you can change the camera settings on these pages. 
 
 ```{r} 
@@ -104,7 +102,7 @@ NetworkInventory %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-##Web Sites
+## Web Sites
 ```{r}
 sites <- tribble(
   ~Name, ~URL, ~Notes,
@@ -124,7 +122,7 @@ sites %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-##Change Log
+## Change Log
 
 `r commit.log.html( knitr::current_input() )`
 
