@@ -89,37 +89,33 @@ Cameras
 
 # Operating Remote Cameras via the RMIP10 
 
-The RMIP10 (Asset Tag ZVKU-A004) remote control allows a single person to operate three cameras quite easily. Especially since we have presets assigned which are programmed to bring a camera to sepcific positions quickly. We have created some standard presets which enable simple operation for many basic situations. All three cameras share these same presets, but since they are positioned in different locations they still provide different perspectives.
+The RMIP10 (Asset Tag ZVKU-A004) remote control allows a single person to operate three cameras quite easily. 
 
-The bottom row of buttons select which camera is to be controlled. The control is either via the joystick or the position buttons
+To adjust a camera position, select the number of the camera you want to adjust on the bottom row (1, 2, or 3) and then either select a preset or move the joy stick. left, right, up and down movements follow the joy stick movement. Zoom is accomplished by turning the ring on the top of the joy stick.
+
+We have presets assigned which are programmed to bring a camera to sepcific positions quickly. We have created some standard presets which enable simple operation for many basic situations. All three cameras share these same presets, but since they are positioned in different locations they still provide different perspectives.
 
 The middle row of buttons will be typically used to direct a camera to a preset position. 
 
-```{r fig.height=2}
-img <- readJPEG("../../images/sov-CamRemote.jpg") 
-  
-g <- rasterGrob(img, interpolate=TRUE)
 
-ggplot() +  
-  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)  +
-  ggtitle("Camera Remote Controls" )
-```
+![Camera Remote Controls](../../images/sov-CamRemote.jpg)
 
-
-#. Teaching Tight 
+1. Teaching Tight 
 : Head and shoulders on the standard teaching spot.
-#. Teaching Medium 
+2. Teaching Medium 
 : Waist up on the standard teaching spot.
-#. Teaching Wide
+3. Teaching Wide
 : Full body about 3 meters wide. Good for a change in perspective and for when the pastor is moving around a lot.
-#. Whole Stage
+4. Whole Stage
 : As you might expect - the whole stage from edge to edge.
-#. Worship Leader Tight
+5. Worship Leader Tight
 : The Worship leader is normally in the centre front of the stage. This head and shoulder shot might need some tweaking when used as position week over week may not be consistent.
-#. Worhsip Team Wide
+6. Worhsip Team Wide
 : The whole team of 6 or so singers. When used you may need to go wider of narrower depending on the vocal compliment of that week.
 
 >As of Sept 2018: The last two presets have not been programmed.
+
+>Although these presets exist, most operators don't use them.
 
 [Back to top](#top)
 
@@ -178,7 +174,7 @@ The Program output of the video mixer is sent to three different destinations:
 The Auxillary output is sent to two destinations:
 
 * The video matrix (ZVKU-A001), where it can further routed to any of its outputs. 
-* The Web Presenter (ZVIU-A004) which then becomes an input to the VideoMac (CDMU-A002) for use in programs like Skype or OBS. 
+* The Web Presenter (ZVIU-A004) which then becomes an input to the VideoMac (CDMU-A002) for use by our livestreaming software, OBS (or in special circumstnaces Skype). 
 
 [Back to top](#top)
  
@@ -264,11 +260,13 @@ Key 1 Fill
 
 > Down Stream Key is abbreviated DSK. 
 
-A key is a mask applied to one source to overlay on top of another. The term key refers to that which defines the mask, and fill refers to what goes inside the mask.
+A key is a mask applied to one source to overlay on top of another source. The term key refers to that which defines the mask, and fill refers to what goes inside the mask.
 
 A Luma key is a key defined by the brightness of the key source. 
 
-Our most typical configuration is to link DSK #1 to media player #1 and DSK #2 to media player #2 and both as Luma keys. This can be done via the built-in display or via the ATEM control software. The software is easier to use. 
+Our most typical configuration is to link DSK #1 to media player #1 and DSK #2 to media player #2 and both as Luma keys. This can be done via the built-in display or more easily via the ATEM control software.
+
+> Our regular usage is setup and run by macros.
 
 To set our default configuration, go into the DSK menus for DSK1 and DSK2. Using #1 as an example, set the key source to Media Player 1 and the fill to also be Media Player 1. Also set the clip level to be about 15%. The clip level determines what to consider part of the mask, or not.
 
@@ -284,13 +282,17 @@ A different example configuration is with lyrics. Say the text is pure white and
 
 The ATEM mixer has two built-in media players which can play images and very short videos. Using them has three steps:
 
-#. Loading the content into the mixer
-    + This is most easily done using the ATEM control software on the VideoMac (CDMU-A002). Go into the Media tab and navigate to the file you want to transfer and then drag n' drop it into the media bin. You can get rid of old media by simply click on the the 'X' in the corner of the media item. 
-#. Assigning a media element (image or video) to a player. Two ways to do this
+1. Loading the content into the mixer
+    + This is most easily done using the ATEM control software on the VideoMac (CDMU-A002). Go into the Media tab and navigate to the file you want to transfer and then drag n' drop it into the media bin. 
+    + You can get rid of old media by simply click on the the 'X' in the corner of the media item. 
+
+2. Assigning a media element (image or video) to a player. Two ways to do this
     + Using the ATEM software, media tab as above. You can drag n' drop media from the bin to the player of your choice on the right hand side.
     + Using the ATEM console itself, you can naviagte to the media player menus and select the item you want by file name.
-#. Using the player as a source
-    + You can select either media player as a source for a transition using either the Program buttons or the Preview buttons. They are labelled "MP 1" and "MP 2". You do have to use the 'shift button' to select them. 
+
+3. Using the player as a source
+    + You can select either media player as a source for a transition using either the Program buttons or the Preview buttons. They are labelled "MP 1" and "MP 2". 
+    + You do have to use the 'shift button' to select them. 
     
 [Back to top](#top)
 
@@ -342,9 +344,9 @@ __Running Macros from the ATEM Control Software__
  
 #. On the Video Mac (CDMU-A002), Open the application (if not already running) 
 #. Click on ‘macros’ in the title bar. The macro window is a floating window you can move freely about on your desktop. 
-#. There is a tab for "Create" and “Run”, click on “Run”
-#. There is a radio button for “Recall and Run”, select that.
-#. To run a specific macro just click on the macro name in the grid. 
+#. There is a tab for "Create" and “Run”, **click on “Run”**
+#. There is a radio button for **“Recall and Run”**, select that.
+#. To run a specific macro just **click on the macro name** in the grid. 
 
 ![Running Macros via Software](../../images/sov-macro-run.JPG)
 
@@ -453,7 +455,7 @@ Page 33
 
 # Operating the Video Recorders
 
-We have two solid state recorders, Black Magic Design Hyperdeck Minis (Asset Tags ZVRU-A001 and ZVRU-A002). These record onto SD memory cards. You can observe and verify what is being recorded by looking at the mini screens on the device.
+We have two solid state recorders, Black Magic Design Hyperdeck Minis (Asset Tags ZVRU-A001 and ZVRU-A002). These record onto SD memory cards. You can observe and verify what is being recorded by looking at the mini screens on the device. If the screen is black you may want to record a few seconds and then stop recording to esnure things are correctly initialized.
 
 > Ensure that the destination cards have been formatted before you begin recording. See below.
 
@@ -470,19 +472,19 @@ The screen will display the amount of time the recording has been going for. If 
 ### Formattting a card
 To format the memory card using the hyperdeck mini:
 
- #. Insert the media you want to format in the SD card slot.
- #. Press the 'menu' button on the control panel.
- #. Turn the jog wheel and use the set button to enter the 'record' menu on the LCD desplay and select 'format card'.
- #. Select the SD card you want to format on the LCD using the jog wheel. Press the 'set' button to confirm your selection.
- #. Now pick the desired format, in our case 'HFS+'.
- #. A Warning message will appear asking you to confirm the choice. Confirm by selecting 'format' with the wheel and then pressing the 'set' button.
- #. A progress bar will show the progress. When complete the message 'formatting complete' will be displayed. Press the 'set' button again to return to the menu.
+1. Insert the media you want to format in the SD card slot.
+2. Press the 'menu' button on the control panel.
+3. Turn the jog wheel and use the set button to enter the 'record' menu on the LCD desplay and select 'format card'.
+4. Select the SD card you want to format on the LCD using the jog wheel. Press the 'set' button to confirm your selection.
+5. Now pick the desired format, in our case 'HFS+'.
+6. A Warning message will appear asking you to confirm the choice. Confirm by selecting 'format' with the wheel and then pressing the 'set' button.
+7. A progress bar will show the progress. When complete the message 'formatting complete' will be displayed. Press the 'set' button again to return to the menu.
  
 [Back to top](#top)
 
 # Operating Web Presenter
 
-This device enables us to stream our video content live on services like FaceBook Live and can also be used as a source for Skype and to record content.
+This device enables us to stream our video content using FaceBook Live. (It can also be used as a source for Skype and to record content.)
 
 The device is pretty hands off. You should see the source signal on the front display. If not then hit the 'some button - don't recall which' button on recorder #1 as it is a source for the web presenter. 
 
@@ -496,7 +498,7 @@ Why #2 for Skype? In this situation you would want the skype video output (from 
 
 # Livestreaming
 
-We stream our entire service to "FaceBook Live". This is how it works. The "Program" output from the ATEM is wired into the into of the "Web Presenter" box. Its output is feed via USB to the into of the computer. The computer sees that devices as a web cam.
+We stream our entire service to "FaceBook Live". This is how it works. The "Program" output from the ATEM is wired into the into of the "Web Presenter" box. Its output is feed via USB to the videomac (CDMU-A002)  computer. The computer sees that devices as a web cam.
 
 ```{r}
 d <- 'digraph livestreaming { 
@@ -529,7 +531,7 @@ webp [
     }"
   tooltip="BMD Web Presenter"
 ]
-cdmua002 [label="{{<usb>usb}|{iMac 21 (CDMU-A002)}|{<ethernet>ethernet}}"]
+cdmua002 [label="{{<usb>usb}|{OBS|(CDMU-A002)}|{<ethernet>ethernet}}"]
 
 rswitch:o3 -> webp:i1 
 webp:o1 -> cdmua002:usb
@@ -548,7 +550,7 @@ __The is the details of the setup__
 
 __During the Week__
 
-Kris (or another facebook admin) will generate a streaming key and place in the  week's dropbox folder in a file called "live stream key.txt" or something similar. It would like something like "444241729362798?ds=1&a=ATiKDmZGnUEDUDV1". 
+Kris (or another facebook admin) will generate a streaming key and place in the  week's Dropbox folder in a file called "live stream key.txt" or something similar. It would like something like "444241729362798?ds=1&a=ATiKDmZGnUEDUDV1". 
 The stream will be scheduled to go live at 10am.
 
 __Sunday - Approximately 9:30 am __
@@ -561,13 +563,15 @@ __Sunday - Approximately 9:30 am __
 
 __At 9:55am or so__
 
-* Via OBS, select the ""xx Starting Shortly" Scene and transition to that. This will broadcast the main program output with a "We will be starting shortly" ticker along the bottom. This won't be seen by the audience until 10:00am sharp. When we start our service (see next section ... 10:00am), we will transition to the main scene. The starting shortly ticker will only be seen when we start late. 
+* If you didn't do it earlier, via OBS, select the ""xx Starting Shortly" Scene and transition to that. This will broadcast the main program output with a "We will be starting shortly" ticker along the bottom. This won't be seen by the audience until 10:00am sharp. When we start our service (see next section ... 10:00am), we will transition to the main scene. The starting shortly ticker will only be seen when we start late. 
 
 __At 10:00am__
 
 * (Assuming we start on time, if late starting then defer until ready)
 * Via OBS, select the "xx Web Presenter scene", and click "transition".
 * check to make sure we are still streaming.
+
+>TODO The names of the scenes have changed - need to update this doc with those names 
 
 __At 11:15am - when service ends__
 
