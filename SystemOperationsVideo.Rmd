@@ -119,7 +119,7 @@ ggplot() +
 #. Worhsip Team Wide
 : The whole team of 6 or so singers. When used you may need to go wider of narrower depending on the vocal compliment of that week.
 
->As of Sept 19: The last two presets have not been programmed.
+>As of Sept 2018: The last two presets have not been programmed.
 
 [Back to top](#top)
 
@@ -272,7 +272,7 @@ Our most typical configuration is to link DSK #1 to media player #1 and DSK #2 t
 
 To set our default configuration, go into the DSK menus for DSK1 and DSK2. Using #1 as an example, set the key source to Media Player 1 and the fill to also be Media Player 1. Also set the clip level to be about 15%. The clip level determines what to consider part of the mask, or not.
 
-We typically use this for a lower 3rd type graphic, where the top 2/3rds are black and the bottom third is a graphic with text and absolutely no black. With clip set to 15 everything below 15% brightness is excluded from the mask, and everything above that is included. The fill source (which is, as above, configured to be the same image) is then used to 'fill' in the inclusion part of the mask. 
+We use this for a lower 3rd type graphic, where the top 2/3rds are black and the bottom third is a graphic with text and absolutely no black. With clip set to 15 everything below 15% brightness is excluded from the mask, and everything above that is included. The fill source (which is, as above, configured to be the same image) is then used to 'fill' in the inclusion part of the mask. 
 
 We can now use the DSK to place a title graphic on top of a camera image.
 
@@ -292,6 +292,29 @@ The ATEM mixer has two built-in media players which can play images and very sho
 #. Using the player as a source
     + You can select either media player as a source for a transition using either the Program buttons or the Preview buttons. They are labelled "MP 1" and "MP 2". You do have to use the 'shift button' to select them. 
     
+[Back to top](#top)
+
+## Standard usage of media players and DSK
+
+In our normal usage we have the media players set-up to playback the intro graphics before the message and the copyright graphics after the message. Macro #1 sets these up for playback.
+
+**There is one thing that needs to be checked every week and perhaps changed.** We have a lower 3rd created for the name of the speaker for the service - which is typically Kevin. If we had somebody different last week we will need to change it. We also change the grpahic for every series. The appropriate graphic should be located in the Dropbox folder for the week, eg Dropbox/ServiceFiles/aug25 and will be named something like "kevin l3.png". 
+
+This graphic is chnaged be using the ATEM control software on the Mac (CDMU-A002). 
+
+* On the bottom of the screen their are four tabs: Switcher, Media, Audio, Camera, select the "Media" tab.  
+
+![Media tab location](../../images/sov-softwareswtichermediaarrow.png)
+
+* On the left hand side there is a file navigator. Dropbox will be one of the "Favourites". Expand it by clicking on the ">".
+* Navigate to the folder for the week, eg "aug25"
+
+>TODO: take a screenshoot of the media tab, with the favorities expanded.
+
+* Once you find the file, drag and drop it onto the correct tile on the right hand side. This is the place where th macros will expect to find the graphic.
+
+> TODO: take a screenshoot of the tiles where the lower3rd should be dropped.
+
 [Back to top](#top)
 
 ## Using the External Media Players
