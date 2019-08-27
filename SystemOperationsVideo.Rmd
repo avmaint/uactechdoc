@@ -700,7 +700,7 @@ After selecting that file and clicking the button at the bottom, upload will beg
 
 __Vimeo Website__
 
-Open you web browser, go to [Vimeo](http://www.vimeo.com), and logon with userid uacmedia@uachome.org. The password is provided separaetly. Upload the file. It will take some time - 1 to 6 hours has been my experience. Also set the various fields that describe the video:
+Open you web browser, go to [Vimeo](http://www.vimeo.com), and logon with userid uacmedia@uachome.org. The password is provided separaetly. Upload the file using one of the above mechanisms. Set the various fields that describe the video:
 
 * Title - use the message title
 * Description - use the synopsis / teaser text provided
@@ -708,13 +708,20 @@ Open you web browser, go to [Vimeo](http://www.vimeo.com), and logon with userid
 * English
 * Tags: uac, unionvillealliance and whatever else fits the topic
 * Assign a license: creative commons, attribution, no derivaties.
-* also assign it to the collection for the series. 
+* Assign it to the collection for the series. 
+* Update the video thumbnail. Upload the prepared thumbnail from the weekly folder and then select it.
 
-After upload, vimeo takes a while to prepare the video for publication - maybe 10 or 15 minutes. Once that is complete grab the Share URL for the video and go to the next step.
+After upload, vimeo takes a while to prepare the video for publication - maybe 10 or 15 minutes.  
+
+## Creating the Podcast Audio file
+
+* On the Mac desktop, there an icon for "Make_Audio", Double click on it. 
+* After a moment it will pop a choose file dialogue. Navigate to today's video file, and select it.
+* It will take about a minute to process the audio.
+* The resulting file will be placed in the same folder.
+* It is now ready to be uploaded to Nucleus.
 
 ## Update the UACHome website
-
-> TODO: Need to rewrite this due to cut-over to nucleus. Basic skeleton is here. Need to add some screen shots.
 
 Go to the vimeo [Vimeo](http://www.vimeo.com), and copy the URL for today's message.
 
@@ -722,11 +729,18 @@ Go to the [church administration web site](https://nucleus.church/user/login) an
 
 * Kris in the office can advise regarding the credentials to use
 
-Select the "Sermon Engine" tab and the "Embed Media" Option. Paste in the URL copied from above. 
+Select the "Sermon Engine" tab, you will then see a list of the sermons; the one you want should be at the top. Click on it. 
+
+* Paste in the VIMEO URL copied from above. 
+
+* Upload the audio file, which will also be in the VimeoAutoUpload folder. Slide the "Add to Podcast" button.
 
 Fill in the rest of the fields. If you don't have a description, enter a ".".
+
+* Click on Save at the bottom.
  
 ## Congratulations - You are almost done
+
 The one last thing is to ensure that the memory card is ejected from the computer:
 
 * In finder you will see the media card along the left side. Beside that there is a little up-arrow. Click it and then the card will be safe to remove.
