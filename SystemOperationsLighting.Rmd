@@ -119,19 +119,25 @@ activities %>%
 
 > TODO: This section needs to be rewritten. Picture needs to be replaced.
 
-#. Turn on 'Furhman' unit under rear desk / east end - big red switch
+1. Turn on 'Furhman' unit under rear desk / east end - big red switch
     + As of the Fall 2017, this is to be left on at all times. This is temporary as I work through a configuration problem.
-#. Go to closet
-#. Turn on power bar in closet.
-#. Turn on big switch up high
+2. Go to balcony closet
+3. Turn on the main breakers at the top of the panel ... in the yellow box in the diagram below.
 
-![The switch in the red box](../../images/sol-BalconyClosetPower.png)
+![The switch in the yellow box](../../images/sol-BalconyPower2019.png)
+
+
+4. Turn on the lighting console 
+
+![Console Power](../../images/sol-ETC-CS40AV-Power.png)
+
+5. Switch the keypad to "Console Mode".
 
 ## Power Off
 
-#. To turn off, reverse the order and turn off.
+To turn off, reverse the power on order and turn off.
 
-> When leaving the system for the day ensure that lower level keypad is set of "off" (The button will be blue). 
+> When leaving the system for the day ensure that lower level keypad is set of "Night Light" (The button will be blue). 
 
 [Back to top](#top)
 
