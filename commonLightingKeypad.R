@@ -5,8 +5,8 @@ get_keypad_buttons <- function() {
   keypad <- tribble(
     ~Button, ~Name, ~B_Description,
     
-    1, ".", "",  
-    2, "Rehearse", "For Rehearsal - Stage Pots and Sconce",
+    1, "Maintenance", "House and Stage Ketras on full white",
+    2, "Rehearse",    "For Rehearsal - Stage Pots and Sconce",
     
     3, "Ambience", "Use for walkin - intermission", 
     4, "Basic Event", "Front centre lit bright, house medium, plus accents",
@@ -14,8 +14,8 @@ get_keypad_buttons <- function() {
     5, "BSF 1", "Similar to Basic Event, plus Cross",
     6, "BSF 2", "Low levels for Video",
     
-    7, "Maintenance", "House and Stage Ketras on full white",
-    8, "OFF", "Night Light Mode: Sconce only." 
+    7, "Console Mode", "Use when the main lighting console is in use.",
+    8, "Night Light", "Sconce lights only, which are also controlled by the timer." 
   )
 return(keypad)
 }

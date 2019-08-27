@@ -67,13 +67,11 @@ There is a simple lighting control panel located next to the auditorium doors by
 
 The keypad and the main console can conflict with each other. When running from the console, the keypad should be in "Console Mode".  
 
-> The sconce lights has a timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well.
-
 The "Night Light" preset should be selected when the room is not in use.
 
 A button turns blue when it is selected, orange otherwise.
 
-The sconce lights also have an timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well. The timer is porgrammed to turn on the sconse during the evening hours (up to midnight), and Sunday morning.
+The sconce lights also have an timed switch which is next to the keypad, **if you want sconce control during the day you will need to manual turn them on as well**. The timer is programmed to turn on the sconse during the evening hours (up to midnight), and Sunday morning.
 
 > TODO: need to describe behaviours for: single click, double click, press and hold.
 
