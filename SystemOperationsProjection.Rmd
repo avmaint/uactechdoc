@@ -70,13 +70,22 @@ activities %>%
 
 The firm that makes ProPresenter has many great training videos on their [web site](https://www.renewedvision.com/propresenter.php?page=tour).
 
-You are welcome to watch all of them, but I would highlight a few specifically to focus on:
+The best way to watch these videos is via the training postings on RightNowMedia. There are two modules one covers the basics, and the second more intermedite topics.
 
-* My first presentation
-* Interface Overview
-* All the ones on the “Working with Presentations” tab except “Working with Bibles” and “Live Video Input”.
-* On the Beyond Slides , only “Planning Center Online” - This features really helps getting a service loaded into Propresenter fast. We may deal with "Importing and Exporting” eventually but I don’t think we will at the beginning.
-* Finally on the Modules tab, only “Multi-screen enhancements”.
+This is what you will find there:
+
+```{r}
+get.training() %>%
+  filter(Topic1=="Projection") %>%
+  filter(Topic2=="ProPresenter") %>%
+  select(Topic3, Episode, Title, Duration, Notes)  %>%
+  rename(Module = Topic3) %>%
+  kable(caption= "Propresenter Training"  ) %>%
+        kable_styling("striped", full_width = FALSE) %>%
+        collapse_rows(columns = 1   )
+  
+```
+
 
 [Back to top](#top)
 
@@ -94,11 +103,17 @@ Announcements
 Series Folder
 : This is for graphics which are to be used for an entire series. It contains the centre screen graphic, the lower 3rd graphics for video, the series Welcome graphic, plus other useful backgrounds.
 
+> When we start a new series, we will need to update at least two things in ProPresetner: The "_Welcome Current Series" document and the "Series Graphic" in "Props".  
+
 ## Media Resources
 
 This is our main graphic library, for both still and motion graphics. There are some folders for specific purposes and others which are orgnized by a particular graphical theme. 
 
-Many files have keywords in the file names that make them easier to search for. For example, you can search by colour, eg "red", or for triplewide content "-tw", or for "cross".
+Many files have keywords in the file names that make them easier to search for. For example, you can search 
+
+* by colour, eg "red", 
+* or for content, eg "cross",
+* or format, eg "-tw" for triplewide content.
 
 # Remote Login
 
@@ -145,25 +160,27 @@ The playlist is the list of visual elements that we need to present during the s
 
 There are two ways of doing this, the easiest way is to have ProPresenter create the playlist from PCO. They other way is to do it manually. Most of the time you will use the first option. 
 
-Early in the week the service cue sheet for the following Sunday will be distributed. With that in hand you can prepare the playlist which includes all announcements, song lyrics, and other support elements. 
+Early in the week the service cue sheet for the following Sunday will be distributed via Planning Center Online. With that in hand you can prepare the playlist which includes all announcements, song lyrics, and other support elements. 
 
 ## Creating a Playlist from PCO
 
-It is very rare that you won't create your playlist this way. After starting ProPresenter, find the "+" in the lowe left corner, and click on the little down arrow beside it. Select "New PCO Playlist".
+It is very rare that you won't create your playlist this way. After starting ProPresenter, find the "+" in the lower left corner, and click on the little down arrow beside it. Select "New PCO Playlist".
 
-!["Create a PCO Playlist" ](../../images/sop-NewPCOpl.jpg)
+![Click on the Plus](../../images/sop-newPCOplaylist1.jpg)
+
+![Select "New PCO Playlist"](../../images/sop-newPCOplaylist2.jpg)
 
 Next you will see a pop-up where you need to select the plan that you want to use for your playlist. You may need to scroll sideways to see the date.
 
->TODO Need to add screen shots and more explanation.
+![click on the grey triangle to see the list of services](../../images/sop-newPCOplaylist3.jpg)
 
 If you created the playlist mid-week, you should refresh the playlist on Sunday morning to collect any updates. After doing a refresh check to make sure your arrangement choices haven't been changed.
 
->TODO Insert screenshot
+![Refresh a PCO Playlist](../../images/sop-PCO-refresh.jpg)
 
-A PCO playlist is rigidly linked to PCO. You cannot add items or change the order. If you need to do that, you will need to convert the playlist to a regular playlist. 
+A PCO playlist is rigidly linked to PCO. You cannot add items or change the order. If you need to do that, you will need to convert the playlist to a regular playlist. You only need to do this if you need to add or remove items.
 
->TODO Insert screenshot.
+![Convert to a non-PCO playlist](../../images/sop-PCO-convert.jpg)
 
 [Back to top](#top)
 
@@ -172,7 +189,8 @@ A PCO playlist is rigidly linked to PCO. You cannot add items or change the orde
 ProPresenter is able to import the contents of a Powerpoint presentation. It creates a document containing static images, which means any animations and transition affects that were part of the powerpoint are lost. You also need to ensure that any special fonts used in the powerpoint are installed on the system.
 
 You execute the import via File > Import > Import from Powerpoint.
-![Import](../../images/sop-ppt-import-1.png)
+
+![Import PowerPoint](../../images/sop-ppt-import-1.png)
 
 and then navigate to the powerpoint file. 
 
@@ -182,7 +200,11 @@ and then navigate to the powerpoint file.
 
 Once the import is complete, you can then link the new document to the playlist, and add the multiscreen and prop cues.
 
-If you see a white flash as you transition to the first slide, change the background colour to black. The background colour is displayed first and then the graphic is brought in via the transition.
+**If you see a white flash** as you transition to the first slide, change the background colour to black. The background colour is displayed first and then the graphic is brought in via the transition.
+
+Sometimes this import process doesn't work. If it seems to be breaking, then open PowerPoint directly. When you do that, there may be mesages from PowerPoint that need attention, like a notice of an update. Once those are cleared, you can retry the import process.
+
+You can aslo do the PowerPoint Export compleltely outside of ProPresenter and export all slides as images, create a new ProPresenter document for them, and drag and drop all the saved JPGs into the document.
 
 [Back to top](#top)
 
@@ -190,7 +212,7 @@ If you see a white flash as you transition to the first slide, change the backgr
 
 Propresenter gives us the ability to display different content on the rear display for the stage team to see that is different from what the audience sees. Since it helps give them confidence, it is sometimes called the confidence display as well. 
 
->Key point. Once the Stage Display Layout is set, it will not change until you set it to something else. This means you need to add the proper cues thorughout the playlist. For example, you need to set the worhsip lyric layout on the first song, The speaking layout for the message, and then the worship layout again one the first song after the message.
+>Key point. Once the Stage Display Layout is set, it will not change until you set it to something else. This means you need to add the proper cues thorughout the playlist. For example, you need to set the worship lyric layout on the first song, The speaking layout for the message, and then the worship layout again one the first song after the message.
 
 The Stage display layouts are defined in the main Propresenter settings dialog, under the displays tab. We have three primary layouts.
 
@@ -232,7 +254,7 @@ Or add timer cues from the cue palette
 
 ## Lyrics on Stage Display Only
 
-There is an article about this:   https://support.renewedvision.com/article/165-using-the-stage-display-to-its-full-potential.  It talks about using CMD-0 as well as using the Cue Palette (Suppress the Slide on Output)
+There is an article about this:   https://support.renewedvision.com/article/165-using-the-stage-display-to-its-full-potential.  It talks about using CMD-0 as well as using the Cue Palette (Suppress the Slide on Output), I prefer thes second mehotd - to add cues to "Supress Slide on Output" and "Enable Slide on Output".
 
 These are the steps to use the Cue Palette method:
 
@@ -265,18 +287,30 @@ The setting is a little hard to find when you ‘Link’ and video file directly
 
 By default when you add a video to ProPresenter it loops the video. Which is what you want for a motion background but not what you want for other content like a Announcement video.
 
-How do you change it? Click on the little blue ‘i’ beside the playlist document. This will pop the media properties window. Click on the properties button and then the behaviour setting to ‘Stop’. If ‘Stop’ is not selectable then you need to change the ‘Media Cue Behaviour’ to ‘foreground’.
+How do you change it? There are two ways, and it depends on how the video was added to the playlist. 
+
+* If the video was directly linked to the playlist, then you need to follow the little blue 'i' process below. 
+* If the video was added to a document which was then linked to the playlist item, then follow the 'Document Process' 
+
+__Little Blue "i" Process__
+
+Click on the little blue ‘i’ beside the playlist document. This will pop the media properties window. Click on the properties button and then the behaviour setting to ‘Stop’. If ‘Stop’ is not selectable then you need to change the ‘Media Cue Behaviour’ to ‘foreground’.
 
 See the three yellow outlines in the image below.
 
 !["Changing Video Loop Behaviour" ](../../images/sop_video_loop.jpg)
+
+__Document Process__
+
+Right Click on the video and select "Media Properties". And then change the loop Behaviour as above. 
+
+![Media Properties](../../images/sop-MediaProperties.jpg)
+
 [Back to top](#top)
 
 # Running Triple Wide
 
-> As of April 2019 we have changed our video projection configuration. Previously Propresenter produced a single wide image (1920x1080) and we repeated it three times on the screens; this is called singlewide. **Now** Propresenter produces a triplewide image (5760x10180, 5760 = 3*1920) and the three screens are treated as one continuous canvas. 
-
-The ProPresenter projection output is a triplewide configuration. That is three HD images side by side for a total of 5760x1080 pixels. ProPresenter knows that there are three projection screens. We use cues to control which content is displayed where on that wide canvas. 
+The ProPresenter projection output is a triplewide configuration. That is three HD images (1920x1080) side by side for a total of 5760x1080 pixels. ProPresenter knows that the projected image is divided up into three projection screens. We use multi-screen cues to control which content is displayed where on that wide canvas. 
 
 There are two kinds of cues that we need to become more familiar with: Props and Multiscreen.
 
@@ -300,7 +334,9 @@ This tutorial covers Props https://youtu.be/U4bQbLqOjC0 and this one covers the 
 
 To help you get the right cues in the right spot, use these formulas for the different kinds of media.
 
-### Countdown
+### Countdown Announcement Loop
+
+Add these cues to the first slide (which is almost always there from the previous week)
 
 * Stage Display: "Pre Service Coutdown"
 * MultiScreen: "Song ABC Tile"
@@ -309,20 +345,20 @@ To help you get the right cues in the right spot, use these formulas for the dif
 ### Song
 
 * Stage Display: "Worship Lyrics Static Slide"
-* Multiscreen: "Song ABC Stretch" or "Song ABC Tile". The choice is influenced by how well it looks on the screen. Try Stretch first.
-      + The choice of _stretch_ or _tile_ will depend on how the graphic looks. Tile will repeat the graphic three times. Stretch will make one image stretch across all three. 
-      + If you pick ‘stretch’ and it isn’t wide enough, you will need to go into the media properties and change the option to “fill screen”
 * Clear Props
-
-The choice of _stretch_ or _tile_ will depend on how the graphic looks. Tile will repeat the graphic three times. Stretch will make one image stretch across all three. If you pick ‘stretch’ and it isn’t wide enough, you will need to go into the media properties and change the option to “fill screen”
+* Multiscreen: Choose "Song ABC Stretch" or "Song ABC Tile". The choice is influenced by how well it looks on the screen.  
+    + Tile will repeat the graphic three times. Stretch will make one image stretch across all three. Try Stretch first.
+    + If you pick ‘stretch’ and it isn’t wide enough, you will need to go into the media properties and change the option to “Stretch to Fill”. Sometimes it looks good to use "Scale of Fill".
 
 ### Message 
 
-* Stage Display: "Kevin Front No Clock"
+* Stage Display: "Kevin Front No Clock" or "Message Daniel"
 * MultiScreen: "Message AC - Series B"
 * Props: Series Graphic
       + Don't forget to clear props on the next item after the message.
-* Timer Cues as required (reset and start)      
+* Timer Cues as required (reset and start)    
+
+One the last slide of the Message drop a 'Clear Props" cue.
 
 [Back to top](#top)
 
@@ -330,7 +366,7 @@ The choice of _stretch_ or _tile_ will depend on how the graphic looks. Tile wil
 
 > This doesn't not need to be done normally. The most common reasons to do this would be 1) a problem with the video link bewtween the computer and the ATEM, or a desire to have completely different formatting for the same content.
 
-This process sets up the video streaming computer to mirror the main Propresenter slide content. We do this becuase the main system is running at a triple wide resolution (5760x1080) and the stream is only single wide (1920x1080). 
+This process sets up the video streaming computer to mirror the main ProPresenter slide content. We do this becuase the main system is running at a triple wide resolution (5760x1080) and the stream is only single wide (1920x1080). 
 
 #. First finailize the playlist on the main computer (CDMU-A001)
 #. Move the playlist for today to the top of the list
@@ -347,9 +383,9 @@ This process sets up the video streaming computer to mirror the main Propresente
 #. Go thorugh each song and remove the background graphic and also apply the "UAC Lyrics" template. (Right click and "Remove" the graphic cue. Select the song item in the playlist and apply the "UAC Lyrics" Template either via right-click or the template icon at the top.)
 #. Test that the streaming computer changes slides in-Sync with the main computer. 
 
-> The connection between the two computers is defined on the Preferences->Network panel. The synchronization is communicated by playlist number, item number, and slide number, not by name. This is why we make the day's playlist, top of the list (#1 on both machines).
+> The connection between the two computers is defined on the Preferences⟶Network panel. The synchronization is communicated by playlist number, item number, and slide number, not by name. This is why we make the day's playlist, top of the list (#1 on both machines).
 
-> After Export/Import, Any edits to slide content or sequence on the second computer will need to be repeated on the streaming computer or the export/import will need to be repeated.
+> After Export/Import, any edits to slide content or sequence on the second computer will need to be repeated on the streaming computer or the export/import will need to be repeated.
 
 [Back to top](#top)
 
@@ -360,7 +396,9 @@ This process sets up the video streaming computer to mirror the main Propresente
 The power for the projectors can be operated two ways:
 
 * via the web page for each projector
-* Via the CueCommander application on CDWU-0009.
+* Via the CueCommander application on CDWU-0009. On is on the 8:30 tab and off on the 11:30 tab.
+
+![Power On](../../images/sop-ProjectorPower.jpg)
 
 ## Turning the Confidence Projector On and Off
 
@@ -380,11 +418,34 @@ Filter needs cleaning
 
 [Back to top](#top)
 
-## Operating the Video Switch
+## Operating the Matrix Video Switch
 
-The easiest way to operate the presentation switch (Asset Tag ZVKU-A001) is from its web page. There should be a shortcut to it on the computer desktop, or use 
+The matrix switch manages the routing of most video sources to various destinations. There are three ways to change the routing:
+
+* Via CueCommander
+* Via the matrix's web page
+* Via the front panel buttons
+
+__Via CueCommander__
+
+On the windows computer, CDWU-0009, there is a program called CueCommander. It is normally running, but if not there is a shortcut to it on the lower left corner of the desktop.
+
+The picture below shows the Video Matrix settings. The left had side shows the routing Matrix. THe inputs are along the top, the outputs down the side. A filled in circle indicates for each output where the input comes from.
+
+For exmple, in the picture below, the Nursery (bottom row) is source from the ATEM Program output.
+
+![Operating the Matrix switch via CueCommander](../../images/sop-matrixNormal.jpg)
+
+There are some shortcuts on the right hand side. If you click all the buttons in the yellow box, everything will be set to normal.
+
+__Via the Web Page__
+
+Another way to operate the matric video switch (Asset Tag ZVKU-A001) is from its web page. There should be a shortcut to it on the computer desktop, or use 
 [this](`r NetworkInventory %>% filter(AssetTag == "ZVKU-A001" ) %>% select(URL)`).
+
 On the page, click the output you want to change, and the input you want to tie it to. There is a little number in the output box which tells you which input it is tied to. The screen will go black for a few seconds while it makes the change.
+
+__Via Front Panel Buttons__
 
 You can do a similar thing direcly on the front panel using the OUT and IN buttons.  The unit is located under the desk near the computer.
 
