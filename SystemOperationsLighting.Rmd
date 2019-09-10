@@ -75,6 +75,9 @@ The sconce lights also have an timed switch which is next to the keypad, **if yo
 
 > TODO: need to describe behaviours for: single click, double click, press and hold.
 
+![The Keypad](../../images/sol-keypad.jpg)
+
+
 ```{r keypad}
 keypad <-  get_keypad_buttons()  %>% rename(Description = B_Description)
 
