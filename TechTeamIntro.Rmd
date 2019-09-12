@@ -17,6 +17,10 @@ options(knitr.table.format = "html")
 
 ```{r packages}
 require(knitr )
+require(dplyr)
+require(kableExtra)
+require(readxl)
+require(here)
 ```
 
 ```{r functions}
@@ -35,7 +39,7 @@ UAC Vision
  
 As a tech team we very much lead from the rear - of the sanctuary. But what we do with sound and light is very much upfront. We use those elements on Sunday morning to lead the congregation on a journey. 
  
-There are four sub-teams to the tech team.
+There are five sub-teams to the tech team.
 
 Audio
 : This team manages the audio console and the sound that we hear
@@ -50,11 +54,13 @@ Video
 : This team manages the video recording for distribution within the building, recording, projection (as needed) and livestreaming.
 
 Stagecraft
-: The stagecraft team manages the physical design elements we place on the stage. 
+: [Future] The stagecraft team manages the physical design elements we place on the stage. 
  
 There is a much more detailed description of each role in [Team Design](./TeamDesign.html) document.
+
+There is a operations booklet for each role. You should read the booklet for your role. 
  
-#General Logistics
+# General Logistics
  
 The anchor of our Sunday morning activities is the service order (aka cue sheet). It is our guide for what will happen and in what order. Kesha tries to get a solid draft of the service order by mid-week (Wednesday) so we can assemble the ProPresenter Playlist details and give it to Kesha to review on Thursday. There will also be adjustments to make Sunday morning and we try to put enough effort in during the week to ensure we have the capacity to comfortably deal with things that are truly last minute on Sunday morning. "Planning Centre Online” is our main tool for building and communicating the service order.
  
@@ -73,32 +79,31 @@ Block out dates on the calendar for dates when you are not available to serve
 Accept and decline requests to take shift
 View the service order for the services for which you are serving.
  
-You can also use your cell phone for these things. There is an app you can load on your phone. And you can accept or decline requests to serve using txt messaging.  
+You can also use your cell phone for these things. There is an app you can load on your phone. And you can accept or decline requests to serve using txt messaging.
  
-There are many training videos available on the internet about how to use PCO on the renewed vision website. 
-
-* TODO - Add link to video page.
- 
-##Slack
+## Slack
  
 [Slack](https://unionvillealliance.slack.com) is a tool that we use to discuss the details of Sunday morning. These conversations help us all work together; a forum where we can toss around ideas about an upcoming service (or series) or share tips on various topics. Each of these would have a channel. 
  
 Slack is not a replacement for PCO. Slack is where we can talk about ideas and intention. PCO is the actual plan. 
  
 Whenyou see an invite in your in-box you will know what it is about. 
-
-##Dropbox
+## Dropbox
 
 We use Dropbox a lot to share graphics and other content between staff and the balcony computers. You won't need to have a dropbox account yourself. And in day-to-day usage it is just a folder on each of the computers where files magically appear. 
  
-##txt
+## txt
  
 During a service we often use txt messaging to communicate between people who are serving during the service. So it can be a help to have your cell phone with you (on vibrate!) and share your number with the others, particularly Kesha. It is most usually her who needs to inform us of a change or ask us to do something.
+
+# Training
+
+We have built a series of training videos which are published via RightNowMedia. The full list of training material for each role can be found in the operations guide for each role.   
  
 # Thanks
 Thanks to everybody for the role you play on the team. 
 
-Terry Doner <br/>
+Terry Doner<br/>
 Technical Director<br/>
 Unionville Alliance Church<br/>
 
