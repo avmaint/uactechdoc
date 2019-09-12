@@ -116,6 +116,6 @@ Unionville Alliance Church<br/>
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
 
-#Change History
+# Change History
 
 `r commit.log.html( knitr::current_input() )`
