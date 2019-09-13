@@ -123,14 +123,22 @@ all.pots <- rbind(pots.e, pots.w)
 
 # Lighting Plots
 
-The several following diagrams in this section illustrate the physical layout of the lighting instruments and the related console channels that control that instrument. 
+The following diagrams in this section illustrate the physical layout of the lighting instruments and the related console channels that control those instruments. 
 
 Each channel maps to one or more DMX addresses and is documented in the [DMX Details](#channel-and-dmx-details) section. 
 
-These diagrams are approximations dimension wise, also somewhat simplified. The stage has some rounded corners at the front which are not depcited. As well the physical stage is not quite symmetrical. 
+These diagrams are approximations (dimension wise), and somewhat simplified. For example, the stage has some rounded corners at the front which are not depicted, and the physical stage is not quite symmetrical. 
 
 ## Theartrical Channels
-This first diagram shows full room and all theatrical fixtures, and so excludes the architectural fixtures (i.e. Excludes house lights, stage pots, sconse, house pendants and under balcony pots.)
+
+This first diagram shows the auditorium and all theatrical fixtures, and so excludes the architectural fixtures (i.e. Excludes stage pots, sconces, house pendants, and the under balcony pots.)
+
+Also excluded are two (black) incandescent fixtures which are hanging from the balcony bars. They are manually controlled via breakers in the closet.
+
+Some items are quite moveable so may not match this diagram, specifically fixtures 34-40 and 67.
+
+* 34-40 are sometimes free standing and washing the walls around the screens. And more recently have been installed inside the white plastic pillars.
+* 67 (which is actually 6 bars) has been used for a ceiling wash, the large scrims, skids, and currently (fall 2019) the geoemtric shapes.
 
 ```{r clptchan, echo=FALSE}
   channels <-  dmx.details %>% filter(!is.na(x))
@@ -147,7 +155,7 @@ This first diagram shows full room and all theatrical fixtures, and so excludes 
 g
 ```
 
-Zoom in on the stage. 
+Zoom in on the stage. Some of the lighting is mounted on the ceiling and some sits on the stage. Some of them are portabe (CSPARs and AW Bars) and are used for lighting scrims, backdrops, etc.
 
 ```{r clpzoomstage}
   channels <-  dmx.details %>% 
@@ -166,8 +174,6 @@ ggplot() +
 
 ## Stage Pots
 
-> In October 2018, the groups "Mid Stage" and "Centre1", "Centre2", and "Centre3" were all collapsed in to "Centre" .
-
 ```{r clpstagepots}
 chs <- dmx.details %>% filter(Location == "Stage Pots") %>% select(Channel, Usage)
 lox <- merge(chs, all.pots, by.x="Usage", by.y="group" )
@@ -184,16 +190,16 @@ ggplot() +
 
 ## House Pendants
 
->TODO: Positions are only notional guesses and not complete. 
+>TODO: Positions are only notional.
 
-Pendants over the main floor sections
+__Pendants over the main floor sections__
 
 * Each pendant has two groups of lamps. An outer group of four lamps and an inner single lamp . The four outer lamps have a wide beam spread, the inner one is narrow. They are colour colour controllable (LED RGB).
-* The pendants over the "A" and "E" sections (extreme east and west sections) are independently controllable from the middle sections. 
+* The main floor lighting is divided into two groups so that the middle of the auditorium can be lit independently from the outer sections.
 
-Pendants over the Balcony
+__Pendants over the Balcony__
 
-* These pendants have only two lamps. The two inner pendants have two channels. The diagram exagertes the distance between them so the channel numbers can be read. These two provide lighting for the technical teams for setting up.
+* These pendants have only two lamps. The two inner pendants have two channels. The diagram exagerates the distance between them so the channel numbers can be read on the diagram. These are designed so that light can be kept on for the technical team while the rest of the baclony is dark. 
 
 ```{r clppendants, echo=FALSE}
 pendants <- tribble(
@@ -302,11 +308,13 @@ ggplot() +
   geom_text(data=sconse, aes(x=x, y=y, label=Channel ) ) 
 ```
 
+<small>TODO: add boxes on the above diagram to indicate the sconce swtihes</small>
+
 ## Under the Balcony
     
 Each Pot under the Balcony is an RGB lamp.
 
-The plot is illustrative - They are not correctly placed. There are 24 Ketra pot lights. 
+The plot is illustrative - They are not accurately placed. There are 24 pot lights (all Ketra). 
 
 >TODO: Correct placement
 

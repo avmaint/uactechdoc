@@ -5,8 +5,8 @@ get_keypad_buttons <- function() {
   keypad <- tribble(
     ~Button, ~Name, ~B_Description,
     
-    1, "Maintenance", "House and Stage Ketras on full white",
-    2, "Rehearse",    "For Rehearsal - Stage Pots and Sconce",
+    1, "Cleaning", "House and Stage Pots on full white",
+    2, "Rehearse", "For Rehearsal - Stage Pots, Sconce and Balcony booth",
     
     3, "Ambience", "Use for walkin - intermission", 
     4, "Basic Event", "Front centre lit bright, house medium, plus accents",

@@ -38,7 +38,7 @@ chart %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-There is an operations and a design guides for each of the major subsystems.  
+There is an operations and a design guide for each of the major subsystems.  
 
 ```{r fifurther, asis=FALSE}
 further %>%

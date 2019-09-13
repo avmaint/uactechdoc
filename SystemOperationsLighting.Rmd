@@ -1,7 +1,7 @@
 ---
 title: "System Operations - Lighting"
 author: "Terry Doner"
-date: "`r format(Sys.time(), '%B %d %Y')`"
+date: "`r format(Sys.time(), '%B %d %Y %H:%m')`"
 output:
   html_document:
     toc: yes
@@ -25,6 +25,7 @@ require(ggplot2)
 require(kableExtra)
 require(lubridate)
 require(tidyr)
+require(here)
 ```
 
 ```{r functions}
@@ -33,7 +34,7 @@ source("commonLightingKeypad.R")
 ```
 
 ```{r getdata}
-path <-"~/Documents/UACTech/SystemDocumentation"
+path <- here("..", "..") # "~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname   <- paste(path, inventoryfile, sep="/")
 playback <- read_excel(fname, sheet = "CS40.Playback")
@@ -57,26 +58,23 @@ Purpose of the lighting system:
 There are two mechanisms to control the lighting: 
 
 * A keypad located on the main floor by the south east auditorium doors. Users can select one of several preset configurations. 
-* For more sophisticated control there is a lighting control console located in the balcony (an ETC ColorSource 40AV console).  It is used for all lighting operations more sophisticated than can be accomplished via the keypad panel.
+* For more sophisticated control there is a lighting control console located in the balcony (an ETC ColorSource 40AV console).  It can be used for all lighting operations, especially more sophisticated lighting designs than can be accomplished via the keypad panel.
 
 [Back to top](#top)
 
 # Operating the Keypad
 
-There is a simple lighting control panel located next to the auditorium doors by the main office (south east). It enables the house lights to set according to several pre-defined looks, of which there are 8. (Terry can change these as needed. Details in the System Desgin Guide.) These presets operate like "radio buttons", that is, selecting one preset, deselects the previous preset. 
+There is a simple lighting control panel located next to the auditorium doors by the main office (south east). It enables the house lights to set according to several pre-defined looks, of which there are 8. (Terry can change these as needed. Details in the System Design Guide.) Selecting one preset, deselects the previous preset - just like old fashion car radio buttons. 
 
-The keypad and the main console can conflict with each other. When running from the console, the keypad should be in "Console Mode".  
+The keypad and the main console can conflict with each other. When running from the console, the keypad must be in "Console Mode".  (You won't harm any equipment by having the keypad in the wrong mode, but the system will not work properly!)
 
 The "Night Light" preset should be selected when the room is not in use.
 
 A button turns blue when it is selected, orange otherwise.
 
-The sconce lights also have an timed switch which is next to the keypad, **if you want sconce control during the day you will need to manual turn them on as well**. The timer is programmed to turn on the sconse during the evening hours (up to midnight), and Sunday morning.
+The sconce lights also have an timed switch which is next to the keypad, **if you want sconce control during the day you will need to manual turn them on as well**. The timer is programmed to turn on the sconse lights during the evening hours (up to midnight), and Sunday morning.
 
-> TODO: need to describe behaviours for: single click, double click, press and hold.
-
-![The Keypad](../../images/sol-keypad.jpg)
-
+![The Keypad](../../images/sol-keypad.jpg){height=3in}
 
 ```{r keypad}
 keypad <-  get_keypad_buttons()  %>% rename(Description = B_Description)
@@ -93,9 +91,6 @@ keypad %>%
 
 # Sunday Morning Rundown
 
->TODO: This section will need to be modified after we finish the installation.
-
->TODO: fix indentation errors in the Details column in the below table. 
 
 These are the steps to follow for a normal Sunday morning.
 
@@ -109,7 +104,11 @@ activities %>%
         select(Time , Event, Where, Where2, What, Details) %>%
         kable(caption=paste("Rundown for Postion:", p)) %>%
         kable_styling("striped", full_width = FALSE) %>%
-        collapse_rows(columns = 1:2  )
+        collapse_rows(columns = 1:2 
+                      ) 
+        #column_spec(1, extra_css="vertical-align:top") - doesn't work on callapsed rows
+
+#TODO: figure out how to top-algin columns 1 and 2.
 ```
 
 [Back to top](#top)
@@ -122,44 +121,50 @@ activities %>%
 
 > TODO: This section needs to be rewritten. Picture needs to be replaced.
 
-1. Turn on 'Furhman' unit under rear desk / east end - big red switch
-    + As of the Fall 2017, this is to be left on at all times. This is temporary as I work through a configuration problem.
+1. Turn on 'Furhman' unit under rear desk / east end - big red switch under the light board (and slightly to the right)
+    + **As of the Fall 2017, this is to be left on at all times. This is temporary as I work through a configuration problem.**
 2. Go to balcony closet
-3. Turn on the main breakers at the top of the panel ... in the yellow box in the diagram below.
+3. Turn on the main breakers at the top of the panel as indicated by the arrow and yellow box in the diagram below.
 
-![The switch in the yellow box](../../images/sol-BalconyPower2019.png)
+![The switch in the yellow box](../../images/sol-BalconyPower2019.png){height=4in}
 
 
-4. Turn on the lighting console 
+4. Turn on the lighting console (see diagram)
 
-![Console Power](../../images/sol-ETC-CS40AV-Power.png)
+![Console Power](../../images/sol-ETC-CS40AV-Power.png){height=3in}
 
-5. Switch the keypad to "Console Mode".
+5. Switch the keypad (by office doors) to "Console Mode".
 
 ## Power Off
 
 To turn off, reverse the power on order and turn off.
 
-> When leaving the system for the day ensure that lower level keypad is set of "Night Light" (The button will be blue). 
+> When leaving the system for the day ensure that lower level keypad is set to "Night Light" (The button will turn blue). 
 
 [Back to top](#top)
 
 # Controlling the Lighting System
 
-Basic operations of the house lights can be accomplished by using the keypad at the front of the auditorium (office side doors). One of several scenes can be selected. During Sunday morning service, or other events when there is an operator in the balcony, the "Off" button should be selected. See the section below for more details.
+Basic operations of the house lights can be accomplished by using the keypad - which was discussed in the previous section.  
 
-Advanced operations of house and theatre lighting is acccomplished via the lighting console in the balcony. See the section below for more details.
+Advanced operations of house and theatre lighting is acccomplished via the lighting console in the balcony. See the section below for more details. **The keypad needs to be in "Console Mode" for this to work properly.**
 
 [Back to top](#top)
 
 # Operating the ColorSource 40AV Console
 
-This is the primary and most capable way of controlling almost all lighting in the auditorium. Simple operations are fairly simple and yet it is not too hard to create some sophiscticated looks.  
+This is the primary and most capable way of controlling (almost) all lighting in the auditorium. Simple operations are fairly simple and yet it is not too hard to create some sophisticated looks.  
 
-* What cannot be controlled from the console? The balcony railing lights, and the sconce light swtich (but if the sconce light switch is 'on' the console can control the sconce lights.) The emergency lighting is a completly independent system as well and is activated when there is a power outage.
+* What cannot be controlled from the console? 
+    + The balcony railing lights,   
+    + The sconce light swtich (but if the sconce light switch is 'on' the console can control the sconce lights.) and, 
+    + The emergency lighting is a completely independent system. It is activated when there is a power outage.
 
 ## Simple Console Operations
+
 In our standard settings, we use the *playback* mode to run our basic scenes. You must be in playback mode for this to work. A quick check is to look at the numbered buttons below the faders; if they are a pale purple and green then you are in the right mode. 
+
+There are two pages of playbacks. The on-screen button indicated by the arrow in the picture below will say "Playback 1" or "Playback 2". Touching the button selects the other page. You want Playback 1 most of the time. 
 
 There is a button on the left side of the screen that you touch to select playback mode; the yellow arrow in the picture below points at it.
 
@@ -167,7 +172,7 @@ There is a button on the left side of the screen that you touch to select playba
 
 Also the playback master must be up. It is the second slider from the left at the top of the screen. 
 
-![Playback Master Fader - The yellow arrow points at the button Playback master](../../images/sol-cs40av-pb-master.jpg)
+![Playback Master Fader - The arrow points at the Playback master slider](../../images/sol-cs40av-pb-master.jpg){height=3in}
 
 ### Playback Map
 ```{r}
@@ -197,13 +202,10 @@ playback %>%
 
 The other playback faders are used to control individual groups of lights. The first six have a designated special purpose for sound triggers.
 
-There are terms used in these descirptions to describe areas of the room that you need to know.
-
-Flares
-: similar in location to the towers, these are cone shaped lights which can be used to provide a contrasting overlay to the towers.
+There are terms used in these descriptions to describe areas of the room that you need to know. Not all of these will neccessarily be installed or available at any given point in the future. A common example is that we typically remove the Towers from operation for a baptism service due to the proximity of the fixtures and water.
 
 House
-: All Pendants plus the under balcony pot lights
+: All Pendants plus the under balcony pot lights (not including the stage pots)
 
 Sconce
 : The wall mounted fixtures that light the outer aisles
@@ -211,20 +213,40 @@ Sconce
 Stage Pots
 : The lights recessed mounted into the ceiling of the stage
 
-Towers
-: These are wide pillars of light that wash up the walls beside the screens
-
 Wall Wash
-: These are the ceiling mounted perimeter lights that wash down the walls including the bulkhead sideways wash.
+: These are the ceiling mounted perimeter light bars that wash down the walls including the bulkhead sideways wash.
 
-All of these have a group of three playbacks that are programmed for RGB. This provides an easy way to set the colour of that entire group by adjsuting the relative blend of red, green and blue. Alternately you can select the channels and pick a colour using the colour chips.
+Towers
+: These are wide pillars of light that wash up the walls beside the screens using lightbars
 
-Some of the light groups, for example the House, also have a fourth slider which is straight white. This is a quick way of getting to white for that group. 
+Flares
+: similar in location to the towers, these are cone shaped lights which can be used to provide a contrasting overlay to the towers. The lights used for this (ColorSource PARs) can be repourposed for other features.
 
->Note: if during the service there is a fire alarm, it would be appropriate to bring all house lights to full white. 
+Lightbars
+: We have bar-like lighting fixtures in several spots, and in addtion we have six bars that we use for feature lighting.
+
+Thrust
+: The portable steps/platform in front of the main stage.
+
+Scrims
+: A screen or a backdrop used on stage - often backlit.
+
+Top Wash
+: A light the illuminates people from directly overhead.
+
+Most of these have a group of three playbacks that are programmed for RGB. This provides an easy way to set the colour of that entire group by adjsuting the relative blend of red, green and blue. Alternately you can select the channels and pick a colour using the colour chips.
+
+The House, has only one slider which is straight white. This is a quick way of getting to white for that group. The Stage Pots have a straight white plus RGB sliders.
+
+>Note: if during the service there is a fire alarm, bring all house lights to full white. 
+
+In addtion to the 9 playbacks used for simple opertions covered earlier, the playbacls in the list below can be used for quick color mixing.
+
+> <large>TODO: **The list below is out of date and needs to be updated.**</large>
 
 ```{r intermediate}
 playback %>%
+  filter(IsSimple == "N"  ) %>%
 #  arrange(Playback) %>%
   select(-IsSimple) %>%
   kable() %>%
@@ -244,11 +266,11 @@ playback %>%
 
 # Blinds and Shades
 
-We have two ways of controlling the light the enters the sanctuary via the exterior windows: semi-transparent shades and blackout blinds.
+We have two ways of controlling the light that enters the sanctuary via the exterior windows: semi-transparent shades and blackout blinds.
 
 ### Shade Operation
 
-The shades are operated manually. There is a chrome chain in each window which runs the shade up or down.  
+The semi-transparent shades are operated manually. There is a chrome chain in each window which runs the shade up or down.  
 
 ### Blind Operation
 
@@ -257,21 +279,28 @@ They are labelled: SE, NE, SW, and NW, which stands for the combinations of Sout
 
 Each switch has three positions: up, center and down. The up and down positions move the blinds in that direction. Centre is ‘off’, but does not stop a blind mid-way. When a blind is set to move in a direction it will do so until it is fully up or fully down. There are internal limit switches that will stop the blind at the limit. The switch does not have to be returned to the centre position.
 
-To stop a blind mid-way while travelling, momentarily flick the switch in the opposite direction and then return the switch to centre. If you pause too long in the opposite direction the blind will reverse direction rather than stop.
+To stop a blind mid-way while travelling, momentarily flick the switch in the opposite direction and then return the switch to the centre position. If you pause too long in the opposite direction the blind will reverse direction rather than stop.
 
-**When the service is over, please ensure that the blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.**
+**When the service is over, please ensure that the blackout blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.**
 
 # Troubleshooting   
 
-If a blind pops out of its track. 
+If a blackout blind pops out of its track. 
 : Running the blinds up and down a **little** bit at a time can sometimes get them back in their track. An assistant at the blind can reach in behind and help guide them in. If it is more than a few inches, a ladder may be required to reinsert the blind into the track.
 
 
-If the playbacks do not seem to work
-: Two things to check. 1) ensure you are in playback mode and that the playback master is up. See Instructions in the Simple Console Operations section. 
+If the lighting console playbacks do not seem to work
+: 1) Verify that the keypad is in console mode
+: 2) Verify that you are in playback mode 
+: 3) Verify that you are on the right playback page (#2)
+: 4) Verify that the playback master is up. See Instructions in the Simple Console Operations section. 
+: execute 'Clear all' - which will put you into black.
 
 If the lights are on and the console doesn't seem to have control
-: Verify that the console has some control by turining something else on. If that works then it is likely that a keypad preset is forcing the lights on. Go to the keypad on press "Off".
+: check the playback verifications above
+: Verify that the console has some control by turining something else on. If that works then it is likely that a keypad preset is forcing the lights on. 
+: Go to the keypad on press "Console Mode".
+: execute 'Clear all' - which will put you into black.
 
 [Back to top](#top)
 
@@ -282,13 +311,28 @@ In the sections to follow you will find specific videos for our video console as
 
 ## Console Video Series
 
-There are 20 videos in the ColorSource Video Learning Series. The model we will have is the ColorSource 40AV. This list of videos is tagged into three categories: Basic, Intermediate and Advanced.  
+There are 20 videos in the [ColorSource Video Learning Series](https://www.youtube.com/playlist?list=PLl-Ao0hIFwH-KC5-CK9VrAvZCP2YynH1X).   This list of videos is tagged into three categories: Basic, Intermediate and Advanced.   
 
-The "User Manual" is available on the [manufacturer's website](https://www.etcconnect.com/Support/Consoles/ColorSource/Documentation.aspx) 
+The best way to view these videos is via RightNowMedia. Search for or click on:
 
-[ColorSource Video Learning Series](https://www.youtube.com/playlist?list=PLl-Ao0hIFwH-KC5-CK9VrAvZCP2YynH1X)
+* [Lighting / Console Operations / 01 Basic](https://www.rightnowmedia.org/Training/Post/View/359105)
+* [Lighting / Console Operations / 02 Intermediate](https://www.rightnowmedia.org/Training/Post/View/359113)
+* [Lighting / Console Operations / 03 Advanced]()  
 
-The videos are all numbered (TitleNumber) on the web site, but that is not the best order to watch them in for our purpose. The Seqeunce is a better choice. 
+Titles classified as Basic are videos every operator should watch (about 21 minutes). 
+
+```{r basic}
+get.training() %>%
+  filter(Topic1=="Lighting") %>%
+  filter(Topic2=="Console Operations") %>%
+  arrange(Topic1, Topic2, Topic3) %>%
+  filter(Topic3 == "01 Basic") %>%
+  select(Topic3, Episode, Title, Duration, Notes)  %>%
+  rename(Module = Topic3) %>%
+  kable(caption= "Basic Console Training"  ) %>%
+        kable_styling("striped", full_width = FALSE) %>%
+        collapse_rows(columns = 1   )
+```
 
 ```{r}
 
@@ -419,9 +463,9 @@ asd(2,24),
 )
 ```
 
-Titles classified as Basic are videos every operator should watch (about 21 minutes). 
+
  
-```{r basic}
+```{r basic-old , eval=FALSE}
 vids %>%
   arrange(Sequence) %>%
   filter(Level == "Basic") %>%
@@ -431,9 +475,22 @@ vids %>%
   kable_styling("striped", full_width = TRUE)
 ```
  
-The Intermediate videos should be viewed after you become familiar with normal operations (12 minutes). 
+The following Intermediate videos should be viewed after you become comfortable with normal operations (12 minutes). 
 
-```{r inter}
+```{r int-n}
+get.training() %>%
+  filter(Topic1=="Lighting") %>%
+  filter(Topic2=="Console Operations") %>%
+  arrange(Topic1, Topic2, Topic3) %>%
+  filter(Topic3 == "02 Intermediate") %>%
+  select(Topic3, Episode, Title, Duration, Notes)  %>%
+  rename(Module = Topic3) %>%
+  kable(caption= "Intermediate Console Training"  ) %>%
+        kable_styling("striped", full_width = FALSE) %>%
+        collapse_rows(columns = 1   )
+```
+
+```{r inter-old , eval=FALSE}
 vids %>%
   arrange(Sequence) %>%
   filter(Level == "Intermediate") %>%
@@ -443,9 +500,22 @@ vids %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-The titles classified as Advanced as not likely to be useful to regular Sunday morning staff (35 minutes).  
+These last titles are classified as Advanced, they are as not likely to be useful to regular Sunday morning staff (35 minutes).  However if you have an interest in digging deeper go explore!
 
-```{r adv}
+```{r adv-n}
+get.training() %>%
+  filter(Topic1=="Lighting") %>%
+  filter(Topic2=="Console Operations") %>%
+  arrange(Topic1, Topic2, Topic3) %>%
+  filter(Topic3 == "03 Advanced") %>%
+  select(Topic3, Episode, Title, Duration, Notes)  %>%
+  rename(Module = Topic3) %>%
+  kable(caption= "Advanced Console Training"  ) %>%
+        kable_styling("striped", full_width = FALSE) %>%
+        collapse_rows(columns = 1   )
+```
+
+```{r adv-old , eval=FALSE}
 vids %>%
   arrange(Sequence) %>%
   filter(Level == "Advanced") %>%
@@ -454,6 +524,8 @@ vids %>%
   column_spec( 1,   bold = TRUE ) %>%
   kable_styling("striped", full_width = TRUE)
 ```
+
+The "User Manual" is available on the [manufacturer's website](https://www.etcconnect.com/Support/Consoles/ColorSource/Documentation.aspx) 
 
 [Back to top](#top)
 
@@ -481,7 +553,7 @@ Projection/stage elements
 Plot (script): A lighting event may trigger or advance the action onstage and off.
 
 Composition
-: Lighting may be used to show only the areas of the stage which the designer wants the audience to see, and to "paint a picture".[4][5]
+: Lighting may be used to show only the areas of the stage which the designer wants the audience to see, and to "paint a picture".
 
 Effect
 : In pop and rock concerts or DJ shows or raves, colored lights and lasers may be used as a visual effect.
@@ -489,6 +561,23 @@ Effect
 [Back to top](#top)
 
 ## The Qualities of Light
+
+There is a series of videos on these topics on Right now media. Search for or click on:
+
+* [Lighting	/ Lighting Design	/ 01 Basic](https://www.rightnowmedia.org/Training/Post/View/359210)
+
+```{r ld-b2}
+get.training() %>%
+  filter(Topic1=="Lighting") %>%
+  filter(Topic2=="Lighting Design") %>%
+  arrange(Topic1, Topic2, Topic3) %>%
+  filter(Topic3 == "01 Basic") %>%
+  select(Topic3, Episode, Title, Duration, Notes)  %>%
+  rename(Module = Topic3) %>%
+  kable(caption= "Lighting Design"  ) %>%
+        kable_styling("striped", full_width = FALSE) %>%
+        collapse_rows(columns = 1   )
+```
 
 ### Intensity
 
@@ -529,15 +618,17 @@ White
 
 This is a very simplified way of sharing moods with you, as there are so many more shades that each have their own character and moods. For example faster songs tend to go best in red, yellow, or other bright colors, and slower songs look great in blues, purples and greens.
 
-There are entire books written on colour theory and their emotional effects. We also have the ability to mix colours together which adds even more nuance to our decisions. You can choose a completely monochromatic theme, say varied shades of blue. Or a 2-colour combo using complimentary colours, such as blue and yellow. Or Triadic colors, which are like complementary colors, but in a triangle across the color wheel.
+There are entire books written on colour theory and their emotional effects. We also have the ability to mix colours together which adds even more nuance to our decisions. You can choose a completely monochromatic theme, say varied shades of blue, or a 2-colour combo using complimentary colours, such as blue and yellow, or Triadic colors, which are like complementary colors, but in a triangle across the color wheel.
 
-Whatever your colour choices, it is best if there is agreement bewteen the lighting colours and the colours used in the video backgrounds.
+Whatever your colour choices, it is best if there is agreement between the lighting colours and the colours used in the video backgrounds.
 
 [Back to top](#top)
 
 ### Focus
 
-The focus is where an instrument is pointed. The final focus should place the "hot spot" of the beam at the actor's head level when standing at the centre of the instrument's assigned "focus area" on the stage. Position refers to the location of an instrument in the theater's fly system or on permanent pipes in front-of-house locations. Hanging is the act of placing the instrument in its assigned position.
+The focus is where an instrument is pointed. The final focus should place the "hot spot" of the beam at the actor's head level when standing at the centre of the instrument's assigned "focus area" on the stage. 
+
+Position refers to the location of an instrument in the auditroium. Hanging is the act of placing the instrument in its assigned position.
 
 [Back to top](#top)
 
@@ -549,11 +640,29 @@ Some instruments can have a gobo or break up pattern installed. This is typicall
 
 [Back to top](#top)
 
+There is a series of videos that review these topics, also on Right now media. Search for or click on:
+
+* [Lighting	/ Lighting Design	/ 01 Basic](https://www.rightnowmedia.org/Training/Post/View/359210)
+
+```{r ld-b}
+get.training() %>%
+  filter(Topic1=="Lighting") %>%
+  filter(Topic2=="Lighting Design") %>%
+  arrange(Topic1, Topic2, Topic3) %>%
+  filter(Topic3 == "01 Basic") %>%
+  select(Topic3, Episode, Title, Duration, Notes)  %>%
+  rename(Module = Topic3) %>%
+  kable(caption= "Lighting Design"  ) %>%
+        kable_styling("striped", full_width = FALSE) %>%
+        collapse_rows(columns = 1   )
+```
+
 # Lighting Terminology
 
 Channel
 : In the context of lighting at UAC, a channel is a configuration item in the colorSource console. It controls one to many DMX addresses. If the console knows what kind of instrument a channel is assigned to, it is automatically configured for the correct behaviours (colour, strobe, etc). 
-Dimmmer
+
+Dimmer
 : A device which regulates the power sent to a lighting instrument (typically incandescent) this allows the intensity of the instrument to be varied. Usually DMX controlled, but could be controlled via an analog or proprietary protocols.
 
 DMX / DMX512
@@ -566,19 +675,19 @@ Gel Frame
 : a metal or heat-resistant cardboard frame to hold a Gel and slips into a slot on the lighitng instrument.
 
 Gobo
-: a pattern, usually made from thin metal or glass, which enables a lighting instrument to project a pattern. Usually slips in the a Gobo frame which slides into the instrument. 
+: a pattern, usually made from thin metal or glass, which enables a lighting instrument to project a pattern. It usually slips in a Gobo frame which slides into the instrument. 
 
 Incandescent
 : a method of producing light by heating a filament (thin wire) inside a glass bulb. A standard old-fashioned lightbulb is incandescent. See Also LED.
 
 LED / Light Emitting Diode
-: A technology that generates lighting from a solid state device rather than a hot piece of wire (incandecent). An LED instrument also typically has built in dimming and control control. They typically use 3 to 5 DMX channels. See aslo Incandescent.
+: A technology that generates lighting from a solid state device rather than a hot piece of wire (incandecent). An LED instrument also typically has a built-in dimming and control. They typically use 3 to 5 DMX channels. See also Incandescent.
 
 Par / Par Can
 : a type of lighting instrument with a fixed beam width. Some of them look like paint cans. Generally used for washes.
 
 Rotator
-: a device which spins a Gobo. Inserted into a lighting instrument where the Gobo holder would go - usually.
+: a device which spins a Gobo. Usually Inserted into a lighting instrument where the Gobo holder would go.
 
 Top Hat
 : a light modifier added to the front of a lighting instrument to narrow its beam spread.
