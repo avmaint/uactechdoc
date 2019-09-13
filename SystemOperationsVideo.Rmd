@@ -1,7 +1,7 @@
 ---
 title: "System Operations - Video"
 author: "Terry Doner"
-date: "`r format(Sys.time(), '%B %d %Y')`"
+date: "`r format(Sys.time(), '%B %d %Y %H:%M')`"
 output:
   html_document:
     toc: yes
@@ -53,6 +53,7 @@ This document provides basic operating information for Video Mixing at Unionvill
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Sunday Morning  Rundown
 
 These are the basic steps you need to do on Sunday morning. See the various sections in this document for a detailed explanation. 
@@ -69,11 +70,14 @@ activities %>%
         select(Time , Event,  Where, Where2, What, Details) %>%
         kable(caption=paste("Rundown for Postion:", p)) %>%
         kable_styling("striped", full_width = FALSE) %>%
-        collapse_rows(columns = 1:2  )
+        collapse_rows(columns = 1:2  ) %>%
+        column_spec(1:2, 
+                    extra_css = 'vertical-align: top !important;') 
 ```    
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Turning it on and off
 
 The video mixer will likely have been turned on by the audio engineer. If by chance the Propresenter computer was awoke before you will not see its video feed. See the troubleshooting section for corrective steps.
@@ -87,6 +91,7 @@ Cameras
 
 > <small>As we currently operate things, the cameras are 'on' all the time but 'asleep'. To turn them off completely we have to unplug their power source. If this has been done you may need to plug them in. On - there are three ethernet jacks that need to be plugged into the cisco switch (NSCU-A004) so that the cameras can get power. Off - Unplug those same three jacks. There is a little plastic tab that needs to be depressed to release the jack. Be gentle.</small>
 
+<p style="page-break-before: always"></p>
 # Operating Remote Cameras via the RMIP10 
 
 The RMIP10 (Asset Tag ZVKU-A004) remote control allows a single person to operate three cameras quite easily. 
@@ -119,6 +124,7 @@ The middle row of buttons will be typically used to direct a camera to a preset 
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Operating the Video Mixer
 
 ## Overview
@@ -200,7 +206,7 @@ CUT and AUTO Buttons (Next to Slider)
 * The AUTO button also swaps current and next but does so using the select transition effect, such as mix.
 * There is a slider next to the AUTO button, this functions much like the auto button, but gives you direct control over the speed of the transition.
     
-![Cut and Auto, Lower Centre](../../images/sov-CutAuto.jpg)
+![Cut and Auto, Lower Centre](../../images/sov-CutAuto.jpg){height=3in}
     
 Slider
 : Botttom Center.
@@ -233,6 +239,7 @@ Key 1 Fill
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Basic Operation
 
 ## Changing Sources
@@ -306,7 +313,7 @@ This graphic is chnaged be using the ATEM control software on the Mac (CDMU-A002
 
 * On the bottom of the screen their are four tabs: Switcher, Media, Audio, Camera, select the "Media" tab.  
 
-![Media tab location](../../images/sov-softwareswtichermediaarrow.png)
+![Media tab location](../../images/sov-softwareswtichermediaarrow.png){height=3in}
 
 * On the left hand side there is a file navigator. Dropbox will be one of the "Favourites". Expand it by clicking on the ">".
 * Navigate to the folder for the week, eg "aug25"
@@ -348,7 +355,7 @@ __Running Macros from the ATEM Control Software__
 #. There is a radio button for **“Recall and Run”**, select that.
 #. To run a specific macro just **click on the macro name** in the grid. 
 
-![Running Macros via Software](../../images/sov-macro-run.JPG)
+![Running Macros via Software](../../images/sov-macro-run.JPG){height=3in}
 
 ### Standard Macros Defined for UAC
 
@@ -453,6 +460,7 @@ Page 33
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Operating the Video Recorders
 
 We have two solid state recorders, Black Magic Design Hyperdeck Minis (Asset Tags ZVRU-A001 and ZVRU-A002). These record onto SD memory cards. You can observe and verify what is being recorded by looking at the mini screens on the device. If the screen is black you may want to record a few seconds and then stop recording to esnure things are correctly initialized.
@@ -482,6 +490,7 @@ To format the memory card using the hyperdeck mini:
  
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Operating Web Presenter
 
 This device enables us to stream our video content using FaceBook Live. (It can also be used as a source for Skype and to record content.)
@@ -496,6 +505,7 @@ Why #2 for Skype? In this situation you would want the skype video output (from 
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Livestreaming
 
 We stream our entire service to "FaceBook Live". This is how it works. The "Program" output from the ATEM is wired into the into of the "Web Presenter" box. Its output is feed via USB to the videomac (CDMU-A002)  computer. The computer sees that devices as a web cam.
@@ -579,12 +589,14 @@ __At 11:15am - when service ends__
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Camera Settings
 
 The cameras recall their settings for preset 1 when powered on. This includes the video settings documented here. You should not need to adjust these regularly. If you need to reference the procedure to adjust the camera settings, see the Video system desgin guide.
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Video Post Processing and Uploading
 
 We have an objective to minimize the delay between end of service and message video publication. Getting our live mix correct means we don't have to fix anything, which eliminates an edit step.
@@ -593,6 +605,7 @@ We make two video recordings: 1) for the entire serice, and 2) just the message 
 
 Our current recording process encodes the video as 1920x1080p60 which produces a file of about 35GB. We have a hard limit of 5GB per week upload, and upload takes a lot of time. Our goal is to produce a file that is less than 2.5GB.  (That enables a second upload if there is a problem).
 
+<p style="page-break-before: always"></p>
 # Setup
 
 These instructions are written assuming the use of Davinci Resolve V14 video editing software (free for Mac and Windows). 
@@ -749,6 +762,7 @@ And now return it to its slots in the recorder for the next service.
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Putting it all together and Getting Creative
 
 ## Camera Operation
@@ -782,6 +796,7 @@ And now return it to its slots in the recorder for the next service.
 * When approaching a transition, line up a camera to anticpate what is coming. You may prefer a long shot camera until you establish exactly where the action is happening.
 * When a transition will involve a significant change in scene brightness, manually  adjust camera exposure for what is coming, rather than for the darkness. 
 
+<p style="page-break-before: always"></p>
 # Troubleshooting
 
 __Missing the video feed from ProPresenter (Lyrics)__
@@ -806,6 +821,7 @@ __Don't see lyric overlay as expected (when pressing "Key 1 Cut")__
 * If macro 1 was not run, run it.
 * Check to ensure that the Upstream Key settings in the software is set to the first tab (Luma).
 
+<p style="page-break-before: always"></p>
 # Appendix
 
 [Back to top](#top)
