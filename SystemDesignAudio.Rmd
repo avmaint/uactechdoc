@@ -597,8 +597,23 @@ This document is compiled by merging text and data together using rmarkdown. The
 # Input Map for Printing
 <p style="page-break-before: always"></p>
 ```{r ToPrint}
-get_inputs("M7CL", "002") %>% 
+include <- c(seq(1,32), seq(41,46))
+
+g0 <- get_inputs("M7CL", "002") %>% 
+  filter(Channel %in% include) 
+
+g1 <- g0[1:19, ]
+g2 <- g0[20:38,]
+g3 <- cbind(g1, g2)
+
+g3 %>% # only pprint what is relevant to the stage box
   kable(caption="M7CL Input Map") %>%
     column_spec( 1:2,  bold = TRUE ) %>%
+      column_spec( 5:6,  bold = TRUE ) %>%
+      column_spec( 4,  extra_css = "border-right:3px solid black;" ) %>%
+      column_spec( 8,  extra_css = "border-right:3px solid black;" ) %>%
+      column_spec( 1,   extra_css = "border-left:3px solid black;" ) %>%
+      row_spec(19, extra_css = "border-bottom:3px solid black;") %>%
+    row_spec(1, extra_css = "border-top:3px solid black;") %>%
     kable_styling("striped", full_width = TRUE)
 ```
