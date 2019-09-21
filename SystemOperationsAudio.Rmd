@@ -28,6 +28,7 @@ require(tidyr)
 
 ```{r functions}
 source("commonFunctions.R")
+source("commonFunctionsAudio.R")
 ```
 
 ```{r data}
@@ -48,6 +49,7 @@ Purpose of our Sound System:
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Sunday Morning Rundown
     
 These are the steps to follow for a normal Sunday morning.
@@ -62,11 +64,14 @@ activities %>%
         select(Time, Event, Where, Where2, What, Details) %>%
         kable(caption=paste("Rundown for Postion:", p)) %>%
         kable_styling("striped", full_width = FALSE) %>%
-        collapse_rows(columns = 1:2  )
+        collapse_rows(columns = 1:2  ) %>%
+        column_spec(1:2, 
+                    extra_css = 'vertical-align: top !important;')
 ```    
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Power On and Off
 ## Power On
  
@@ -80,7 +85,7 @@ Allow a 10 second pause between flipping each swtich.
 
 After the console has fully started, you would typically want to recall the default scene so all settings are in a known good state.
 
-> Although not part of the audio system it is the audio engineer who turns on portions of lighting and video system as well
+> Although not part of the audio system, it is often the audio engineer who turns on portions of lighting and video system as well
  
 [Back to top](#top) 
 
@@ -90,6 +95,7 @@ Power off is the opposite sequence from power on.  Provide a 30 second pause bet
 
 [Back to top](#top) 
  
+<p style="page-break-before: always"></p>
 # Basic Operations
 
 ## The Two Consoles
@@ -104,13 +110,41 @@ Scene recall on the main console will cause the same numbered scene to be recall
 
 ## Scene Recall 
 
->TODO: write content
+Scenes are a collection of settings that can be stored and recalled together. This is a very effective way of getting to a good known state. We have created two scenes (#001 and #002) to use as a base to start an event. THese scenes are locked so that they cannot be easily overwritten. If you would like to make a change to a base scene, please discuss with Terry and Mark.
 
-Scenes are a collection of settings that can be stored and recalled together. This is a very effective way of getting to a good known state. We have defined scene #1 and our base scene to use for most things. It is locked so it can not be easily overwritten. If you would like to make a change to this base scene, please discuss with Terry and Mark.
+When recalling a scene, whatever is being recalled will (almost) instantly become active or inactive. You __don't__ what to do this when live, unless you know exactly what you are doing.
 
-To recall the base scene ... 
+__Scene 001__
 
->TODO: Need to write instructions and add pictures.
+This is scene is designed for simple events where no wireless handhelds are in use. In this scene, mic lines 41-48 (located in the front floor pockets) are assigned to the channels labeled VX01-VX08 (board numbers 33-40).
+
+To recall Scene 001, press the up/down keys until “Scene 001” flashes in the SCENE field. Then press the
+[RECALL] key.
+
+![Scene Recall](../../images/soa-scene-recall.png)
+
+__Scene 002__
+
+The big change with this scene is that the wireless handhelds are assgined to VX01 through VX10 - channels 33-40 and 47-48). The front floor pocket lines, 41-46 are assigned to channels 41-46. 
+
+Recall this scene in the same fashion as Scene 001 above.
+
+## Console Inputs
+
+Part of what is included in the scene defintion is the channel layout. 
+
+```{r}
+get_inputs("M7CL", "002") %>%  
+  kable(caption="M7CL-48 Input Map") %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
+
+get_inputs("DM1K", "002") %>%  
+  kable(caption="DM1000 Input Map") %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
+```
+
 
 ## Operating a Channel
 
@@ -139,18 +173,38 @@ Key Steps:
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Monitors
 
->TODO: write content
+We have six monitor amplifier channels, each which can handle a load of two of our monitor wedges. 
+
+Our standard monitor configuration is
+
+```{r}
+get_monitors() %>%
+        kable(caption="Standard Monitor Map",
+              align=c("l","l", "l")) %>%
+        kable_styling("striped", full_width = FALSE) %>%
+        column_spec(1, bold=TRUE)
+```
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Operating the Wireless Microphones
 
->TODO: write content
+>TODO: write content 
+
+Points to cover:
+
+* Battery Management
+* HA Gain
+* Dante
+* Wipe down
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Audio Terminology
 
 Amplifier
@@ -169,11 +223,13 @@ Scene
 : A collection of setting which can be saved and recalled as a group.
 
 [Back to top](#top)
+<p style="page-break-before: always"></p>
 
 `r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
 
 [Back to top](#top)
 
+<p style="page-break-before: always"></p>
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. THe source is found here `r file.path(getwd(), knitr::current_input())`.
 
