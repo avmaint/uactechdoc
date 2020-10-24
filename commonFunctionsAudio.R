@@ -5,8 +5,8 @@
  
 fname <- here("..","..","data", "AudioConfig.xlsx")
 
-work.config.analoginputs <- read_excel(fname, 
-                                     sheet = "AnalogInputs" )
+work.config.consoleinputs <- read_excel(fname, 
+                                     sheet = "ConsoleInputs" )
 
 work.config.dantedevices <- read_excel(fname, 
                                        sheet = "DanteDevices" )
@@ -33,10 +33,10 @@ get_monitors <- function() {
 
 #TODO - Hardcoded assumption about scene 002
 
-m7in.002 <- work.config.analoginputs %>%
+m7in.002 <- work.config.consoleinputs %>%
              filter(Device == "ZAKU-0001") %>% select(-Device)
 
-dmin.002 <- work.config.analoginputs %>%
+dmin.002 <- work.config.consoleinputs %>%
              filter(Device == "ZAKU-0002") %>% select(-Device)
 
 get_inputs <- function(console, scene) {

@@ -9,12 +9,12 @@ node [shape=Mrecord, tooltip="" , fontsize = 10,
       
 dm1k [label="
    {Yamaha\nDM1000}|
-  {{ <link>Slot 1\nOut} }|{<midi>midi in} | {<net>Slot 2\n32x32\nin x out}"]
+  {{ <link>Slot 1\nOut} }|{<midi>midi in} | {<net>Slot 2\n16x16\nin x out}"]
 
 m7 [label="
     {  Yamaha\nM7CL} |
     <link>Slot 1\nIn |
-    <midi>midi out   | {<net>Slot 2\n32x32\nin x out}
+    <midi>midi out   | {<net>Slot 2\n16x16\nin x out}
 "]
 
 nscua003 [label="

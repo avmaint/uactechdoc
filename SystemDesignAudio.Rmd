@@ -1,7 +1,7 @@
 ---
 title: "System Design - Audio"
 author: "Terry Doner"
-date: "`r format(Sys.time(), '%B %d %Y')`"
+date: "`r Sys.setenv(TZ= 'Canada/Eastern' ); format(Sys.time(), '%B %d %Y %H:%M %p')`"
 output:
   html_document:
     toc: yes
@@ -21,6 +21,7 @@ require(readxl)
 require(knitr)
 require(formattable)
 require(kableExtra)
+require(glue)
 require(here)
 ```
 
@@ -34,8 +35,38 @@ NetworkInventory <- get.network()
 Tech_Inventory   <- get.inventory()
 ```
 
+```{r dci}
+#TODO: replace work.config with function calls.
+
+ins <- work.config.dantedevices %>%
+       filter(InOut == "In") %>%
+       rename(DeviceIn = Device, 
+              NetworkDeviceIn = NetworkDevice,
+              NetworkDeviceChannelIn = NetworkDeviceChannel,
+              LabelIn = Label,
+              NotesIn = Notes)
+
+outs <- work.config.dantedevices %>%
+       filter(InOut == "Out") %>%
+       rename(DeviceOut = Device,
+              NetworkDeviceOut = NetworkDevice,
+              NetworkDeviceChannelOut = NetworkDeviceChannel,
+              LabelOut = Label,
+              NotesOut = Notes)
+
+console <- work.config.consoleinputs %>%
+           filter(!is.na(NetworkDevice)) %>%
+           rename(NetworkDeviceIn = NetworkDevice,
+                  NetworkDeviceChannelIn =  NetworkDeviceChannel)
+
+t1 <- merge(ins , work.config.dantepatch)  
+t2 <- merge(t1, outs, by=c("NetworkDeviceOut", 
+                           "NetworkDeviceChannelOut"))
+dante.console.ins <- merge(t2, console )
+```
+
 # Introduction
-This document provides key technical documentation for the Santurary audio subsystems at UAC. Other audio systems are not documeted to this level of detail (Youth, Children).
+This document provides key technical documentation for the Sanctuary audio subsystems at UAC. Other audio systems are not documented to this level of detail (Youth, Children).
 
 Purpose:
 
@@ -79,6 +110,25 @@ get_inputs("M7CL", "002") %>%
     kable_styling("striped", full_width = TRUE)
 ```
 
+
+```{r m7.dante}
+ 
+di <- "ZAKU-0001"
+
+dante.console.ins %>% 
+  filter(DeviceIn == di) %>%
+  mutate(Card.In = glue("{NetworkDeviceIn}:{NetworkDeviceChannelIn}")) %>%
+  mutate(ComesFrom = glue("{NetworkDeviceOut}:{NetworkDeviceChannelOut}")) %>%
+  select(Channel,
+    Card.In, LabelIn, NotesIn, 
+         ComesFrom , 
+         LabelOut, NotesOut
+         ) %>%
+  arrange(   Channel) %>%
+  kable( caption=glue("Dante Input Mapping for {di}")  ) %>%
+    kable_styling(bootstrap_options = c("striped", "hover"))
+```
+ 
 ### DM1000 Inputs
 
 ```{r inputdia-dm}
@@ -92,6 +142,23 @@ get_inputs("DM1K", "002") %>%
   kable(caption="DM1000 Input Map") %>%
     column_spec( 1,  bold = TRUE ) %>%
     kable_styling("striped", full_width = TRUE)
+```
+
+```{r dm.dante}
+di <- "ZAKU-0002"
+
+dante.console.ins %>% 
+  filter(DeviceIn == di) %>%
+  mutate(Card.In = glue("{NetworkDeviceIn}:{NetworkDeviceChannelIn}")) %>%
+  mutate(ComesFrom = glue("{NetworkDeviceOut}:{NetworkDeviceChannelOut}")) %>%
+  select(Channel,
+    Card.In, LabelIn, NotesIn, 
+         ComesFrom , 
+         LabelOut, NotesOut
+         )  %>%
+  arrange(   Channel) %>%
+  kable( caption=glue("Dante Input Mapping for {di}")  ) %>%
+    kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
 ```{r top1}
@@ -236,7 +303,8 @@ print_inv(cs , Tech_Inventory)
 ```
 
 ### Console Links
-There is are adat IO exapnsion card in each of the two consoles. This enables console-to-console communication. The busses in the DM1000 console are linked to the busses in the M7 using these cards. The Flow is from the DM1000 to the M7. The link cards are in slot one of each console.
+
+There is are ADAT IO expansion card in each of the two consoles. This enables console-to-console communication. The buses in the DM1000 console are linked to the buses in the M7 using these cards. The Flow is from the DM1000 to the M7. The link cards are in slot one of each console.
 
 There is also a midi link between the two which enables synchronized scene recall.
 
@@ -366,9 +434,9 @@ Dante enables certain audio devices to route audio signals using standard networ
 
 Several audio devices are Dante capable, including both mixers, the Shure wireles microphones and the computers.
 
-The Dante card in the M7CL is set as the preferred master clock and the first channel on that card is tied to the console clock.
+The Dante card in the M7CL is set as the preferred master clock and the first channel on that card is tied to the console clock. **The system clock is set to 48kHz.**
 
-As well as the controller software there are two other software titles that provide the capabiliites. 
+As well as the controller software there are two other software titles that provide the capabilities. 
 
 Dante Virtual Soundcard
 : This title is licensed for all three computers and enables the computer to send and receive multiple channels of audio over the network as if it were attached via a traditional sound card.
@@ -620,3 +688,5 @@ g3 %>% # only pprint what is relevant to the stage box
     row_spec(1, extra_css = "border-top:3px solid black;") %>%
     kable_styling("striped", full_width = TRUE)
 ```
+
+ 
