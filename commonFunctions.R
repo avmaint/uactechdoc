@@ -64,56 +64,61 @@ commit.log.html <- function(file.name) {
 # Functions to get data used by most of the reports.
 
 #globals
+#tODO - use of globals, work.inventory and work.network is subject to bugs.
+
 path <- file.path("~", "Documents", "UACTech", "SystemDocumentation")
-fname <- file.path(path, "TechInventory.xlsx" )
+fname.cf <- file.path(path, "TechInventory.xlsx" )
+
+work.network <- read_excel(fname.cf, 
+                           sheet = "Network")
+
+ct <- c( rep("text",2),    # AssetTag, Category
+         rep("numeric",3), # Qty UnitValue AcqValue
+         rep("text",10),   # Manufacturer	Model	Building	Floor	Room	Location	Type	Desc	SN	InService
+         "date",           # PurcDate
+         rep("text",2),    # PurcFrom Invoice
+         "text",           # Comments	
+         rep("numeric",2), #  AcqYear	EolYear
+         "text",    #Disposed Y/N
+         "numeric", #DisposedYear
+         "numeric", #DisposedValue
+         rep("text",2)     #DisposedComment, Destination
+)
+
+work.inventory <- read_excel(fname.cf, 
+                             sheet = "TechInventory", col_types=ct) 
+
 
 get.network <- function() {
-  return(read_excel(fname, 
-                    sheet = "Network")
-  )
+  return(work.network)
 }
 
 #' retrieves the inventory database
 #' @return a data frame containing the inventory database
 get.inventory <- function() {
-  ct <- c( rep("text",2),    # AssetTag, Category
-           rep("numeric",3), # Qty UnitValue AcqValue
-           rep("text",10),   # Manufacturer	Model	Building	Floor	Room	Location	Type	Desc	SN	InService
-           "date",           # PurcDate
-           rep("text",2),    # PurcFrom Invoice
-           "text",           # Comments	
-           rep("numeric",2), #  AcqYear	EolYear
-           "text",    #Disposed Y/N
-           "numeric", #DisposedYear
-           "numeric", #DisposedValue
-           rep("text",2)     #DisposedComment, Destination
-  )
-  
-  return( read_excel(fname, 
-                               sheet = "TechInventory", col_types=ct) 
-  )
+  return( work.inventory )
 }
 
 #' retrieves the dmx details
 #' @return a data frame containing the dmx details
 get.dmxdetails <- function() {
-  return( read_excel(fname, 
+  return( read_excel(fname.cf, 
                             sheet = "DMX.Details" ))
 }
 
 #' retrieves the further information list
 #' @return a data frame containing the further information items
 get.further <- function() {
-  return( read_excel(fname, sheet = "Further")
+  return( read_excel(fname.cf, sheet = "Further")
           )
 }
 
 get.credentials <- function() {
-  return( read_excel(fname, sheet = "Credentials"))
+  return( read_excel(fname.cf, sheet = "Credentials"))
 }
 
 get.software <- function() {
-  return( read_excel(fname, sheet = "Software"))
+  return( read_excel(fname.cf, sheet = "Software"))
 }
 
 #' Converts a excel formatted time value to string
@@ -174,25 +179,25 @@ printCurrency <- function(value, currency.sym="$", digits=2, sep=",", decimal=".
 
 #Team Data
 get.teamstructure <- function() {
-  return(read_excel(fname, 
+  return(read_excel(fname.cf, 
                     sheet = "TeamStructure")
   )
 }
 
 get.teamskill <- function() {
-  return(read_excel(fname, 
+  return(read_excel(fname.cf, 
                     sheet = "TeamSkill")
   )
 }
 
 get.people <- function() {
-  return(read_excel(fname, 
+  return(read_excel(fname.cf, 
                     sheet = "People")
   )
 }
 
 get.peopleskill <- function() {
-  return(read_excel(fname, 
+  return(read_excel(fname.cf, 
                     sheet = "PeopleSkill")
   )
 }

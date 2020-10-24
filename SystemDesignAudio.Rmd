@@ -21,6 +21,7 @@ require(readxl)
 require(knitr)
 require(formattable)
 require(kableExtra)
+require(here)
 ```
 
 ```{r functions}
@@ -30,7 +31,7 @@ source("commonFunctionsAudio.R")
 
 ```{r getdata}
 NetworkInventory <- get.network()
-Tech_Inventory <- get.inventory()
+Tech_Inventory   <- get.inventory()
 ```
 
 # Introduction
@@ -84,7 +85,7 @@ get_inputs("M7CL", "002") %>%
 DiagrammeR::grViz("sda-inputs-dm.gv" )
 ```
 
-The DM1000 inputs are all located in the FoH mix position. The chart below describes Scene 002 default defintions.
+The DM1000 inputs are all located in the FoH mix position. The chart below describes Scene 002 default definitions.
 
 ```{r dmin}
 get_inputs("DM1K", "002") %>%  
@@ -399,6 +400,7 @@ print_inv(cs , Tech_Inventory)
 ```
 
 ## Dante Standard Patch
+
 The patching between inputs and output is managed by "Dante Controller" software on a computer.  
   
 ```{r matrixdata}
@@ -417,7 +419,8 @@ devices <- tribble(
 
 io.card <- data.frame(AssetTag="",
                       Dir=c(rep("T",16),rep("R",16)),
-                      Num=c(seq(1,16), seq(1,16)) )
+                      Num=c(seq(1,16), seq(1,16)) )  
+
 ZAIUB001 <- io.card
 ZAIUB001$AssetTag <- "ZAIU-B001" 
 ZAIUB002 <- io.card
