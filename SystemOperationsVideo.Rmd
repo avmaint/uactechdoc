@@ -821,6 +821,22 @@ __Don't see lyric overlay as expected (when pressing "Key 1 Cut")__
 * If macro 1 was not run, run it.
 * Check to ensure that the Upstream Key settings in the software is set to the first tab (Luma).
 
+__Video Mixer is not passing Audio__
+
+The symptom is no audio heard on the livestream or visible on the recorder meters, and yet it is visible on the outputs from the console. When looking at the ATEM control software, Audio tab, no audio acivity showing on the meters.
+
+The device needs to be reset. The steps are:
+
+1. Disconnect the power cable
+2. Press and hold the SET button. (You will need to hold your finger slightly to the side so you can see it flash in step #4)
+3. Reconnect the power cable while still holding the SET button.
+4. Once the fans kick in at full speed AND the SET button flashes, release the SET button
+5. Wait 10-15 seconds
+6. Remove the power cable
+7. Wait 2 seconds
+8. Reconnect the power cable
+9. Wait about a minute for the unit to boot up
+
 <p style="page-break-before: always"></p>
 # Appendix
 
