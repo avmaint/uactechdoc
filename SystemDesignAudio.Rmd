@@ -689,4 +689,22 @@ g3 %>% # only pprint what is relevant to the stage box
     kable_styling("striped", full_width = TRUE)
 ```
 
- 
+# Dante Output Dump
+
+```{r dod}
+o1 <- work.config.consoleoutputs
+o2 <- work.config.dantepatch
+
+do <- "ZAKU-0001"
+
+merge(o1, o2) %>%
+  arrange(NetworkDeviceOut, NetworkDeviceChannelOut) %>%
+  mutate(Sent.To = glue("{NetworkDeviceIn}:   {NetworkDeviceChannelIn}")) %>% 
+  mutate(Sent.From = glue("{NetworkDeviceOut}:{NetworkDeviceChannelOut}")) %>%
+  select(Output, Sent.From, Label, Usage, 
+         Sent.To
+         ) %>%
+  kable(caption=glue("Dante Outputs for {do}"))  %>%
+    kable_styling(bootstrap_options = c("striped", "hover"))
+
+```

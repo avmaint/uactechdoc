@@ -14,6 +14,9 @@ work.config.dantedevices <- read_excel(fname,
 work.config.dantepatch <- read_excel(fname, 
                                        sheet = "DantePatch" )
 
+work.config.consoleoutputs <- read_excel(fname, 
+                                     sheet = "ConsoleOutputs" )
+
 get_monitors <- function() { 
   data <- tribble(
     ~Monitor, ~Name, ~Description,

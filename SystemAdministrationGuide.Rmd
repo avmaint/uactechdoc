@@ -1,7 +1,7 @@
 ---
 title: "System Administration Guide"
 author: "Terry Doner"
-date: "`r format(Sys.time(), '%B %d %Y')`"
+date: "`r format(Sys.time(), '%B %d %Y %H:%M %p')`"
 output:
   html_document:
     toc: yes
@@ -79,7 +79,7 @@ software %>%
   kable_styling("striped", full_width = FALSE)
 ```
 
-##Summary by Title
+## Summary by Title
 ```{r}
 with(software, table(Title , InstalledOn)) %>%
   kable()%>%
@@ -95,6 +95,6 @@ with(software, table(Title , InstalledOn)) %>%
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r knitr::current_input()`
 
-#Change History
+# Change History
 
 `r commit.log.html( knitr::current_input() )`
