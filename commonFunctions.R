@@ -68,6 +68,7 @@ commit.log.html <- function(file.name) {
 
 path <- file.path("~", "Documents", "UACTech", "SystemDocumentation")
 fname.cf <- file.path(path, "TechInventory.xlsx" )
+fname.people <- file.path(path, "db-people.xlsx" )
 
 work.network <- read_excel(fname.cf, 
                            sheet = "Network")
@@ -179,25 +180,25 @@ printCurrency <- function(value, currency.sym="$", digits=2, sep=",", decimal=".
 
 #Team Data
 get.teamstructure <- function() {
-  return(read_excel(fname.cf, 
+  return(read_excel(fname.people, 
                     sheet = "TeamStructure")
   )
 }
 
 get.teamskill <- function() {
-  return(read_excel(fname.cf, 
+  return(read_excel(fname.people, 
                     sheet = "TeamSkill")
   )
 }
 
 get.people <- function() {
-  return(read_excel(fname.cf, 
+  return(read_excel(fname.people, 
                     sheet = "People")
   )
 }
 
 get.peopleskill <- function() {
-  return(read_excel(fname.cf, 
+  return(read_excel(fname.people, 
                     sheet = "PeopleSkill")
   )
 }
