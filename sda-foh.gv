@@ -1,6 +1,6 @@
 digraph outputs { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Audio Outputs (as of 2019-02-11)",
+      label="Audio Outputs (as of 2021-10-30)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" ,  fontsize = 10,
@@ -9,7 +9,7 @@ node [shape=Mrecord, tooltip="" ,  fontsize = 10,
 
 m7 [label="
 { 
-  {    Yamaha\nM7CL\nZAKU-0001} 
+  {    Yamaha\nM7CL|ZAKU-0001} 
 |{
   <o1>Out 1 
 | <o2>Out 2
@@ -115,6 +115,19 @@ rane [label="
 | <o14>14
 | <o15>15
 | <o16>16
+}
+}
+"]
+
+zaiue001 [label="
+{
+  {
+  <ch1>L  
+| <ch2>R  
+} |
+  {2Ch Input/nDante|ZAIU-E003} 
+|{
+  <net>net   
 }
 }
 "]
@@ -226,5 +239,6 @@ rane:o1 -> burner:i1
 rane:o2 -> burner:i2
 rane:o3 -> videomix:i1
 rane:o4 -> videomix:i2
-
+rane:o15 -> zaiue001:ch1
+rane:o16 -> zaiue001:ch2
 } 
