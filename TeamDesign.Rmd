@@ -1,7 +1,7 @@
 ---
 title: "Team Design"
 author: "Terry Doner"
-date: "`r format(Sys.time(),  '%B %d %Y')`" 
+date: "`r format(Sys.time(), '%B %d %Y %H:%M')`"
 output:
   html_document:
     toc: yes
@@ -111,7 +111,7 @@ positionString <- function(s) {
 }
 ```
 
-#Introduction
+# Introduction
 
 A clear understanding of the roles and responsibilities within a team is always important. Even more so within a church volunteer environment where are relationships are much more complex than what they might be in a secular workplace. This document outlines the many roles within the Technical Arts organization. 
 
@@ -164,14 +164,14 @@ DiagrammeR::grViz(org)
 
 ```
 
-#Team Descriptions
+# Team Descriptions
 
 ```{r}
  
 ```
 
 
-##Technical Arts Team
+## Technical Arts Team
 ```{r}
 tid <- "tech"
 ```
@@ -179,17 +179,17 @@ tid <- "tech"
 
 [Back to top](#top)
 
-##Audio Team
+## Audio Team
 ```{r}
 tid <- "audio"
 ```
-This team manages the audio console and the sound that we hear.
+This team manages the audio console and the sound that we hear, both online and on the livestream.
 `r positionString2(tid)`
 `r team.matrix(tid)`
 
 [Back to top](#top)
 
-##Presentation Team
+## Presentation Team
 ```{r}
 tid <- "presentation"
 ```
@@ -199,7 +199,7 @@ This team manages ProPresenter and the things we see on the projection screens.
 
 [Back to top](#top)
 
-##Video Team
+## Video Team
 ```{r}
 tid <- "video"
 ```
@@ -209,7 +209,7 @@ This team manages the video recording for distribution within the building, reco
 
 [Back to top](#top)
 
-##Lighting Team
+## Lighting Team
 ```{r}
 tid <- "lighting"
 ```
@@ -219,13 +219,16 @@ This team manages our lighting design and operation.
 
 [Back to top](#top)
 
-##Stagecraft Team
+## Stagecraft Team
 ```{r}
 tid <- "stage"
 ```
-The stagecraft team manages the physical design elements we place on the stage. The purpose is to add visual interest to the stage. These physical elements are often illuminated by the lights and can either be abstract or tied into the theme of the season or series.  
-`r positionString2(tid)`
-`r team.matrix(tid)`
+The stagecraft team will manage the physical design elements we place on the stage. The purpose is to add visual interest to the stage. These physical elements are often illuminated by the lights and can either be abstract or tied into the theme of the season or series.  
+
+We currently do this on a ad-hoc basis 
+
+<!-- `r positionString2(tid)` -->
+<!-- `r team.matrix(tid)` -->
 
 # Job Descriptions
 
@@ -241,22 +244,21 @@ The description for each position below expands on these with role specifics nee
 
 ## Worship Leader
 
-###Responsibilities
+### Responsibilities
 The full job description of this position is not in the scope of this document.
 
 >todo add commentary about the relationship between this job and the rest of these jobs.
  
+## Technical Director
 
-## Technical Manager
-
-###Responsibilities
+### Responsibilities
 1.	Oversee the operation and maintenance of the sanctuary sound system, theatre lighting, video and computer projection systems and all other AV equipment on campus. This task includes:
     + Regular checks of the equipment for malfunctions and making repairs or getting repairs performed as required.
     +	Ensuring that a good supply of consumables are on hand: spare lamps for the theatre lights,  video projectors, batteries, CD blanks, and gaffe/duct tape.
     +	Maintenance of a formal equipment inventory.
     +	Ensuring that the technical spaces are clean and tidy.
 2.	Recruit and train technical staff.
-    +	This is a difficult part of the job. Not everyone who wants to twist knobs is suited to the job. Commitmentt, punctuality, attention to detail, a willingness to learn from the present staff as well as do independent learning is vital. 
+    +	This is a difficult part of the job. Not everyone who wants to twist knobs is suited to the job. Commitment, punctuality, attention to detail, a willingness to learn from the present staff as well as do independent learning is vital. 
 3.	Schedule Crews for all services.
     + This task includes:
         + Maintain the schedule and coordinate last minute changes. Scheduling is managed via Planning Center Online.
@@ -272,14 +274,14 @@ The full job description of this position is not in the scope of this document.
 6.	Budgeting.
     + Prepare planned expenditures for the coming fiscal year and manage within that plan.
     + Forecast large expenditures for at least three years beyond the next year to minimize surprises and allow for good long term financial management.
-7. Manage online service used by the eminstry
-    + Example, Dropbox, Vimeo
+7. Manage online service used by the ministry
+    + Example, Dropbox, Vimeo, Resi 
 
 [Back to top](#top)
 
 ## Audio Lead
  
-###Responsibilities
+### Responsibilities
 
 1. An appropriate technical knowledge of sound reinforcement.  
 2. Ability and willingness to train and supervise others.
@@ -294,7 +296,7 @@ The full job description of this position is not in the scope of this document.
 
 ## Audio Crew
  
-###Responsibilities
+### Responsibilities
 
 1. Availability during the week for rehearsal. 
 2. Working with the worship leader for each event to ensure all details are understood.
@@ -305,8 +307,7 @@ The full job description of this position is not in the scope of this document.
 
 ## Lighting Lead
  
-
-###Responsibilities
+### Responsibilities
 
 1. An appropriate technical knowledge of lighting design.  
 2. Ability and willingness to train and supervise others.
@@ -322,7 +323,7 @@ The full job description of this position is not in the scope of this document.
 
 ## Lighting Crew
  
-###Responsibilities
+### Responsibilities
 
 1. Availability during the week for rehearsal. 
 2. Working with the worship leader for each event to ensure all details are understood.
@@ -335,7 +336,7 @@ The full job description of this position is not in the scope of this document.
  
 ## Presentation Lead
 
-###Responsibilities
+### Responsibilities
 
 1. An appropriate technical knowledge of presentation system design.  
 2. Ability and willingness to train and supervise others.
@@ -350,7 +351,7 @@ The full job description of this position is not in the scope of this document.
 
 ## Presentation Crew
 
-###Responsibilities
+### Responsibilities
 
 1. Availability during the week for rehearsal. 
 2. Working with the worship leader for each event to ensure all details are understood.
@@ -363,7 +364,7 @@ The full job description of this position is not in the scope of this document.
 
 ## Video Lead
 
-###Responsibilities
+### Responsibilities
 
 1. An appropriate technical knowledge of video system design and operation.  
 2. Ability and willingness to train and supervise others.
@@ -379,7 +380,7 @@ The full job description of this position is not in the scope of this document.
 
 ## Video Crew 
  
-###Responsibilities
+### Responsibilities
 
 1. Availability during the week for rehearsal. 
 2. Working with the worship leader for each event to ensure all details are understood.
@@ -392,7 +393,7 @@ The full job description of this position is not in the scope of this document.
 
 ## Stagecraft Lead
 
-###Responsibilities
+### Responsibilities
 
 1. An appropriate knowledge of set design and construction.  
 2. Ability and willingness to train and supervise others.
@@ -423,51 +424,55 @@ The stagecraft team constructs things like this. http://pin.it/hD_vg0k
  
 I would expect we would do a project for every series. Sometimes we may just remix what we already had. Also expect a project for special events.
 
-###Responsibilities
+### Responsibilities
  
 [Back to top](#top)
  
-# WL Assistant 
+<!-- # WL Assistant  -->
 
-###Responsibilities
+<!-- ### Responsibilities -->
 
-####Series / Seasonal Planning
-#. Identify production elements (video, staging, music)
-#. Commmunicate details of the execution to other teams 
-#. Plan and execute preparation
-#. Checkpoint with ministry staff 
+<!-- #### Series / Seasonal Planning -->
+<!-- #. Identify production elements (video, staging, music) -->
+<!-- #. Commmunicate details of the execution to other teams  -->
+<!-- #. Plan and execute preparation -->
+<!-- #. Checkpoint with ministry staff  -->
 
-####Weekly planning
-#. Review service plan, ensuring all elements are understood
-#. Ensure all production elements are in place
-#. If communion Service, understand the distribution plan (come forward, served)
-#. Checkpoint with ministry staff
-#. Ensure needed supplies are in place (coffee, cream, milk, other)
+<!-- #### Weekly planning -->
+<!-- #. Review service plan, ensuring all elements are understood -->
+<!-- #. Ensure all production elements are in place -->
+<!-- #. If communion Service, understand the distribution plan (come forward, served) -->
+<!-- #. Checkpoint with ministry staff -->
+<!-- #. Ensure needed supplies are in place (coffee, cream, milk, other) -->
 
-####Service Execution
+<!-- #### Service Execution -->
 
-#. Unlock front doors
-#. Turn on lobby and bathroom lights
-#. Turn on the ceiling fans
-#. Make coffee for worship team
-#. Ensure order of service is correct and printed
-#. Print/Distribute and last minute sheet music
-#. Ensure all elements in place
-#. Communicate last minute changes to interested parties. 
-#. Ensure lobby is in order
-#. Before countdown, ensure sanctuary is ready: doors closed, walk-in lighting set, stage clean. 
-#. Ensure fans are turned off before the message
+<!-- #. Unlock front doors -->
+<!-- #. Turn on lobby and bathroom lights -->
+<!-- #. Turn on the ceiling fans -->
+<!-- #. Make coffee for worship team -->
+<!-- #. Ensure order of service is correct and printed -->
+<!-- #. Print/Distribute and last minute sheet music -->
+<!-- #. Ensure all elements in place -->
+<!-- #. Communicate last minute changes to interested parties.  -->
+<!-- #. Ensure lobby is in order -->
+<!-- #. Before countdown, ensure sanctuary is ready: doors closed, walk-in lighting set, stage clean.  -->
+<!-- #. Ensure fans are turned off before the message -->
 
 [Back to top](#top)
+
+<div style="page-break-after: always;"/> 
 
 `r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
 
 [Back to top](#top)
 
+<div style="page-break-after: always;"/> 
+
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
 
-#Change History
+# Change History
  
 `r commit.log.html( knitr::current_input() )`
 
