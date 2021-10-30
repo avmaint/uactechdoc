@@ -197,7 +197,7 @@ cs <- c(
 "ZAXU-0003",
 "ZAXU-0004",
 "ZAHU-0001", "ZAHU-0005", "ZAHU-0002", "ZAHU-0001", "ZAHU-0006",
-"ZVKU-A003")
+"ZVKU-A003", "ZAIU-E001")
 
 print_inv(cs , Tech_Inventory)
 ```
@@ -293,13 +293,52 @@ ZAAU0009 -- ZAAU0010D [label="cat5"]
 DiagrammeR::grViz(lobby, height=350)
 ```
 
+#### Feed to Livestream
+
+The livestream feed comes from the output of the Dominator (via the Rane Distribution Amplifier) and into the Dante network, and then into the video mixer.
+
+```{r livestream}
+ls <-' 
+digraph outputs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Audio Feed to Video\n(as of 2021-03-18)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+
+zaiue002 [label="
+{
+  {
+  <net>net
+} |
+  {Dante|ZAIU-E002} 
+|{
+  <ch1>L  
+| <ch2>R     
+}
+}
+"]
+
+videomix  [label="{{<i1>ch1|<i2>ch2 } |{Video\nMixer|ZVKU-A003}|<o1>}"]
+
+zaiue002:ch1 -> videomix:ch1 
+zaiue002:ch2 -> videomix:ch2 
+
+} 
+'
+
+DiagrammeR::grViz(ls, height=350)
+```
+
 #### Inventory details for this section
 
 ```{r}
 cs <- c("ZAXU-0003", "ZAXU-0004", "ZAAU-0009", "ZAAU-0010")
 
 print_inv(cs , Tech_Inventory)
-
 ```
 
 ### Console Links
@@ -441,10 +480,8 @@ As well as the controller software there are two other software titles that prov
 Dante Virtual Soundcard
 : This title is licensed for all three computers and enables the computer to send and receive multiple channels of audio over the network as if it were attached via a traditional sound card.
  
- 
 Dante VIA
 : This title is also licensed for all three computers. It enables the routing of audio for specific applications within the computer and also within the Dante network.
-
 
 Dante Controller
 : This is free software. It is used to manage the Dante network and provides virtual patchbay capabilities to link sources (transmitters) and sinks (receivers).
@@ -461,7 +498,8 @@ DiagrammeR::grViz("sda-dante.gv")
 cs <- c("ZAIU-B001", "ZAIU-B002" ,
         "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003",
          "NSCU-A003", "NSCU-A004", 
-        "CDWU-0009", "CDMU-A001", "CDMU-A002" 
+        "CDWU-0009", "CDMU-A001", "CDMU-A002",
+        "ZAIU-E001", "ZAIU-E002"
         )
 
 print_inv(cs , Tech_Inventory)
