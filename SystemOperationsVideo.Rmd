@@ -49,7 +49,7 @@ This document provides basic operating information for Video Mixing at Unionvill
 : There are times when we want to make small things large. Maybe Pastor has an artifact in hand that he would like everyone to see, or we have something on stage that we need to be featured - like a baptism. We have the capbility to use our cameras to grab the 'image' and routed it to the one or more projectors.
 
 #. Livestreaming
-: We stream our services to FaceBook Live
+: We stream our services to FaceBook Live, Youtube Live and Church Online Platform. 
 
 [Back to top](#top)
 
@@ -118,7 +118,7 @@ The middle row of buttons will be typically used to direct a camera to a preset 
 6. Worhsip Team Wide
 : The whole team of 6 or so singers. When used you may need to go wider of narrower depending on the vocal compliment of that week.
 
->As of Sept 2018: The last two presets have not been programmed.
+>As of Fall 2021: The last two presets have not been programmed.
 
 >Although these presets exist, most operators don't use them.
 
@@ -151,36 +151,35 @@ Not used
 
 __Input #5__
 
-Not used
+PTZ camera #1 - far east side. <small>There are wiring constraints that prohibits camera 1 from being on input 1. Just in case you are wondering why camera 1 was not input 1, etc.</small> 
 
 __Input #6__
 
-PTZ camera #1 - far east side. <small>There are wiring constraints that prohibits camera 1 from being on input 1. Just in case you are wondering why camera 1 was not input 1, etc.</small> 
+PTZ camera #2 - centre
 
 __Input #7__
 
-PTZ camera #2 - centre
+PTZ camera #3 - far west side
 
 __Input #8__
 
-PTZ camera #3 - far west side
-
-> As of Spring 2019 the positions of camera 1 and 2 on the inputs have been swapped to temporarily solve the blinking problem on camera 1. 
+Often used for a camera on stage, the Sony PZ-150
 
 And there is also the internal media player sources. 
 
-There are two outputs: Program and Auxillary.
+There are two outputs: Program and Auxiliary.
 
 The Program output of the video mixer is sent to three different destinations:
 
 * To the video matrix (ZVKU-A001), where it can be routed to a projector
 * The two video recorders (ZVRU-A001 and ZVRU-A002)
-* The Web Presenter device (ZVIU-A004), which is used for live streaming
+* The Resi livestream encoder
+* The Web Presenter device (ZVIU-A004), which is is connected to the VideoMac (CDMU-A002) where it can provide video input for Zoom or OBS. 
 
-The Auxillary output is sent to two destinations:
+The Auxiliary output is sent to two destinations:
 
 * The video matrix (ZVKU-A001), where it can further routed to any of its outputs. 
-* The Web Presenter (ZVIU-A004) which then becomes an input to the VideoMac (CDMU-A002) for use by our livestreaming software, OBS (or in special circumstnaces Skype). 
+* The Web Presenter (ZVIU-A004) - same as above.
 
 [Back to top](#top)
  
@@ -487,28 +486,83 @@ To format the memory card using the hyperdeck mini:
 5. Now pick the desired format, in our case 'HFS+'.
 6. A Warning message will appear asking you to confirm the choice. Confirm by selecting 'format' with the wheel and then pressing the 'set' button.
 7. A progress bar will show the progress. When complete the message 'formatting complete' will be displayed. Press the 'set' button again to return to the menu.
+
+> Tip: you can also navigate using the arrow keys rather then the jog wheel.
  
 [Back to top](#top)
 
 <p style="page-break-before: always"></p>
 # Operating Web Presenter
 
-This device enables us to stream our video content using FaceBook Live. (It can also be used as a source for Skype and to record content.)
+This device enables us to stream our video content using FaceBook Live. (It can also be used as a source for zoom or Skype  )
 
 The device is pretty hands off. You should see the source signal on the front display. If not then hit the 'some button - don't recall which' button on recorder #1 as it is a source for the web presenter. 
 
-There is a mini-swticher built into the web presenter. The box is wired to see the ATEM Program output on #1 and the ATEM Aux output on #2. You typically will want the #1 for recording or live streaming. You would likely want #2 for Skype.
+There is a mini-switcher built into the web presenter. The box is wired to see the ATEM Program output on #1 and the ATEM Aux output on #2. You typically will want the #1 for recording or live streaming. You would likely want #2 for zoom/Skype.
 
-Why #2 for Skype? In this situation you would want the skype video output (from CDMU-A002) to go into the ATEM and out on Program to feed the projectors. But you want the video in to Skype to be a camera. Say the centre camera. You would feed the ATEM Aux output the centre camera feed, which goes to input #2. There is a complete separate document on this topic.
-
->Streaming and Skyping at the same time is not something that has been done yet.
+Why #2 for zoom/Skype? In this situation you would want the zoom/skype video output (from CDMU-A002) to go into the ATEM and out on Program to feed the projectors. But you want the video in to Skype to be a camera. Say the centre camera. You would feed the ATEM Aux output the centre camera feed, which goes to input #2. There is a complete separate document on this topic.
 
 [Back to top](#top)
 
 <p style="page-break-before: always"></p>
-# Livestreaming
 
-We stream our entire service to "FaceBook Live". This is how it works. The "Program" output from the ATEM is wired into the into of the "Web Presenter" box. Its output is feed via USB to the videomac (CDMU-A002)  computer. The computer sees that devices as a web cam.
+# Livestreaming (Normal)
+
+We stream our entire service to three different destinations: "FaceBook Live", "YouTube", and "Church Online". This is how it works. 
+
+The "Program" output from the ATEM is wired into the input of a "Resi" hardware encoder via SDI. This device encodes the video stream for internet transmission and sends it to the Resi cloud service. This service as a standing configuration that broadcasts our service beginning at 9:55 am. Whatever is on the program output at the time is what our audience will see.
+
+Here is a diagram of the signal flow:
+
+```{r}
+d <- 'digraph livestreaming { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Livestreaming Topology\n(as of 2020-11-29)",
+      fontname = Helvetica, bgcolor=white
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+
+rswitch [
+  tooltip="BMD ATEM Television Studio Pro HD"
+
+  label="{
+    {{<al>AudioL}|{<ar>AudioR}|
+      {<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}
+      |{<i5>sdi|In5}|{<i6>sdi|In6}|{<i7>sdi|In7}|{<i8>sdi|In8}}
+      |{Recording Switcher  (ZVKU-A003)}|
+      {{Out1|<o1>sdi}|{Out2|<o2>sdi}|{Out3|<o3>sdi}|{Out4|<o4>sdi}|{Aux|<aux>sdi}|{mv|<mv>hdmi}}
+    }"
+]
+
+resi [
+  label="{
+    <i1>sdi|in
+    |{Resi Encoder (ZVIU-D...)}
+    |<o1>ethernet
+    }"
+  tooltip="Resi Ray Encoder"
+]
+ 
+resicloud [label="Resi Cloud Service"] 
+ 
+rswitch:o4 -> resi:i1 
+resi:o1 -> resicloud
+resicloud -> Facebook
+resicloud -> YouTube
+resicloud -> "Church Online Platform"
+     
+}'
+
+DiagrammeR::grViz(d)
+```
+
+# Livesttreaming via OBS
+
+We used to stream directly to Facebook using the OBS program on the computer. This is still possible but not part of normal operations. This is what the signal flow looks like in this case.
+
 
 ```{r}
 d <- 'digraph livestreaming { 
@@ -552,40 +606,18 @@ cdmua002:ethernet -> Facebook
 DiagrammeR::grViz(d)
 ```
 
-We use a program called OBS to stream the web cam feed to facebook live. 
+The video mixer output is sent to the input of the "Web Presenter" box. Its output is feed via USB to the videomac (CDMU-A002)  computer. The computer sees that devices as a web cam.
+ 
+We use a program called OBS to stream the web cam feed to facebook live, or other destinations.  
 
-* (It is free to download and use, and runs on Windows and Mac. So you can install it on your own machine if you want to become familiar with it.)
-
-__The is the details of the setup__
-
-__During the Week__
-
-Kris (or another facebook admin) will generate a streaming key and place in the  week's Dropbox folder in a file called "live stream key.txt" or something similar. It would like something like "444241729362798?ds=1&a=ATiKDmZGnUEDUDV1". 
-The stream will be scheduled to go live at 10am.
-
-__Sunday - Approximately 9:30 am __
+Somebody will have to create a streaming key for the target service (YouTube or Facebook). 
 
 * Open OBS (on the CDMU-A002 computer) and go into Settings, and then the "Stream" section. Paste the key into the "Stream Key" field. Press "ok"
 * Press the "Start Streaming" button. It will then change to be the "stop streaming" button. Verify that the connection is working in a couple of ways: 
     #. The streaming button changed from "Start Streaming" to "Stop Streaming", 
     #. in the bottom right of the OBS screen there is a small green square indicating that our bit rate is good. 
-* From the scene list select the scene "xx Web Presenter Starting Shorly", and then click the  "transition" button.
-
-__At 9:55am or so__
-
-* If you didn't do it earlier, via OBS, select the ""xx Starting Shortly" Scene and transition to that. This will broadcast the main program output with a "We will be starting shortly" ticker along the bottom. This won't be seen by the audience until 10:00am sharp. When we start our service (see next section ... 10:00am), we will transition to the main scene. The starting shortly ticker will only be seen when we start late. 
-
-__At 10:00am__
-
-* (Assuming we start on time, if late starting then defer until ready)
-* Via OBS, select the "xx Web Presenter scene", and click "transition".
-* check to make sure we are still streaming.
-
->TODO The names of the scenes have changed - need to update this doc with those names 
-
-__At 11:15am - when service ends__
-
-* at the end of the service, ckick "Stop Streaming".
+   
+At the end of the event, ckick "Stop Streaming".
 
 [Back to top](#top)
 
@@ -614,7 +646,7 @@ These instructions are written assuming the use of Davinci Resolve V14 video edi
 Take the SD memory card from (usually) recorder #2 and insert it into the back of the video mac computer (CDMU-A002). (The cards are currently being formatted for MacOS).
 
 #. Start the program Davinci Resolve.
-It will take a minute to start and then will ask if you want to start a new project (bottom of window). Click "New Project". It will ask for a project name. Choose the date of service, eg "2018-12-31". 
+It will take a minute to start and then will ask if you want to start a new project (bottom of window). Click "New Project". It will ask for a project name. Choose the date of service, eg "2021-12-31". 
 
 There are four tabs which we will use along the botttom of the screen. We will cover the actions to perform in each tab in turn.
 
@@ -666,7 +698,7 @@ No changes required on this tab.
 
 __File Subtab__
 
-On the File subtab, and put in today's data as the "custom name", eg 2018-12-31.
+On the File subtab, and put in today's data as the "custom name", eg 2021-12-31.
 
 #. Click the "Add to Render Queue" button. It will ask where to put the output file - choose the "/Users/avuser/Moives/VimeoAutoUpload..." option - which will be the first one.
 
@@ -823,7 +855,7 @@ __Don't see lyric overlay as expected (when pressing "Key 1 Cut")__
 
 __Video Mixer is not passing Audio__
 
-The symptom is no audio heard on the livestream or visible on the recorder meters, and yet it is visible on the outputs from the console. When looking at the ATEM control software, Audio tab, no audio acivity showing on the meters.
+The symptom is no audio heard on the livestream or visible on the recorder meters, and yet it is visible on the outputs from the console. When looking at the ATEM control software, Audio tab, no audio activity showing on the meters.
 
 The device needs to be reset. The steps are:
 
@@ -838,6 +870,7 @@ The device needs to be reset. The steps are:
 9. Wait about a minute for the unit to boot up
 
 <p style="page-break-before: always"></p>
+
 # Appendix
 
 [Back to top](#top)
