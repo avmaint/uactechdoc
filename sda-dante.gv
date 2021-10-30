@@ -1,34 +1,40 @@
 graph overview { 
 graph [overlap = true, fontsize = 24, rankdir=LR 
-      label="Dante Overview (as of 2019-01-01)", 
+      label="Dante Overview (as of 2021-10-30)", 
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
 
-subgraph cluster_foh {label="Consoles"   fontsize = 20
+
   zaiub001 [label="ZAIU-B001\nYamaha\nM7CL-48\nDante-MY16-AUD"]
   zaiub002 [label="ZAIU-B002\nYamaha\nDM1000\nDante-MY16-AUD"]
-}
 
-subgraph cluster_mics {label="Mics" fontsize = 20
-zamua001 [label="ZAMU-A001\nShure\nULX-D Quad"]
-zamub001 [label="ZAMU-B001\nShure\nULX-D Quad"]
-zamub002 [label="ZAMU-B002\nShure\nULX-D Quad"]
-zamub003 [label="ZAMU-B003\nShure\nULX-D Quad"]
-}
 
-subgraph cluster_computers {label="Computers" fontsize = 20
-cdwu0009 [label="CDWU-0009\nWin7\nDante VSC\nDante VIA"]
-cdmua001 [label="CDMU-A001\niMac\nFuture\nDante VSC\nDante VIA"]
-cdmua002 [label="CDMU-A002\niMac\nDante Controller\nDante VSC\nDante VIA"]
-}
+zamua001 [label="ZAMU-A001\nShure\nULX-D Quad", fillcolor="white:cyan" ]
+zamub001 [label="ZAMU-B001\nShure\nULX-D Quad", fillcolor="white:cyan"]
+zamub002 [label="ZAMU-B002\nShure\nULX-D Quad", fillcolor="white:cyan"]
+zamub003 [label="ZAMU-B003\nShure\nULX-D Quad", fillcolor="white:cyan"]
 
-subgraph cluster_switches {label="Switches" fontsize=20
-nscua003 [label="NSCU-A003\nCisco\nSG250-26p"]
-nscua004 [label="NSCU-A004\nCisco\nSG250-26p"]
-}
+
+
+cdwu0009 [label="CDWU-0009\nWin7\nDante VSC\nDante VIA", fillcolor="white:pink"]
+cdmua001 [label="CDMU-A001\niMac\nFuture\nDante VSC\nDante VIA", fillcolor="white:pink"]
+cdmua002 [label="CDMU-A002\niMac\nDante Controller\nDante VSC\nDante VIA", fillcolor="white:pink"]
+cumue001 [label="CUMU-E001\nMacMini\nDante Controller\nDante VSC\nReaper", fillcolor="white:pink"]
+
+nscua003 [label="NSCU-A003\nCisco\nSG250-26p", fillcolor="white:green"]
+nscua004 [label="NSCU-A004\nCisco\nSG250-26p", fillcolor="white:green"]
+nscua001 [label="NSCU-A001\nCisco\nSG250-26p", fillcolor="white:green"]
+nscua005 [label="NSCU-A005\nCisco\nSG250-26p", fillcolor="white:green"]
+
+ 
+
+zaiue001 [label="ZAIU-E001\n2Ch Input\nfrom RaneDA", fillcolor="white:cyan"]
+zaiue002 [label="ZAIU-E002\n2Ch Output\ntoVideo Mixer", fillcolor="white:orange"] 
+zaiue003 [label="ZAIU-E003\n2Ch Output\nto Reference Monitors", fillcolor="white:orange"]
+
  
 nscua003 -- nscua004
 nscua004 -- cdwu0009
@@ -42,4 +48,13 @@ zamub003 -- nscua003
 
 zaiub001 -- nscua003
 zaiub002 -- nscua003
+
+zaiue001 -- nscua003
+zaiue002 -- nscua004
+
+nscua001 -- nscua003
+nscua001 -- nscua005
+
+zaiue003 -- nscua005
+cumue001 -- nscua001
 } 
