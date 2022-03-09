@@ -654,6 +654,25 @@ routing %>%
 ```
 
 <p style="page-break-before: always"></p>
+# Livestream Configuration 
+
+## Primary Configuration
+
+* Reaper runs on CUMU-E001
+* DVS on the computer is configured at 48x48 mode.
+* The Shure wireless untis are directly input to this computer
+* The M7Cl sends 16 outputs also into to this computer. These are a mix of direct outputs and submixes.
+* FUTURE the other three computers will send their audio directly to this computer.
+* Repaer audio devices to be configured to use Dante for both input and output
+* Reaper is configured to send two outputs for monitoring and two outputs for the livestream.
+
+## Backup configuration
+
+In the event of a problem with the reaper computer or short staffed and the livestream needs to be mixed by Foh, Change the routing of the M7CL bus 14 to go directly to the avio adapter connected to the video mixer.
+
+The audio mix can now be performed on the record bus ... #14.
+
+<p style="page-break-before: always"></p>
 # Network Details
 Some of the audio system components have network (tcp/ip specicially) connectivity requriements. The primary audio console can be remotely operated from an iPad, so other devices also must be on the network as well, but they are personal devices and not part of this inventory. In the balcony, network switch NSCU-A003 provides wired access.    
 
