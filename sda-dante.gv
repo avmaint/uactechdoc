@@ -1,6 +1,6 @@
 graph overview { 
 graph [overlap = true, fontsize = 24, rankdir=LR 
-      label="Dante Overview (as of 2021-10-30)", 
+      label="Dante Overview (as of 2022-03-08)", 
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
@@ -8,16 +8,13 @@ node [shape=Mrecord, tooltip="" , fontsize = 10,
       gradientangle=270]
 
 
-  zaiub001 [label="ZAIU-B001\nYamaha\nM7CL-48\nDante-MY16-AUD"]
-  zaiub002 [label="ZAIU-B002\nYamaha\nDM1000\nDante-MY16-AUD"]
-
+zaiub001 [label="ZAIU-B001\nYamaha\nM7CL-48\nDante-MY16-AUD"]
+zaiub002 [label="ZAIU-B002\nYamaha\nDM1000\nDante-MY16-AUD"]
 
 zamua001 [label="ZAMU-A001\nShure\nULX-D Quad", fillcolor="white:cyan" ]
 zamub001 [label="ZAMU-B001\nShure\nULX-D Quad", fillcolor="white:cyan"]
 zamub002 [label="ZAMU-B002\nShure\nULX-D Quad", fillcolor="white:cyan"]
 zamub003 [label="ZAMU-B003\nShure\nULX-D Quad", fillcolor="white:cyan"]
-
-
 
 cdwu0009 [label="CDWU-0009\nWin7\nDante VSC\nDante VIA", fillcolor="white:pink"]
 cdmua001 [label="CDMU-A001\niMac\nFuture\nDante VSC\nDante VIA", fillcolor="white:pink"]
@@ -29,13 +26,12 @@ nscua004 [label="NSCU-A004\nCisco\nSG250-26p", fillcolor="white:green"]
 nscua001 [label="NSCU-A001\nCisco\nSG250-26p", fillcolor="white:green"]
 nscua005 [label="NSCU-A005\nCisco\nSG250-26p", fillcolor="white:green"]
 
- 
+switch   [label="xxxx\nsomthing\nmodel", fillcolor="white:green"] 
 
 zaiue001 [label="ZAIU-E001\n2Ch Input\nfrom RaneDA", fillcolor="white:cyan"]
 zaiue002 [label="ZAIU-E002\n2Ch Output\ntoVideo Mixer", fillcolor="white:orange"] 
 zaiue003 [label="ZAIU-E003\n2Ch Output\nto Reference Monitors", fillcolor="white:orange"]
 
- 
 nscua003 -- nscua004
 nscua004 -- cdwu0009
 nscua004 -- cdmua001
@@ -55,6 +51,7 @@ zaiue002 -- nscua004
 nscua001 -- nscua003
 nscua001 -- nscua005
 
-zaiue003 -- nscua005
-cumue001 -- nscua001
+zaiue003 -- switch
+cumue001 -- switch
+nscua001 -- switch
 } 
