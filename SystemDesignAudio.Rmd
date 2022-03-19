@@ -293,45 +293,7 @@ ZAAU0009 -- ZAAU0010D [label="cat5"]
 DiagrammeR::grViz(lobby, height=350)
 ```
 
-#### Feed to Livestream
 
-The livestream feed comes from the output of the Dominator (via the Rane Distribution Amplifier) and into the Dante network, and then into the video mixer.
-
-```{r livestream}
-ls <-' 
-digraph outputs { 
-  
-graph [overlap = true, fontsize = 20, 
-      label="Audio Feed to Video\n(as of 2021-03-18)",
-      fontname = Helvetica, bgcolor=white, rankdir=LR
-      ]
- 
-node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
-      gradientangle=270 fontname = Helvetica ]
-
-zaiue002 [label="
-{
-  {
-  <net>net
-} |
-  {Dante|ZAIU-E002} 
-|{
-  <ch1>L  
-| <ch2>R     
-}
-}
-"]
-
-videomix  [label="{{<i1>ch1|<i2>ch2 } |{Video\nMixer|ZVKU-A003}|<o1>}"]
-
-zaiue002:ch1 -> videomix:ch1 
-zaiue002:ch2 -> videomix:ch2 
-
-} 
-'
-
-DiagrammeR::grViz(ls, height=350)
-```
 
 #### Inventory details for this section
 
@@ -656,7 +618,7 @@ routing %>%
 <p style="page-break-before: always"></p>
 # Livestream Configuration 
 
-## Primary Configuration
+## Primary Dante Configuration
 
 * Reaper runs on CUMU-E001
 * DVS on the computer is configured at 48x48 mode.
@@ -666,11 +628,60 @@ routing %>%
 * Repaer audio devices to be configured to use Dante for both input and output
 * Reaper is configured to send two outputs for monitoring and two outputs for the livestream.
 
-## Backup configuration
+## Backup Dante Configuration
 
-In the event of a problem with the reaper computer or short staffed and the livestream needs to be mixed by Foh, Change the routing of the M7CL bus 14 to go directly to the avio adapter connected to the video mixer.
+In the event of a problem with the reaper computer or short staffed and the livestream needs to be mixed by Foh, Change the routing of the M7CL bus 14 to go directly to the avio adapter connected to the video mixer, via Dante Controller .
 
 The audio mix can now be performed on the record bus ... #14.
+
+```{r livestream}
+ls <-' 
+digraph outputs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Audio Feed to Video\n(as of 2022-03-19)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+
+ZAKU0001
+ [label="
+{
+  
+  {Dante card|M7CL |ZAIU-E002} 
+|{
+  <S215>Slot2-15   
+}
+}
+"]
+
+avio  [label="{{
+  <net>net
+} | {avio|no tag}|{<o1>Ch1|<o2>Ch2} }"]
+
+
+videomix  [label="{{<i1>L|<i2>R } |{Video\nMixer|ZVKU-A003}|<o1>SDI}"]
+resi  [label="{{<i1>SDI } |{resi|no tag}}"]
+
+ZAKU0001:s215 -> avio:ch1 [label="dante"]
+ZAKU0001:s215 -> avio:ch2 
+
+avio:ch1 -> videomix:i1
+avio:ch2 -> videomix:i2
+
+videomix:o1 -> resi:i1
+} 
+'
+
+DiagrammeR::grViz(ls, height=350)
+```
+
+## Fallback  to Aanalog Configuration
+
+If this is ever required, take the audio output direclty from the M7 output or the RANE output via mic cable to the video mixer. Audio levels in the video mixer will need to be checked and adjusted. This can be done directly on the panel interface or via the ATEM control software, Audio section.
+
 
 <p style="page-break-before: always"></p>
 # Network Details
