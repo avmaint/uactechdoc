@@ -1,7 +1,7 @@
 digraph recording { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Video Recording Topology - Outputs\n(as of 2017-11-11)",
+      label="Video Recording Topology - Outputs\n(as of 2023-07-23)",
       fontname = Helvetica, bgcolor=white
       ]
  
@@ -9,8 +9,8 @@ node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
       gradientangle=270 fontname = Helvetica ]
       
  
-s2h1 [label="{sdi|hdmi}" tooltip="BMD mini"]
-s2h2 [label="{sdi|hdmi}" tooltip="BMD mini"]
+zviud001 [label="{sdi|ZVIU-D001|hdmi}" tooltip="BMD mini"]
+zviua005 [label="{sdi|ZVIU-A005|hdmi}" tooltip="BMD mini"]
 
 rswitch [
   tooltip="BMD ATEM Television Studio Pro HD"
@@ -55,13 +55,22 @@ recorder2 [
   tooltip="BMD Hyperdeck Studio Mini"
 ]
 
+zviud002 [label="{
+    <i>sdi|In
+      |Resi Encoder\nZVIU-D002 
+   }"
+   tooltip="Samsung"
+   ]
+
 rswitch:o1 -> recorder1:i1 
 rswitch:o2 -> recorder2:i1 
-rswitch:o4 -> s2h1;
-s2h1   -> pswitch:i8
+rswitch:o3 -> zviud002:i [label="exact\npath\nunsure" fontcolor="red"]
+rswitch:o4 -> zviua005 [label="2307-1806" fontsize=10]
+zviud001   -> pswitch:i6
 rswitch:mv -> switchmonitor:i
 
-rswitch:aux -> s2h2
-s2h2 -> pswitch:i7
+rswitch:aux -> zviud001 [label="2307-1808" fontsize=10]
+zviua005 -> pswitch:i5
+
 
 } 

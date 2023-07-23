@@ -1,7 +1,7 @@
 digraph webpresenter { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Video Recording Topology - Web Presenter\n(as of 2019-02-17)",
+      label="Video Recording Topology - Web Presenter\n(as of 2023-07-23)",
       fontname = Helvetica, bgcolor=white
       ]
  
@@ -22,13 +22,13 @@ rswitch [
 
 wp [label="{{ {<i1>sdi|1 }|{<i2>hdmi|2} }|{Web Presenter \n ZVIU-A004}|{<usb>usb}}"]
 
-cdmua002 [label="{Recoding iMac\nOBS - Livestream|CDMU-A002}"]
+cumug001 [label="{Macmini\nOBS & Zoom|CUMU-G001}"]
  
-converter 
+converter [label="{<i>sdi|ZVIU-D001|<o>hdmi}"]
 
-rswitch:aux -> converter
-converter -> wp:i2
+rswitch:aux -> converter:i [label="2307-1808" fontsize=10]
+converter:o -> wp:i2 
 rswitch:o4 -> wp:i1
  
-wp -> cdmua002
+wp -> cumug001
 } 

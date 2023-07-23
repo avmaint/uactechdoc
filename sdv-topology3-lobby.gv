@@ -1,6 +1,6 @@
 digraph lobby { 
 graph [overlap = true, fontsize = 25, rankdir=TB
-      label="Lobby Topology\n(as of 2019-04-30)",
+      label="Lobby Topology\n(as of 2023-07-23)",
       fontname = Helvetica]
  
 node [shape=Mrecord, style=filled , fillcolor="white:beige" ,fontsize = 10, 
@@ -19,6 +19,12 @@ subgraph cluster_lobby { label="Lobby"
   lobbytv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Lobby\nTV\nZVVU-0002}"]
 }
 
-pswitch:o7 -> c62hdmi1:i
-c62hdmi1:o -> lobbytv:i1
+pswitch:o7 -> c62hdmi1:i [label="2307-2315" fontsize=10  ]
+c62hdmi1:o -> lobbytv:i1 [label="2307-2316" fontsize=10  ]
+
+p1 [shape=point]
+p2 [shape=point]
+p1->p2 [label="2307-2317\nunused cat" fontsize=10]
+
+
 }

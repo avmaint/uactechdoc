@@ -1,32 +1,38 @@
 digraph recording { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Video Recording Topology - Inputs\n(as of 2019-04-29)",
+      label="Video Recording Topology - Inputs\n(as of 2023-07-23)",
       fontname = Helvetica, bgcolor=white
       ]
  
 node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
       gradientangle=270 fontname = Helvetica ]
       
-camera1 [label="{<ether>Ethernet|Camera 1\nZVCU-A001|sdi}" tooltip="Sony SRG360SHE"]
-camera2 [label="{<ether>Ethernet|Camera 2\nZVCU-A002|sdi}" tooltip="Sony SRG360SHE"]
-camera3 [label="{<ether>Ethernet|Camera 3\nZVCU-A003|sdi}" tooltip="Sony SRG360SHE"]
-
-cdmua002 [label="{{{iMac 21\nCDMU-A002}}|{<usbc1>usbc}}"]
-
-rswitch [
+camera1 [label="{<control>control|Camera 1\nZVCU-A001|sdi}" tooltip="Sony SRG360SHE"]
+camera2 [label="{<control>control|Camera 2\nZVCU-A002|sdi}" tooltip="Sony SRG360SHE"]
+camera3 [label="{<control>control|Camera 3\nZVCU-A003|sdi}" tooltip="Sony SRG360SHE"]
+ 
+zvkua003 [
   tooltip="BMD ATEM Television Studio Pro HD"
 
   label="{
     {{<al>AudioL}|{<ar>AudioR}|
       {<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}
       |{<i5>sdi|In5}|{<i6>sdi|In6}|{<i7>sdi|In7}|{<i8>sdi|In8}}
-      |Recording Switcher\nZVKU-A003|
+      |Recording Switcher (ATEM)\nZVKU-A003|
       {{Out1|<o1>sdi}|{Out2|<o2>sdi}|{Out3|<o3>sdi}|{Out4|<o4>sdi}|{mv|<mv>hdmi}}
     }"
 ]
 
-vmatrix [
+zviue004kf [  label="
+{ DeckLink Video\nInterface\nZVIU-E004 | 
+ { 
+  <c1> Quad 1\nsdi1 
+| <c2> Quad 5\nsdi2
+} } 
+"];  
+
+zvkua001 [
   tooltip="Kramer VS-88DT"
   label="{
   {
@@ -37,7 +43,7 @@ vmatrix [
 rmip10 [
   label="{
       Camera Remote\nZVKU-A004 
-      |<ether>Ethernet
+      |<control>control
     }"
   tooltip="Sony RMIP10"
 ]
@@ -50,17 +56,30 @@ mdhx1 [
   tooltip="Decimator MD-HX"
 ]
  
-camera1 -> rswitch:i6 
-camera2 -> rswitch:i7
-camera3 -> rswitch:i8
-
-rmip10:ether -> camera1:ether
-rmip10:ether -> camera2:ether
-rmip10:ether -> camera3:ether
+z150 [ label="{Stage Camera\nZ150|<sdi>sdi}" ] 
  
-vmatrix:o5 -> mdhx1:hdmiin
-mdhx1:hdmiout -> rswitch:i1
-vmatrix:o6 -> rswitch:i2
+camera1  -> zvkua003:i5 [label="2307-2302" fontsize=10]
+camera2  -> zvkua003:i6 [label="2307-2303" fontsize=10]
+camera3  -> zvkua003:i7 [label="2307-2304" fontsize=10]
 
-cdmua002 -> rswitch:i3 
+b2305 [shape=cylinder width=0.2 height=0.3 label=""]
+z150:sdi -> b2305  [label="2307-2307\nstage extension" fontsize=10]
+b2305 -> zvkua003:i8 [label="2307-2305" fontsize=10  ]
+ 
+p1 [shape=point]
+p2 [shape=point]
+p1 -> p2 [label="2307-2306\nunused stage\nto balcony\nsdi" fontsize=10]
+ 
+rmip10:control -> camera1:control [label="2307-2308" fontsize=10]
+rmip10:control -> camera2:control [label="2307-2309" fontsize=10]
+rmip10:control -> camera3:control [label="2307-2310" fontsize=10]
+ 
+zvkua001:o5 -> mdhx1:hdmiin  [label="2307-2300" fontsize=10]
+mdhx1:hdmiout -> zvkua003:i1 [label="2307-2301" fontsize=10]
+ 
+zviue004kf:c1 -> zvkua003:i2 [label="2307-1810\n2307-1827" fontsize=10]
+zviue004kf:c2 -> zvkua003:i4 [label="2307-1811\n2307-1828" fontsize=10]
+
+{rank=same; z150 camera2 camera3 camera1       }
+{rank=max;    p2 p1}
 } 

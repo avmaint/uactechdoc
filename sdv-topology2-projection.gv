@@ -1,28 +1,26 @@
-digraph presentationswitch { 
+digraph projectiontopology { 
 graph [overlap = true, fontsize = 24, 
-      label="Projection Topology\n(as of 2019-04-29)",
+      label="Projection Topology\n(as of 2023-07-23)",
       fontname = Helvetica]
     
 node [shape=record, style=filled , fillcolor="white:beige",fontsize = 10,  
       gradientangle=270]
-pswitch [label="{
+zvkua001 [label="{
   {{<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}|{<i5>hdmi|In5}|{<i6>hdmi|In6}|{<i7>hdmi|In7}|{<i8>hdmi|In8}}
   |Video Matrix\nZVKU-A001|
-  {{Out1|<o1>HDBaseT}|{Out2|<o2>HDBaseT}|{Out3|<o3>HDBaseT}|{Out4|<o4>HDBaseT}|{Out5|<o5>hdmi}|{Out6|<o6>HDBaseT}|{Out7|<o7>HDBaseT}|{Out8|<o8>hdmi} } }"]
+  {{Out1|<o1>HDBaseT}|{Out2|<o2>HDBaseT}|{Out3|<o3>HDBaseT}|{Out4|<o4>HDBaseT}|{Out5|<o5>hdmi}|{Out6|<o6>HDBaseT}|{Out7|<o7>HDBaseT}|{Out8|<o8>HDBaseT} } }"]
   
 node [shape=record, tooltip="" ]
  
-newprje [label="{FoH East\nZVVU-A001}"] 
-newprjs [label="{FoH South\nZVVU-A002}"]
-newprjw [label="{FoH West\nZVVU-A003}"]
+zvvua001 [label="{FoH East\nZVVU-A001}"] 
+zvvua002 [label="{FoH Centre\nZVVU-A002}"]
+zvvua003 [label="{FoH West\nZVVU-A003}"]
+zvvu0001 [label="{Confidence\nZVVU-0001}", tooltip="Rear Projector"]
+   
+zvkua001:o1 -> zvvua001 [label="2307-2311" fontsize=10]
+zvkua001:o2 -> zvvua002 [label="2307-2312" fontsize=10]
+zvkua001:o3 -> zvvua003 [label="2307-2313" fontsize=10]
+zvkua001:o4 -> zvvu0001 [label="2307-2314" fontsize=10] 
   
-pswitch:o1 -> newprje 
-pswitch:o2 -> newprjs
-pswitch:o3 -> newprjw
- 
-rohproj  [label="{Confidence\nZVVU-0001}", tooltip="Rear Projector"]
- 
-pswitch:o4 -> rohproj  
- 
-{rank=same; newprjw; newprjs; newprje; rohproj;  }
+{rank=same; zvvua003; zvvua002; zvvua001; zvvu0001;  }
 } 

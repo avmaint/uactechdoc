@@ -1,6 +1,6 @@
 digraph nursery { 
 graph [overlap = true, fontsize = 25, rankdir=TB
-      label="Nursery Topology\n(as of 2019-04-30)",
+      label="Nursery Topology\n(as of 2023-07-23)",
       fontname = Helvetica]
  
 node [shape=Mrecord, style=filled , fillcolor="white:beige" ,fontsize = 10, 
@@ -11,16 +11,18 @@ pswitch [label="{
   {<i5>hdmi|In5}|{<i6>hdmi|In6}|{<i7>hdmi|In7}|{<i8>hdmi|In8}}
   |{Video Matrix\nZVKU-A001}|
   {{<o1>Out1|-}|{Out2|-}|{Out3|-}|{Out4|-}|
-  {Out5|-}|{Out6|-}|{Out7|<o7>HDBt}|{Out8|<o8>HDBt}}  
+  {Out5|-}|{Out6|-}|{Out7|<o7>HDbT}|{Out8|<o8>HDbT}}  
   }"]  
   
 node [  tooltip="" ]
 
+"Is there an unused\ncat cable as well?\nReserve 2307-2320 in case there is."
+
 subgraph cluster_lobby { label="Nursery" 
-  c62hdmi1   [label="{<i>HDBaseT| to\nZVIU-A002|<o>hdmi}", tooltip="In nursery"]
-  nurserytv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Nursery\nTV\nZVVU-0003}"]
+  c62hdmi1   [label="{<i>HDbT|ZVIU-A002|<o>hdmi}", tooltip="In nursery"]
+  nurserytv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Nursery TV\nZVVU-0003}"]
 }
 
-pswitch:o8 -> c62hdmi1:i
-c62hdmi1:o -> nurserytv:i1
+pswitch:o8 -> c62hdmi1:i [label="2307-2318" fontsize=10  ]
+c62hdmi1:o -> nurserytv:i1 [label="2307-2319" fontsize=10  ]
 }
