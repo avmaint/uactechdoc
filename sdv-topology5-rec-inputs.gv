@@ -56,19 +56,19 @@ mdhx1 [
   tooltip="Decimator MD-HX"
 ]
  
-z150 [ label="{Stage Camera\nZ150|<sdi>sdi}" ] 
+z150 [ label="{Stage Camera Z150\nZVVU-C001|<sdi>sdi}" ] 
  
 camera1  -> zvkua003:i5 [label="2307-2302" fontsize=10]
 camera2  -> zvkua003:i6 [label="2307-2303" fontsize=10]
 camera3  -> zvkua003:i7 [label="2307-2304" fontsize=10]
 
 b2305 [shape=cylinder width=0.2 height=0.3 label=""]
-z150:sdi -> b2305  [label="2307-2307\nstage extension" fontsize=10]
+z150:sdi -> b2305  [label="2307-2306\nstage extension" fontsize=10]
 b2305 -> zvkua003:i8 [label="2307-2305" fontsize=10  ]
  
 p1 [shape=point]
 p2 [shape=point]
-p1 -> p2 [label="2307-2306\nunused stage\nto balcony\nsdi" fontsize=10]
+p1 -> p2 [label="2307-2307\nunused stage\nto balcony\nsdi" fontsize=10]
  
 rmip10:control -> camera1:control [label="2307-2308" fontsize=10]
 rmip10:control -> camera2:control [label="2307-2309" fontsize=10]
@@ -80,6 +80,6 @@ mdhx1:hdmiout -> zvkua003:i1 [label="2307-2301" fontsize=10]
 zviue004kf:c1 -> zvkua003:i2 [label="2307-1810\n2307-1827" fontsize=10]
 zviue004kf:c2 -> zvkua003:i4 [label="2307-1811\n2307-1828" fontsize=10]
 
-{rank=same; z150 camera2 camera3 camera1       }
-{rank=max;    p2 p1}
+{rank=same; z150 camera2 camera3 camera1 }
+{rank=max;  p2 p1}
 } 
