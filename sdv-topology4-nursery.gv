@@ -16,8 +16,6 @@ pswitch [label="{
   
 node [  tooltip="" ]
 
-"Is there an unused\ncat cable as well?\nReserve 2307-2320 in case there is."
-
 subgraph cluster_lobby { label="Nursery" 
   c62hdmi1   [label="{<i>HDbT|ZVIU-A002|<o>hdmi}", tooltip="In nursery"]
   nurserytv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Nursery TV\nZVVU-0003}"]
