@@ -2,11 +2,9 @@
 title: "System Design - Video"
 author: "Terry Doner"
 date: "`r format(Sys.time(), '%B %d %Y')`"
-output:
-  html_document:
-    toc: yes
-    number_sections: true
-    theme: cosmo
+toc: true
+number-sections: true
+ 
 ---
 
 ```{r options, echo=FALSE}
@@ -302,7 +300,7 @@ network.data  %>%
 
 Here is a screenshot of the page with the settings applied.
 
-![Camera settings](../../images/sdv-camerasettings.png)
+![Camera settings](./images/sdv-camerasettings.png)
 
 [Back to top](#top)
 
