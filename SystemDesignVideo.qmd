@@ -21,6 +21,7 @@ require(readxl)
 require(knitr)
 require(kableExtra)
 require(DiagrammeR)
+require(stringr)
 ```
 
 ```{r functions}
@@ -335,9 +336,18 @@ print_inv(items, Tech_Inventory)
 
 [Back to top](#top)
 
+```{r current_input}
+ci <- knitr::current_input() # knitr sees a different filename than the input
+ci <- str_replace(ci, 'rmarkdown','qmd')
+```
+
 # Document Source
-This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r knitr::current_input()`.
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r ci`.
 
 # Change History
+```{r change_history}
 
-`r commit.log.html( knitr::current_input() )`
+o <- commit.log.html(  ci )
+```
+ 
+`r o` 
