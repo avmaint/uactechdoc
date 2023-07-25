@@ -53,12 +53,19 @@ commit.log.html <- function(file.name) {
   
   df <- read.csv(text=o, col.names=c("id", "user", "date", "message"), header=FALSE)
   
-  return( df %>% 
-            select(user, date, message) %>%
-            kable(align="l", caption="git Commit Log") %>%
-            column_spec( 1,  bold = TRUE ) %>%
-            kable_styling("striped", full_width = TRUE)
-  )
+  # formatted <- df %>% 
+  # 	select(user, date, message) %>%
+  # 	kable(align="l", caption="git Commit Log") %>%
+  # 	column_spec( 1,  bold = TRUE ) %>%
+  # 	kable_styling("striped", full_width = TRUE)
+  # 
+  require(gt)
+  formatted <- df |> 
+  	select(user, date, message) |>
+  	gt()
+  
+  return( formatted )
+ 
 }
 
 # Functions to get data used by most of the reports.
