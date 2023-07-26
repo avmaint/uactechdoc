@@ -1,12 +1,16 @@
+# commonPackages
+
 require(readr)
-require(dplyr)
-require(readxl)
+ require(readxl)
 require(knitr)
 require(jpeg)
 require(grid)
 require(ggplot2)
 require(kableExtra)
-require(tidyr)
+ 
 require(glue) 
 require(formattable)
 require(DiagrammeR)
+require(tidyverse)
+require(stringr)
+require(here)

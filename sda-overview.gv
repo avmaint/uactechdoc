@@ -1,6 +1,7 @@
 digraph overview { 
+
 graph [overlap = true, fontsize = 24, rankdir=LR 
-      label="Audio Overview (as of 2018-09-13)", 
+      label="Audio Overview (as of 2023-04-06)", 
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
@@ -18,10 +19,24 @@ otherinputs -> consoles
 consoles  -> videomixer
 
 subgraph cluster_foh {label="FoH"   fontsize = 20
-  consoles [label="Audio Mix\nConsoles"]
-  dsp [label="House Processors"]
-  videomixer [label="Video\nMixer"]
+  consoles			[label="Audio Mix\nConsoles"]
+  dsp				[label="House Processors"]
+  videomixer		[label="Video\nMixer"]
+  videomixeravio	[label="Dante Out\nAdapter"]
 }
+videomixeravio -> videomixer
+
+subgraph cluster_livestream  {label="LS"   fontsize = 20
+  daw			[label="Reaper\nDigitial Audio Workstation"]
+  refmon		[label="Reference Monitors "]
+  refmonavio	[label="Dante Out\nAdapter"]
+ }
+
+mics		-> daw
+daw 		-> refmonavio
+refmonavio	-> refmon
+daw			-> videomixeravio
+ppcomputer	-> daw
 
 subgraph cluster_inputs {label="Inputs" fontsize = 20
 mics
@@ -30,18 +45,20 @@ otherinputs
 }
 
 subgraph cluster_amps { label="Amplifiers" fontsize = 20
-  houseamp [label="Front of House\nAmplifiers"]
-  monitoramp [label="Monitor\nAmplifiers"]  
-  lobbyamp [label="Lobby\nAmplifier"]
+  houseamp		[label="Front of House\nAmplifiers"]
+  monitoramp	[label="Monitor\nAmplifiers"]  
+  lobbyamp		[label="Lobby\nAmplifier"]
 }
 
 subgraph cluster_spkrs {label="Speakers"
-  monitorspeakers [label="Monitor\nSpeakers"] 
-  lobbyspeakers [label="Lobby\nSpeakers"]
-  housespeakers [label="Front of House\nSpeakers"]
+  monitorspeakers	[label="Monitor\nSpeakers"] 
+  lobbyspeakers 	[label="Lobby\nSpeakers"]
+  housespeakers 	[label="Front of House\nSpeakers"]
 }
  
 consoles  -> dsp  
+consolesdante	-> daw
+
 dsp  -> houseamp 
 houseamp -> housespeakers  
 

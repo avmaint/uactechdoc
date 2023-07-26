@@ -1,17 +1,24 @@
 ---
 title: "System Design - Dante"
 author: "Terry Doner"
-date: "`r Sys.setenv(TZ= 'Canada/Eastern' ); format(Sys.time(), '%B %d %Y %H:%M %p')`"
+date: last-modified
 format:
   html:
     toc: true
     toc-loction: top
     number-sections: true
     theme: cosmo
+  pdf:
+    toc: true
+    number-sections: true
+execute:
+  echo:    false
+  warning: false
+  message: false
+  eval:    true
 ---
 
 ```{r options, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
 options(knitr.table.format = "html") # latex for pdf 
 ```
 
@@ -37,10 +44,13 @@ Tech_Inventory   <- get.inventory()
 <p style="page-break-before: always"></p>
 # Configuration
 
-The descriptions of the configurations will generally start at the input side of the system and work towards the outputs.
+The descriptions of the configurations will generally start at the input side of the system and work towards the outputs. A high level overview is shown here @fig-dante-overview
 
-```{r overview}
-DiagrammeR::grViz("sda-overview.gv")
+```{dot}
+//| fig-width: 6
+//| label: fig-dante-overview
+//| fig-cap: "Overview of the Audio System"
+//| file: sda-overview.gv
 ```
 
 [Back to top](#top) 
@@ -65,29 +75,20 @@ merge(o1, o2) %>%
 ```
 
 ```{r}
-fname <- "/Users/donert/Dropbox/UAC_Audio/Dante-2020-10-25.xml"
+require(xml2)
+fname <- "/Users/donert/Dropbox/UAC_Audio/Dante-2023-04-09-normal.xml"
 
 dc <- read_xml(fname)
+preset_name <- xml_text(xml_find_all(dc, "//preset/name"))
+model_list  <- xml_text(xml_find_all(dc, "//device/model_name"))
+device_list <- xml_text(xml_find_all(dc, "//device/name"))
+```
 
-preset.name <- xml_find_all(dc, "/preset/name") %>% xml_contents()
+```{r}
+cap <- glue("Devices in Preset {preset_name}")
 
-
-xfa <- xml_find_all(dc, "//device")
-
-xa <- xml_attrs(xfa)
-
-# bind the data.frames built in the iterator together
-br <- bind_rows(lapply(xml_find_all(dc, "//device"), function(x) {
-
-  # extract the attributes from the parent tag as a data.frame
-  parent <- data.frame(as.list(xml_attrs(x)), stringsAsFactors=FALSE)
-
-  # make a data.frame out of the attributes of the kids
-  #kids <- bind_rows(lapply(xml_children(x), function(x) as.list(xml_attrs(x))))
-
-  # combine them
-  #cbind.data.frame(parent, kids, stringsAsFactors=FALSE)
-
-}))
+data.frame(device_name = device_list, model_name=model_list) %>%
+	kable(caption=cap) %>%
+	kable_classic()
 ```
 
