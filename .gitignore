@@ -1,4 +1,7 @@
-*.html
 .DS_Store
 .Rdata
 .Rhistory
+*.pdf
+*.html
+data/~*.xlsx
+SystemDesign*_files
