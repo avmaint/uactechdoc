@@ -8,15 +8,23 @@ SDD_HTML = SystemDesignDante.html
 SDV_QMD = SystemDesignVideo.qmd
 SDV_HTML= SystemDesignVideo.html
 
+SOV_QMD = SystemOperationsVideo.qmd
+SOV_HTML= SystemOperationsVideo.html
+
+
 QUARTO = "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/quarto"  
 QUARTO = "/Applications/quarto/bin/quarto"
 
 #####
-all:  $(SDV_HTML) $(SDD_HTML)
+all:  $(SDV_HTML) $(SDD_HTML) $(SOV_HTML)
 #####
 
 $(SDV_HTML): $(SDV_QMD ) commonFunctions.R commonPackages.R data/cables.xlsx
 	$(QUARTO) render $(SDV_QMD)	
+
+$(SOV_HTML): $(SOV_QMD ) commonFunctions.R commonPackages.R 
+	$(QUARTO) render $(SOV_QMD)	
+
 	
 $(SDD_HTML): $(SDD_QMD ) commonFunctions.R commonPackages.R commonFunctionsAudio.R
 	$(QUARTO) render $(SDD_QMD)	
