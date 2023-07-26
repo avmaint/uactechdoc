@@ -13,13 +13,7 @@ options(knitr.table.format = "html")
 ```
 
 ```{r packages }
-require(readr)
-require(dplyr)
-require(readxl)
-require(knitr)
-require(kableExtra)
-require(DiagrammeR)
-require(stringr)
+source('./commonPackages.R')
 ```
 
 ```{r functions}
