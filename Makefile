@@ -11,7 +11,6 @@ SDV_HTML= SystemDesignVideo.html
 SOV_QMD = SystemOperationsVideo.qmd
 SOV_HTML= SystemOperationsVideo.html
 
-
 QUARTO = "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/quarto"  
 QUARTO = "/Applications/quarto/bin/quarto"
 
