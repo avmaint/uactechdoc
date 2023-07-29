@@ -12,15 +12,17 @@ format:
     toc: true
     number-sections: true
     css: styles.css
-  pdf: 
+  pdf:
+    number-sections: true 
     toc: true
-    number-sections: true
+    toc-depth: 2
 always_allow_html: yes
 ---
 
 ```{r options, echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
 #options(knitr.table.format = "html")  
+knitr::opts_chunk$set(fig.pos = "H", out.extra = "")
 ```
 
 ```{r packages }
@@ -38,10 +40,18 @@ further <- get.further()
 ```
 
 # Introduction
-This document provides key technical documentation for the video recording and broadcasting subsystems at UAC. This diagram provides an overview of the major components and leaves out some details.
+This document provides key technical documentation for the video recording and broadcasting subsystems at UAC. 
+
+This diagram (@fig-video-overview) provides an overview of the major components and leaves out some details.
+
+```{dot}
+//| label: fig-video-overview
+//| fig-cap: "Video system overview."
+//| file: sdv-topology0-overview.gv
+```
 
 ```{r chunk39}
-DiagrammeR::grViz("sdv-topology0-overview.gv")
+#DiagrammeR::grViz("sdv-topology0-overview.gv")
 ```
 
 Frequently throughout this document there will be a diagram or description of some aspect of the installation and following that a listing of the mentioned equipment which provide more detail on the mentioned assets.
@@ -125,8 +135,10 @@ The display should look like:
 |-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |Input |1|2|3|4|8|-|-|5|
 
-```{r normal}
-DiagrammeR::grViz("sdv-PSnormal.gv", height=300)
+```{dot}
+//| label: fig-matrix-normal
+//| fig-cap: "Normal video matrix configuration"
+//| file: sdv-PSnormal.gv
 ```
 
 #### Camera On-screen Configuration  
@@ -146,9 +158,10 @@ TODO: figure this out so that we can select the "Proj B" video feed on the ATEM.
  
 The centre screen content can be flipped between 'normal' centre screen content from Proprestenter to ATEM Program Output by changing the Aux Bus setting on the ATEM.  
  
-
-```{r camera}
-DiagrammeR::grViz("sdv-PScamera.gv", height=300)
+```{dot}
+//| label: fig-matrix-camera
+//| fig-cap: "Video matrix configuration for camera on-screen"
+//| file: sdv-PScamera.gv
 ```
 
 # Topologies
@@ -178,9 +191,14 @@ CUMU-G001 MacOS / ATEM Control / OBS / Propresenter
 
 >todo: is the monitor for CDWU-0009 a vga monitor? 
 
-```{r top1}
-DiagrammeR::grViz("sdv-topology1-computer.gv")
 
+```{dot}
+//| label: fig-topology-computer
+//| fig-cap: "Topology of video related computers"
+//| file: sdv-topology1-computer.gv
+```
+
+```{r top1}
 # TODO: fix the code below.
 
 print_inv(c("CDWU-0009","CDMU-A001" , "ZVIU-E004" #"CDMU-G001" ,
@@ -192,11 +210,13 @@ print_inv(c("CDWU-0009","CDMU-A001" , "ZVIU-E004" #"CDMU-G001" ,
 ## Projection Topology
 There are four projectors in the auditorium, three FoH and one at the rear for confidence. Thet are all feed an hdmi signal via HDBaseT (Over Cat6).
 
-
+```{dot}
+//| label: fig-topology-projection
+//| fig-cap: "Topology of video projectors"
+//| file: sdv-topology2-projection.gv
+```
 
 ```{r top2}
-DiagrammeR::grViz("sdv-topology2-projection.gv")
-
 print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003", "ZVVU-0001"),
           Tech_Inventory)
 ```
@@ -206,9 +226,13 @@ The TV in the lobby gets its content from the video matrix. For the main service
 
 There is a network cable that also runs to the lobby TV, and is for future use.
 
-```{r l132}
-DiagrammeR::grViz("sdv-topology3-lobby.gv")
+```{dot}
+//| label: fig-topology-lobby
+//| fig-cap: "Topology for lobby TV"
+//| file: sdv-topology3-lobby.gv
+```
 
+```{r l132}
 print_inv(c("ZVIU-A001", "ZVKU-A001", "ZVVU-0002"), Tech_Inventory)
 ```
 
@@ -219,12 +243,17 @@ print_inv(c("ZVIU-A001", "ZVKU-A001", "ZVVU-0002"), Tech_Inventory)
 ## Nursery Topology
 The TV in the nursery gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
 
+```{dot}
+//| label: fig-topology-nursery
+//| fig-cap: "Topology for nursery TV"
+//| file: sdv-topology4-nursery.gv
+```
+
 ```{r top3}
-DiagrammeR::grViz("sdv-topology4-nursery.gv")
 print_inv(c("ZVIU-A002", "ZVKU-A001",   "ZVVU-0003"), Tech_Inventory)
 ```
 
-The TV has a remote control.
+The TV has a remote control which is found on top of the coatrack near the TV, power on/off can be controlled directly using the button on the bottom centre of the screen.
 
 ## Recording / Livestream Topology
 The recording topology is quite complex and so it is broken up into peices.
@@ -233,16 +262,24 @@ The recording topology is quite complex and so it is broken up into peices.
 
 A key constraint for the ATEM video mixer is that all inputs must have the same input resolution settings. We have choosen 1080p59.94. 
 
+```{dot}
+//| label: fig-topology-recin
+//| fig-cap: "Topology for recording inputs"
+//| file: sdv-topology5-rec-inputs.gv
+```
+
 ```{r top5a}
-DiagrammeR::grViz("sdv-topology5-rec-inputs.gv", height=350)
+#DiagrammeR::grViz("sdv-topology5-rec-inputs.gv", height=350)
 ```
 
 ### Outputs
 
 >TODO: verify path to recorders - do they both come directly out of the ATEM, or are they daisy chained?
 
-```{r top5b}
-DiagrammeR::grViz("sdv-topology5-rec-outputs.gv", height=350)
+```{dot}
+//| label: fig-topology-recout
+//| fig-cap: "Topology for Recording Outputs"
+//| file: sdv-topology5-rec-outputs.gv
 ```
 
 ### Web Presenter
@@ -259,8 +296,14 @@ The Loop out on ZVIU-D001 and on recorder 1 is used to make this work.
  
 TODO: Document routing details between ATEM and WP. label cables. 
  
+```{dot}
+//| label: fig-topology-webpres
+//| fig-cap: "Topology for Web Presenter"
+//| file: sdv-topology6-rec-wp.gv
+``` 
+ 
 ```{r topwp}
-DiagrammeR::grViz("sdv-topology6-rec-wp.gv", height=350)
+#DiagrammeR::grViz("sdv-topology6-rec-wp.gv", height=350)
 ```
 
 ```{r}
@@ -278,12 +321,19 @@ Each camera has a web page where we can make these updates. Open Safari and then
 
 #. Enter the address for a camera in the address bar. They will be on the left bookmark bar but if not, listed here as well.
 ```{r addresses}
-network.data  %>% 
-  filter(AssetTag %in% c("ZVCU-A001","ZVCU-A002","ZVCU-A003")) %>% 
-  select( AssetTag, URL , Notes ) %>%
-    kable(align="l") %>%
-    column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
+network.data  |>
+  filter(AssetTag %in% c("ZVCU-A001","ZVCU-A002","ZVCU-A003")) |>
+  select( AssetTag, URL , Notes ) |>
+    gt( ) |>
+			opt_stylize(style = 3) |>
+    		tab_style(
+			style = cell_text(
+				weight = "bold", 
+				),
+			locations = cells_body(
+				columns = "AssetTag")
+		) |>
+		tab_options(table.font.size="50%")
 ```
 
 #. At the top of the page, click on "Setting" and the on the left "Video" and the "Picture" tab
@@ -314,10 +364,18 @@ Here is a screenshot of the page with the settings applied.
 ```{r} 
 network.data %>% 
 filter(Category=="Video") %>% 
-select(Location, Usage, Device, MAC, IP, URL, Notes) %>%
-kable() %>%
-    column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
+select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
+    gt( ) |>
+			opt_stylize(style = 3) |>
+    		tab_style(
+			style = cell_text(
+				weight = "bold", 
+				),
+			locations = cells_body(
+				columns = "AssetTag")
+		) |>
+		tab_options(table.font.size="50%")
+
 ```
 
 # Video Equipment Inventory
