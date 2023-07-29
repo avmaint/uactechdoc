@@ -5,6 +5,7 @@
 *.html
 data/~*.xlsx
 SystemDesign*_files
+SystemOperations*_files
 *.aux
 *.log
 *.tex
