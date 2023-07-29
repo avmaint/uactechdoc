@@ -8,7 +8,7 @@
 #' @param inventory A data frame containing the full list of items. It is expected to be the result of get.inventory()
 #' @return returns formatted html of the selected items.
 #' 
-print_inv <- function(items, inventory) {
+print_inv_kable <- function(items, inventory) {
   
   selected <- items %>% 
     data.frame(AssetTag=.)
@@ -33,6 +33,40 @@ print_inv <- function(items, inventory) {
     column_spec( 1,  bold = TRUE ) %>%
     kable_styling("striped", full_width = TRUE)
 }
+
+print_inv <- function(items, inventory) {
+	
+	selected <- items %>% 
+		data.frame(AssetTag=.)
+	
+	merged <- merge( inventory, selected) 
+	
+	if(length(items) != nrow(merged) ) {
+		diff <- setdiff(selected$AssetTag, inventory$AssetTag)
+		# ToDO: the next line of code has issues. 
+		#1) if it is executed it will likley fail as the error msg is not a file name
+		#2) It doesn't handle duplicate asset tags.
+		#fundamentlly I don't know how to expose the error condition 
+		system2("cat",  paste('"Undefined in Inventory ', diff,  '"') )
+	}
+	
+	stopifnot(length(items) == nrow(merged) )
+	
+	merged |>
+		select(AssetTag, Manufacturer, Model, Location, Desc ) |>
+		arrange( AssetTag ) |>
+		gt() |>  
+		opt_stylize(style = 3) |>
+		tab_style(
+			style = cell_text(
+				weight = "bold", 
+				),
+			locations = cells_body(
+				columns = "AssetTag")
+		) |>
+		tab_options(table.font.size="50%")
+}
+
 
 #' Function to retrieve and format the git commit history for a file. 
 #' Meant to tack on to the end of the each document.

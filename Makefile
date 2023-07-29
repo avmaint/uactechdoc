@@ -35,4 +35,4 @@ tinytex:
 .PHONY: build publish
 
 clean:
-	rm -f $(SDV_HTML) $(SDD_HTML)
+	rm -f $(SDV_HTML) $(SDD_HTML) *.aux *.log *.tex *.toc
