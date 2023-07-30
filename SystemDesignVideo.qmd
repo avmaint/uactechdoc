@@ -111,6 +111,8 @@ pso <- tribble(
 ## Inputs
 
 ```{r}
+#| tbl-cap: "Video Matrix Inputs"
+#| tbl-cap-location: bottom
 psi |>  
    gt() |>  
 		opt_stylize(style = 3) |>
@@ -125,6 +127,8 @@ psi |>
 
 ## Outputs
 ```{r}
+#| tbl-cap: "Video Matrix Outputs"
+#| tbl-cap-location: bottom
 pso |> 
  gt() |>  
 		opt_stylize(style = 3) |>
