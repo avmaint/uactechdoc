@@ -2,12 +2,24 @@
 title: "System Operations - Video"
 author: "Terry Doner"
 date: "`r format(Sys.time(), '%B %d %Y %H:%M')`"
-toc: true
-number-sections: true
+execute: 
+  eval: true
+  echo: false
+  warning: false
+  message: false
+format:
+  html:
+    toc: true
+    number-sections: true
+  pdf:
+    number-sections: true 
+    toc: true
+    toc-depth: 2
+always_allow_html: yes
 ---
 ```{r options, echo=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
-options(knitr.table.format = "html") 
+#knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+#options(knitr.table.format = "html") 
 ```
 
 ```{r packages }
@@ -243,25 +255,28 @@ Key 1 Fill
 :::
 
 :::{.callout-note}
-There is a dedicated word document on this topic that goes into great detail. 
+There is a dedicated word document on this topic that goes into great detail. See "livestream_grapics_guide.docx" 
 :::
-
-
-A key is a mask applied to one source to overlay on top of another source. The term key refers to that which defines the mask, and fill refers to what goes inside the mask.
-
-A Luma key is a key defined by the brightness of the key source. 
-
-Our most typical configuration is to link DSK #1 to media player #1 and DSK #2 to media player #2 and both as Luma keys. This can be done via the built-in display or more easily via the ATEM control software.
 
 > Our regular usage is setup and run by macros.
 
-To set our default configuration, go into the DSK menus for DSK1 and DSK2. Using #1 as an example, set the key source to Media Player 1 and the fill to also be Media Player 1. Also set the clip level to be about 15%. The clip level determines what to consider part of the mask, or not.
+Our system is setup to use two video signals from Propresenter which allows text, graphic or video content to partially overlay the camera image. It si called "alpha keying", and this is how it works. 
 
-We use this for a lower 3rd type graphic, where the top 2/3rds are black and the bottom third is a graphic with text and absolutely no black. With clip set to 15 everything below 15% brightness is excluded from the mask, and everything above that is included. The fill source (which is, as above, configured to be the same image) is then used to 'fill' in the inclusion part of the mask. 
+Imagine you have two pictures again, but they are a bit special. One is the "key" picture, and the other is the "fill" picture.
 
-We can now use the DSK to place a title graphic on top of a camera image.
+Key Picture: This picture is a bit different from 'normal'. It has a special hidden superpower called an "alpha channel" or "transparency information." It's like a hidden code behind the picture that tells the video mixer which parts are see-through and which parts are solid. It is represented by a grayscale image, where white means fully solid and black means fully transparent.   
+Fill Picture: This is the the text or graphic from ProPresenter which we want to show on top of the camera image. Parts of this image that will show through the transparent parts of the key picture. 
 
-A different example configuration is with lyrics. Say the text is pure white and the back ground is all darker. You could set the key and fill to both be "ProPresenter" and set the clip to 90. Now you can overlay the text on top of a camera image and knock out the background graphic from ProPresenter.
+Botht the Key and Fill images come from ProPresenter.
+
+Now, here's how the alpha keying works:
+
+Understanding Alpha Channel: The video mixer looks at the key picture and checks its alpha channel. It sees the different levels of transparency represented by shades of gray.
+Combining the Pictures: The video mixer then takes the fill picture and the key picture with its alpha channel and cleverly blends them together. It uses the transparency information from the key picture to know where to make it see-through and let the fill picture show through.
+
+Result: As a result, you see the key picture with its transparent parts combined seamlessly with the fill picture. The person or object from the key picture appears on top of the background from the fill picture, and it looks like they are really there!
+
+Alpha keying is an essential technique in video production. It allows us to superimpose people, objects, or animations onto our camera images easily, creating amazing scenes and adding a touch of magic to our broadcasts.
 
 [Back to top](#top)
 
@@ -283,20 +298,16 @@ The ATEM mixer has two built-in media players which can play images and very sho
     
 [Back to top](#top)
 
-## Standard usage of media players and DSK
+## Usage of media players and DSK
 
-In our normal usage we have the media players set-up to playback the intro graphics before the message and the copyright graphics after the message. Macro #1 sets these up for playback.
-
-**There is one thing that needs to be checked every week and perhaps changed.** We have a lower 3rd created for the name of the speaker for the service - which is typically Kevin. If we had somebody different last week we will need to change it. We also change the grpahic for every series. The appropriate graphic should be located in the Dropbox folder for the week, eg Dropbox/ServiceFiles/aug25 and will be named something like "kevin l3.png". 
-
-This graphic is chnaged be using the ATEM control software on the Mac (CUMU-G001). 
+The built-in media players can be used to playback static graphics or very short videos. The graphics are changed using the ATEM control software on the Mac (CUMU-G001): 
 
 * On the bottom of the screen their are four tabs: Switcher, Media, Audio, Camera, select the "Media" tab.  
 
 ![Media tab location](./images/sov-softwareswtichermediaarrow.png){height=3in}
 
 * On the left hand side there is a file navigator. Dropbox will be one of the "Favourites". Expand it by clicking on the ">".
-* Navigate to the folder for the week, eg "aug25"
+* Navigate to the folder for the week, eg "serv_aug25"
 
 :::{.callout-note}
 >TODO: take a screenshoot of the media tab, with the favorities expanded.
@@ -501,11 +512,11 @@ The "Program" output from the ATEM is wired into the input of a "Resi" hardware 
 
 Here is a diagram of the signal flow:
 
-```{r}
-d <- 'digraph livestreaming { 
+```{dot}
+digraph livestreaming { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Livestreaming Topology\n(as of 2020-11-29)",
+      label="Livestreaming Topology\n(as of 2023-07-29)",
       fontname = Helvetica, bgcolor=white
       ]
  
@@ -527,7 +538,7 @@ rswitch [
 resi [
   label="{
     <i1>sdi|in
-    |{Resi Encoder (ZVIU-D...)}
+    |{Resi Encoder (ZVIU-D00?)}
     |<o1>ethernet
     }"
   tooltip="Resi Ray Encoder"
@@ -541,18 +552,17 @@ resicloud -> Facebook
 resicloud -> YouTube
 resicloud -> "Church Online Platform"
      
-}'
+}
 
-DiagrammeR::grViz(d)
 ```
 
-# Livesttreaming via OBS
+# Livestreaming via OBS
 
 We used to stream directly to Facebook using the OBS program on the computer. This is still possible but not part of normal operations. This is what the signal flow looks like in this case.
 
 
-```{r}
-d <- 'digraph livestreaming { 
+```{dot}
+digraph livestreaming { 
   
 graph [overlap = true, fontsize = 20, 
       label="Livestreaming Topology\n(as of 2018-05-20)",
@@ -588,9 +598,7 @@ rswitch:o3 -> webp:i1
 webp:o1 -> cdmua002:usb
 cdmua002:ethernet -> Facebook
      
-}'
-
-DiagrammeR::grViz(d)
+}
 ```
 
 The video mixer output is sent to the input of the "Web Presenter" box. Its output is feed via USB to the videomac (CUMU-G001)  computer. The computer sees that devices as a web cam.
@@ -624,7 +632,7 @@ We have an objective to minimize the delay between end of service and message vi
 
 We make two video recordings: 1) for the entire serice, and 2) just the message portion. When we live mix we need to get the title graphics and the trailer recorded as part of #2 so it is 'finished'.
 
-Our current recording process encodes the video as 1920x1080p60 which produces a file of about 35GB. We have a hard limit of 5GB per week upload, and upload takes a lot of time. Our goal is to produce a file that is less than 2.5GB.  (That enables a second upload if there is a problem).
+Our current recording process encodes the video as 1920x1080p60 which produces a file of about 35GB.  
 
 {{< pagebreak >}} 
 
@@ -652,22 +660,6 @@ There are four tabs which we will use along the botttom of the screen. We will c
 
 #. Check the beginning and end of the recording to make sure it starts and ends well.  If there are any corrections to make, eg trimming the end of the video becuase we didn't end too soon, do that now.
  
-## Fairlight (Audio)
-
-(They call it Fairlight becuase the bought the feature from another company called, Fairlight)
-
-Now to touch up the audio. 
-
-#. Click on the Fairlight tab at the bottom. I looks like two musical notes.
-
-#. Select the audio track. It will be outlined in red.
-
-#. Increase clip volue to +3. (Right Side).
-![Clip Volume](./images/sov-edit-ClipVolume.png)
-
-#. Drag and drop AuDynamicsProcessor (from the left side) on to the audio track.
-![Dynamics Processor](./images/sov-edit-AUDynamics.png)
-
 ## Deliver tab
 
 It has three subtabs "Video", "Audio" and "File". You will set video parameters on the 'Video' tab, and name the file on the 'File' tab.
@@ -690,9 +682,7 @@ __File Subtab__
 
 On the File subtab, and put in today's data as the "custom name", eg 2021-12-31.
 
-#. Click the "Add to Render Queue" button. It will ask where to put the output file - choose the "/Users/avuser/Moives/VimeoAutoUpload..." option - which will be the first one.
-
-> The VimeoAutoUpload location is special becuase any video stored there will automatically be uploaded to Vimeo. __Do not__ use this folder as the output destination unless you are sure.  
+#. Click the "Add to Render Queue" button. It will ask where to put the output file - choose the " /VideoUpload..." option - which will be the first one.
 
 #. Save the project Command-S just in case there is a failure during rendering.
 
@@ -701,87 +691,43 @@ On the File subtab, and put in today's data as the "custom name", eg 2021-12-31.
 
 #. After Rendering is complete, close the program. 
 
-## Upload to Vimeo
+## Extract Audio from Video
 
-Once the rendering is complete, you are ready to upload to Vimeo. __>If you selected the VimeoAutoUpload destination above, then you don't need to take further action here.__
+### on a Mac
 
-Check the resulting file size, it should be about 2.5GB, less is better. We have three ways to upload to Vimeo. 
+* Open the file in Quicktime
+* File -> Export As -> Audio Only 
+* Navigate to the same directory (VideoUpload) and click "Save"
 
-* Auto Upload
-* Manual Upload using the App.
-* Manual Upload using the vimeo website
+### on Windows (Using VLC)
 
-The Auto Upload is the easiest.
+* Step 1: Download the "VLC Media Player" on any device (Windows, Mac, etc.) and launch the program. You can find the software file at https://www.videolan.org/
 
-__Auto Upload__
+* Step 2: Under 'Media' > 'Convert / Save' and click "Add" to add the video file for which you want to extract the audio, and then select the arrow button next to "Convert / Save" and click "Convert".
 
-The Vimeo app that is installed on the computer (CUMU-G001) is configured to automatically upload any files added to the "VimeoAutoUpload" folder inside the movies folder.
+* Step 3: Under Profile, make sure 'Audio - MP3' is selected. Also, hit 'Browse' under Destination File to rename and save the file. Then hit 'Start'. 
 
-__Vimeo App__
+* Step 4: Once the extraction is complete, you should see it in 'Files'
 
-On the videa mac (CUMU-G001) there is a installed application which is the Vimeo helper. You access it via the menu bar at the top. Look for the Vimeo "V" logo.
+## Upload to Youtube
 
->TODO: insert image of the icon.
+Once the rendering is complete, you are ready to upload to Youtube. You must be an authorized manager of the church channel for this to work.
 
-When you click the icon a window will appear showing recent uploads. Near the top there is a cloud icon with an arrow pointing upwards. Click that. 
-
->TODO: Insert image
-
-It will then open a file finder window where you can navigate to today's video. It will be in Videos.
-
-After selecting that file and clicking the button at the bottom, upload will begin. It takes a minute to get started.
-
->TODO. Change the above instructions to specifiy what 'the button' says. "Choose", "Select", "Ok" - not sure. Insert a screenshot.
-
-__Vimeo Website__
-
-Open you web browser, go to [Vimeo](http://www.vimeo.com), and logon with userid uacmedia@uachome.org. The password is provided separaetly. Upload the file using one of the above mechanisms. Set the various fields that describe the video:
-
-* Title - use the message title
-* Description - use the synopsis / teaser text provided
-* All Audiences
-* English
-* Tags: uac, unionvillealliance and whatever else fits the topic
-* Assign a license: creative commons, attribution, no derivaties.
-* Assign it to the collection for the series. 
-* Update the video thumbnail. Upload the prepared thumbnail from the weekly folder and then select it.
-
-After upload, vimeo takes a while to prepare the video for publication - maybe 10 or 15 minutes.  
-
-## Creating the Podcast Audio file
-
-* On the Mac desktop, there an icon for "Make_Audio", Double click on it. 
-* After a moment it will pop a choose file dialogue. Navigate to today's video file, and select it.
-* It will take about a minute to process the audio.
-* The resulting file will be placed in the same folder.
-* It is now ready to be uploaded to Nucleus.
+* login to Youtube withn your account and then "Switch Account" to the church account. 
+* Upload the video 
+* Set the Video title and video descirption by copying the details from the nucleus website
+* Set the playlist to the correct playlist based on the current series
+* Choose the public publish option
 
 ## Update the UACHome website
 
-Go to the vimeo [Vimeo](http://www.vimeo.com), and copy the URL for today's message.
-
-Go to the [church administration web site](https://nucleus.church/user/login) and login, which is at the bottom of the page. 
-
-* Kris in the office can advise regarding the credentials to use
-
-Select the "Sermon Engine" tab, you will then see a list of the sermons; the one you want should be at the top. Click on it. 
-
-* Paste in the VIMEO URL copied from above. 
-
-* Upload the audio file, which will also be in the VimeoAutoUpload folder. Slide the "Add to Podcast" button.
-
-Fill in the rest of the fields. If you don't have a description, enter a ".".
-
-* Click on Save at the bottom.
- 
-## Congratulations - You are almost done
-
-The one last thing is to ensure that the memory card is ejected from the computer:
-
-* In finder you will see the media card along the left side. Beside that there is a little up-arrow. Click it and then the card will be safe to remove.
-
-And now return it to its slots in the recorder for the next service. 
-
+* Go to the nucleus.church on login [church administration web site](https://nucleus.church/user/login)
+* Navigate to "sermons", and today's sermon
+* paste in the video link for the video uploaded to Youtube
+* upload the audio file the was extracted from the video (above)
+* turn on the podcast switch
+* Click on Publish at the bottom.
+  
 [Back to top](#top)
 
 {{< pagebreak >}} 
