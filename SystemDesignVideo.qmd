@@ -111,18 +111,30 @@ pso <- tribble(
 ## Inputs
 
 ```{r}
-psi %>% 
-  kable() %>%
-    column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
+psi |>  
+   gt() |>  
+		opt_stylize(style = 3) |>
+		tab_style(
+			style = cell_text(
+				weight = "bold", 
+				),
+			locations = cells_body(
+				columns = "Input")
+		)  
 ```
 
 ## Outputs
 ```{r}
-pso %>% 
-  kable() %>%
-    column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
+pso |> 
+ gt() |>  
+		opt_stylize(style = 3) |>
+		tab_style(
+			style = cell_text(
+				weight = "bold", 
+				),
+			locations = cells_body(
+				columns = "Output")
+		)  
 ```
 
 ## Configurations
