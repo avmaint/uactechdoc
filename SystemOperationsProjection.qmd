@@ -63,30 +63,30 @@ get.training() %>%
 	   gt() |>  
 		opt_stylize(style = 3) |>
 	    opt_row_striping(  row_striping = TRUE)
- 
-
-  
 ```
-
 
 [Back to top](#top)
 
 {{< pagebreak >}} 
+
 # How we Organize our files
 
-## Dropbox ServiceFiles
-ServiceFiles is meant for shorter term content and provide a means for content creators to contribute content remotely.
+## OneDrive service_media
 
-Week Specifc (eg. Feb12)
-: Below ‘ServiceFiles’ there would be a folder like Feb12. This is used for content that is specific to that date only. The powerpoint for the date, Announcement slides for that date, etc. Anything placed in those folders should be considered deleteable after the event has finished.  If it is to be reused for a few weeks, it can be copied to the next week. 
+service_media is meant for short term content and provide a means for content creators to contribute content remotely.
 
-Announcements
-: This folder is used for the announcement loop graphics we use repeatedly and has a an expiry date. The files are to be named with the last date a grophic is to be used. If it is a graphic for only one specific date, then it should be in that date's folder.
+Week Specific (eg. serv_feb12)
+: Below ‘service_media’ there would be a folder like serv_feb12. This is used for content that is specific to that date only. The powerpoint for the date, Announcement videos for that date, etc. Anything placed in those folders should be considered deleteable after the event has finished.  If it is to be reused for a few weeks, it should be copied to the appropriate weeks. 
 
-Series Folder
-: This is for graphics which are to be used for an entire message series. It contains the centre screen graphic, the lower 3rd graphics for video, the series Welcome graphic, plus other useful backgrounds.
+Series Folder (Eg. series_jesus)
+: This is for graphics and media which are to be used for an entire message series. It contains the centre screen graphic, the lower 3rd graphics for video, the series Welcome graphic, bumper video, plus other useful backgrounds.
 
-> When we start a new series, we will need to update at least two things in ProPresenter: The "_Welcome Current Series" document and the "Series Graphic" in "Props".  
+When we start a new series, we need to update several things in ProPresenter: 
+
+* "Welcome" document
+* "Series Graphic" in "Props"
+* "Bumper"
+* Update the colours on the name and name+title themes and looks
 
 ## Media Resources
 
@@ -99,6 +99,7 @@ Many files have keywords in the file names that make them easier to search for. 
 * or format, eg "-tw" for triplewide content.
 
 {{< pagebreak >}} 
+
 # Remote Login
 
 Rather than having to come to the church to prepare the playlist, we offer the ability to login remotely. More than one person can do this at the same time which allows two people to see exactly the same thing and work together - this is helpful for training or assistance. 
@@ -106,40 +107,41 @@ Rather than having to come to the church to prepare the playlist, we offer the a
 To use the remote tool, you need to start with a web browser. Some work better than others. The preference is:
 
 * Firefox
-* Chrome (As of March 2018 there is a problem with the latest Chrome version)
+* Chrome 
 * Internet Explorer / Safari. 
 
 1. The address to get started is: https://remoteassist.neysh.ca/ . 
 2. Click on "login" on the right side. 
 
-!["Starting with the web page"](../../images/sop-remote-01.jpg){height=3in}
+!["Starting with the web page"](./images/sop-remote-01.jpg){height=3in}
 
 3. You will be provided with a userid and password separately.
 4. Please do your best to protect this password from being compromised. 
 5. Click login
 
-!["Logging into the Service"](../../images/sop-remote-02.jpg){height=3in}
+!["Logging into the Service"](./images/sop-remote-02.jpg){height=3in}
 
 6. if you see uacAVtech here you know you are logged in to the service. 
 7. click on "Host" 
 
-!["Selecting the Host Tab" ](../../images/sop-remote-03.jpg){height=3in}
+!["Selecting the Host Tab" ](./images/sop-remote-03.jpg){height=3in}
 
 8. Select this entry in the access list. 
 9. There are several computers on the list, you want "CDMU-A001", click in the checkbox.
 10. Then click "Join"
 
-!["Selecting the Host Tab" ](../../images/sop-remote-04.jpg){height=3in}
+!["Selecting the Host Tab" ](./images/sop-remote-04.jpg){height=3in}
 
 The first time in you will need to select one of these options which will install addtional components on your system. Try "Windows Selector" first (on a windows machine), otherwise "ClickOnceDirect" or "WebStartBootstrap".
 
-!["Selecting the Correct Launcher" ](../../images/sop-remote-05.jpg){height=3in}
+!["Selecting the Correct Launcher" ](./images/sop-remote-05.jpg){height=3in}
 
 Once logged into CDMU-A001 you will see all three displays that this computer has configured, you will want to use the view menu to select the primary display so you have a decent screen size to work with. 
 
 [Back to top](#top)
 
 {{< pagebreak >}} 
+
 # Preparing a ProPresenter Playlist
 
 The playlist is the list of visual elements that we need to present during the service. It will follow very closely the cue sheet that comes from Planning Centre Online (PCO). 
@@ -150,23 +152,27 @@ Early in the week the service cue sheet for the following Sunday will be distrib
 
 ## Creating a Playlist from PCO
 
+:::{.callout-note}
+> TODO: Need to update this to PP7
+:::
+
 It is very rare that you won't create your playlist this way. After starting ProPresenter, find the "+" in the lower left corner, and click on the little down arrow beside it. Select "New PCO Playlist".
 
-![Click on the Plus](../../images/sop-newPCOplaylist1.jpg)
+![Click on the Plus](./images/sop-newPCOplaylist1.jpg)
 
-![Select "New PCO Playlist"](../../images/sop-newPCOplaylist2.jpg)
+![Select "New PCO Playlist"](./images/sop-newPCOplaylist2.jpg)
 
 Next you will see a pop-up where you need to select the plan that you want to use for your playlist. You may need to scroll sideways to see the date.
 
-![click on the grey triangle to see the list of services](../../images/sop-newPCOplaylist3.jpg){height=2in}
+![click on the grey triangle to see the list of services](./images/sop-newPCOplaylist3.jpg){height=2in}
 
 If you created the playlist before Sunday, you should refresh the playlist on Sunday morning to collect any updates. After doing a refresh check to make sure your arrangement choices haven't been changed.
 
-![Refresh a PCO Playlist](../../images/sop-PCO-refresh.jpg)
+![Refresh a PCO Playlist](./images/sop-PCO-refresh.jpg)
 
 A PCO playlist is rigidly linked to PCO. You cannot add items or change the order. If you need to do that, you will need to convert the playlist to a regular playlist. You only need to do this if you need to add or remove items.
 
-![Convert to a non-PCO playlist](../../images/sop-PCO-convert.jpg)
+![Convert to a non-PCO playlist](./images/sop-PCO-convert.jpg)
 
 [Back to top](#top)
 
@@ -177,11 +183,11 @@ ProPresenter is able to import the contents of a Powerpoint presentation. It cre
 
 You execute the import via File > Import > Import from Powerpoint.
 
-![Import PowerPoint](../../images/sop-ppt-import-1.png)
+![Import PowerPoint](./images/sop-ppt-import-1.png)
 
 and then navigate to the powerpoint file. 
 
-![Import](../../images/sop-ppt-import-2.png){height=3in}
+![Import](./images/sop-ppt-import-2.png){height=3in}
 
 Once the import is complete, you can then link the new document to the playlist, and add the multiscreen and prop cues.
 
@@ -193,7 +199,8 @@ You can also do the PowerPoint Export compleltely outside of ProPresenter and ex
 
 [Back to top](#top)
 
-{{< pagebreak >}} 
+{{< pagebreak >}}
+
 # Stage Display
 
 ProPresenter gives us the ability to display other content on the rear display for the stage team to see that is different from what the audience sees. Since it helps give them confidence, it is sometimes called the confidence display as well. 
@@ -219,7 +226,7 @@ To define a layout to the message when Daniel is speaking, for example:
 * Right click on the first slide of the message to get the pop-up menu
 * Select Add Cue > Stage Display Layout > Daniel Speaking
 
-![Add Cue](../../images/sop-stagedisplay-addcue-sdl-zoom.png)
+![Add Cue](./images/sop-stagedisplay-addcue-sdl-zoom.png)
 
 ## Adding a Timer Cue
 
@@ -228,15 +235,15 @@ Some layouts, specifically Daniels, may have a times defined within the layout. 
 * Right click on the first slide of the message to get the pop-up menu
 * Select Add Cue > Timer Cue > Daniel Elapsed (example)
  
-![Add Timer Cue](../../images/sop-stagedisplay-addcue-timer-zoom.png)
+![Add Timer Cue](./images/sop-stagedisplay-addcue-timer-zoom.png)
 
 After adding a timer cue to the playlist you need to go into the Clocks and Timers dialog from the main menu bar and set the timer and hit the reset button (curly arrow). 
  
-![Clocks and Timers](../../images/sop-clockstimers.png)
+![Clocks and Timers](./images/sop-clockstimers.png)
 
 Or add timer cues from the cue palette (on the right-click pop-up menu).
 
-![Timer Cue](../../images/sop-timer-cue.png)
+![Timer Cue](./images/sop-timer-cue.png)
 
 ## Lyrics on Stage Display Only
 
@@ -246,20 +253,20 @@ These are the steps to use the Cue Palette method:
 
 1. First slide is Background.  Add "Stage Display Layout" here. The graphic below shows selecting "Default", you should most likely choose "Worship Static".
 
-![Add Cue](../../images/sov-lyricsonrear-01.png){height=3in}
+![Add Cue](./images/sov-lyricsonrear-01.png){height=3in}
 
 2. On 2nd slide, add the Cue Palette to suppress Slide Output. This will pop the cue palette menu. 
 
-![Cue Palette Menu](../../images/sov-lyricsonrear-02.png){height=3in}
+![Cue Palette Menu](./images/sov-lyricsonrear-02.png){height=3in}
 
 Then from the Cue Palette, drag the "Stage Display" cue onto the second slide.
-![Cue Palette](../../images/sov-lyricsonrear-03.png)
+![Cue Palette](./images/sov-lyricsonrear-03.png)
 
 Next we need to select the "Suppress Slide on Output" Option and click "Done". 
-![Suppress on Output](../../images/sov-lyricsonrear-04.png)
+![Suppress on Output](./images/sov-lyricsonrear-04.png)
 
 3. On the final slide, usually a blank, Add another Cue Palette to enable Slide Output. Select "Enable Slide on Output", and click "Done".
-![Enable on Output](../../images/sov-lyricsonrear-05.png)
+![Enable on Output](./images/sov-lyricsonrear-05.png)
 
 4. Finally, test the entire sequence from the previous song through to the next song to make sure it all flows correctly.
 
@@ -285,13 +292,13 @@ __Little Blue "i" Process__
 
 See the three arrow in the image below.
 
-!["Changing Video Loop Behaviour" ](../../images/sop_video_loop.jpg){height=3in}
+!["Changing Video Loop Behaviour" ](./images/sop_video_loop.jpg){height=3in}
 
 __Document Process__
 
 Right Click on the video and select "Media Properties". And then change the loop Behaviour as above. 
 
-![Media Properties](../../images/sop-MediaProperties.jpg){height=3in}
+![Media Properties](./images/sop-MediaProperties.jpg){height=3in}
 
 [Back to top](#top)
 
@@ -310,9 +317,9 @@ Multi-screen Cues
 
 An example of tile versus stretch:
 
-![Tile](../../images/sop-triplewide-tile.jpg)
+![Tile](./images/sop-triplewide-tile.jpg)
  
-![Stretch](../../images/sop-triplewide-stretch.jpg)
+![Stretch](./images/sop-triplewide-stretch.jpg)
 
 This tutorial covers Props https://youtu.be/U4bQbLqOjC0 and this one covers the multiscreen features https://youtu.be/OzLyUoKAmDQ .
 
@@ -385,7 +392,7 @@ The power for the projectors can be operated two ways:
 * via the web page for each projector
 * Via the CueCommander application on CDWU-0009. "On" is found in the 8:30 tab and "Off" in the 11:30 tab.
 
-![Power On](../../images/sop-ProjectorPower.jpg)
+![Power On](./images/sop-ProjectorPower.jpg)
 
 ## Turning the Confidence Projector On and Off
 
@@ -401,25 +408,13 @@ Filter needs cleaning
 [Back to top](#top)
 
 {{< pagebreak >}} 
+
 # Operating the Matrix Video Switch
 
 The matrix switch manages the routing of most video sources to various destinations. There are three ways to change the routing:
 
-* Via CueCommander
 * Via the matrix's web page
 * Via the front panel buttons
-
-__Via CueCommander__
-
-On the windows computer, CDWU-0009, there is a program called CueCommander. It is normally running, but if not there is a shortcut to it on the lower left corner of the desktop.
-
-The picture below shows the Video Matrix settings. The left-hand side shows the routing Matrix. The inputs are along the top, the outputs down the side. A filled-in circle indicates the input for each output.
-
-For exmple, in the picture below, the Nursery (bottom row) is sourced from the ATEM Program output.
-
-![Operating the Matrix switch via CueCommander](../../images/sop-matrixNormal.jpg)
-
-There are some shortcuts on the right hand side. If you click all the buttons indicated in box in the diagram, everything will be set to normal.
 
 __Via the Web Page__
 
@@ -432,7 +427,7 @@ __Via Front Panel Buttons__
 
 You can do a similar thing directly on the front panel of the switch itself using the OUT and IN buttons.  The unit is located under the desk near the computer.
 
-![Matrix Video Swtich](../../images/sop-gear-vs88dt-1.jpg)
+![Matrix Video Swtich](./images/sop-gear-vs88dt-1.jpg)
 
 
 [Back to top](#top)
@@ -543,9 +538,16 @@ Recovery:
 [Back to top](#top)
 
 {{< pagebreak >}} 
-# Document Source
-This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
 
+```{r current_input}
+ci <- knitr::current_input() # knitr sees a different filename than the input
+ci <- str_replace(ci, 'rmarkdown','qmd')
+```
+
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. 
+The source is found here `r getwd()` / `r ci`.
+ 
 # Document Change History
 
-`r commit.log.html( knitr::current_input() )`
+`r commit.log.html( ci )
