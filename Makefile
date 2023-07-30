@@ -12,11 +12,15 @@ SDV_PDF = SystemDesignVideo.pdf
 SOV_QMD = SystemOperationsVideo.qmd
 SOV_HTML= SystemOperationsVideo.html
 
+SOP_QMD = SystemOperationsProjection.qmd
+SOP_HTML= SystemOperationsProjection.html
+SOP_PDF = SystemOperationsProjection.pdf
+
 QUARTO = "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/quarto"  
 QUARTO = "/Applications/quarto/bin/quarto"
 
 #####
-all:  $(SDV_HTML) $(SDD_HTML) $(SOV_HTML) $(SDV_PDF)
+all:  $(SDV_HTML) $(SDD_HTML) $(SOV_HTML) $(SDV_PDF) $(SOP_PDF) $(SOP_HTML)
 #####
 
 sdv: $(SDV_HTML) $(SDV_PDF)
@@ -29,9 +33,13 @@ $(SDV_HTML): $(SDV_QMD ) commonFunctions.R commonPackages.R data/cables.xlsx
 $(SOV_HTML): $(SOV_QMD ) commonFunctions.R commonPackages.R 
 	$(QUARTO) render $(SOV_QMD)	--to html
 	$(QUARTO) render $(SOV_QMD)	--to pdf
-	echo "line 27"
-	
-	
+
+$(SOP_HTML): $(SOP_QMD ) commonFunctions.R commonPackages.R 
+	$(QUARTO) render $(SOP_QMD)	--to html
+
+$(SOP_PDF): $(SOP_QMD ) commonFunctions.R commonPackages.R 
+	$(QUARTO) render $(SOV_QMD)	--to pdf
+
 $(SDD_HTML): $(SDD_QMD ) commonFunctions.R commonPackages.R commonFunctionsAudio.R
 	$(QUARTO) render $(SDD_QMD)	--to html 
 	

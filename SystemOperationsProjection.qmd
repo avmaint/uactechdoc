@@ -1,0 +1,551 @@
+---
+title: "System Operations - Projection"
+author: "Terry Doner"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+execute: 
+  eval: true
+  echo: false
+  warning: false
+  message: false
+format:
+  html:
+    toc: true
+    number-sections: true
+    css: styles.css
+  pdf:
+    number-sections: true 
+    toc: true
+    toc-depth: 2
+always_allow_html: yes
+---
+
+```{r packages }
+source("commonPackages.R")
+```
+
+```{r functions}
+source("commonFunctions.R")
+```
+
+```{r data}
+NetworkInventory <- get.network()
+activities <- get.activities()
+```
+
+# Introduction
+This document provides basic operating information for each the video projection systems at Unionville Alliance Church.
+
+Our projection system is quite flexible and allows for numerous video sources to be connected to many display devices (including projectors and TVs).
+
+ProPresenter is the primary tool we use for display Lyrics, message support graphics, announcements and other such visuals. The ProPresenter visuals are also used to broadcast and record our services, which is managed by the video crew.
+
+At times you will also need to change the video routing for special features such as baptism. 
+
+[Back to top](#top)
+
+{{< pagebreak >}} 
+# ProPresenter Training Videos
+
+The firm that makes ProPresenter has many great training videos on their [web site](https://www.renewedvision.com/propresenter.php?page=tour).
+
+The best way to watch these videos is via the training postings on RightNowMedia. There are two modules one covers the basics, and the second covers more intermedite topics.
+
+This is what you will find there:
+
+```{r}
+#| tbl-cap: "Training Videos"
+#| tbl-cap-location: bottom
+get.training() %>%
+  filter(Topic1=="Projection") %>%
+  filter(Topic2=="ProPresenter") %>%
+  select(Topic3, Episode, Title, Duration, Notes)  %>%
+  rename(Module = Topic3) |>
+	   gt() |>  
+		opt_stylize(style = 3) |>
+	    opt_row_striping(  row_striping = TRUE)
+ 
+
+  
+```
+
+
+[Back to top](#top)
+
+{{< pagebreak >}} 
+# How we Organize our files
+
+## Dropbox ServiceFiles
+ServiceFiles is meant for shorter term content and provide a means for content creators to contribute content remotely.
+
+Week Specifc (eg. Feb12)
+: Below ‘ServiceFiles’ there would be a folder like Feb12. This is used for content that is specific to that date only. The powerpoint for the date, Announcement slides for that date, etc. Anything placed in those folders should be considered deleteable after the event has finished.  If it is to be reused for a few weeks, it can be copied to the next week. 
+
+Announcements
+: This folder is used for the announcement loop graphics we use repeatedly and has a an expiry date. The files are to be named with the last date a grophic is to be used. If it is a graphic for only one specific date, then it should be in that date's folder.
+
+Series Folder
+: This is for graphics which are to be used for an entire message series. It contains the centre screen graphic, the lower 3rd graphics for video, the series Welcome graphic, plus other useful backgrounds.
+
+> When we start a new series, we will need to update at least two things in ProPresenter: The "_Welcome Current Series" document and the "Series Graphic" in "Props".  
+
+## Media Resources
+
+This is our main graphic library, for both still and motion graphics. There are some folders for specific purposes and others which are orgnized by a particular graphical theme. 
+
+Many files have keywords in the file names that make them easier to search for. For example, you can search 
+
+* by colour, eg "red", 
+* or by content, eg "cross",
+* or format, eg "-tw" for triplewide content.
+
+{{< pagebreak >}} 
+# Remote Login
+
+Rather than having to come to the church to prepare the playlist, we offer the ability to login remotely. More than one person can do this at the same time which allows two people to see exactly the same thing and work together - this is helpful for training or assistance. 
+
+To use the remote tool, you need to start with a web browser. Some work better than others. The preference is:
+
+* Firefox
+* Chrome (As of March 2018 there is a problem with the latest Chrome version)
+* Internet Explorer / Safari. 
+
+1. The address to get started is: https://remoteassist.neysh.ca/ . 
+2. Click on "login" on the right side. 
+
+!["Starting with the web page"](../../images/sop-remote-01.jpg){height=3in}
+
+3. You will be provided with a userid and password separately.
+4. Please do your best to protect this password from being compromised. 
+5. Click login
+
+!["Logging into the Service"](../../images/sop-remote-02.jpg){height=3in}
+
+6. if you see uacAVtech here you know you are logged in to the service. 
+7. click on "Host" 
+
+!["Selecting the Host Tab" ](../../images/sop-remote-03.jpg){height=3in}
+
+8. Select this entry in the access list. 
+9. There are several computers on the list, you want "CDMU-A001", click in the checkbox.
+10. Then click "Join"
+
+!["Selecting the Host Tab" ](../../images/sop-remote-04.jpg){height=3in}
+
+The first time in you will need to select one of these options which will install addtional components on your system. Try "Windows Selector" first (on a windows machine), otherwise "ClickOnceDirect" or "WebStartBootstrap".
+
+!["Selecting the Correct Launcher" ](../../images/sop-remote-05.jpg){height=3in}
+
+Once logged into CDMU-A001 you will see all three displays that this computer has configured, you will want to use the view menu to select the primary display so you have a decent screen size to work with. 
+
+[Back to top](#top)
+
+{{< pagebreak >}} 
+# Preparing a ProPresenter Playlist
+
+The playlist is the list of visual elements that we need to present during the service. It will follow very closely the cue sheet that comes from Planning Centre Online (PCO). 
+
+There are two ways of doing this, the easiest way is to have ProPresenter create the playlist from PCO. They other way is to do it manually. Most of the time you will use the first option. 
+
+Early in the week the service cue sheet for the following Sunday will be distributed via Planning Center Online. With that in hand you can prepare the playlist which includes all announcements, song lyrics, and other support elements. 
+
+## Creating a Playlist from PCO
+
+It is very rare that you won't create your playlist this way. After starting ProPresenter, find the "+" in the lower left corner, and click on the little down arrow beside it. Select "New PCO Playlist".
+
+![Click on the Plus](../../images/sop-newPCOplaylist1.jpg)
+
+![Select "New PCO Playlist"](../../images/sop-newPCOplaylist2.jpg)
+
+Next you will see a pop-up where you need to select the plan that you want to use for your playlist. You may need to scroll sideways to see the date.
+
+![click on the grey triangle to see the list of services](../../images/sop-newPCOplaylist3.jpg){height=2in}
+
+If you created the playlist before Sunday, you should refresh the playlist on Sunday morning to collect any updates. After doing a refresh check to make sure your arrangement choices haven't been changed.
+
+![Refresh a PCO Playlist](../../images/sop-PCO-refresh.jpg)
+
+A PCO playlist is rigidly linked to PCO. You cannot add items or change the order. If you need to do that, you will need to convert the playlist to a regular playlist. You only need to do this if you need to add or remove items.
+
+![Convert to a non-PCO playlist](../../images/sop-PCO-convert.jpg)
+
+[Back to top](#top)
+
+{{< pagebreak >}} 
+# Importing Powerpoint
+
+ProPresenter is able to import the contents of a Powerpoint presentation. It creates a document containing static images, which means any animations and transition affects that were part of the powerpoint are lost. You also need to ensure that any special fonts used in the powerpoint are installed on the system.
+
+You execute the import via File > Import > Import from Powerpoint.
+
+![Import PowerPoint](../../images/sop-ppt-import-1.png)
+
+and then navigate to the powerpoint file. 
+
+![Import](../../images/sop-ppt-import-2.png){height=3in}
+
+Once the import is complete, you can then link the new document to the playlist, and add the multiscreen and prop cues.
+
+**If you see a white flash** as you transition to the first slide, change the background colour to black. The background colour is displayed first and then the graphic is brought in via the transition. To change the backgorund colour "Edit" the slide via the right-click pop-up menu and go to the first tab "Document Properties" - background is the first option.
+
+Sometimes this import process doesn't work. If it seems to be breaking, then open PowerPoint directly. When you do that, there may be mesages from PowerPoint that need attention, like a notice of an update. Once those are cleared, you can retry the import process.
+
+You can also do the PowerPoint Export compleltely outside of ProPresenter and export all slides as images, create a new ProPresenter document for them, and drag and drop all the saved JPGs into the document. This takes more effort to do, so you would only do it this way if the regular import doesn't work. It is also useful to do when moving a PowerPoint from a different machine and you want to ensure all fonts are rendered correctly.
+
+[Back to top](#top)
+
+{{< pagebreak >}} 
+# Stage Display
+
+ProPresenter gives us the ability to display other content on the rear display for the stage team to see that is different from what the audience sees. Since it helps give them confidence, it is sometimes called the confidence display as well. 
+
+>Key point. Once the Stage Display Layout is set, it will not change until you set it to something else. This means you need to add the proper cues throughout the playlist. For example, you need to set the worship lyric layout on the first song, The speaking layout for the message, and then the worship layout again for the first song after the message.
+
+The Stage display layouts are defined in the main ProPresenter settings dialog, under the displays tab. We have three primary layouts.
+
+This video tutorial provides a good overview: [https://youtu.be/ynqvjqTjv2M](https://youtu.be/ynqvjqTjv2M)
+
+Worship Lyrics - static slide
+: Used for our musical worship portion of the service. It features the lyrics without the backgrounds (except for the first slide) and a small preview of the first few lines of the next slide. 
+
+Kevin Front - no clock
+: Used when Pastor Kevin is speaking. It mirrors the front displays.
+
+Daniel Speaking
+: Used when Pastor Daniel is speaking. It features: the current slide, a small preview of the next slide, a clock, and an elapsed time timer. Add timer cues to the first page of the message slides - reset timer (from cue pallete) and start timer. 
+
+## Adding a Stage Display Layout Cue
+
+To define a layout to the message when Daniel is speaking, for example: 
+* Right click on the first slide of the message to get the pop-up menu
+* Select Add Cue > Stage Display Layout > Daniel Speaking
+
+![Add Cue](../../images/sop-stagedisplay-addcue-sdl-zoom.png)
+
+## Adding a Timer Cue
+
+Some layouts, specifically Daniels, may have a times defined within the layout. You have to add a timer cue to the first slide of the message as well which will start the timer. Which timer cue you add depends on which timer is used in the layout.
+
+* Right click on the first slide of the message to get the pop-up menu
+* Select Add Cue > Timer Cue > Daniel Elapsed (example)
+ 
+![Add Timer Cue](../../images/sop-stagedisplay-addcue-timer-zoom.png)
+
+After adding a timer cue to the playlist you need to go into the Clocks and Timers dialog from the main menu bar and set the timer and hit the reset button (curly arrow). 
+ 
+![Clocks and Timers](../../images/sop-clockstimers.png)
+
+Or add timer cues from the cue palette (on the right-click pop-up menu).
+
+![Timer Cue](../../images/sop-timer-cue.png)
+
+## Lyrics on Stage Display Only
+
+There is an article about this:   [https://support.renewedvision.com/article/165-using-the-stage-display-to-its-full-potential]().  It talks about using CMD-0 as well as using the Cue Palette (Suppress the Slide on Output), I recommend the second method - to add cues to "Supress Slide on Output" and "Enable Slide on Output".
+
+These are the steps to use the Cue Palette method:
+
+1. First slide is Background.  Add "Stage Display Layout" here. The graphic below shows selecting "Default", you should most likely choose "Worship Static".
+
+![Add Cue](../../images/sov-lyricsonrear-01.png){height=3in}
+
+2. On 2nd slide, add the Cue Palette to suppress Slide Output. This will pop the cue palette menu. 
+
+![Cue Palette Menu](../../images/sov-lyricsonrear-02.png){height=3in}
+
+Then from the Cue Palette, drag the "Stage Display" cue onto the second slide.
+![Cue Palette](../../images/sov-lyricsonrear-03.png)
+
+Next we need to select the "Suppress Slide on Output" Option and click "Done". 
+![Suppress on Output](../../images/sov-lyricsonrear-04.png)
+
+3. On the final slide, usually a blank, Add another Cue Palette to enable Slide Output. Select "Enable Slide on Output", and click "Done".
+![Enable on Output](../../images/sov-lyricsonrear-05.png)
+
+4. Finally, test the entire sequence from the previous song through to the next song to make sure it all flows correctly.
+
+[Back to top](#top)
+
+{{< pagebreak >}} 
+# Video Loop Controls
+
+This setting is a little hard to find when you ‘Link’ and video file directly to the playlist item. Here is how to do it.
+
+By default when you add a video to ProPresenter it loops the video. Which is what you want for a motion background but not what you want for other content like a Announcement video.
+
+How do you change it? There are two ways, and it depends on how the video was added to the playlist. 
+
+* If the video was directly linked to the playlist, then you need to follow the little blue 'i' process below. 
+* If the video was added to a document which was then linked to the playlist item, then follow the 'Document Process' 
+
+__Little Blue "i" Process__
+
+1) Click on the little blue ‘i’ beside the playlist document. This will pop the media properties window. 
+2) Click on the properties button and 
+3) The behaviour setting to ‘Stop’. If ‘Stop’ is not selectable then you need to change the ‘Media Cue Behaviour’ to ‘foreground’. (Media Cue Behaviour is on the right-click pop-up)
+
+See the three arrow in the image below.
+
+!["Changing Video Loop Behaviour" ](../../images/sop_video_loop.jpg){height=3in}
+
+__Document Process__
+
+Right Click on the video and select "Media Properties". And then change the loop Behaviour as above. 
+
+![Media Properties](../../images/sop-MediaProperties.jpg){height=3in}
+
+[Back to top](#top)
+
+{{< pagebreak >}} 
+# Running Triple Wide{page-break-before="always"}
+
+The ProPresenter projection output is a triplewide configuration. That is three HD images (1920x1080) side by side for a total of 5760x1080 pixels. ProPresenter knows that the projected image is divided up into three projection screens. We use multi-screen cues to control which content is displayed where on that wide canvas. 
+
+There are two kinds of cues that we need to become more familiar with: Props and Multiscreen.
+
+Props
+: A "Prop" is an extra graphic that can float on top of whatever else you have defined and can be turned on and off manually or added as a cue to a slide. The most common usage of Props is to overlay the series graphic on the centre screen. There is a multi-screen cue setup for this You just need to add it to the first slide of the message. On the first Sunday of a new series we also need to change the series graphic in the Props setting. It is also important to add 'Clear Props' cues to the last slide of the message.  There is a "Clear Prop" button in the toolbar (upper left) that will clear it manually if you forgot to add it as a cue.
+
+Multi-screen Cues
+: The multi-screen cues control which content gets displayed where. There are two main variations: Tile and Stretch. Tile repeats the content across all three, and stretch makes the content span all three.
+
+An example of tile versus stretch:
+
+![Tile](../../images/sop-triplewide-tile.jpg)
+ 
+![Stretch](../../images/sop-triplewide-stretch.jpg)
+
+This tutorial covers Props https://youtu.be/U4bQbLqOjC0 and this one covers the multiscreen features https://youtu.be/OzLyUoKAmDQ .
+
+[Back to top](#top)
+
+## Cues to Add to Documents
+
+To help you get the right cues in the right spot, use these formulas for the different kinds of media.
+
+### Countdown Announcement Loop
+
+Add these cues to the first slide (which is almost always there from the previous week)
+
+* Stage Display: "Pre Service Countdown"
+* MultiScreen: "Song ABC Tile"
+* Clear Props
+
+### Song
+
+* Stage Display: "Worship Lyrics Static Slide"
+* Clear Props
+* Multiscreen: Choose "Song ABC Stretch" or "Song ABC Tile". The choice is influenced by how well it looks on the screen.  
+    + Tile will repeat the background three times. Stretch will make the backgorund stretch across all three. Try Stretch first.
+    + If you pick ‘stretch’ and it isn’t wide enough, you will need to go into the media properties and change the option to “Stretch to Fill”. Sometimes it looks good to use "Scale to Fill".
+
+### Message 
+
+* Stage Display: "Kevin Front No Clock" or "Message Daniel"
+* MultiScreen: "Message AC - Series B"
+* Props: Series Graphic
+      + Don't forget to clear props on the last slide of the message, which should typically be the series graphic
+* Timer Cues as required (reset and start)    
+
+[Back to top](#top)
+
+## Transfering the ProPresenter Playlist to the Streaming Computer
+
+> This doesn't not normally need to be done.  The most common reasons to do this would be 1) a problem with the video link between the computer and the ATEM, or 2) a desire to have completely different formatting for the same content.
+
+This process sets up the video streaming computer to mirror the main ProPresenter slide content. We do this because the main system is running at a triple wide resolution (5760x1080) and the stream is only single wide (1920x1080). 
+
+#. First finalize the playlist on the main computer (CDMU-A001)
+#. Move the playlist for today to the top of the list
+#. Convert the playlist to a Non-PCO playlist (if required) - right click on the playlist and select "convert to Non-PCO playlist"
+#. Export it - Right click on the playlist again and select 'Export'
+     + There is this tutorial on exporting: https://youtu.be/VCDpLwQEX6Q
+#. Navigate to "Shared Playlists" on the desktop ensure that the checkbox is selected to embed media
+#. Move to the streaming computer, CDMU-A002
+#. Open ProPresenter
+#. Go to File->Import->Import from File
+#. Navigate to CDMU-A001 "Shared Playlists" and click OK (or Open)
+#. You we likely see some pop-ups about existing content. Select the 'apply to all' checkbox and choose 'Overwrite'
+#. Move the newly import playlist to the top of the list.
+#. Go through each song and remove the background graphic and also apply the "UAC Lyrics" template. (Right click and "Remove" the graphic cue. Select the song item in the playlist and apply the "UAC Lyrics" Template either via right-click or the template icon at the top.)
+#. Test that the streaming computer changes slides in-Sync with the main computer. 
+
+> The connection between the two computers is defined on the ProPresenter Preferences⟶Network panel. The synchronization is communicated by playlist number, item number, and slide number, not by name. This is why we make the day's playlist, top of the list (#1 on both machines).
+
+> After Export/Import, any edits to slide content or sequence on the second computer will need to be repeated on the streaming computer or the export/import will need to be repeated.
+
+[Back to top](#top)
+
+{{< pagebreak >}} 
+# Projectors  
+
+## Turning the Front projectors On and Off
+
+The power for the projectors can be operated two ways:
+
+* via the web page for each projector
+* Via the CueCommander application on CDWU-0009. "On" is found in the 8:30 tab and "Off" in the 11:30 tab.
+
+![Power On](../../images/sop-ProjectorPower.jpg)
+
+## Turning the Confidence Projector On and Off
+
+The remote for the balcony projector (aka confidence projector) is  found near the computer monitor. To power off this projector you need to hit the off button twice.
+
+[Back to top](#top)
+
+## Trouble Shooting
+
+Filter needs cleaning
+: Please advise Terry.
+
+[Back to top](#top)
+
+{{< pagebreak >}} 
+# Operating the Matrix Video Switch
+
+The matrix switch manages the routing of most video sources to various destinations. There are three ways to change the routing:
+
+* Via CueCommander
+* Via the matrix's web page
+* Via the front panel buttons
+
+__Via CueCommander__
+
+On the windows computer, CDWU-0009, there is a program called CueCommander. It is normally running, but if not there is a shortcut to it on the lower left corner of the desktop.
+
+The picture below shows the Video Matrix settings. The left-hand side shows the routing Matrix. The inputs are along the top, the outputs down the side. A filled-in circle indicates the input for each output.
+
+For exmple, in the picture below, the Nursery (bottom row) is sourced from the ATEM Program output.
+
+![Operating the Matrix switch via CueCommander](../../images/sop-matrixNormal.jpg)
+
+There are some shortcuts on the right hand side. If you click all the buttons indicated in box in the diagram, everything will be set to normal.
+
+__Via the Web Page__
+
+Another way to operate the matrix video switch (Asset Tag ZVKU-A001) is from its web page. There should be a shortcut to it on the computer desktop, or use 
+[this](`r NetworkInventory %>% filter(AssetTag == "ZVKU-A001" ) %>% select(URL)`).
+
+On the page, click the output you want to change, and the input you want to tie it to. There is a little number in the output box which tells you which input it is tied to. The screen will go black for a few seconds while it makes the change.
+
+__Via Front Panel Buttons__
+
+You can do a similar thing directly on the front panel of the switch itself using the OUT and IN buttons.  The unit is located under the desk near the computer.
+
+![Matrix Video Swtich](../../images/sop-gear-vs88dt-1.jpg)
+
+
+[Back to top](#top)
+
+{{< pagebreak >}} 
+# Troubleshooting
+
+## Stage Display appears on the front Projectors
+
+The problem - two scenarios:
+
+#. ProPresenter has confused which video out is for the front and which is for the  rear. 
+#. The video matrix has been routed to the video feeds incorrectly. This is much less likely.
+
+Recover steps:
+
+* Go into the settings for ProPresenter. (use the ProPresenter top menu) 
+* go to the Displays Tab
+* Swap the "SD" and "Output" rectangles - drag one on top of the other. If that doesn't fix it, do it one more time. 
+* if still not fixed check the routing on the Video Matrix. Outputs 1 through 4 should be sourced from inputs 1 through 4 respectively.
+
+## Projector screens are Red
+
+The problem: 
+
+* The Datapath fx4 has a problem. It outputs solid red if it has an incompatible configuration.
+* This can be verified by switching a projector to an alternate video source (via matrix)
+
+Recover steps:
+
+* Turn the fx4 off an on again.
+
+Alternate (emergency - all displays will show same content):
+
+* Go to the video matrix and change the routing of output 1, 2 and 3 to come from the confidence display. 
+* Change the ProPresenter stage display settings to be the primary output.
+
+## Projectors show only Blue - the desktop colour
+
+Blue is the secondary monitor desktop background Colour. An easy way to verify the scenario is to open a Finder window and drag it onto a projector screen. If it appears there then you know the video path is working.  
+
+The problem:
+
+* ProPresenter is confused
+* This can be verified by opening “System Preferences” and select “Displays”. The displays dialog should appear on the projectors.
+
+Recovery:
+
+* Restart ProPresenter
+* If that doesn’t work, verify the the display settings in ProPresenter Preferences. Sometimes it helps to drag the stage display onto output once or twice until things are correct again. 
+
+## Video mixer (ATEM) sees only a black image for the ProPresenter input
+
+The problem:
+
+* The Datapath fx4 is not producing a compatible signal.
+
+Recovery:
+
+* Option A:
+    * Turn the data path off and on again. This will cause the mac to reset all of its video output as well. 
+    * Restart ProPresenter - Proresenter doesn't like to have its video outputs reset while it is running.
+    
+* Option B:
+    * On a Web browser, go to the fx4 web page http://192.168.0.192 
+    * Select Wall Designer
+    * click the open icon on the right side.
+    * Navigate to … Dropbox/UAC_Software/DatapathFX4/2017-12-27 sw.wdl (or a more recent file in the same location)
+    * Go to the devices tab, right click on the fx4 graphic, select assign, enter the ip address (192168.0.192) and then apply settings button on the left hand side.
+    * All projectors will be disrupted for about 20 seconds when you do this.
+    * ProPresenter will need to be restarted.
+
+* Option C: (not fully documented)
+    * Quit ProPresenter 
+    * On the Mac, open the SwitcherX settings application 
+    * Go to the Custom resolutions tab 
+    * Select the 1080p60 mode. And apply. 
+    * The mac video system will reset. 
+    * Restart ProPresenter.
+    
+Option C is likely the fastest and least disruptive approach. The duration of the disruption will be from when you apply the correct resolution until ProPresenter fully restarts.    
+
+Alternate:
+* No easy alternate.
+
+## Projectors don’t respond to the web page request (to turn on or off)
+
+The problem:
+
+* Network trouble
+
+Recovery:
+
+* Use the grey Sony remote controls to turn them on.
+* You need to be pretty much directly below each projection screen and point the remote at the projector. One remote will do all three but you will have to change the selector switch for each projector (not sure if the switch is labelled 1,2,3 or A,B,C.) The east screen is the “first” ( A or 1).
+
+{{< pagebreak >}} 
+# Appendix
+
+## Video Terminology
+
+> TODO: Write content
+
+[Back to top](#top)
+
+`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
+
+[Back to top](#top)
+
+{{< pagebreak >}} 
+# Document Source
+This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
+
+# Document Change History
+
+`r commit.log.html( knitr::current_input() )`
