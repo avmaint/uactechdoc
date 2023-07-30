@@ -550,4 +550,4 @@ The source is found here `r getwd()` / `r ci`.
  
 # Document Change History
 
-`r commit.log.html( ci )
+`r commit.log.html( ci )`
