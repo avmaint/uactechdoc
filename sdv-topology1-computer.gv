@@ -28,13 +28,13 @@ cdmua001  [ label="
   { \n\nStage\n\n\n\n | { <sdndi> Stage\nvia NDI |  <sd> RearDeckLink  } } 
 
  | {  Front_TW | { <pa> ProjA  | <pb> ProjB | <pc> ProjC }   } 	
+| { Front_SW | { <hdmi> Single }   }
  
 | { FillKey | { <k> Key  | <f> Fill }   }
  
 | { \nUSB\n\n |  {<usbc1>usbc1  } }
 }}}"]; 
 
-cdmua001:usbc1 -> adapter [label="dongle\nusb" fontsize=12]
 adapter [label="video dongle\nZVIU-xxxx"]
 
 zviue004tw [  label="
@@ -116,6 +116,8 @@ cdmua001:pc -> zviue004tw:c8   [label="2307-1804\nsw" ]
 cdmua001:sd -> zviue004sd:c3   [label="2307-1805\nsw" ]
 zviue004in:c5  -> cdmua001 :in1 [label="2307-1807\nsw" ]
 zviue004in:c7  -> cdmua001 :in2 [label="2307-1809\nsw" ]
+cdmua001:hdmi -> adapter        [label="2307-30000\nsw" ]
+
 }
 
 } 

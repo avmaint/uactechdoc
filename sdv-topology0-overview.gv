@@ -1,6 +1,6 @@
 digraph topology0 { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Overview\n(as of 2023-07-21)",
+      label="Overview\n(as of 2023-07-30)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
@@ -8,7 +8,7 @@ node [shape=Mrecord, tooltip="" , fontsize = 10,
       gradientangle=270]
       
 zvkua001 [label="Video\nMatrix|ZVKU-A001"]
-zvkua003 [label="Video\nmixer|ZVKU-A003"]
+zvkua003 [label="Video\nMixer|ZVKU-A003"]
     
 cdmua001 [label="ProPresenter|CDMU-A001"]
 cumug001 [label="OBS|CUMU-G001"]
@@ -16,6 +16,7 @@ cdwu0009 [label="Windows|CDWU-0009"]
 
 wp [label="Web\nPresenter|ZVIU-A004"] 
 
+cdmua001 -> zvkua003
 zviud002    [label="Resi Encoder|ZVIU-D002"]
 resi        [label="Resi|Service"]
 facebook    [label="Facebook Live|Service"]
