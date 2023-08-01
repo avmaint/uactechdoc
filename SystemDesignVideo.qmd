@@ -44,14 +44,10 @@ This document provides key technical documentation for the video recording and b
 
 This diagram (@fig-video-overview) provides an overview of the major components and leaves out some details.
 
-```{dot}
+```{dot overview}
 //| label: fig-video-overview
 //| fig-cap: "Video system overview."
 //| file: sdv-topology0-overview.gv
-```
-
-```{r chunk39}
-#DiagrammeR::grViz("sdv-topology0-overview.gv")
 ```
 
 Frequently throughout this document there will be a diagram or description of some aspect of the installation and following that a listing of the mentioned equipment which provide more detail on the mentioned assets.
