@@ -1,14 +1,14 @@
 digraph webpresenter { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Video Recording Topology - Web Presenter\n(as of 2023-07-23)",
+      label="Video Recording Topology - Web Presenter\n(as of 2023-07-30)",
       fontname = Helvetica, bgcolor=white
       ]
  
 node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
       gradientangle=270 fontname = Helvetica ]
       
-rswitch [
+zvkua003 [
   tooltip="BMD ATEM Television Studio Pro HD"
 
   label="{
@@ -20,15 +20,37 @@ rswitch [
     }"
 ]
 
-wp [label="{{ {<i1>sdi|1 }|{<i2>hdmi|2} }|{Web Presenter \n ZVIU-A004}|{<usb>usb}}"]
+zviua004 [label="{{{<i1>sdi|1 }|{<i2>hdmi|2} }|{Web Presenter \n ZVIU-A004}|{<usb>usb}}"]
 
-cumug001 [label="{Macmini\nOBS & Zoom|CUMU-G001}"]
- 
-converter [label="{<i>sdi|ZVIU-D001|<o>hdmi}"]
+zvrua001 [label="{{ {<in>sdi }}|{Recorder 1\nZVRU-A001}|{{<outa>Out A}|{<outb>Out B}}}"]
 
-rswitch:aux -> converter:i [label="2307-1808" fontsize=10]
-converter:o -> wp:i2 
-rswitch:o4 -> wp:i1
+zvrua002 [label="{{ {<in>sdi }}|{Recorder 2\nZVRU-A002}|{{<outa>Out A}|{<outb>Out B}}}"]
+
+cumug001 [label="{<usb>usb|MacMini\nOBS & Zoom|CUMU-G001}"]
  
-wp -> cumug001
+zviud001 [label="{<i>sdi|ZVIU-D001|<o>hdmi}"]
+
+zviud001:o   -> zviua004:hdmi [label="2307-3007??\n3004"]
+ 
+zviua004 -> cumug001 [label="?\nusb"]
+
+subgraph sdi_cables { 
+	edge [style="solid", color="blue" fontsize="10pt"]
+zvrua001:outb -> zvrua002:in [label="outb\n2307-3001"]
+zvrua001:outa -> zviua004:sdi [label="outa\n2307-3002"]
+zvkua003:o4   -> zviua004:sdi [label="?"]
+
+zvkua003:aux  -> zviud001:sdi [label="2307-1808" ]
+zvkua003:out5 -> zvrua001:sdi [label="2307-3005"]
+zvkua003:out6 -> zviud002:sdi [label="2307-3006"]
+}
+
+subgraph hdmi_edges {
+	edge [style=solid, color="#009900", fontsize="10pt" ]
+zviud001:hdmi -> zviua004:hdmi [label="2307-3007"]
+y ->  zviua004 [label="2307-3003?\nhdmiin"]
+}
+
+zviua004 -> x [label="2307-3003?"] 
+	
 } 
