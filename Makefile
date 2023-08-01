@@ -16,6 +16,8 @@ SOP_QMD = SystemOperationsProjection.qmd
 SOP_HTML= SystemOperationsProjection.html
 SOP_PDF = SystemOperationsProjection.pdf
 
+FI      = FurtherInformation.Rmd
+
 QUARTO = "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/quarto"  
 QUARTO = "/Applications/quarto/bin/quarto"
 
@@ -23,24 +25,24 @@ QUARTO = "/Applications/quarto/bin/quarto"
 all:  $(SDV_HTML) $(SDD_HTML) $(SOV_HTML) $(SDV_PDF) $(SOP_PDF) $(SOP_HTML)
 #####
 
-sdv: $(SDV_HTML) $(SDV_PDF)
+sdv: $(SDV_HTML) $(SDV_PDF) $(FI)
 	echo making sdv
 
-$(SDV_HTML): $(SDV_QMD ) commonFunctions.R commonPackages.R data/cables.xlsx
+$(SDV_HTML): $(SDV_QMD ) commonFunctions.R commonPackages.R data/cables.xlsx $(FI)
 	$(QUARTO) render $(SDV_QMD)	--to html
 	$(QUARTO) render $(SDV_QMD)	--to pdf
 
-$(SOV_HTML): $(SOV_QMD ) commonFunctions.R commonPackages.R 
+$(SOV_HTML): $(SOV_QMD ) commonFunctions.R commonPackages.R $(FI)
 	$(QUARTO) render $(SOV_QMD)	--to html
 	$(QUARTO) render $(SOV_QMD)	--to pdf
 
-$(SOP_HTML): $(SOP_QMD ) commonFunctions.R commonPackages.R 
+$(SOP_HTML): $(SOP_QMD ) commonFunctions.R commonPackages.R $(FI)
 	$(QUARTO) render $(SOP_QMD)	--to html
 
-$(SOP_PDF): $(SOP_QMD ) commonFunctions.R commonPackages.R 
+$(SOP_PDF): $(SOP_QMD ) commonFunctions.R commonPackages.R images/sop* $(FI)
 	$(QUARTO) render $(SOV_QMD)	--to pdf
 
-$(SDD_HTML): $(SDD_QMD ) commonFunctions.R commonPackages.R commonFunctionsAudio.R
+$(SDD_HTML): $(SDD_QMD ) commonFunctions.R commonPackages.R commonFunctionsAudio.R $(FI)
 	$(QUARTO) render $(SDD_QMD)	--to html 
 	
 $%.html: %.qmd	
