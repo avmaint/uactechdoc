@@ -58,9 +58,9 @@ mdhx1 [
  
 z150 [ label="{Stage Camera Z150\nZVVU-C001|<sdi>sdi}" ] 
  
-camera1  -> zvkua003:i5 [label="2307-2302" fontsize=10]
+camera1  -> zvkua003:i5 [label="2307-2304" fontsize=10]
 camera2  -> zvkua003:i6 [label="2307-2303" fontsize=10]
-camera3  -> zvkua003:i7 [label="2307-2304" fontsize=10]
+camera3  -> zvkua003:i7 [label="2307-2302" fontsize=10]
 
 b2305 [shape=cylinder width=0.2 height=0.3 label=""]
 z150:sdi -> b2305  [label="2307-2306\nstage extension" fontsize=10]

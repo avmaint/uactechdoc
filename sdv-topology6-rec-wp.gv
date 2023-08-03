@@ -1,7 +1,7 @@
-digraph webpresenter { 
+digraph VideoRecording { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Video Recording Topology - Web Presenter\n(as of 2023-07-30)",
+      label="Video Recording Topology - Web Presenter\n(as of 2023-08-01)",
       fontname = Helvetica, bgcolor=white
       ]
  
@@ -28,7 +28,10 @@ zvrua002 [label="{{ {<in>sdi }}|{Recorder 2\nZVRU-A002}|{{<outa>Out A}|{<outb>Ou
 
 cumug001 [label="{<usb>usb|MacMini\nOBS & Zoom|CUMU-G001}"]
  
-zviud001 [label="{<i>sdi|ZVIU-D001|<o>hdmi}"]
+zviud001 [label="{<i>sdi|sdi→hdmi|ZVIU-D001|<o>hdmi}"]
+
+zviud002 [label="{<i>sdi|Resi\nEncoder\nZVIU-D002}"]
+
 
 zviud001:o   -> zviua004:hdmi [label="2307-3007??\n3004"]
  
@@ -52,5 +55,5 @@ y ->  zviua004 [label="2307-3003?\nhdmiin"]
 }
 
 zviua004 -> x [label="2307-3003?"] 
-	
+
 } 
