@@ -135,6 +135,16 @@ get.network <- function() {
   return(work.network)
 }
 
+get.cables <- function () {
+	path <- file.path("~", "Documents", "UACTech", 
+					  "SystemDocumentation", "github", "uactechdoc", "data")
+	file <- "cables.xlsx"
+	sheet <- "Cables"
+	cables <- read_excel(file.path(path, file), 
+					     sheet = sheet)
+	return(cables)
+}
+
 #' retrieves the inventory database
 #' @return a data frame containing the inventory database
 get.inventory <- function() {
