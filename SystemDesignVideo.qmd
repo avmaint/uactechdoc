@@ -45,6 +45,7 @@ This document provides key technical documentation for the video recording and b
 This diagram (@fig-video-overview) provides an overview of the major components and leaves out some details.
 
 ```{dot overview}
+//| fig-width: 4
 //| label: fig-video-overview
 //| fig-cap: "Video system overview."
 //| file: sdv-topology0-overview.gv
@@ -148,6 +149,8 @@ The display should look like:
 |Input |1|2|3|4|8|-|-|5|
 
 ```{dot}
+//| fig-width: 3
+//| fig-height: 2
 //| label: fig-matrix-normal
 //| fig-cap: "Normal video matrix configuration"
 //| file: sdv-PSnormal.gv
@@ -171,6 +174,8 @@ TODO: figure this out so that we can select the "Proj B" video feed on the ATEM.
 The centre screen content can be flipped between 'normal' centre screen content from Proprestenter to ATEM Program Output by changing the Aux Bus setting on the ATEM.  
  
 ```{dot}
+//| fig-width: 3
+//| fig-height: 2
 //| label: fig-matrix-camera
 //| fig-cap: "Video matrix configuration for camera on-screen"
 //| file: sdv-PScamera.gv
@@ -205,6 +210,7 @@ CUMU-G001 MacOS / ATEM Control / OBS / Propresenter
 
 
 ```{dot}
+//| fig-width: 4
 //| label: fig-topology-computer
 //| fig-cap: "Topology of video related computers"
 //| file: sdv-topology1-computer.gv
@@ -223,6 +229,8 @@ print_inv(c("CDWU-0009","CDMU-A001" , "ZVIU-E004" #"CDMU-G001" ,
 There are four projectors in the auditorium, three FoH and one at the rear for confidence. Thet are all feed an hdmi signal via HDBaseT (Over Cat6).
 
 ```{dot}
+//| fig-width: 4
+//| fig-height: 2
 //| label: fig-topology-projection
 //| fig-cap: "Topology of video projectors"
 //| file: sdv-topology2-projection.gv
@@ -239,6 +247,8 @@ The TV in the lobby gets its content from the video matrix. For the main service
 There is a network cable that also runs to the lobby TV, and is for future use.
 
 ```{dot}
+//| fig-width: 4
+//| fig-height: 2
 //| label: fig-topology-lobby
 //| fig-cap: "Topology for lobby TV"
 //| file: sdv-topology3-lobby.gv
@@ -256,6 +266,8 @@ print_inv(c("ZVIU-A001", "ZVKU-A001", "ZVVU-0002"), Tech_Inventory)
 The TV in the nursery gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
 
 ```{dot}
+//| fig-width: 4
+//| fig-height: 2
 //| label: fig-topology-nursery
 //| fig-cap: "Topology for nursery TV"
 //| file: sdv-topology4-nursery.gv
@@ -275,6 +287,8 @@ The recording topology is quite complex and so it is broken up into peices.
 A key constraint for the ATEM video mixer is that all inputs must have the same input resolution settings. We have choosen 1080p59.94. 
 
 ```{dot}
+//| fig-width: 4
+//| fig-height: 2
 //| label: fig-topology-recin
 //| fig-cap: "Topology for recording inputs"
 //| file: sdv-topology5-rec-inputs.gv
@@ -289,6 +303,8 @@ A key constraint for the ATEM video mixer is that all inputs must have the same 
 >TODO: verify path to recorders - do they both come directly out of the ATEM, or are they daisy chained?
 
 ```{dot}
+//| fig-width: 4
+//| fig-height: 2
 //| label: fig-topology-recout
 //| fig-cap: "Topology for Recording Outputs"
 //| file: sdv-topology5-rec-outputs.gv
@@ -309,6 +325,8 @@ The Loop out on ZVIU-D001 and on recorder 1 is used to make this work.
 TODO: Document routing details between ATEM and WP. label cables. 
  
 ```{dot}
+//| fig-width: 4
+//| fig-height: 3
 //| label: fig-topology-webpres
 //| fig-cap: "Topology for Web Presenter"
 //| file: sdv-topology6-rec-wp.gv
