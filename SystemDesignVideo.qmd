@@ -206,8 +206,6 @@ CUMU-G001 MacOS / ATEM Control / OBS / Propresenter
 
 >todo: Confirm web presenter SDI and HDMI inputs.
 
->todo: is the monitor for CDWU-0009 a vga monitor? 
-
 
 ```{dot}
 //| fig-width: 4
