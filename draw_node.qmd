@@ -1,0 +1,208 @@
+---
+title: "Device Connectivity Report"
+author: "Terry Doner"
+date: last-modified
+date-format: "[Last Updated on] MMMM DD YYYY"
+format: html
+editor: visual
+execute: 
+  eval: TRUE
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+target<- c("2308-0802", "2308-0803" , "CDWU-A002" , "ZAKU-A001")
+#target <- c(  "CDMU-A001", "ZVKU-A001", "ZVKU-A003", "2308-0808")
+```
+
+This report provides the details for these devices `r target` and the devices connected to them (it).
+
+ 
+```{r packages, eval=TRUE}
+# Install and load necessary packages
+ 
+library(DiagrammeR)
+library(tidyverse) 
+source('commonPackages.R')
+source('commonFunctions.R')
+```
+
+```{r eval=TRUE}
+# need to source common packages and functions
+library(readxl)
+inventory <- get.inventory() #; nrow(inventory)
+cables <- get.cables()
+```
+
+```{r eval=TRUE}
+target_cables <- cables |>
+	filter(SrcTag %in% target | DstTag %in% target)  
+
+target_devices <- c(target_cables$SrcTag ,
+	target_cables$DstTag ,
+	target )
+```
+
+```{r}
+inports <- function(dev) {
+	text <- cables |>
+		filter(DstTag == dev) |>
+		arrange(DstPort) |>
+		mutate(text = glue( "<{DstPort}>{DstPort}"  )) |>
+		pull(text) |> paste(    collapse="|")
+	
+	return( paste("{", text, "}")   )
+		
+}
+
+outports <- function(dev) {
+	text <- cables |>
+		filter(SrcTag == dev) |>
+		arrange(SrcPort) |>
+		mutate(text = glue( "<{SrcPort}>{SrcPort}"  )) |>
+		pull(text) |> paste(    collapse="|")
+	
+	return( paste("{", text, "}")   )
+		
+}
+```
+
+# Connected Neighbours
+
+```{r}
+inventory |>
+	filter(AssetTag %in%  target_devices) |>
+	filter(!is.na(AssetTag)) |>
+	select(AssetTag, Manufacturer, Model, Desc) |>
+	gt() |>
+			opt_stylize(style = 3) |>
+	tab_header( glue("Connected neighbours of {paste(target, collapse=', ')}")
+			  , subtitle = "They are highlighted in yellow"
+			  ) |>
+    tab_style(  
+      
+      style = list(  cell_fill(color = "yellow")  ),
+      locations = cells_body(columns = AssetTag,
+      					     rows = AssetTag %in% target   )
+	) |>
+	tab_style(
+		style=list( cell_text(weight = "bold") ),
+		locations=cells_body(columns=AssetTag)
+	)
+
+devices_data <- inventory |>
+	filter(AssetTag %in%  target_devices) |>
+	filter(!is.na(AssetTag))  |>
+	mutate(tag = tolower(str_replace(AssetTag, "-", ""))) |>
+	rowwise() |>
+	mutate(inports  =   inports( AssetTag ) ) |>
+	mutate(outports =  outports( AssetTag ) ) |>
+	mutate(label = glue('[ label= "{{  {inports}| {{  {Desc}|{AssetTag} }} |{outports} }}"]' ))  |>
+	mutate(code = paste(tag, label)) |>
+	select(AssetTag, Desc, tag, label,  code)
+
+devices_code_str <- paste(devices_data$code, collapse="\n")
+```
+
+# Cables
+
+```{r}
+target_cables |>	
+		select(-GraphFormula) |>
+	gt() |>
+			opt_stylize(style = 3) |>
+	tab_header( glue("Cables connected to {paste(target, collapse=', ')}") 
+			  , subtitle = "They are highlighted in yellow"
+			   ) |>
+    tab_style(
+      style = list(
+        cell_fill(color = "yellow")
+        ),
+      locations = cells_body(
+        columns = SrcTag ,
+        rows = SrcTag %in% target
+    )
+  )|>
+    tab_style(
+      style = list(
+        cell_fill(color = "yellow") 
+        ),
+      locations = cells_body(
+        columns = DstTag ,
+        rows = DstTag %in% target
+    )
+  ) |>
+	tab_style(
+		style=list( cell_text(weight = "bold") ),
+		locations=cells_body(columns=Tag)
+	)  
+```
+
+```{r  cable_color}
+cable_color <- function(type) {
+	cc <- case_when(
+		type == "sdi"  ~ "blue"  ,
+		type == "usb"  ~ "red"   ,
+		type == "hdmi" ~ "cyan"  ,
+		type == "vga"  ~ "green" ,
+		type == "cat"  ~ "purple",
+		type == "sw"   ~ "magenta",
+		type == "audio"~ "orange",
+		type == "ndi"  ~ "cornflowerblue",
+		.default = "black"
+	) 
+	q = "BuPu"
+	x="webgreen"
+	y = "webmaroon" 
+	z="teallightcoral"
+	return( cc )
+}
+```
+
+
+```{r}
+cable_code <- target_cables |>
+	mutate(SrcTag2 = tolower(str_replace(SrcTag, "-", ""))) |>
+	mutate(DstTag2 = tolower(str_replace(DstTag, "-", ""))) |>
+	mutate(SrcPort = str_replace(SrcPort, ' ' , '')) |>
+	mutate(DstPort = str_replace(DstPort, ' ' , '')) |>
+	mutate(SrcPort2 = ifelse(is.na(SrcPort), "", glue(": {SrcPort}"))) |>
+	mutate(DstPort2 = ifelse(is.na(DstPort), "", glue(": {DstPort}"))) |>
+	mutate(cc = cable_color(Type)) |>
+	mutate(label = glue('[label= "{Tag}\n{Type}" color={cc} ]' )) |> 
+	mutate(code = glue( 
+		"{SrcTag2} {SrcPort2} -> {DstTag2} : {DstPort} {label} "
+	))
+
+cable_code_str <- paste(cable_code$code , collapse = "\n")
+```
+
+```{r}
+today <- Sys.Date()
+labeltxt <- paste(target, collapse= ', ' )
+label = glue(' label="Connectivity for {labeltxt}\nAs of {today}"')
+
+diag <- paste( 
+"digraph outputs { 
+        graph [overlap = true, fontsize = 20, rankdir=LR, fontname = 'Helvetica' ,"
+       , label ,  
+      "]
+      
+node [shape=Mrecord, tooltip='' ,  fontsize = 10,
+      fillcolor='white:beige'  , style=filled  
+      gradientangle=270]  
+
+edge [fontsize=8]"  
+	, devices_code_str
+    , cable_code_str
+, "}")
+```
+
+# Diagram
+
+```{r}
+DiagrammeR::grViz(diag )
+```
+
