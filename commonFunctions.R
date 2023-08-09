@@ -260,3 +260,4 @@ get.training <- function() {
   fname <- file.path(path, "RightNowMediaTraining.xlsx" )
   return(read_excel(fname, sheet="training"))
 }
+
