@@ -532,8 +532,8 @@ Recovery:
 > TODO: Write content
 
 [Back to top](#top)
+
 {{< include FurtherInformation.Rmd >}}
- r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
 
 [Back to top](#top)
 
