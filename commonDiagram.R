@@ -108,7 +108,7 @@ get_diagram <- function(targets, inventory, cables, label="" ) {
 	edge [fontsize=8]"  
 	, get_device_code(target_devices, inventory, cables)
 	, get_cable_code(target_cables, cables)
-	, "}")
+	, "}") 
 	
 	return( DiagrammeR::grViz(diag) )
 }
