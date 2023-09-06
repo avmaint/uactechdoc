@@ -72,7 +72,8 @@ get_cable_code <- function(target_cables, cables) {
 		mutate(SrcPort2 = ifelse(is.na(SrcPort), "", glue(": {SrcPort}"))) |>
 		mutate(DstPort2 = ifelse(is.na(DstPort), "", glue(": {DstPort}"))) |>
 		mutate(cc = cable_color(Type)) |>
-		mutate(label = glue('[label= "{Tag}\n{Type}" color={cc} ]' )) |> 
+		mutate(usage2 = ifelse( is.na(Usage), "",  glue("{Usage} ")) ) |>
+		mutate(label = glue('[label= "{Tag}\n{usage2}{Type}" color={cc} ]' )) |> 
 		mutate(code = glue( 
 			"{SrcTag2} {SrcPort2} -> {DstTag2} : {DstPort} {label} "
 		))
@@ -110,5 +111,5 @@ get_diagram <- function(targets, inventory, cables, label="" ) {
 	, get_cable_code(target_cables, cables)
 	, "}") 
 	
-	return( DiagrammeR::grViz(diag) )
+	return(  diag  )
 }
