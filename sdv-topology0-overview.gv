@@ -1,6 +1,6 @@
 digraph topology0 { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Overview\n(as of 2023-07-30)",
+      label="Overview\n(as of 2023-09-06)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
@@ -24,7 +24,7 @@ youtube     [label="YouTube Live|Service"]
 chop        [label="Church Online Platform|Service"]
 recorders   [label="Video\nRecorders"]
 zviue004    [label="DeckLink|ZVIU-E004"]
-tvs         [label="{TVs|{Lobby|Nursery}}"]
+tvs         [label="{TVs|{Lobby|Nursery|Toddler}}"]
 cameras     [label="{{Left|Centre|Right|Stage}|Cameras}"]
 cumue001	[label="Reaper DAW|CUMU-E001"]
 
