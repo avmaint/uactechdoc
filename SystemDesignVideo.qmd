@@ -430,8 +430,5 @@ This document is compiled by merging text and data together using rmarkdown. The
 
 # Change History
 ```{r change_history}
-
-o <- commit.log.html(  ci )
+commit.log.html(  ci )
 ```
- 
-`r o` 
