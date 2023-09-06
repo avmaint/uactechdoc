@@ -36,7 +36,7 @@ get_diagram(targets, inventory, cables)
 
 # Audio Ouputs Diagram
 
-```{r}
+```{r  }
 targets <- c( 'ZAKU-A001' 
 			,  '2308-0008'
 , '2308-0913'
@@ -47,11 +47,17 @@ targets <- c( 'ZAKU-A001'
 , '2308-0908'
 , '2308-0904'
 , '2308-0903'
-, '2308-0902' )
+, '2308-0902' , '2308-1000')
 
 #label <- 'Audio_System_Outputs'
 get_diagram(targets, inventory, cables )
 ```
+
+```{dot}
+//| file: sdy-audio-outputs4.gv
+```
+ 
+
 
 # Video System Diagram
 
