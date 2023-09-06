@@ -15,12 +15,11 @@ options(knitr.table.format = "html") # latex for pdf
 ```
 
 ```{r packages}
-require(readr)
-require(dplyr)
-require(readxl)
+source("commonPackages.R")
+
+require(readr) 
 require(knitr)
 require(formattable)
-require(ggplot2)
 require(kableExtra)
 ```
 
@@ -655,20 +654,17 @@ Intensity of zero is stop. The closer to 50 the slower it rotates. 1-49 and 50-1
 
 `r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
 
-# Document Source
-This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(),  knitr::current_input())`.
+[Back to top](#top)
 
-going direct to pdf requires some trickery 'cause Diagrammer doesn't support than directly. here is a hack which would beed to be conditional on html versus pdf output.
+```{r current_input}
+ci <- knitr::current_input() # knitr sees a different filename than the input
+ci <- str_replace(ci, 'rmarkdown','qmd')
+```
+
+# Document Source
+This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc) "`r ci`".
 
 # Change History
-
-`r commit.log.html( knitr::current_input() )`
-
-```{r eval=FALSE}
-# seq is the input
-tmp<-capture.output(rsvg_png(charToRaw(export_svg(seq)),'seq.png'))
-cat('![Sequence diagram](seq.png){#fig:seq}\n\n')
- 
-# The next line is placed in markdown
-# ![Sequence diagram](seq.png){#fig:seq}
+```{r change_history}
+commit.log.html(  ci )
 ```
