@@ -1,5 +1,5 @@
 ---
-title: "Device Connectivity Report"
+title: "Nursery and Toddler Video Configuration"
 author: "Terry Doner"
 date: last-modified
 date-format: "[Last Updated on] MMMM DD YYYY"
@@ -12,6 +12,8 @@ format:
     number-sections: true 
     toc: true
     toc-depth: 2
+    header-includes:
+       - \usepackage{rotating}    
 always_allow_html: yes
 editor: visual
 execute: 
@@ -20,24 +22,59 @@ execute:
   warning: false
   message: false
 ---
-
-```{r}
+ 
+```{r target_shortcuts}
 #target<- c("2308-0002", "2308-0003" , "CDWU-A002" )
  target <- c(  "CDMU-A001",   "2308-0808")
 #target <- "ZVIU-A004"
 #target <- c("ZVKU-A001", "ZVIU-A001", "ZVIU-A002",
 #			"ZVIU-B001", "ZVIU-A005")
 
-daw <- c('2308-1100'
-		, '2308-1101'
-		, '2308-1102'
-		, '2308-1103'
-		, '2308-1104'
-		, '2308-1105'
-		, '2308-1106'
-		, '2308-1107'
-		, '2308-1110')
-target <- daw
+daw <- c('2308-1100' ,   '2308-1102'
+		, '2308-1103', '2308-1104', '2308-1105', '2308-1106', '2308-1107', '2308-1110'
+		, '2308-1124'
+		)
+
+daw_network <- c('2308-1100'  
+	, "patchpanel"
+	, "modem"
+	, "router","2308-1124", "NSCU-A003", "NSCU-A002"
+)
+
+youth <- c("ZAKU-A001", "2308-0906", "CDWU-A002")
+
+aug11 <- c(     "2308-0808", 
+				"2307-1827", "2307-1828",
+				"ZVKU-A003")#, "ZVIU-E004" )
+aug12 <- c("ZVIU-E003", "ZVIU-A008",
+		   "2308-1204","2308-1205")
+
+atem <- c( "ZVKU-A003" , "CUMU-G001")
+g1 <- c(   "CUMU-G001" ,"ZVIU-G001")
+  
+pp <- c("CDMU-A001")
+
+dl_atem <- c("ZVIU-E004"
+			, "ZVVU-A001", "ZVVU-A002", "ZVVU-A003"
+			, "ZVIU-G003", "ZVIU-G004", "ZVIU-G005"
+			, "ZVIU-E001"
+			, "ZVIU-E003", "ZVIU-A008"
+			)
+
+aug13 <- c("ZVKU-A001", "ZVKU-A003")
+aug14 <- c("ZVKU-A001", "CDWU-0009")
+vs88 <- c("ZVKU-A001", "ZVIU-C001")
+nursery <- c("ZVIU-A002", "ZVVU-0002", "ZVVU-0003")
+
+vmac <- c( "ZVIU-C002")
+dl <- c("ZVIU-E004")
+```
+
+```{r set_target}
+target <- vmac # vs88 #dl_atem 
+#target <- pp
+#target <- daw_network 
+target <- nursery #vs88#dl
 ```
 
 This report provides the details for these devices `r target` and the devices connected to them (it).
@@ -61,20 +98,44 @@ target_devices <- c(target_cables$SrcTag ,
 	target_cables$DstTag ,
 	target )
 ```
- 
+
 # Diagram
 
-```{r }
-get_diagram(target , inventory, cables)
-``` 
- 
-# Connected Neighbours
+
+```{r draw }
+diag <- get_diagram(target , inventory, cables)
+# clipr::write_clip( diag )
+
+tf <- tempfile(fileext=".png", tmpdir="~/Downloads")
+
+t <- DiagrammeR::grViz(diag) 
+
+#install.packages("rsvg")
+#install.packages("DiagrammeRsvg")
+library(rsvg)
+library(DiagrammeRsvg)
+grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf) # need for pdf render
+```
+
+:::{.content-visible when-format="html"}
+
+`r t`
+
+:::
+
+:::{.content-visible when-format="pdf"}
+
+`r sprintf("\\includegraphics {%s}", tf)`
+
+:::
+
+
 
 ```{r gt_inventory}
-inventory |>
+table <- inventory |>
 	filter(AssetTag %in%  target_devices) |>
 	filter(!is.na(AssetTag)) |>
-	select(AssetTag, Manufacturer, Model, Desc) |>
+	select(AssetTag, Manufacturer, Model, Desc, Room, Location) |>
 	gt() |>
 			opt_stylize(style = 3) |>
 	tab_header( glue("Connected neighbours of {paste(target, collapse=', ')}")
@@ -90,13 +151,28 @@ inventory |>
 		style=list( cell_text(weight = "bold") ),
 		locations=cells_body(columns=AssetTag)
 	)
+ # |> tab_options(
+ #      page.orientation = "landscape"
+ #   )
 ```
- 
-# Cables
+
+# Devices
+
+:::{.content-visible when-format="pdf"}
+`r sprintf("\\begin{sidewaysfigure}")`
+`r table`
+`r sprintf("\\end{sidewaysfigure}")`
+:::
+
+:::{.content-visible when-format="html"}
+`r table`
+:::
+
+
 
 ```{r gt_cables}
-target_cables |>
-	select(Tag,SrcTag,SrcPort,DstTag,DstPort,Type,Length,`Labelled?`,Notes) |>
+table <- target_cables |>
+	select(Tag,SrcTag,SrcPort,DstTag,DstPort,Type,Length,Notes) |>
 	gt() |>
 			opt_stylize(style = 3) |>
 	tab_header( glue("Cables connected to {paste(target, collapse=', ')}") 
@@ -125,3 +201,15 @@ target_cables |>
 		locations=cells_body(columns=Tag)
 	)  
 ```
+# Cables
+
+:::{.content-visible when-format="pdf"}
+
+`r sprintf("\\begin{sidewaysfigure}")`
+`r table`
+`r sprintf("\\end{sidewaysfigure}")`
+:::
+
+:::{.content-visible when-format="html"}
+`r table`
+:::
