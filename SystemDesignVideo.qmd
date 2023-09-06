@@ -426,7 +426,7 @@ ci <- str_replace(ci, 'rmarkdown','qmd')
 ```
 
 # Document Source
-This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r ci`.
+This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc) "`r ci`".
 
 # Change History
 ```{r change_history}

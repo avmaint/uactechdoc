@@ -457,12 +457,15 @@ Video_Inventory |>
 
 [Back to top](#top)
 
-# Document Source
+```{r current_input}
+ci <- knitr::current_input() # knitr sees a different filename than the input
+ci <- str_replace(ci, 'rmarkdown','qmd')
+```
 
-This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
+# Document Source
+This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc)  `r ci`.
 
 # Change History
-
 ```{r change_history}
-commit.log.html( knitr::current_input() )
+commit.log.html(  ci )
 ```
