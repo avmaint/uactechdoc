@@ -16,7 +16,9 @@ options(knitr.table.format = "html")
 ```
 
 ```{r functions}
+source("commonPackages.R")
 source("commonFunctions.R")
+
 ```
  
 ```{r packages, include=FALSE}
