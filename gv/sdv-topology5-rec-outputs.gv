@@ -1,0 +1,93 @@
+digraph recording { 
+	
+graph [overlap = true, fontsize = 20, 
+      label="Video Recording Topology - Outputs\n(as of 2023-08-02)",
+      fontname = Helvetica, bgcolor=white
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+      
+zviud001 [label="{<sdi>sdi|ZVIU-D001|<hdmi>hdmi}" tooltip="BMD mini"]
+
+zviua005 [label="{<sdi>sdi|ZVIU-A005|<hdmi>hdmi}" tooltip="BMD mini"]
+
+rswitch [
+  tooltip="BMD ATEM Television Studio Pro HD"
+
+  label="{
+    {{<al>AudioL}|{<ar>AudioR}|
+      {<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}
+      |{<i5>sdi|In5}|{<i6>sdi|In6}|{<i7>sdi|In7}|{<i8>sdi|In8}}
+      |Recording Switcher\nZVKU-A003
+      |
+      {{Out5|<o5>sdi}
+      |{Out6|<o6>sdi}
+      |{Out7|<o7>sdi}
+      |{Out8|<o8>sdi}
+      |{Pgm|<pgm>sdi}
+      |{Aux|<aux>sdi}
+      |{mv|<mv>hdmi}}
+    }"
+]
+
+pswitch [
+  tooltip="Kramer VS-88DT"
+  label="{
+  {
+    <i1>In1|<i2>In2|<i3>In3|<i4>In4|<i5>In5| <i6> In6 |<i7>In7|{<i8>In8}}
+  |Video Matrix\nZVKU-A001|
+  {<o1>Out1|<o2>Out2|<o3>Out3|<o4>Out4|<o5>Out5|<o6>Out6 |<o7>Out7|{Out8<o8>}} }"]
+   
+switchmonitor [label="{
+    <i>hdmi|In
+      |MultiView Monitor 
+   }"
+   tooltip="Samsung"
+   ]
+
+zvrua001 [
+  label="{
+    <i1>sdi|in1
+    |Recorder\nZVRU-A001 
+    |{<outa>out a
+    |<outb>out b}
+    }"
+  tooltip="BMD Hyperdeck Studio Mini"
+]
+
+zvrua002 [
+  label="{
+    <i1>sdi|in1
+    |Recorder\nZVRU-A002 
+    }"
+  tooltip="BMD Hyperdeck Studio Mini"
+]
+
+zviud002 [label="{
+    <i>sdi|In
+      |Resi Encoder\nZVIU-D002 
+   }"
+   tooltip="in rack"
+   ]
+   
+ note [label="it could be that 2307-1806\ncomes from the Pgm out"]  
+
+subgraph sdi_edges {
+	edge  [fontsize=10, color="cyan"]
+rswitch:o5 -> zvrua001:i1  [label="2307-3005"]
+rswitch:o6 -> zviud002:sdi [label="2307-3006"]
+zvrua001:outb -> zvrua002:i1 [label="2307-3001" ]	rswitch:aux   -> zviud001 [label="2307-1808" ]
+
+rswitch:pgm -> zviua005:sdi [label="2307-1806???\nverify" color=red fontcolor="red" ]
+  
+}
+
+subgraph hdmi_edges {
+	edge  [fontsize=10, color="magenta"]
+zviua005:hdmi -> pswitch:i5
+zviud001:hdmi -> pswitch:i6
+rswitch:mv -> switchmonitor:i
+	
+}
+} 

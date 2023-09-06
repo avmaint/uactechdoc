@@ -48,7 +48,7 @@ This diagram (@fig-video-overview) provides an overview of the major components 
 //| fig-width: 4
 //| label: fig-video-overview
 //| fig-cap: "Video system overview."
-//| file: sdv-topology0-overview.gv
+//| file: gv/sdv-topology0-overview.gv
 ```
 
 Frequently throughout this document there will be a diagram or description of some aspect of the installation and following that a listing of the mentioned equipment which provide more detail on the mentioned assets.
@@ -153,7 +153,7 @@ The display should look like:
 //| fig-height: 2
 //| label: fig-matrix-normal
 //| fig-cap: "Normal video matrix configuration"
-//| file: sdv-PSnormal.gv
+//| file: gv/sdv-PSnormal.gv
 ```
 
 #### Camera On-screen Configuration  
@@ -178,7 +178,7 @@ The centre screen content can be flipped between 'normal' centre screen content 
 //| fig-height: 2
 //| label: fig-matrix-camera
 //| fig-cap: "Video matrix configuration for camera on-screen"
-//| file: sdv-PScamera.gv
+//| file: gv/sdv-PScamera.gv
 ```
 
 # Topologies
@@ -211,7 +211,7 @@ CUMU-G001 MacOS / ATEM Control / OBS / Propresenter
 //| fig-width: 4
 //| label: fig-topology-computer
 //| fig-cap: "Topology of video related computers"
-//| file: sdv-topology1-computer.gv
+//| file: gv/sdv-topology1-computer.gv
 ```
 
 ```{r top1}
@@ -231,7 +231,7 @@ There are four projectors in the auditorium, three FoH and one at the rear for c
 //| fig-height: 2
 //| label: fig-topology-projection
 //| fig-cap: "Topology of video projectors"
-//| file: sdv-topology2-projection.gv
+//| file: gv/sdv-topology2-projection.gv
 ```
 
 ```{r top2}
@@ -249,7 +249,7 @@ There is a network cable that also runs to the lobby TV, and is for future use.
 //| fig-height: 2
 //| label: fig-topology-lobby
 //| fig-cap: "Topology for lobby TV"
-//| file: sdv-topology3-lobby.gv
+//| file: gv/sdv-topology3-lobby.gv
 ```
 
 ```{r l132}
@@ -268,7 +268,7 @@ The TV in the nursery gets its content from the video matrix. For the main servi
 //| fig-height: 2
 //| label: fig-topology-nursery
 //| fig-cap: "Topology for nursery TV"
-//| file: sdv-topology4-nursery.gv
+//| file: gv/sdv-topology4-nursery.gv
 ```
 
 ```{r top3}
@@ -289,12 +289,9 @@ A key constraint for the ATEM video mixer is that all inputs must have the same 
 //| fig-height: 2
 //| label: fig-topology-recin
 //| fig-cap: "Topology for recording inputs"
-//| file: sdv-topology5-rec-inputs.gv
+//| file: gv/sdv-topology5-rec-inputs.gv
 ```
 
-```{r top5a}
-#DiagrammeR::grViz("sdv-topology5-rec-inputs.gv", height=350)
-```
 
 ### Outputs
 
@@ -305,7 +302,7 @@ A key constraint for the ATEM video mixer is that all inputs must have the same 
 //| fig-height: 2
 //| label: fig-topology-recout
 //| fig-cap: "Topology for Recording Outputs"
-//| file: sdv-topology5-rec-outputs.gv
+//| file: gv/sdv-topology5-rec-outputs.gv
 ```
 
 ### Web Presenter
@@ -327,12 +324,10 @@ TODO: Document routing details between ATEM and WP. label cables.
 //| fig-height: 3
 //| label: fig-topology-webpres
 //| fig-cap: "Topology for Web Presenter"
-//| file: sdv-topology6-rec-wp.gv
+//| file: gv/sdv-topology6-rec-wp.gv
 ``` 
  
-```{r topwp}
-#DiagrammeR::grViz("sdv-topology6-rec-wp.gv", height=350)
-```
+ 
 
 ```{r}
 print_inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002",

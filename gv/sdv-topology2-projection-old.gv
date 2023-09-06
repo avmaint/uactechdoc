@@ -1,0 +1,38 @@
+digraph oldProjection { 
+graph [overlap = true, fontsize = 24, 
+      label="Old Projection Topology\n(as of 2017-11-11)",
+      fontname = Helvetica]
+    
+node [shape=record, style=filled , fillcolor="white:beige",fontsize = 10,  
+      gradientangle=270]
+ 
+node [shape=record, tooltip="" ]
+
+v2c5t1 [label=" <iv>vga| to |{<ov>vga|<oc>cat5 } ", tooltip="magenta transmitter1"]
+v2c5t2 [label=" <iv>vga| to |{<ov>vga|<oc>cat5 } ", tooltip="magenta transmitter2"]
+
+c52vr1 [label=" <i>cat5| to |<o>vga ", tooltip="magenta receiver"]
+c52vr2 [label=" <i>cat5| to |<o>vga ", tooltip="magenta receiver"]
+
+h2v1 [label=" <i>hdmi|to|<o>vga "]
+
+oldprje [label="{Old FoH East|ZVVU-0004}"]
+oldprjw [label="{Old FoH West|ZVVU-0005}"]
+ 
+h2v1:o -> v2c5t1:iv;
+v2c5t1:oc -> c52vr1:i;
+c52vr1:o-> oldprje
+
+v2c5t1 -> v2c5t2:iv
+
+v2c5t2:oc -> c52vr2:i;
+
+c52vr2:o -> oldprjw
+
+{rank=same; v2c5t1; v2c5t2; }
+{rank=same; c52vr1; c52vr2; }
+
+{rank=same; v2c5t1; v2c5t2; }
+{rank=same; c52vr1; c52vr2; }
+{rank=same; oldprje; oldprjw;  }
+} 

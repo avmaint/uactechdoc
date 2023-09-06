@@ -19,10 +19,6 @@ format:
 always_allow_html: yes
 ---
 
-```{r options, include=FALSE}
-options(knitr.table.format = "html") 
-```
-
 ```{r packages}
 source("commonPackages.R")
 
@@ -41,21 +37,53 @@ further          <- get.further()
 
 # Introduction
 
-This document provides key technical documentation for the video subsystems at UAC. This diagram provides an overview of the major components and leaves out some details. 
+This document provides key technical documentation for the video subsystems at UAC. @fig-overview provides a simplified overview of the major components in the system.
 
-```{r}
-DiagrammeR::grViz("sdv-topology0-overview.gv")
+```{dot overview}
+//| fig-width: 4
+//| label: fig-overview
+//| fig-cap: "Projection Overview"
+//| file: gv/sdv-topology0-overview.gv
 ```
 
+# ProPresenter and DeckLink
 
-## Video Matrix
-The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats.
+ProPresenter generates 7 physical video outputs, and those are five of the 8 inputs into the video matrix.
 
-It has 8 inputs and 8 outputs. It can be controlled via the buttons on the front panel or from it's built in web page.
+-   Three of those outputs are the triple wide video outputs which are normally routed directly to the front of house (FoH) projectors. This is via the Decklink.
+
+-   Two outputs are specifically to feed the ATEM video mixer. This pair of feeds are called a *Key* and *Fill.* The *Fill* looks like a normal single wide image. The *Key* is a mask which the ATEM uses to select which parts of the *Fill* are to be displayed. An area on the *Key* which is white is displayed. An area which is black, is transparent. Areas which a grey are semi-transparent, the darker the grey, the more transparent is that portion.
+
+-   One output is the stage display. This is also via the Decklink.
+
+-   Finally, there is a HDMI output.
+
+The Decklink outputs are not recognized by the Mac Operating system. So you cannot do things like DVD playback or safari Web Page display on those outputs. You can use the hdmi output for that, with corresponding routing changes on the video matrix.
+
+::: callout-note
+See the document *deepdive_displaying_a_web_page_within_pp7.docx* for instructions on how to display a browser webpage via ProPresenter.
+:::
+
+The Decklink card is connected to the computer via a USBC/Thunderbolt cable. It is configured using a program called *Desktop Video*.
+
+```{dot pp_and_decklink}
+//| fig-width: 4
+//| label: fig-propresenter-and-decklink
+//| fig-cap: "ProPresenter and Decklink Configurations"
+//| file: gv/sdv-decklink_propresenter.gv
+```
+
+:::callout-note
+As of September 2023, the video inputs to the decklink are not fully implemented.
+:::
+
+# Video Matrix
+
+The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats. Any of the 8 inputs can be routed to any of the 8 outputs (or several outputs).
+
+It can be controlled via the buttons on the front panel or from it's built in web page.
 
 [Back to top](#top)
-
-### Video Matrix Inputs 
 
 ```{r psi}
 psi <- tribble(
@@ -102,10 +130,6 @@ psi |>
 	) 
 ```
 
-[Back to top](#top)
-
-### Video Matrix Outputs
-
 ```{r pso}
 pso <- tribble(
 ~Output, ~Usage, ~Comment,
@@ -148,41 +172,57 @@ pso |>
 [Back to top](#top)
 
 ### Video Matrix Configurations
-The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.  
 
-#### Normal Service Switcher Configuration 
+The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.
+
+#### Normal Service Switcher Configuration
+
 The display should look like:
 
-|Input |1|2|3|4|5|6|7|8|
-|-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-|Output|1|2|3|4|1|8|8|2|
+| Input  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |
+|--------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Output |  1  |  2  |  3  |  4  |  1  |  8  |  8  |  2  |
 
-```{r normal}
-DiagrammeR::grViz("sdv-PSnormal.gv", height=300)
+```{dot ps_normal}
+//| fig-width: 4
+//| label: fig-ps-normal
+//| fig-cap: "Normal Matrix"
+//| file: gv/sdv-PSnormal.gv
 ```
 
 [Back to top](#top)
 
 ## Topologies
-There are a lot of components to the system. One big diagram is daunting. It has been broken down into smaller portions to be more consumable. 
+
+There are a lot of components to the system. One big diagram is daunting. It has been broken down into smaller portions to be more consumable.
 
 [Back to top](#top)
 
 ### Computer Topology
+
 There are three computers in the system:
 
 CDWU-0009 Windows / Mediashout
-: The windows system runs Mediashout and has a dual output video card. One is used for the operator display, and the second for presentation. It also has Powerpoint for Windows installed.
+
+:   The windows system runs Mediashout and has a dual output video card. One is used for the operator display, and the second for presentation. It also has Powerpoint for Windows installed.
 
 CDMU-A001 MacOS / ProPresenter
-: This system runs ProPresenter and has a built in operator display, and a displayport output to the datapath video processor which split the output to three separate video signals for the front projectors, and a separate video output that drives the rear confidence montitor. It also has Powerpoint for Mac and Keynote installed.
+
+:   This system runs ProPresenter and has a built in operator display, and a displayport output to the datapath video processor which split the output to three separate video signals for the front projectors, and a separate video output that drives the rear confidence montitor. It also has Powerpoint for Mac and Keynote installed.
 
 CUMU-G001 MacOS / ATEM - OBS
-: This system runs the ATEM switcher software, and OBS (for distrbution of the ATEM program output over the network) and can also run things like Skype. It has a USBC-HDMI adapter that is *not* currently connected to Input 3 of the video mixer.
+
+:   This system runs the ATEM switcher software, and OBS (for distrbution of the ATEM program output over the network) and can also run things like Skype. It has a USBC-HDMI adapter that is *not* currently connected to Input 3 of the video mixer.
+
+
+```{dot top_comp}
+//| fig-width: 4
+//| label: fig-top-comp
+//| fig-cap: "Computer Topology"
+//| file: gv/sdv-topology1-computer.gv
+```
 
 ```{r topComp}
-DiagrammeR::grViz("sdv-topology1-computer.gv")
-
 selected.at <- c(
               "CDWU-0009", "CDMU-A001", "CUMU-G001",
               "ZVKU-A001", "ZVKU-A002" , "ZVKU-A003" ,
@@ -204,15 +244,14 @@ Tech_Inventory |>
 [Back to top](#top)
 
 ### Projection Topology
-Long distance signal transmission is achieved using Cat5 or Cat6 cabling. This used to require discrete transmitters and receviers, and those are in use for the front of house (FoH) projectors. But there is now a industry standard solution called HDBaseT which is now appearing on professional grade equipment; this is used for the read confidence projector and is why that portion of the diagram is so much simpler.
- 
-```{r topProj}
-DiagrammeR::grViz("sdv-topology2-projection.gv")
-```
 
-The old projection system is still installed but not in active service. Nor does it have a video source connected.
-```{r}
-DiagrammeR::grViz("sdv-topology2-projection-old.gv")
+Long distance signal transmission is achieved using Cat5 or Cat6 cabling. This used to require discrete transmitters and receviers, and those are in use for the front of house (FoH) projectors. But there is now a industry standard solution called HDBaseT which is now appearing on professional grade equipment; this is used for the read confidence projector and is why that portion of the diagram is so much simpler.
+
+```{dot top_proj}
+//| fig-width: 4
+//| label: fig-top-proj
+//| fig-cap: "Projector Topology"
+//| file: gv/sdv-topology2-projection.gv
 ```
 
 ```{r}
@@ -240,11 +279,17 @@ Tech_Inventory |>
 [Back to top](#top)
 
 ### Lobby Topology
-The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output. 
+
+The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
+
+```{dot top_lobby}
+//| fig-width: 4
+//| label: fig-top-lobby
+//| fig-cap: "Lobby Topology"
+//| file: gv/sdv-topology3-lobby.gv
+```
 
 ```{r topLobby}
-DiagrammeR::grViz("sdv-topology3-lobby.gv")
-
 selected.at <- c(
               "ZVKU-A001" , "ZVIU-A002", "ZVVU-0003"
               ) 
@@ -265,12 +310,17 @@ Tech_Inventory  |>
 [Back to top](#top)
 
 ### Nursery Topology
+
 The TV in the nursery gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
 
+```{dot top_nursery}
+//| fig-width: 4
+//| label: fig-top-nursery
+//| fig-cap: "Nursery Topology"
+//| file: gv/sdv-topology4-nursery.gv
+```
 
 ```{r top3}
-DiagrammeR::grViz("sdv-topology4-nursery.gv")
-
 selected.at <- c(
               "ZVKU-A001", "ZVIU-A001", 
               "ZVVU-0002"
@@ -289,28 +339,43 @@ Tech_Inventory |>
 	) 
 
 ```
+
 The TV has a remote control.
 
 [Back to top](#top)
 
 ### Recording Topology
+
 The recording topology is quite complex and so it is broken up into peices.
 
 #### Inputs
-```{r}
-DiagrammeR::grViz("sdv-topology5-rec-inputs.gv", height=350)
+
+```{dot top_rec-inputs}
+//| fig-width: 4
+//| label: fig-rec-inputs
+//| fig-cap: "Recording Inputs Topology"
+//| file: gv/sdv-topology5-rec-inputs.gv
 ```
 
 #### Outputs
-```{r top4}
-DiagrammeR::grViz("sdv-topology5-rec-outputs.gv", height=350)
+
+```{dot top_rec-outputs}
+//| fig-width: 4
+//| label: fig-rec-outputs
+//| fig-cap: "Recording Outputs Topology"
+//| file: gv/sdv-topology5-rec-outputs.gv
 ```
 
 #### Web Presenter
+
 There are some details on the signal path between the Video Mixer and the Web Presenter that need to be documented.
-```{r wp}
-DiagrammeR::grViz("sdv-topology6-rec-wp.gv", height=350)
-``` 
+
+```{dot top_rec-wp}
+//| fig-width: 4
+//| label: fig-rec-wp
+//| fig-cap: "WebPresenter Topology"
+//| file: gv/sdv-topology6-rec-wp.gv
+```
 
 ```{r}
 selected.at <- c(
@@ -341,7 +406,7 @@ The details of the network configuration are not shown. See the Network design d
 
 # Network Details
 
-```{r} 
+```{r}
 NetworkInventory %>% 
 filter(Category=="Video") %>% 
 select(AssetTag, Location, Usage, Device, MAC, IP, URL, Notes) %>%
@@ -393,8 +458,11 @@ Video_Inventory |>
 [Back to top](#top)
 
 # Document Source
+
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
 
 # Change History
 
-`r commit.log.html( knitr::current_input() )`
+```{r change_history}
+commit.log.html( knitr::current_input() )
+```

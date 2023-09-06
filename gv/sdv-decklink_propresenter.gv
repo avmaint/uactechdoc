@@ -1,0 +1,185 @@
+digraph TopologyDeckLink {
+    labelloc=t
+    label="Decklink and ProPresenter\n2023-07-21" fontsize="30"
+    edge [style=dotted] 
+    node [shape=box]
+    //resolution=70 size= "22,17!"  ratio=fill
+    //dot -Tpdf decklink_propresenter.gv >decklink_propresenter.pdf 
+    
+subgraph cluster_triplewide {   
+	label="Triple Wide Config"
+    
+zviue004tw [shape=record label="
+ DeckLink Video\nInterface\nZVIU-E004 | 
+{{ 
+  <c4> Quad 6\nsdi4
+| <c6> Quad 7\nsdi6
+| <c8> Quad 8\nsdi8 
+}
+}
+"];    
+
+cdmua001tw [shape=record label="
+ProPresenter\nCDMU-A001 
+|
+{{ 
+ {  Front_TW | { <pa> ProjA  | <pb> ProjB | <pc> ProjC }   } 	
+	
+}}
+| { <tb> UsbC } 	
+"]; 
+
+zvkua001tw  [shape=record label="
+Video Matrix\nZVKU-A001
+| <in1> In1
+| <in2> In2
+| <in3> In3
+ "] 
+ 
+zviug003    [label="sdi-hmdi\nZVIU-G003"]
+zviug004    [label="sdi-hmdi\nZVIU-G004"]
+zviug005    [label="sdi-hmdi\nZVIU-G005"] 
+} //cluster_triplewide
+
+subgraph cluster_VideoInputs {
+ label="Video Inputs from ATEM"
+ 
+zvkua003in   [shape=record label="
+ATEM Mixer\nZVKU-A003
+| { <prg> Prog}
+| { <aux> Aux}
+"] 
+  
+zviua005 [label="sdi-hdmi\nZVIU-A005"]
+zviud001 [label="sdi-hdmi\nZVIU-D001"]
+
+zviue004in [shape=record label="
+ DeckLink Video\nInterface\nZVIU-E004 | 
+{{ 
+  <c5> Quad 3\nsdi5
+| <c7> Quad 4\nsdi7
+}} 
+"];  
+ 
+cdmua001in [shape=record label="
+ProPresenter\nCDMU-A001 
+| { { <in1> In 1  | <in2> In2 }    } 
+"];   
+
+b1820  [shape=cylinder width=0.2 height=0.3 label=""]
+b1821  [shape=cylinder width=0.2 height=0.3 label=""]
+} // cluster_VideoInputs
+
+subgraph cluster_KeyFill {
+	label="Key+Fill to ATEM"
+
+zvkua003a  [shape=record label="
+ATEM Mixer\nZVKU-A003
+| { <in2> in2\nKey}
+| { <in4> in4\nFill}
+"] 
+
+zviue004kf [shape=record label="
+ DeckLink Video\nInterface\nZVIU-E004 | 
+{{ 
+  <c1> Quad 1\nsdi1 
+| <c2> Quad 5\nsdi2
+}} 
+"];   
+
+cdmua001kf [shape=record label="
+ProPresenter\nCDMU-A001 
+| { { <k> Key  | <f> Fill }   }
+"];    
+
+zviua003 [label="sdi-hdmi\nZVIU-A003"]
+zviua008 [label="sdi-hdmi\nZVIU-A008"]
+b1810  [shape=cylinder width=0.2 height=0.3 label=""]
+b1811  [shape=cylinder width=0.2 height=0.3 label=""]
+} // cluster_KeyFill
+    
+subgraph cluster_StageDisplay {    
+	label="Stage Display"
+
+cdmua001sd [shape=record label="
+ProPresenter\nCDMU-A001 
+| {   <sd> RearDeckLink } | { <tb> UsbC } 
+"];    
+
+zviue004sd [shape=record label="
+ DeckLink Video\nInterface\nZVIU-E004 | 
+{{ 
+  <c3> Quad 2\nsdi3 
+}} 
+"];   
+
+zvkua001in  [shape=record label="
+Video Matrix\nZVKU-A001
+ | <in4> In4
+"] 
+
+zviue001 [label="sdi-hmdi\nZVIU-E001"]
+
+zviue005 [shape=record label="
+{
+   {<usbc> UsbC
+ | ZVIU-A004\nDeckLink
+}
+| Sonnet Enclosure\nZVIU-E005}"] 
+
+} // cluster_StageDisplay
+
+subgraph hdmi_edges {
+	edge [style=solid, color="#009900", fontsize="12pt" ]
+zviug003 -> zvkua001tw:in1 [label="2307-1816\nhdmi" ]
+zviug004 -> zvkua001tw:in2 [label="2307-1817\nhdmi" ]
+zviug005 -> zvkua001tw:in3 [label="2307-1818\nhdmi" ]
+zviue001 -> zvkua001in:in4 [label="2307-1819\nhdmi" ]
+zviua003 -> zvkua003a:in2  [label="2307-1822\nhdmi" ]
+zviua008 -> zvkua003a:in4  [label="2307-1823\nhdmi" ]
+}
+
+subgraph sdi_edges {
+	edge [style=solid, color="cyan", fontsize="12pt" ]
+zvkua003in :prg    -> zviua005  [label="2307-1806\nsdi" ] 
+zvkua003in :aux    -> zviud001  [label="2307-1808\nsdi" ] 
+
+zviua005 -> b1820 [label="2307-1825\nsdi" ] 
+zviud001 -> b1821 [label="2307-1826\nsdi" ]
+
+b1810 -> zviua003 [label="2307-1827\nsdi" ]
+b1811 -> zviua008 [label="2307-1828\nsdi" ]
+}
+
+subgraph sdidin_edges {
+	edge [style=solid, color="red", fontsize="12pt" ]
+
+zviue004kf:c1      -> b1810 [label="2307-1810\nsdidin" ]
+zviue004kf:c2      -> b1811 [label="2307-1811\nsdidin" ]
+zviue004tw:c4      -> zviug003  [label="2307-1812\nsdidin" ]
+zviue004tw:c6      -> zviug004  [label="2307-1813\nsdidin" ]
+zviue004tw:c8      -> zviug005  [label="2307-1814\nsdidin" ]
+zviue004sd:c3      -> zviue001  [label="2307-1815\nsdidin" ]
+
+b1820     -> zviue004in:c5  [label="2307-1820\nsdidin" ]
+b1821     -> zviue004in:c7  [label="2307-1821\nsdidin" ]
+}
+
+subgraph sw_edges { 
+	edge [style="solid", color="blue" fontsize="12pt"]
+cdmua001kf:k  -> zviue004kf:c1   [label="2307-1800\nsw" ]
+cdmua001kf:f  -> zviue004kf:c2   [label="2307-1801\nsw" ]
+cdmua001tw:pa -> zviue004tw:c4   [label="2307-1802\nsw" ]
+cdmua001tw:pb -> zviue004tw:c6   [label="2307-1803\nsw" ]
+cdmua001tw:pc -> zviue004tw:c8   [label="2307-1804\nsw" ]
+cdmua001sd:sd -> zviue004sd:c3   [label="2307-1805\nsw" ]
+zviue004in:c5  -> cdmua001in:in1 [label="2307-1807\nsw" ]
+zviue004in:c7  -> cdmua001in:in2 [label="2307-1809\nsw" ]
+}
+ 
+subgraph tb_edges { 
+	edge [style="solid", color="magenta" fontsize="12pt"]
+cdmua001sd:tb -> zviue005:usbc  [label="2307-1824\nThunderbolt"]
+} 
+
+}
