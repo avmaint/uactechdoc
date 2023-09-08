@@ -11,3 +11,5 @@ SystemOperations*_files
 *.tex
 *.toc
 *.psd
+deprecated_Rmd/
+draw_node_files/
