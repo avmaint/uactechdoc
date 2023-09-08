@@ -38,7 +38,7 @@ further          <- get.further()
 
 # Introduction
 
-This document provides key technical documentation for the video subsystems at UAC. @fig-overview provides a simplified overview of the major components in the system.
+This document provides key technical documentation for the video subsystems at UAC. @fig-overview provides a simplified overview of the major components in the system. Subsequent sections provide more detail.
 
 ```{dot overview}
 //| fig-width: 4
@@ -51,11 +51,11 @@ This document provides key technical documentation for the video subsystems at U
 
 ProPresenter generates 7 physical video outputs, and those are five of the 8 inputs into the video matrix. It also has one [NDI](https://sites.google.com/view/buzz-sparky-and-flip/articles/video/ndi-overview) output which is a network interface.
 
-* Three of those outputs are the triple wide video outputs which are normally routed directly to the front of house (FoH) projectors. This is via the Decklink.
+* Three outputs are the triple wide video outputs which are normally routed directly to the front of house (FoH) projectors. This is via the Decklink.
 
 * Two outputs are specifically to feed the ATEM video mixer. This pair of feeds are called a *Key* and *Fill.* The *Fill* looks like a normal single wide image. The *Key* is a mask which the ATEM uses to select which parts of the *Fill* are to be displayed. An area on the *Key* which is white is displayed. An area which is black, is transparent. Areas which a grey are semi-transparent, the darker the grey, the more transparent is that portion.
 
-* One output is the stage display. This is also via the Decklink.
+* One output is the stage display via the Decklink.
 
 * An HDMI output which can be used when the decklink outputs are not appropriate.  
 
@@ -73,9 +73,9 @@ See the document *deepdive_displaying_a_web_page_within_pp7.docx* for instructio
 
 ```{dot pp_and_decklink}
 //| fig-width: 4
-//| label: fig-propresenter-and-decklink
+//| label: fig-ProPresenter-and-decklink
 //| fig-cap: "ProPresenter and Decklink Configurations"
-//| file: gv/sdv-decklink_propresenter.gv
+//| file: gv/sdv-decklink_ProPresenter.gv
 ```
 
 :::callout-note
@@ -90,42 +90,42 @@ The main job of a video matrix is to take multiple video sources, such as camera
 
 Our video matrix is a Kramer VS-88DT which is an 8x8 matrix and can handle HDMI inputs and both HDMI and [HDBaseT](https://en.wikipedia.org/wiki/HDBaseT) formats. Any of the 8 inputs can be routed to any of the 8 outputs (or several outputs).
 
-It can be controlled via the buttons on the front panel or from it's built in web page.
+It can be controlled via the buttons on the front panel or from its built in web page.
 
 ```{r psi}
 psi <- tribble(
 ~Input, ~Usage, ~Comment,
 1,
 "TW A",
-"This is the left most third of the Propresenter triple wide display from the decklink (sdi4). Usually routed to the East projector.",
+"The left most third of the ProPresenter triple wide display from the decklink (sdi4). Usually routed to the East projector.",
 
 2, 
 "TW B",
-"This is the centre third of the Propresenter triple wide display from the decklink (sdi6). Usually routed to the Centre projector",
+"The centre third of the ProPresenter triple wide display from the decklink (sdi6). Usually routed to the Centre projector",
 
 3,
 "TW C",
-"This is the right most third of the Propresenter triple wide display from the decklink (sdi8). Usually routed to the West projector",
+"The right most third of the ProPresenter triple wide display from the decklink (sdi8). Usually routed to the West projector",
 
 4,
 "Stage Display",
-"Video input for stage display from Propresenter via the decklink (sdi3). Usually routed to the rear projector.",
+"The stage display from ProPresenter via the decklink (sdi3). Usually routed to the rear projector.",
 
 5,
-"Video input from CDWU-0009",
-"Source is Windows running Mediashout and Powerpoint. Not usually used.",
+"Video from CDWU-0009",
+"Source is Windows machine which can run Powerpoint and OBS. Not usually used.",
 
 6,
 "ATEM Program",
-"The Program feed from the ATEM. A copy of what is also streamed. Usually routed to the Lobby the TVs downstrairs.",
+"The Program feed from the ATEM, a copy of what is also streamed. Usually routed to the Lobby TV and the TVs downstairs.",
 
 7, 
 "ATEM Auxillary",
-"Auxillary feed from the ATEM video recording mixer. Not usually used but could be used to source different video content from the ATEM. For example a static graphic for the centre projector.",
+"Auxillary feed from the ATEM video mixer. Not usually used but could be used to source different video content from the ATEM. For example a static graphic for the centre projector.",
 
 8,
 "CDMU-A001 HDMI",
-"The Video output from the HDMI output from CDMU-A001 / ProPresenter. This would be used as a video source from the computer when a system display is required.")
+"The Video output from the HDMI output from CDMU-A001. This would be used as a video source from that computer when a system display is required.")
 
 psi |> 
 	gt() |>
@@ -154,7 +154,7 @@ pso <- tribble(
 
 "4", "HDBaseT", 
 "Rear Projector",
-"Projector which covers rear wall in balcony. Lyrics for singers, etc.",
+"Projector which projects onto the rear wall in balcony. Lyrics for singers, etc.",
 
 "5", "HDMI" ,
 "Feed to ATEM","Secondary feed to Video Mixer. Destination is to the video mixer so projected content can be mixed with camera – Picture-in-Picture, etc.",
@@ -194,7 +194,7 @@ The current matrix routing can be queried and changed using either the webpage o
 The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.
 
 ## Sample Configurations
-Here are some common configurations to use and some ideas abuot when to use them.
+Here are some common configurations to use and some ideas abuot when to use them. The detailed setings are in the table @tbl-vmsc that follows.
 
 Full_TW
 : Use this when you want triple wide capability. 
@@ -221,8 +221,13 @@ samp_cfg <- tribble(
 7, "Lobby"  ,	6,	6,	6,	6,
 8, "Nursery",	6,	6,	6,	6
 )
+```
 
-samp_cfg |> gt() |>
+```{r tbl-vmsc}
+#| label: tbl-vmsc
+#| tbl-cap: Video Matrix Sample Configurations
+samp_cfg |> 
+	gt() |>
 	opt_stylize(style = 3) |>
 	tab_header("Video Matrix Sample Configurations" 
 			  , subtitle="Settings which are differnt from Full_TW are in Yellow." ) |>
@@ -297,7 +302,7 @@ Tech_Inventory |>
 
 ## Projection Topology
 
-Long distance signal transmission is achieved using Cat5 or Cat6 cabling. This used to require discrete transmitters and receviers, and those are in use for the front of house (FoH) projectors. But there is now a industry standard solution called HDBaseT which is now appearing on professional grade equipment; this is used for the read confidence projector and is why that portion of the diagram is so much simpler.
+Long distance signal transmission is achieved using Cat5e or Cat6 cabling. An industry standard solution called HDBaseT is used.  All of our projectors have HDBaseT connections built in.  
 
 ```{dot top_proj}
 //| fig-width: 4
@@ -331,7 +336,7 @@ Tech_Inventory |>
 
 ## Lobby Topology
 
-The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
+The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output. HDBaseT is used for this and also requires a converter at the TV to provide the HDMI format.
 
 ```{dot top_lobby}
 //| fig-width: 4
@@ -360,9 +365,13 @@ Tech_Inventory  |>
 
 [Back to top](#top)
 
-## Nursery Topology
+## Nursery/Toddler Topology
 
-The TV in the nursery gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
+The TV in the nursery gets its content from the video matrix. For the main service it should get its feed from the video mixer program output. HDBaseT is used for this and also requires a converter at the TV to provide the HDMI format.
+
+There is an HDMI splitter at the Nursery TV which provides an HDMI feed to the TV in the Toddler room.
+
+Each TV has a remote control.
 
 ```{dot top_nursery}
 //| fig-width: 4
@@ -373,8 +382,9 @@ The TV in the nursery gets its content from the video matrix. For the main servi
 
 ```{r top3}
 selected.at <- c(
-              "ZVKU-A001", "ZVIU-A001", 
-              "ZVVU-0002"
+              "ZVKU-A001",  
+              "ZVVU-0002", "2308-2900",
+              "ZVIU-A002", "ZVVU-0003"
               )  
 
 Tech_Inventory |>
@@ -390,7 +400,6 @@ Tech_Inventory |>
 	) 
 ```
 
-The TV has a remote control.
 
 [Back to top](#top)
 
@@ -398,7 +407,7 @@ The TV has a remote control.
 
 The recording topology is quite complex and so it is broken up into peices.
 
-#### Inputs
+### Inputs
 
 ```{dot top_rec-inputs}
 //| fig-width: 4
@@ -407,7 +416,7 @@ The recording topology is quite complex and so it is broken up into peices.
 //| file: gv/sdv-topology5-rec-inputs.gv
 ```
 
-#### Outputs
+### Outputs
 
 ```{dot top_rec-outputs}
 //| fig-width: 4
@@ -416,7 +425,7 @@ The recording topology is quite complex and so it is broken up into peices.
 //| file: gv/sdv-topology5-rec-outputs.gv
 ```
 
-#### Web Presenter
+### Web Presenter
 
 There are some details on the signal path between the Video Mixer and the Web Presenter that need to be documented.
 

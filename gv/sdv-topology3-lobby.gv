@@ -9,7 +9,7 @@ pswitch [label="{
   {{<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}|{<i5>hdmi|In5}|{<i6>hdmi|In6}|{<i7>hdmi|In7}|{<i8>hdmi|In8}}
   |{Video Matrix\nZVKU-A001}|
   {{Out1|<o1>}|{Out2|<o2>}|{Out3|<o3>}|{Out4|<o4>}|
-   {Out5|<o5>}|{Out6|<o6>}|{Out7|<o7>HDbT}|{Out8|<o8>HDbT}}  
+   {Out5|<o5>}|{Out6|<o6>}|{Out7|<o7>HDbT}|{Out8|<o8> }}  
   }"]
   
 node [  tooltip="" ]

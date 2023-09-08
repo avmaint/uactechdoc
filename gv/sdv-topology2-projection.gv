@@ -15,7 +15,7 @@ node [shape=record, tooltip="" ]
 zvvua001 [label="{FoH East\nZVVU-A001}"] 
 zvvua002 [label="{FoH Centre\nZVVU-A002}"]
 zvvua003 [label="{FoH West\nZVVU-A003}"]
-zvvu0001 [label="{Confidence\nZVVU-0001}", tooltip="Rear Projector"]
+zvvu0001 [label="{Stage Display\nZVVU-0001}", tooltip="Rear Projector"]
    
 zvkua001:o1 -> zvvua001 [label="2307-2311" fontsize=10]
 zvkua001:o2 -> zvvua002 [label="2307-2312" fontsize=10]

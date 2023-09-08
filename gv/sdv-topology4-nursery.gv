@@ -1,26 +1,96 @@
-digraph nursery { 
-graph [overlap = true, fontsize = 25, rankdir=TB
-      label="Nursery Topology\n(as of 2023-07-23)",
+digraph outputs { 
+	graph [overlap = true, fontsize = 25, rankdir=TB
+      label="Nursery Topology\n(as of 2023-09-08)",
       fontname = Helvetica]
+      
+	node [shape=Mrecord, tooltip="" ,  fontsize = 10,
+    	  fillcolor="white:beige"  , style=filled  
+		  gradientangle=270]  
+
+	edge [fontsize=8] 
+	
+	
+zvkua001 [ label= "{
+{ <in1>in1|<in2>in2|<in3>in3|<in4>in4|<in5>in5|<in6>in6|<in7>in7|<in8>in8 }
+| {  Video Matrix Switch| Kramer/VS-88DT |ZVKU-A001 }
+|{    <out_8_HDbT>out_8_HDbT } 
+}"]
+
+subgraph cluster_nur { label="Nursery" 
+
+zviua002 [ label= "{
+{ <HDbT>HDbT }
+| {  HDbT to Nursery TV| Kramer/TP-580RXR |ZVIU-A002 }
+|{ <hdmi>hdmi } 
+}"]
+
+23082900 [ label= "{
+{ <input>input }
+| {  hdmi splitter| Orei/UHD-PRO102 |2308-2900 }
+|{ <output1>output1|<output2>output2 } 
+}"] 
+
+zvvu0002 [ label= "{
+{ <hdmi1>hdmi1 }
+| {  Nursery TV| Samsung/UN58H5202 |ZVVU-0002 }
  
-node [shape=Mrecord, style=filled , fillcolor="white:beige" ,fontsize = 10, 
-      gradientangle=270]
-  
-pswitch [label="{
-  {{<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}|
-  {<i5>hdmi|In5}|{<i6>hdmi|In6}|{<i7>hdmi|In7}|{<i8>hdmi|In8}}
-  |{Video Matrix\nZVKU-A001}|
-  {{<o1>Out1|-}|{Out2|-}|{Out3|-}|{Out4|-}|
-  {Out5|-}|{Out6|-}|{Out7|<o7>HDbT}|{Out8|<o8>HDbT}}  
-  }"]  
-  
-node [  tooltip="" ]
+}"]
+
+}
+
+subgraph cluster_toddler { label="Toddler" 
+zvvu0003 [ label= "{
+{ <hdmi1>hdmi1 }
+| {  Toddler TV| Sony/Bravia 32 LED |ZVVU-0003 }
+}"]
+
+}
+
+
+
+
+
+
+zvkua001 : out_8_HDbT -> zviua002 : HDbT [label= "2307-2318
+Nursery catx" color=black ] 
+
+zviua002 : hdmi -> 23082900 : input [label= "2308-3001
+hdmi" color=cyan ] 
+
+23082900 : output2 -> zvvu0003 : hdmi1 [label= "2307-1819
+hdmi" color=cyan ] 
+
+23082900 : output1 -> zvvu0002 : hdmi1 [label= "2308-3000
+hdmi" color=cyan ]  
+	
+}
+
+zvkua001 [ label= "{
+{ <in1>in1|<in2>in2|<in3>in3|<in4>in4|<in5>in5|<in6>in6|<in7>in7|<in8>in8 }
+| {  Video Matrix Switch| Kramer/VS-88DT |ZVKU-A001 }
+|{ <out6>out6|<out_1_HDbT>out_1_HDbT|<out_2_HDbT>out_2_HDbT|<out_3_HDbT>out_3_HDbT|<out_4_HDbT>out_4_HDbT|<out_5_hdmi>out_5_hdmi|<out_7_HDbT>out_7_HDbT|<out_8_HDbT>out_8_HDbT } 
+}"]  
 
 subgraph cluster_lobby { label="Nursery" 
   c62hdmi1   [label="{<i>HDbT|ZVIU-A002|<o>hdmi}", tooltip="In nursery"]
   nurserytv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Nursery TV\nZVVU-0003}"]
 }
 
-pswitch:o8 -> c62hdmi1:i [label="2307-2318" fontsize=10  ]
+
+   toddlertv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Toddler TV\nZVVU-0003}"]
+}
+
+zvkua001:out_8_HDbT -> c62hdmi1:i [label="2307-2318" fontsize=10  ]
 c62hdmi1:o -> nurserytv:i1 [label="2307-2319" fontsize=10  ]
+ 
+
+zviua001 [ label= "{
+{ <HDbT>HDbT }
+| {  HDbT to Lobby TV| Kramer/TP-580RXR |ZVIU-A001 }
+|{ <hdmi>hdmi } 
+}"] 
+ 
+zviua001 : hdmi -> zvvulobby tv : hdmi1 [label= "2307-2316
+hdmi" color=cyan ]  
+	
 }

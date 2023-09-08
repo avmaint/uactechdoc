@@ -1,7 +1,7 @@
-digraph VideoRecording { 
+digraph WebPresenter { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Video Recording Topology - Web Presenter\n(as of 2023-08-01)",
+      label="Video Recording Topology - Web Presenter\n(as of 2023-09-08)",
       fontname = Helvetica, bgcolor=white
       ]
  
@@ -10,13 +10,8 @@ node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
       
 zvkua003 [
   tooltip="BMD ATEM Television Studio Pro HD"
-
-  label="{
-    {{<al>AudioL}|{<ar>AudioR}|
-      {<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}
-      |{<i5>sdi|In5}|{<i6>sdi|In6}|{<i7>sdi|In7}|{<i8>sdi|In8}}
-      |Recording Switcher\nBMD ATEM\nZVKU-A003|
-      {{Out1|<o1>sdi}|{Out2|<o2>sdi}|{Out3|<o3>sdi}|{Out4|<o4>sdi}|{Aux|<aux>sdi}|{mv|<mv>hdmi}}
+  label="{ Recording Switcher\nBMD ATEM\nZVKU-A003|
+      { {<o5>Out5 }| {<aux>Aux }  }
     }"
 ]
 
@@ -24,36 +19,22 @@ zviua004 [label="{{{<i1>sdi|1 }|{<i2>hdmi|2} }|{Web Presenter \n ZVIU-A004}|{<us
 
 zvrua001 [label="{{ {<in>sdi }}|{Recorder 1\nZVRU-A001}|{{<outa>Out A}|{<outb>Out B}}}"]
 
-zvrua002 [label="{{ {<in>sdi }}|{Recorder 2\nZVRU-A002}|{{<outa>Out A}|{<outb>Out B}}}"]
-
 cumug001 [label="{<usb>usb|MacMini\nOBS & Zoom|CUMU-G001}"]
  
 zviud001 [label="{<i>sdi|sdi→hdmi|ZVIU-D001|<o>hdmi}"]
 
-zviud002 [label="{<i>sdi|Resi\nEncoder\nZVIU-D002}"]
-
-
-zviud001:o   -> zviua004:hdmi [label="2307-3007??\n3004"]
- 
 zviua004 -> cumug001 [label="?\nusb"]
 
 subgraph sdi_cables { 
 	edge [style="solid", color="blue" fontsize="10pt"]
-zvrua001:outb -> zvrua002:in [label="outb\n2307-3001"]
-zvrua001:outa -> zviua004:sdi [label="outa\n2307-3002"]
-zvkua003:o4   -> zviua004:sdi [label="?"]
-
-zvkua003:aux  -> zviud001:sdi [label="2307-1808" ]
-zvkua003:out5 -> zvrua001:sdi [label="2307-3005"]
-zvkua003:out6 -> zviud002:sdi [label="2307-3006"]
+	zvrua001:outa -> zviua004:sdi [label="outa\n2307-3002"]
+	zvkua003:aux  -> zviud001:sdi [label="2307-1808\nsdi" ]
+	zvkua003:o5 -> zvrua001:sdi [label="2307-3005\nsdi"]
 }
 
 subgraph hdmi_edges {
 	edge [style=solid, color="#009900", fontsize="10pt" ]
-zviud001:hdmi -> zviua004:hdmi [label="2307-3007"]
-y ->  zviua004 [label="2307-3003?\nhdmiin"]
+	zviud001:hdmi -> zviua004:hdmi [label="2307-3007"]
 }
-
-zviua004 -> x [label="2307-3003?"] 
 
 } 
