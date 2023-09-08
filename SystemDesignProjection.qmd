@@ -10,8 +10,9 @@ execute:
 format:
   html:
     toc: true
+    toc-depth: 2
+    toc-location: right
     number-sections: true
-    css: styles.css
   pdf:
     number-sections: true 
     toc: true
@@ -46,25 +47,29 @@ This document provides key technical documentation for the video subsystems at U
 //| file: gv/sdv-topology0-overview.gv
 ```
 
-# ProPresenter and DeckLink
+# ProPresenter
 
-ProPresenter generates 7 physical video outputs, and those are five of the 8 inputs into the video matrix.
+ProPresenter generates 7 physical video outputs, and those are five of the 8 inputs into the video matrix. It also has one [NDI](https://sites.google.com/view/buzz-sparky-and-flip/articles/video/ndi-overview) output which is a network interface.
 
--   Three of those outputs are the triple wide video outputs which are normally routed directly to the front of house (FoH) projectors. This is via the Decklink.
+* Three of those outputs are the triple wide video outputs which are normally routed directly to the front of house (FoH) projectors. This is via the Decklink.
 
--   Two outputs are specifically to feed the ATEM video mixer. This pair of feeds are called a *Key* and *Fill.* The *Fill* looks like a normal single wide image. The *Key* is a mask which the ATEM uses to select which parts of the *Fill* are to be displayed. An area on the *Key* which is white is displayed. An area which is black, is transparent. Areas which a grey are semi-transparent, the darker the grey, the more transparent is that portion.
+* Two outputs are specifically to feed the ATEM video mixer. This pair of feeds are called a *Key* and *Fill.* The *Fill* looks like a normal single wide image. The *Key* is a mask which the ATEM uses to select which parts of the *Fill* are to be displayed. An area on the *Key* which is white is displayed. An area which is black, is transparent. Areas which a grey are semi-transparent, the darker the grey, the more transparent is that portion.
 
--   One output is the stage display. This is also via the Decklink.
+* One output is the stage display. This is also via the Decklink.
 
--   Finally, there is a HDMI output.
+* An HDMI output which can be used when the decklink outputs are not appropriate.  
 
-The Decklink outputs are not recognized by the Mac Operating system. So you cannot do things like DVD playback or safari Web Page display on those outputs. You can use the hdmi output for that, with corresponding routing changes on the video matrix.
+* The NDI output is a copy of the stage display that is sent out over the network and provides key status information to the audio engineer running the livestream.  
+
+## Decklink
+
+The Decklink card is connected to the computer via a USBC/Thunderbolt cable. It is configured using a program called *Desktop Video*. It can provide up to 8 video outputs, but we configure it for 6 outputs.
+ 
+The Decklink outputs are special purpose outputs which are not recognized by the Mac Operating system. So you cannot do things like DVD playback or Safari Web Page display on those outputs. You can use the hdmi output for that, with corresponding routing changes on the video matrix.
 
 ::: callout-note
 See the document *deepdive_displaying_a_web_page_within_pp7.docx* for instructions on how to display a browser webpage via ProPresenter.
 :::
-
-The Decklink card is connected to the computer via a USBC/Thunderbolt cable. It is configured using a program called *Desktop Video*.
 
 ```{dot pp_and_decklink}
 //| fig-width: 4
@@ -77,48 +82,50 @@ The Decklink card is connected to the computer via a USBC/Thunderbolt cable. It 
 As of September 2023, the video inputs to the decklink are not fully implemented.
 :::
 
+[Back to top](#top)
+
 # Video Matrix
 
-The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats. Any of the 8 inputs can be routed to any of the 8 outputs (or several outputs).
+The main job of a video matrix is to take multiple video sources, such as cameras or computers, and direct their video signals to different destinations, like TVs, projectors, or recording devices.
+
+Our video matrix is a Kramer VS-88DT which is an 8x8 matrix and can handle HDMI inputs and both HDMI and [HDBaseT](https://en.wikipedia.org/wiki/HDBaseT) formats. Any of the 8 inputs can be routed to any of the 8 outputs (or several outputs).
 
 It can be controlled via the buttons on the front panel or from it's built in web page.
-
-[Back to top](#top)
 
 ```{r psi}
 psi <- tribble(
 ~Input, ~Usage, ~Comment,
 1,
-"FoH Left",
-"Primary computer for video content (including audio).",
+"TW A",
+"This is the left most third of the Propresenter triple wide display from the decklink (sdi4). Usually routed to the East projector.",
 
 2, 
-"FoH Centre",
-"FUTURE. Alternate which can be used for backup. Advanced presentations and building video while Balcony 1 is in use. |",
+"TW B",
+"This is the centre third of the Propresenter triple wide display from the decklink (sdi6). Usually routed to the Centre projector",
 
 3,
-"FoH Right",
-"Video input for guest computer. Can handle hdmi or VGA.",
+"TW C",
+"This is the right most third of the Propresenter triple wide display from the decklink (sdi8). Usually routed to the West projector",
 
 4,
-"Confidence",
-"Video input for Confidence display (rear projector)",
+"Stage Display",
+"Video input for stage display from Propresenter via the decklink (sdi3). Usually routed to the rear projector.",
 
 5,
-"Backup Presentation",
-"Source is Windows running Mediashout and Powerpoint",
+"Video input from CDWU-0009",
+"Source is Windows running Mediashout and Powerpoint. Not usually used.",
 
 6,
-"Guest",
-"Input for a guest presenter to use.",
+"ATEM Program",
+"The Program feed from the ATEM. A copy of what is also streamed. Usually routed to the Lobby the TVs downstrairs.",
 
 7, 
-"Video Mix Auxillary",
-"Auxillary feed from the ATEM video recording mixer",
+"ATEM Auxillary",
+"Auxillary feed from the ATEM video recording mixer. Not usually used but could be used to source different video content from the ATEM. For example a static graphic for the centre projector.",
 
 8,
-"Video Mix",
-"Program output is from the ATEM Video Mixer. Use for FOH projection or building distribution.")
+"CDMU-A001 HDMI",
+"The Video output from the HDMI output from CDMU-A001 / ProPresenter. This would be used as a video source from the computer when a system display is required.")
 
 psi |> 
 	gt() |>
@@ -132,29 +139,36 @@ psi |>
 
 ```{r pso}
 pso <- tribble(
-~Output, ~Usage, ~Comment,
-"1", "FoH Projector",
+~Output, ~Type, ~Usage, ~Comment,
+"1", "HDBaseT", 
+"East Projector",
 "Front of House projector - Stage Right / East wall.",
 
-"2",
-"FoH Projector",
+"2",  "HDBaseT",
+"Centre Projector",
 "Front of House projector - Stage Centre / South wall.",
 
-"3",
-"FoH Projector",
+"3",  "HDBaseT",
+"West Projector",
 "Front of House projector - Stage Left / West wall.",
 
-"4", 
-"Confidence",
+"4", "HDBaseT", 
+"Rear Projector",
 "Projector which covers rear wall in balcony. Lyrics for singers, etc.",
 
-"5", "VMix 4","Secondary feed to Video Mixer",
+"5", "HDMI" ,
+"Feed to ATEM","Secondary feed to Video Mixer. Destination is to the video mixer so projected content can be mixed with camera – Picture-in-Picture, etc.",
 
-"6" , "Nursery", "Feed to the Nursery TV.",
+"6", NA,
+"unused","unused",
 
-"7","Lobby","Feed to the Lobby TV.",
+"7",  "HDBaseT",
+"Lobby","Feed to the Lobby TV.",
 
-"8","VMix 1","Destination is to the video mixer so projected content can be mixed with camera – Picture-in-Picture, etc."
+
+"8" ,  "HDBaseT",
+"Nursery", "Feed to the Nursery TV."
+
 )
 
 pso |> 
@@ -164,47 +178,82 @@ pso |>
 	tab_style(
 		style=list( cell_text(weight = "bold") ),
 		locations=cells_body(columns=Output)
-	) 
+	) |>
+	tab_footnote("A potential future output would be an audio feed to the Audio mix console, or a decklink input.", 
+				 locations=cells_body(
+				 	columns=Comment , 
+				 	rows= Output==6))
 ```
-
-> A potential future output would be an audio feed to the Audio mix console.
 
 [Back to top](#top)
 
 ### Video Matrix Configurations
 
+The current matrix routing can be queried and changed using either the webpage or the front panel.
+
 The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.
 
-#### Normal Service Switcher Configuration
+## Sample Configurations
+Here are some common configurations to use and some ideas abuot when to use them.
 
-The display should look like:
+Full_TW
+: Use this when you want triple wide capability. 
 
-| Input  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |
-|--------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Output |  1  |  2  |  3  |  4  |  1  |  8  |  8  |  2  |
+Centre_ATEM_AUX
+: Use this when you want to use the ATEM Aux output as a source. An common example of this is a static graphic on the centre screen. This could also be done using the Full_TW with a prop on the centre screen which is never cleared.
 
-```{dot ps_normal}
-//| fig-width: 4
-//| label: fig-ps-normal
-//| fig-cap: "Normal Matrix"
-//| file: gv/sdv-PSnormal.gv
+Centre_ATEM_Prg
+: Use this when you want live camera on the centre screen. 
+
+All_three_HDMI
+: Use this when you want the conputers HDMI output to be routed to the projectors. For example, playing a DVD. It could also be a fallback if there is a problem with the triple wide system.
+
+```{r samp_cfg}
+samp_cfg <- tribble(
+~Num,
+~Output, ~Full_TW, ~Centre_ATEM_AUX, ~Centre_ATEM_Prg, ~All_three_HDMI,
+1, "ProjEast",	1,	1,	1,	8,
+2, "ProjCent",	2,	7,	6,	8,
+3, "ProjWest",	3,	3,	3,	8,
+4, "RearProj",	4,	4,	4,	4,
+5, "ATEM In 1", 	8,	8,	8,	8,
+6, "not used",	4,	4,	4,	4,
+7, "Lobby"  ,	6,	6,	6,	6,
+8, "Nursery",	6,	6,	6,	6
+)
+
+samp_cfg |> gt() |>
+	opt_stylize(style = 3) |>
+	tab_header("Video Matrix Sample Configurations" 
+			  , subtitle="Settings which are differnt from Full_TW are in Yellow." ) |>
+    tab_style(  
+      style = list(  cell_fill(color = "yellow")  ),
+      locations = cells_body(columns = Centre_ATEM_AUX,
+      					     rows = Num == 2   )
+	) |>
+    tab_style(  
+      style = list(  cell_fill(color = "yellow")  ),
+      locations = cells_body(columns = Centre_ATEM_Prg,
+      					     rows = Num == 2   )
+	) |>
+    tab_style(  
+      style = list(  cell_fill(color = "yellow")  ),
+      locations = cells_body(columns = All_three_HDMI,
+      					     rows = Num %in% c(1,2,3)   )
+	)
 ```
 
 [Back to top](#top)
 
-## Topologies
+# Topologies
 
 There are a lot of components to the system. One big diagram is daunting. It has been broken down into smaller portions to be more consumable.
 
 [Back to top](#top)
 
-### Computer Topology
+## Computer Topology
 
 There are three computers in the system:
-
-CDWU-0009 Windows / Mediashout
-
-:   The windows system runs Mediashout and has a dual output video card. One is used for the operator display, and the second for presentation. It also has Powerpoint for Windows installed.
 
 CDMU-A001 MacOS / ProPresenter
 
@@ -214,6 +263,9 @@ CUMU-G001 MacOS / ATEM - OBS
 
 :   This system runs the ATEM switcher software, and OBS (for distrbution of the ATEM program output over the network) and can also run things like Skype. It has a USBC-HDMI adapter that is *not* currently connected to Input 3 of the video mixer.
 
+CDWU-0009 Windows / Mediashout
+
+:   The windows system runs Mediashout and has a dual output video card. One is used for the operator display, and the second for presentation. It also has Powerpoint for Windows installed.
 
 ```{dot top_comp}
 //| fig-width: 4
@@ -225,8 +277,8 @@ CUMU-G001 MacOS / ATEM - OBS
 ```{r topComp}
 selected.at <- c(
               "CDWU-0009", "CDMU-A001", "CUMU-G001",
-              "ZVKU-A001", "ZVKU-A002" , "ZVKU-A003" ,
-              "ZVIU-A004") 
+              "ZVKU-A001",  "ZVKU-A003" ,
+              "ZVIU-A004", "ZVIU-E004") 
 
 Tech_Inventory |>
    filter( AssetTag %in% selected.at) |> 
@@ -243,7 +295,7 @@ Tech_Inventory |>
 
 [Back to top](#top)
 
-### Projection Topology
+## Projection Topology
 
 Long distance signal transmission is achieved using Cat5 or Cat6 cabling. This used to require discrete transmitters and receviers, and those are in use for the front of house (FoH) projectors. But there is now a industry standard solution called HDBaseT which is now appearing on professional grade equipment; this is used for the read confidence projector and is why that portion of the diagram is so much simpler.
 
@@ -258,8 +310,7 @@ Long distance signal transmission is achieved using Cat5 or Cat6 cabling. This u
 selected.at <- c(
               "ZVKU-A001", 
               "ZVVU-0001",
-              "ZVVU-A001", "ZVVU-A002", "ZVVU-A003", 
-              "ZVVU-0004",  "ZVVU-0005"
+              "ZVVU-A001", "ZVVU-A002", "ZVVU-A003" 
               )
 
 Tech_Inventory |>
@@ -278,7 +329,7 @@ Tech_Inventory |>
 
 [Back to top](#top)
 
-### Lobby Topology
+## Lobby Topology
 
 The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
 
@@ -291,7 +342,7 @@ The TV in the lobby gets its content from the video matrix. For the main service
 
 ```{r topLobby}
 selected.at <- c(
-              "ZVKU-A001" , "ZVIU-A002", "ZVVU-0003"
+              "ZVKU-A001" , "ZVIU-A002", "ZVVU-0002"
               ) 
 
 Tech_Inventory  |>
@@ -309,7 +360,7 @@ Tech_Inventory  |>
 
 [Back to top](#top)
 
-### Nursery Topology
+## Nursery Topology
 
 The TV in the nursery gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
 
@@ -337,14 +388,13 @@ Tech_Inventory |>
 		style=list( cell_text(weight = "bold") ),
 		locations=cells_body(columns=AssetTag)
 	) 
-
 ```
 
 The TV has a remote control.
 
 [Back to top](#top)
 
-### Recording Topology
+## Recording Topology
 
 The recording topology is quite complex and so it is broken up into peices.
 
@@ -463,7 +513,7 @@ ci <- str_replace(ci, 'rmarkdown','qmd')
 ```
 
 # Document Source
-This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc)  `r ci`.
+This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc) "`r ci`".
 
 # Change History
 ```{r change_history}
