@@ -414,21 +414,4 @@ items <- Tech_Inventory %>%
 print_inv(items, Tech_Inventory)
 ```
 
-[Back to top](#top)
-
-`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
-
-[Back to top](#top)
-
-```{r current_input}
-ci <- knitr::current_input() # knitr sees a different filename than the input
-ci <- str_replace(ci, 'rmarkdown','qmd')
-```
-
-# Document Source
-This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc) "`r ci`".
-
-# Change History
-```{r change_history}
-commit.log.html(  ci )
-```
+{{< include common_trailer.qmd >}}

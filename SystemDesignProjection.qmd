@@ -30,7 +30,7 @@ require(formattable)
 source("commonFunctions.R")
 ```
 
-```{r data, include=FALSE}
+```{r data }
 NetworkInventory <- get.network()
 Tech_Inventory   <- get.inventory()
 further          <- get.further() 
@@ -112,7 +112,7 @@ psi <- tribble(
 "The stage display from ProPresenter via the decklink (sdi3). Usually routed to the rear projector.",
 
 5,
-"Video from CDWU-0009",
+"CDWU-0009",
 "Source is Windows machine which can run Powerpoint and OBS. Not usually used.",
 
 6,
@@ -134,7 +134,12 @@ psi |>
 	tab_style(
 		style=list( cell_text(weight = "bold") ),
 		locations=cells_body(columns=Input)
-	) 
+	) |>
+  cols_width(
+    Comment ~ pct(70),
+    Usage   ~ pct(15),
+    Input  ~ pct(15)
+  )
 ```
 
 ```{r pso}
@@ -182,18 +187,25 @@ pso |>
 	tab_footnote("A potential future output would be an audio feed to the Audio mix console, or a decklink input.", 
 				 locations=cells_body(
 				 	columns=Comment , 
-				 	rows= Output==6))
+				 	rows= Output==6)) |>
+  cols_width(
+    Comment ~ pct(55),
+    Usage   ~ pct(15),
+    Type    ~ pct(15),
+    Output  ~ pct(15)
+  ) |>
+	tab_options(table.width=pct(100))
 ```
 
 [Back to top](#top)
 
-### Video Matrix Configurations
+## Video Matrix Configurations
 
 The current matrix routing can be queried and changed using either the webpage or the front panel.
 
 The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.
 
-## Sample Configurations
+### Sample Configurations
 Here are some common configurations to use and some ideas abuot when to use them. The detailed setings are in the table @tbl-vmsc that follows.
 
 Full_TW
@@ -272,14 +284,14 @@ CDWU-0009 Windows / Mediashout
 
 :   The windows system runs Mediashout and has a dual output video card. One is used for the operator display, and the second for presentation. It also has Powerpoint for Windows installed.
 
-```{dot top_comp}
+```{dot dot_top_comp}
 //| fig-width: 4
 //| label: fig-top-comp
 //| fig-cap: "Computer Topology"
 //| file: gv/sdv-topology1-computer.gv
 ```
 
-```{r topComp}
+```{r gt_topComp}
 selected.at <- c(
               "CDWU-0009", "CDMU-A001", "CUMU-G001",
               "ZVKU-A001",  "ZVKU-A003" ,
@@ -483,7 +495,7 @@ select(AssetTag, Location, Usage, Device, MAC, IP, URL, Notes) %>%
 
 # Video Equipment Inventory
 
-```{r inventory, echo=FALSE, asis=TRUE}
+```{r inventory }
  
 cs = c("AssetTag", "Qty"  ,
   "Manufacturer" ,
@@ -499,7 +511,7 @@ Video_Inventory <- Tech_Inventory %>%
 
 Video_Inventory |>
    filter( AssetTag %in% selected.at) |> 
-    select(AssetTag, Manufacturer, Model, Desc ) |>
+    select(AssetTag, Location, Manufacturer, Model, Desc ) |>
     arrange( AssetTag ) |> 
 	gt() |>
 	opt_stylize(style = 3) |>
@@ -510,21 +522,4 @@ Video_Inventory |>
 	) 
 ```
 
-[Back to top](#top)
-
-`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
-
-[Back to top](#top)
-
-```{r current_input}
-ci <- knitr::current_input() # knitr sees a different filename than the input
-ci <- str_replace(ci, 'rmarkdown','qmd')
-```
-
-# Document Source
-This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc) "`r ci`".
-
-# Change History
-```{r change_history}
-commit.log.html(  ci )
-```
+{{< include common_trailer.qmd >}}

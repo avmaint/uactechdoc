@@ -1,0 +1,18 @@
+{{< pagebreak >}} 
+
+{{< include FurtherInformation.Rmd >}}
+
+```{r current_input}
+ci <- knitr::current_input() # knitr sees a different filename than the input
+ci <- str_replace(ci, 'rmarkdown','qmd')
+```
+
+# Document Source
+
+This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc), project "avmaint/uactechdoc", file "`r ci`".
+
+# Document Change History
+
+```{r change_history}
+commit.log.html(  ci )
+```

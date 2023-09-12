@@ -1,30 +1,33 @@
 ---
 title: "System Operations - Lighting"
-author: "Terry Doner"
+author: "UAC Media Arts"
 date: "`r format(Sys.time(), '%B %d %Y %H:%m')`"
-output:
-  html_document:
-    toc: yes
-    number_sections: true
-    theme: cosmo
+execute: 
+  eval: true
+  echo: false
+  warning: false
+  message: false
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    toc-location: right
+    number-sections: true
+  pdf:
+    number-sections: true 
+    toc: true
+    toc-depth: 2  
+ 
+always_allow_html: yes
 ---
 
-```{r options, echo=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
-options(knitr.table.format = "html") # latex for pdf 
-```
-
 ```{r packages }
-require(readr)
-require(dplyr)
-require(readxl)
-require(knitr)
+source("commonPackages.R")
+ 
 require(jpeg)
 require(grid)
-require(ggplot2)
 require(kableExtra)
 require(lubridate)
-require(tidyr)
 require(here)
 ```
 
@@ -45,6 +48,7 @@ dmx.details <- get.dmxdetails()
 ```
 
 # Introduction
+
 This document provides basic operating information for Lighting systems for the auditorium at Unionville Alliance Church.
 
 Purpose of the lighting system:
@@ -60,11 +64,11 @@ There are two mechanisms to control the lighting:
 * A keypad located on the main floor by the south east auditorium doors. Users can select one of several preset configurations. 
 * For more sophisticated control there is a lighting control console located in the balcony (an ETC ColorSource 40AV console).  It can be used for all lighting operations, especially more sophisticated lighting designs than can be accomplished via the keypad panel.
 
-[Back to top](#top)
+{{pagebreak}}
 
 # Operating the Keypad
 
-There is a simple lighting control panel located next to the auditorium doors by the main office (south east). It enables the house lights to set according to several pre-defined looks, of which there are 8. (Terry can change these as needed. Details in the System Design Guide.) Selecting one preset, deselects the previous preset - just like old fashion car radio buttons. 
+There is a simple lighting control panel located next to the auditorium doors by the main office (south east). See @fig-sol-keypad . It enables the house lights to set according to several pre-defined looks, of which there are 8.   Selecting one preset, deselects the previous preset - just like old fashion car radio buttons. The current list of available presets is found in @fig-keypad-presets
 
 The keypad and the main console can conflict with each other. When running from the console, the keypad must be in "Console Mode".  (You won't harm any equipment by having the keypad in the wrong mode, but the system will not work properly!)
 
@@ -74,43 +78,25 @@ A button turns blue when it is selected, orange otherwise.
 
 The sconce lights also have an timed switch which is next to the keypad, **if you want sconce control during the day you will need to manual turn them on as well**. The timer is programmed to turn on the sconse lights during the evening hours (up to midnight), and Sunday morning.
 
-![The Keypad](../../images/sol-keypad.jpg){height=3in}
+![The Keypad](./images/sol-keypad.jpg){height=3in #fig-sol-keypad}
 
 ```{r keypad}
+#| fig-cap: "Keypad Presets"
+#| fig-cap-location: bottom
+#| label: fig-keypad-presets
+
 keypad <-  get_keypad_buttons()  %>% rename(Description = B_Description)
 
 keypad %>%
   arrange(Button) %>%
-  kable(align="l") %>%
-  column_spec( 1,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE) %>%
-    row_spec(1:nrow(keypad), color="blue")
+  gt() |>
+  opt_stylize(style=3) |>
+  tab_style( style = list(  cell_text(weight = "bold") ),
+    locations = cells_body(  columns = "Button"  ) )	
 ```
 
-[Back to top](#top)
-
-# Sunday Morning Rundown
-
-
-These are the steps to follow for a normal Sunday morning.
-
-```{r rundown}
-p <- "Lights"
-activities %>%
-       filter(Who == p) %>%
-        mutate(Time = num2time(Time1)) %>%
-        replace_na(list(Details="", How="", 
-                               Fallback="", Where="", Where2="")) %>%
-        select(Time , Event, Where, Where2, What, Details) %>%
-        kable(caption=paste("Rundown for Postion:", p)) %>%
-        kable_styling("striped", full_width = FALSE) %>%
-        collapse_rows(columns = 1:2 
-                      ) %>%
-        column_spec(1:2, extra_css = 'vertical-align: top !important;') 
-```
-
-[Back to top](#top)
-
+{{pagebreak}}
+  
 # Lighting Power Control
 
 > This section needs to be rewritten post the 2018 upgrades.
@@ -124,12 +110,12 @@ activities %>%
 2. Go to balcony closet
 3. Turn on the main breakers at the top of the panel as indicated by the arrow and yellow box in the diagram below.
 
-![The switch in the yellow box](../../images/sol-BalconyPower2019.png){height=4in}
+![The switch in the yellow box](./images/sol-BalconyPower2019.png){height=4in}
 
 
 4. Turn on the lighting console (see diagram)
 
-![Console Power](../../images/sol-ETC-CS40AV-Power.png){height=3in}
+![Console Power](./images/sol-ETC-CS40AV-Power.png){height=3in}
 
 5. Switch the keypad (by office doors) to "Console Mode".
 
@@ -139,16 +125,18 @@ To turn off, reverse the power on order and turn off.
 
 > When leaving the system for the day ensure that lower level keypad is set to "Night Light" (The button will turn blue). 
 
-[Back to top](#top)
+{{pagebreak}}
 
 # Controlling the Lighting System
 
 Basic operations of the house lights can be accomplished by using the keypad - which was discussed in the previous section.  
 
-Advanced operations of house and theatre lighting is acccomplished via the lighting console in the balcony. See the section below for more details. **The keypad needs to be in "Console Mode" for this to work properly.**
+Advanced operations of house and theater lighting is accomplished via the lighting console in the balcony. See the section below for more details. **The keypad needs to be in "Console Mode" for this to work properly.**
 
-[Back to top](#top)
+We can also use ProPresenter to fire pre-defined cues via macros. Using this technique a macro can be placed on a slide within a ProPresenter document and when that slide is displayed, the macro will instruct the lighting console to change to the corresponding cue number. ProPresenter macros can also be fired directly from the macro menu.
 
+{{pagebreak}}
+ 
 # Operating the ColorSource 40AV Console
 
 This is the primary and most capable way of controlling (almost) all lighting in the auditorium. Simple operations are fairly simple and yet it is not too hard to create some sophisticated looks.  
@@ -166,11 +154,11 @@ There are two pages of playbacks. The on-screen button indicated by the arrow in
 
 There is a button on the left side of the screen that you touch to select playback mode; the yellow arrow in the picture below points at it.
 
-![Playback Mode - The yellow arrow points at the button](../../images/sol-cs40-playback.png)
+![Playback Mode - The yellow arrow points at the button](./images/sol-cs40-playback.png)
 
 Also the playback master must be up. It is the second slider from the left at the top of the screen. 
 
-![Playback Master Fader - The arrow points at the Playback master slider](../../images/sol-cs40av-pb-master.jpg){height=3in}
+![Playback Master Fader - The arrow points at the Playback master slider](./images/sol-cs40av-pb-master.jpg){height=3in}
 
 ### Playback Map
 ```{r}
@@ -260,7 +248,7 @@ playback %>%
 
 `r knit_child('commonLightingPlots.Rmd', quiet=TRUE)`
 
-[Back to top](#top)
+{{pagebreak}}
 
 # Blinds and Shades
 
@@ -281,6 +269,8 @@ To stop a blind mid-way while travelling, momentarily flick the switch in the op
 
 **When the service is over, please ensure that the blackout blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.**
 
+{{pagebreak}}
+
 # Troubleshooting   
 
 If a blackout blind pops out of its track. 
@@ -300,12 +290,11 @@ If the lights are on and the console doesn't seem to have control
 : Go to the keypad on press "Console Mode".
 : execute 'Clear all' - which will put you into black.
 
-[Back to top](#top)
+{{pagebreak}}
 
 # Lighting Tutorial
 
 In the sections to follow you will find specific videos for our video console as well as more general lighting concepts. 
-
 
 ## Console Video Series
 
@@ -525,8 +514,6 @@ vids %>%
 
 The "User Manual" is available on the [manufacturer's website](https://www.etcconnect.com/Support/Consoles/ColorSource/Documentation.aspx) 
 
-[Back to top](#top)
-
 ## The Functions of Light
 
 Stage lighting has multiple functions, including:
@@ -655,6 +642,8 @@ get.training() %>%
         collapse_rows(columns = 1   )
 ```
 
+{{pagebreak}}
+
 # Lighting Terminology
 
 Channel
@@ -690,15 +679,4 @@ Rotator
 Top Hat
 : a light modifier added to the front of a lighting instrument to narrow its beam spread.
 
-[Back to top](#top)
-
-`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
-
-[Back to top](#top) 
-
-# Document Source
-This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
-
-# Change History
-
-`r commit.log.html( knitr::current_input() )`
+{{< include common_trailer.qmd >}}

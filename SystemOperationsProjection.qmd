@@ -511,24 +511,4 @@ Recovery:
 
 > TODO: Write content
 
-[Back to top](#top)
-
-{{< include FurtherInformation.Rmd >}}
-
-[Back to top](#top)
-
-{{< pagebreak >}} 
-
-```{r current_input}
-ci <- knitr::current_input() # knitr sees a different filename than the input
-ci <- str_replace(ci, 'rmarkdown','qmd')
-```
-
-# Document Source
-This document is compiled by merging text and data together using rmarkdown. 
-The source is found here `r getwd()` / `r ci`.
- 
-# Document Change History
-```{r}
-commit.log.html( ci )
-```
+{{< include common_trailer.qmd >}}
