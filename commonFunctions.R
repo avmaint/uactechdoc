@@ -255,9 +255,12 @@ get.peopleskill <- function() {
 }
 
 get.training <- function() {
-  path <- file.path("~", "Documents", "UACTech" )
+  path <- file.path("~", "Documents", "UACTech", 
+  				  "SystemDocumentation", "github", "uactechdoc", "data")
+  file <- "training_videos.xlsx"
+  sheet <- "training"
   
-  fname <- file.path(path, "RightNowMediaTraining.xlsx" )
-  return(read_excel(fname, sheet="training"))
+  fname <- file.path(path, file )
+  return(read_excel(fname, sheet=sheet))
 }
 
