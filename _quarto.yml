@@ -1,0 +1,21 @@
+project:
+  title: "Techdoc"
+  render:
+    - SystemDesignProjection.qmd
+    - SystemOperationsProjection.qmd
+    - SystemOperationsLighting.qmd 
+    - SystemDesignVideo.qmd
+    - SystemDesignAudio.qmd
+  output-dir: _output
+    
+toc: true
+number-sections: true
+
+format:
+  html:
+    css: styles.css
+    html-math-method: katex
+  pdf:
+    documentclass: report
+    margin-left: 30mm
+    margin-right: 30mm
