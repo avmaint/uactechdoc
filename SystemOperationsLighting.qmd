@@ -64,7 +64,7 @@ There are two mechanisms to control the lighting:
 * A keypad located on the main floor by the south east auditorium doors. Users can select one of several preset configurations. 
 * For more sophisticated control there is a lighting control console located in the balcony (an ETC ColorSource 40AV console).  It can be used for all lighting operations, especially more sophisticated lighting designs than can be accomplished via the keypad panel.
 
-{{pagebreak}}
+{{< pagebreak >}} 
 
 # Operating the Keypad
 
@@ -95,7 +95,7 @@ keypad %>%
     locations = cells_body(  columns = "Button"  ) )	
 ```
 
-{{pagebreak}}
+{{< pagebreak >}} 
   
 # Lighting Power Control
 
@@ -125,7 +125,7 @@ To turn off, reverse the power on order and turn off.
 
 > When leaving the system for the day ensure that lower level keypad is set to "Night Light" (The button will turn blue). 
 
-{{pagebreak}}
+{{< pagebreak >}} 
 
 # Controlling the Lighting System
 
@@ -135,7 +135,7 @@ Advanced operations of house and theater lighting is accomplished via the lighti
 
 We can also use ProPresenter to fire pre-defined cues via macros. Using this technique a macro can be placed on a slide within a ProPresenter document and when that slide is displayed, the macro will instruct the lighting console to change to the corresponding cue number. ProPresenter macros can also be fired directly from the macro menu.
 
-{{pagebreak}}
+{{< pagebreak >}} 
  
 # Operating the ColorSource 40AV Console
 
@@ -152,13 +152,13 @@ In our standard settings, we use the *playback* mode to run our basic scenes. Yo
 
 There are two pages of playbacks. The on-screen button indicated by the arrow in the picture below will say "Playback 1" or "Playback 2". Touching the button selects the other page. You want Playback 1 most of the time. 
 
-There is a button on the left side of the screen that you touch to select playback mode; the yellow arrow in the picture below points at it.
+There is a button on the left side of the screen that you touch to select playback mode; the yellow arrow in the picture below points at it, see @fig-sol-cs40-playback .
 
-![Playback Mode - The yellow arrow points at the button](./images/sol-cs40-playback.png)
+![Playback Mode - The yellow arrow points at the button](./images/sol-cs40-playback.png){#fig-sol-cs40-playback}
 
 Also the playback master must be up. It is the second slider from the left at the top of the screen. 
 
-![Playback Master Fader - The arrow points at the Playback master slider](./images/sol-cs40av-pb-master.jpg){height=3in}
+![Playback Master Fader - The arrow points at the Playback master slider](./images/sol-cs40av-pb-master.jpg){height=3in #fig-sol-cs40av-pb-master}
 
 ### Playback Map
 ```{r}
@@ -167,22 +167,32 @@ simplePlaybackCount <- playback %>%
     nrow()
 ```
 
-There are `r simplePlaybackCount` playbacks that are useful for simple operations. The first three listed (#8,9 and 10) are for the absolute most basic functions. 
+There are `r simplePlaybackCount` playbacks that are useful for simple operations. The first three listed (#8,9 and 10) are for the absolute most basic functions. See @fig-playbacks
 
 The remaining playbacks listed are the first 5 sliders (#21-#26) on the bottom row. They are programmed to looks that are useful for a simple service. These sliders (as well as others) can be used in combination to build a look.
 
 ```{r simple}
-playback %>%
+#| fig-cap: "Playbacks"
+#| fig-cap-location: bottom
+#| label: fig-playbacks
+#| 
+playback |>
   #arrange(Playback) %>%
-  filter(IsSimple =="Y") %>%
-  select(-IsSimple) %>%
-  kable() %>%
-  column_spec( 1,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE) %>%
-  row_spec(1:3, bold=T, background = "lightgrey")
+  filter(IsSimple =="Y") |>
+  select(-IsSimple) |>
+  gt() |>
+  opt_stylize(style=3) |>
+  tab_style( style = list(  cell_text(weight = "bold") ),
+    locations = cells_body(  columns = "Playback"  ) )	|>
+  tab_style( style = list( cell_fill(color = "grey") ),
+    locations = cells_body(  columns = everything() , rows = Playback %in% c(8,9, 10)) ) 
+
+#  kable() %>%
+#  column_spec( 1,   bold = TRUE ) %>%
+#  kable_styling("striped", full_width = TRUE) %>%
+#  row_spec(1:3, bold=T, background = "lightgrey")
 ```
 
-[Back to top](#top)
 
 ## Intermediate Console Operations
 
@@ -240,15 +250,13 @@ playback %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
-[Back to top](#top)
-
 ```{r lighting.plots}
 
 ```
 
 `r knit_child('commonLightingPlots.Rmd', quiet=TRUE)`
 
-{{pagebreak}}
+{{< pagebreak >}} 
 
 # Blinds and Shades
 
@@ -269,7 +277,7 @@ To stop a blind mid-way while travelling, momentarily flick the switch in the op
 
 **When the service is over, please ensure that the blackout blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.**
 
-{{pagebreak}}
+{{< pagebreak >}} 
 
 # Troubleshooting   
 
@@ -290,7 +298,7 @@ If the lights are on and the console doesn't seem to have control
 : Go to the keypad on press "Console Mode".
 : execute 'Clear all' - which will put you into black.
 
-{{pagebreak}}
+{{< pagebreak >}} 
 
 # Lighting Tutorial
 
@@ -543,8 +551,6 @@ Composition
 Effect
 : In pop and rock concerts or DJ shows or raves, colored lights and lasers may be used as a visual effect.
 
-[Back to top](#top)
-
 ## The Qualities of Light
 
 There is a series of videos on these topics on Right now media. Search for or click on:
@@ -567,8 +573,6 @@ get.training() %>%
 ### Intensity
 
 The intensity of a luminaire (lighting instrument or fixture) depends on a number of factors including its lamp power, the design of the instrument (and its efficiency), optical obstructions such as colour gels or mechanical filters, the distance to the area to be lit and the beam or field angle of the fixture, the colour and material to be lit, and the relative contrasts to other regions of illumination.
-
-[Back to top](#top)
 
 ### Color
 
@@ -607,23 +611,17 @@ There are entire books written on colour theory and their emotional effects. We 
 
 Whatever your colour choices, it is best if there is agreement between the lighting colours and the colours used in the video backgrounds.
 
-[Back to top](#top)
-
 ### Focus
 
 The focus is where an instrument is pointed. The final focus should place the "hot spot" of the beam at the actor's head level when standing at the centre of the instrument's assigned "focus area" on the stage. 
 
 Position refers to the location of an instrument in the auditroium. Hanging is the act of placing the instrument in its assigned position.
 
-[Back to top](#top)
-
 ### Beam
 
 Beam refers to the shape, quality and evenness of a lamp's output. The pattern of light an instrument makes is largely determined by a number factors about the instruments design.
 
 Some instruments can have a gobo or break up pattern installed. This is typically a thin sheet of metal with a shape cut into it. It is inserted into the instrument near its aperture. Gobos, or templates, come in many shapes, but often include leaves, waves, stars and similar patterns.
-
-[Back to top](#top)
 
 There is a series of videos that review these topics, also on Right now media. Search for or click on:
 
@@ -642,7 +640,7 @@ get.training() %>%
         collapse_rows(columns = 1   )
 ```
 
-{{pagebreak}}
+{{< pagebreak >}} 
 
 # Lighting Terminology
 
@@ -673,8 +671,11 @@ LED / Light Emitting Diode
 Par / Par Can
 : a type of lighting instrument with a fixed beam width. Some of them look like paint cans. Generally used for washes.
 
+RDM / Remote Device Management
+: This is a management protocol that can run over the same cables as DMX. It is a bi-directional protocol. It can be used to change the configuration of some lighting fixtures (such as our ETC fixtures) without having physical access to the fixture.
+
 Rotator
-: a device which spins a Gobo. Usually Inserted into a lighting instrument where the Gobo holder would go.
+: a device which spins a Gobo. Usually Inserted into a lighting instrument where the Gobo holder would go. 
 
 Top Hat
 : a light modifier added to the front of a lighting instrument to narrow its beam spread.
