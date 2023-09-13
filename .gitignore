@@ -14,5 +14,6 @@ SystemOperations*_files
 deprecated_Rmd/
 draw_node_files/
 .Rproj.user
-
 /.quarto/
+_work/*
+_output/*
