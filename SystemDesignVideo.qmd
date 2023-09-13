@@ -1,7 +1,5 @@
 ---
 title: "System Design - Video"
-author: "Terry Doner"
-date: "`r format(Sys.time(), '%B %d %Y')`"
 execute: 
   eval: true
   echo: false
@@ -10,20 +8,10 @@ execute:
 format:
   html:
     toc: true
-    number-sections: true
-    css: styles.css
   pdf:
-    number-sections: true 
-    toc: true
-    toc-depth: 2
+     toc: true
 always_allow_html: yes
 ---
-
-```{r options, echo=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
-#options(knitr.table.format = "html")  
-knitr::opts_chunk$set(fig.pos = "H", out.extra = "")
-```
 
 ```{r packages }
 source('./commonPackages.R')
@@ -35,14 +23,12 @@ source("./commonFunctions.R")
 
 ```{r getdata}
 Tech_Inventory <- get.inventory()
-network.data <- get.network()
-further <- get.further()
+network.data   <- get.network()
+further        <- get.further()
 ```
 
 # Introduction
-This document provides key technical documentation for the video recording and broadcasting subsystems at UAC. 
-
-This diagram (@fig-video-overview) provides an overview of the major components and leaves out some details.
+This document provides key technical documentation for the video recording and broadcasting subsystems at UAC. This diagram (@fig-video-overview) provides an overview of the major components and and in doing so leaves out some details.
 
 ```{dot overview}
 //| fig-width: 4
@@ -53,14 +39,17 @@ This diagram (@fig-video-overview) provides an overview of the major components 
 
 Frequently throughout this document there will be a diagram or description of some aspect of the installation and following that a listing of the mentioned equipment which provide more detail on the mentioned assets.
 
-Every significant inventory item is to have an asset tag - an actual label attached to the device. For the AV gear these tags all start with a Z. For example ZVKU-A001 is the assest tag of the kramer video matrix. Cabling aslo have a tag for the format yymm-ddxx, which is the year, month, and date followed by a sequence number.
+Every significant inventory item is to have an asset tag - an actual label attached to the device. For the AV gear these tags start with a Z or in the format of yymm-ddxx. For example ZVKU-A001 is the assest tag of the kramer video matrix. Cabling aslo have a tag for the format yymm-ddxx. yymm-ddxx represents the year, month, and date followed by a sequence number when the item was tagged.
 
 # Video Matrix
+
+The main job of a video matrix is to take multiple video sources, such as cameras or computers, and direct their video signals to different destinations, like TVs, projectors, or recording devices.
+
+Our video matrix is a Kramer VS-88DT which is an 8x8 matrix and can handle HDMI inputs and outputs which are either HDMI or [HDBaseT](https://en.wikipedia.org/wiki/HDBaseT) formats. Any of the 8 inputs can be routed to any of the 8 outputs (or several outputs).
+
 The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats.
 
 It has 8 inputs and 8 outputs. It can be controlled via the buttons on the front panel or from it’s built in web page.
-
-TODO: verify this configuration
 
 ```{r}
 psi <- tribble(
@@ -70,9 +59,9 @@ psi <- tribble(
 2, "TW Centre",     "Triple wide input Centre (from PP via decklink)", 
 3, "TW Right",      "Triple wide input Right (from PP via decklink)",
 4, "Confidence",    "Stage display from PP for the rear projector via decklink.",
-5, "VMixer Program", "Program output from Video Mixer",
-6, "VMixer Aux",     "Aux output from Video Mixer",
-7, "CDWU-0009",     "Video Output from Windows machine. Usually used for OBS.",
+5, "CDWU-0009",     "Video Output from Windows machine. Usually used for OBS.",
+6, "VMixer Program", "Program output from Video Mixer",
+7, "VMixer Aux",     "Aux output from Video Mixer",
 8, "PP HDMI Output", "Used for times when programs other than PP need to be displayed, for example a DVD player." 
 )
 
@@ -138,55 +127,12 @@ pso |>
 		)  
 ```
 
-## Configurations
-The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.  
-
-#### Normal Service Switcher Configuration 
-The display should look like:
-
-|Output|1|2|3|4|5|6|7|8|
-|-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-|Input |1|2|3|4|8|-|-|5|
-
-```{dot}
-//| fig-width: 3
-//| fig-height: 2
-//| label: fig-matrix-normal
-//| fig-cap: "Normal video matrix configuration"
-//| file: gv/sdv-PSnormal.gv
-```
-
-#### Camera On-screen Configuration  
-
-The goal of this configuration is to get a camera image on the screen - usually the centre screen. The best method of achiving this is this
-
-TODO: figure this out so that we can select the "Proj B" video feed on the ATEM. Atem inputs need to be Fill, Key, HDMI and "Proj B".  
-
-* On the Video Matrix: for output 2, select ATEM Aux (input 6) 
-* For ATEM Aux output select one of these two sources, depending on the intent
-    + For Camera on screen select the Aux feed to come from the Program bus
-    + for 'normal' mode, select the Aux ... this is incomplete
-
- Normal: decklink sdi6 -> VM_In2 -> VM_Out6 -> ATEM_In4 -> Aux -> VM_In6 -> VM_Out2
- 
- Camera On screen: ATEM_PRG -> ATEM_AUX -> VM_In6 -> VM_Out2
- 
-The centre screen content can be flipped between 'normal' centre screen content from Proprestenter to ATEM Program Output by changing the Aux Bus setting on the ATEM.  
- 
-```{dot}
-//| fig-width: 3
-//| fig-height: 2
-//| label: fig-matrix-camera
-//| fig-cap: "Video matrix configuration for camera on-screen"
-//| file: gv/sdv-PScamera.gv
-```
-
 # Topologies
-There are a lot of components to the system. One big diagram is daunting. It has been broken down into smaller portions to be more consumable. 
+There are a lot of components to the system. One big diagram is daunting. The system description has been broken down into smaller portions to be more consumable. 
 
 ## Computer Topology
 
-There are three computers in the system:
+There are three computers in the system (See @fig-topology1-computer):
 
 CDMU-A001 MacOS / ProPresenter / DVD Player
 : This system runs ProPresenter and has multiple outputs:
@@ -204,23 +150,19 @@ CDWU-0009 Windows / OBS
 CUMU-G001 MacOS / ATEM Control / OBS / Propresenter
 : This system runs the ATEM switcher software, and OBS (for prayer room monitoring) and can also run things like Skype.
 
->todo: Confirm web presenter SDI and HDMI inputs.
-
-
 ```{dot}
-//| fig-width: 4
-//| label: fig-topology-computer
+//| label: fig-topology1-computer
 //| fig-cap: "Topology of video related computers"
 //| file: gv/sdv-topology1-computer.gv
 ```
 
-```{r top1}
+```{r topology1-computer}
 # TODO: fix the code below.
+#| label: tab-topology1-computer
+#| fig-cap: "Computer Topology"
 
 print_inv(c("CDWU-0009","CDMU-A001" , "ZVIU-E004" #"CDMU-G001" ,
-			#,
-           # "ZVKU-A003", "ZVKU-A001", "ZVIU-A004", "ZVKU-A002"
-            ), Tech_Inventory)
+		     ), Tech_Inventory)
 ```
 
 ## Projection Topology
@@ -253,8 +195,10 @@ There is a network cable that also runs to the lobby TV, and is for future use.
 ```
 
 ```{r l132}
-print_inv(c("ZVIU-A001", "ZVKU-A001", "ZVVU-0002"), Tech_Inventory)
+print_inv(c("ZVIU-A001", "ZVKU-A001"  ), Tech_Inventory)
 ```
+
+>TODO: the above list is missing the lobby tv
 
 * Diagrams and charts have been updated 
 * Inventory database updated with the new locations.
@@ -271,8 +215,8 @@ The TV in the nursery gets its content from the video matrix. For the main servi
 //| file: gv/sdv-topology4-nursery.gv
 ```
 
-```{r top3}
-print_inv(c("ZVIU-A002", "ZVKU-A001",   "ZVVU-0003"), Tech_Inventory)
+```{r top3_inv}
+print_inv(c("ZVIU-A002", "ZVKU-A001","ZVVU-0002", "ZVVU-0003"), Tech_Inventory)
 ```
 
 The TV has a remote control which is found on top of the coatrack near the TV, power on/off can be controlled directly using the button on the bottom centre of the screen.
@@ -292,10 +236,7 @@ A key constraint for the ATEM video mixer is that all inputs must have the same 
 //| file: gv/sdv-topology5-rec-inputs.gv
 ```
 
-
 ### Outputs
-
->TODO: verify path to recorders - do they both come directly out of the ATEM, or are they daisy chained?
 
 ```{dot}
 //| fig-width: 4
@@ -307,17 +248,7 @@ A key constraint for the ATEM video mixer is that all inputs must have the same 
 
 ### Web Presenter
 
-> There are some details on the signal path between the Video Mixer and the Web Presenter that need to be documented.
-
-There is only one Aux output on the ATEM (ZVKU-A003) and we need to send it to three destinations:
-
-#. WebPresenter
-#. Video Matrix
-#. DeckLink
-
-The Loop out on ZVIU-D001 and on recorder 1 is used to make this work. 
- 
-TODO: Document routing details between ATEM and WP. label cables. 
+The WebPresenter (see @fig-topology-webpres) converts its input (SDI or HDMI) to a usb webcam format which can be used by the computer (it also acts as a two-channel switch). 
  
 ```{dot}
 //| fig-width: 4
@@ -327,60 +258,12 @@ TODO: Document routing details between ATEM and WP. label cables.
 //| file: gv/sdv-topology6-rec-wp.gv
 ``` 
  
- 
-
 ```{r}
 print_inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002",
            "ZVCU-A001", "ZVIU-C001",
            "ZVCU-A002", "ZVCU-A003", "ZVKU-A003",
            "ZVRU-A001", "ZVRU-A002", "ZVIU-A004"), Tech_Inventory)
 ```
-
-# Camera Settings
-
-The cameras recall their settings for preset 1 when powered on. This includes the video settings documented here. You should not need to adjust these regularly. If you need to reference the procedure to adjust the camera settings follows.
-
-Each camera has a web page where we can make these updates. Open Safari and then for each camera do these steps:
-
-#. Enter the address for a camera in the address bar. They will be on the left bookmark bar but if not, listed here as well.
-```{r addresses}
-network.data  |>
-  filter(AssetTag %in% c("ZVCU-A001","ZVCU-A002","ZVCU-A003")) |>
-  select( AssetTag, URL , Notes ) |>
-    gt( ) |>
-			opt_stylize(style = 3) |>
-    		tab_style(
-			style = cell_text(
-				weight = "bold", 
-				),
-			locations = cells_body(
-				columns = "AssetTag")
-		) |>
-		tab_options(table.font.size="50%")
-```
-
-#. At the top of the page, click on "Setting" and the on the left "Video" and the "Picture" tab
-    * You should **not** be challenged for a userid and password, but if you are skip these steps and let Terry know.
-#. Change Exposure Mode to "Iris Priority" 
-    * This instructs the camera to we are going to set the lens aperture (Iris) otherselves, and the camera will control the other exposure settings. 
-#. Change Exposure Compensatoin to "-4"
-    * This instructs the camera to make the image a little bit darker than it thinks it should be. We are trying to get good face exposure.
-#. Change Iris to "F1.6"
-    * This forces the camera to take in the maximum amount of light.
-#. Change White balance Mode to "Indoor"
-    * This tells the camera that the lighting will tend to be a warmer shade than standard daylight. (There is a "Standard"). The default make skin tones too orange.
-#. Change High Resolution mode to "On"
-    * Use the maximum resolution the camera is capable of.
-#. Change Aperture to "0"
-    * Maximum light 
-#. At the bottom of the page, click the "Ok" button. 
-    * You will be able to see the chnages take effect.
-
-Here is a screenshot of the page with the settings applied.
-
-![Camera settings](./images/sdv-camerasettings.png)
-
-[Back to top](#top)
 
 # Network Details
 
@@ -413,5 +296,7 @@ items <- Tech_Inventory %>%
   
 print_inv(items, Tech_Inventory)
 ```
+
+>TODO need to add CUMU-G001 to the list
 
 {{< include common_trailer.qmd >}}

@@ -92,6 +92,7 @@ Our video matrix is a Kramer VS-88DT which is an 8x8 matrix and can handle HDMI 
 
 It can be controlled via the buttons on the front panel or from its built in web page.
 
+
 ```{r psi}
 psi <- tribble(
 ~Input, ~Usage, ~Comment,

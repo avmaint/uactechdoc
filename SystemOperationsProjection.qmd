@@ -396,6 +396,30 @@ You can do a similar thing directly on the front panel of the switch itself usin
 
 ![Matrix Video Swtich](./images/sop-gear-vs88dt-1.jpg)
 
+#### Camera On-screen Configuration  
+
+The goal of this configuration is to get a camera image on the screen - usually the centre screen. The best method of achiving this is this
+
+TODO: figure this out so that we can select the "Proj B" video feed on the ATEM. Atem inputs need to be Fill, Key, HDMI and "Proj B".  
+
+* On the Video Matrix: for output 2, select ATEM Aux (input 6) 
+* For ATEM Aux output select one of these two sources, depending on the intent
+    + For Camera on screen select the Aux feed to come from the Program bus
+    + for 'normal' mode, select the Aux ... this is incomplete
+
+ Normal: decklink sdi6 -> VM_In2 -> VM_Out6 -> ATEM_In4 -> Aux -> VM_In6 -> VM_Out2
+ 
+ Camera On screen: ATEM_PRG -> ATEM_AUX -> VM_In6 -> VM_Out2
+ 
+The centre screen content can be flipped between 'normal' centre screen content from Proprestenter to ATEM Program Output by changing the Aux Bus setting on the ATEM.  
+ 
+```{dot}
+//| fig-width: 3
+//| fig-height: 2
+//| label: fig-matrix-camera
+//| fig-cap: "Video matrix configuration for camera on-screen"
+//| file: gv/sdv-PScamera.gv
+```
 
 
 # Remote Login
