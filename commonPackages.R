@@ -15,3 +15,8 @@ require(tidyverse)
 require(stringr)
 require(here)
 require(gt)
+
+#install.packages("rsvg")
+#install.packages("DiagrammeRsvg")
+library(rsvg)
+library(DiagrammeRsvg)
