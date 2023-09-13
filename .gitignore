@@ -13,3 +13,6 @@ SystemOperations*_files
 *.psd
 deprecated_Rmd/
 draw_node_files/
+.Rproj.user
+
+/.quarto/
