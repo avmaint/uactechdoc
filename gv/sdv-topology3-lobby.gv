@@ -16,7 +16,7 @@ node [  tooltip="" ]
 
 subgraph cluster_lobby { label="Lobby" 
   c62hdmi1   [label="{<i>HDBaseT|ZVIU-A001|<o>hdmi}", tooltip="In lobby"]
-  lobbytv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Lobby\nTV\nZVVU-0002}"]
+  lobbytv  [label="{ {{<i1>hdmi|in1} | {<i2>hdmi|in2}}|Lobby\nTV\n??Asset Tag??}"]
 }
 
 pswitch:o7 -> c62hdmi1:i [label="2307-2315" fontsize=10  ]
