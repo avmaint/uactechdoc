@@ -7,22 +7,26 @@ project:
     - SystemDesignVideo.qmd
     - SystemDesignAudio.qmd
     - SystemDesignYouth.qmd
+    - SystemDesignDante.qmd
   output-dir: _output
     
 date-format: "[Last Update] MMM DD YYYY HH:mm:ss"
-    
-    
+
 toc: true
 number-sections: true
 
 format:
   html:
+    author: "UAC Media Arts"
+    date: last-modified
     css: styles.css
     html-math-method: katex
     toc-depth: 2
     toc-location: right
     number-sections: true
   pdf:
+    author: "UAC Media Arts"
+    date: last-modified
     documentclass: report
     margin-left: 25mm
     margin-right: 25mm
@@ -31,5 +35,3 @@ format:
     toc: true
     toc-depth: 2 
     number-sections: true 
-
-    
