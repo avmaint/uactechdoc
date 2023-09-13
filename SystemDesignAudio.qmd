@@ -1,12 +1,24 @@
 ---
 title: "System Design - Audio"
-author: "Terry Doner"
+author: "UAC Media Arts"
 date: "`r Sys.setenv(TZ= 'Canada/Eastern' ); format(Sys.time(), '%B %d %Y %H:%M %p')`"
-output:
-  html_document:
-    toc: yes
-    number_sections: true
-    theme: cosmo
+execute: 
+  eval: true
+  echo: false
+  warning: false
+  message: false
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    toc-location: right
+    number-sections: true
+  pdf:
+    number-sections: true 
+    toc: true
+    toc-depth: 2  
+ 
+always_allow_html: yes
 ---
 
 ```{r options, include=FALSE}
@@ -15,14 +27,16 @@ options(knitr.table.format = "html") # latex for pdf
 ```
 
 ```{r setup}
-require(readr)
-require(dplyr)
-require(readxl)
-require(knitr)
-require(formattable)
-require(kableExtra)
-require(glue)
-require(here)
+source("commonPackages.R")
+
+# require(readr)
+# require(dplyr)
+# require(readxl)
+# require(knitr)
+# require(formattable)
+# require(kableExtra)
+# require(glue)
+# require(here)
 ```
 
 ```{r functions}
@@ -66,6 +80,7 @@ dante.console.ins <- merge(t2, console )
 ```
 
 # Introduction
+
 This document provides key technical documentation for the Sanctuary audio subsystems at UAC. Other audio systems are not documented to this level of detail (Youth, Children).
 
 Purpose:
@@ -76,43 +91,47 @@ Purpose:
 * Helps audience to focus and concentrate
 * Reinforces the message (spoken or sung)
 
-[Back to top](#top)
+ 
 
-<p style="page-break-before: always"></p>
+{{< pagebreak >}} 
 # Configuration
 
 The descriptions of the configurations will generally start at the input side of the system and work towards the outputs.
 
-```{r overview}
-DiagrammeR::grViz("sda-overview.gv")
-```
 
-[Back to top](#top)
+```{dot overview}
+//| label: fig-audio-overview
+//| fig-cap: "Audio system overview."
+//| file: gv/sda-overview.gv
+``` 
  
 ## Inputs
 
 There are a variety of microphone inputs that come from the stage as well as CD players, tape players and computer inputs in the balcony. These all are fed into one of two audio mix consoles: A Yamaha M7CL-48 and a Yamaha DM1000. The M7CL is the primary console while the DM1000 handles inputs located at the mix position.
 
-```{r inputdia-m7}
-DiagrammeR::grViz("sda-inputs-m7.gv" )
-```
+```{dot sda-inputs-m7}
+//| label: fig-sda-inputs-m7
+//| fig-cap: "M7CL Inputs"
+//| file: gv/sda-inputs-m7.gv
+``` 
 
 ### M7CL Input Assignments
 
-Having a consistent wiring plan helps make system more predictable and easier for all audio engineers to use. The consistent wiring plan is also essentail to leveage the power of console's scene recall feature. It minimizies the amount of rewiring required.
+Having a consistent wiring plan helps make system more predictable and easier for all audio engineers to use. The consistent wiring plan is also essentail to leveage the power of console's scene recall feature. It minimizes the amount of rewiring required.
 
 The chart which follows is the standard input map if using Scene 002. 
 
 ```{r m7in}
+#| label: fig-sda-inputs-m7-map
+#| fig-cap: "M7CL Inputs"
 get_inputs("M7CL", "002") %>% 
-  kable(caption="M7CL Input Map") %>%
-    column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
+	gt() |>
+	opt_stylize(style=3) |>
+	tab_header("M7CL Input Map") 
 ```
 
 
 ```{r m7.dante}
- 
 di <- "ZAKU-0001"
 
 dante.console.ins %>% 
@@ -131,17 +150,21 @@ dante.console.ins %>%
  
 ### DM1000 Inputs
 
-```{r inputdia-dm}
-DiagrammeR::grViz("sda-inputs-dm.gv" )
+```{dot sda-inputs-dm}
+//| label: fig-sda-inputs-dm
+//| fig-cap: "DM1000 Inputs"
+//| file: gv/sda-inputs-dm.gv
 ```
 
 The DM1000 inputs are all located in the FoH mix position. The chart below describes Scene 002 default definitions.
 
 ```{r dmin}
-get_inputs("DM1K", "002") %>%  
-  kable(caption="DM1000 Input Map") %>%
-    column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
+#| label: fig-sda-inputs-dm-map
+#| fig-cap: "DM1000 Inputs"
+get_inputs("DM1K", "002") |>
+ 	gt() |>
+	opt_stylize(style=3) |>
+	tab_header("DM1000 Input Map") 
 ```
 
 ```{r dm.dante}
@@ -170,8 +193,6 @@ print_inv(c( "CDMU-A001", "ZAKU-0002",
              ), Tech_Inventory)
 ```
 
-[Back to top](#top)
- 
 ## Front of House
 
 ### Consoles
@@ -186,9 +207,13 @@ There are some additional outboard components which complete the signal path. Th
 
 The monitor amps are feed directly from the M7CL. The house amps are feed from the soundweb.
 
-```{r fohdia}
-DiagrammeR::grViz("sda-foh.gv" )
+ 
+```{dot sda-foh}
+//| label: fig-sda-foh
+//| fig-cap: "Front of House"
+//| file: gv/sda-foh.gv
 ```
+
 ```{r}
 cs <- c( 
 "ZAKU-0001",
@@ -202,7 +227,7 @@ cs <- c(
 print_inv(cs , Tech_Inventory)
 ```
 
-[Back to top](#top)
+ 
 
 ### Other FoH gear
 
@@ -309,8 +334,10 @@ There is are ADAT IO expansion card in each of the two consoles. This enables co
 
 There is also a midi link between the two which enables synchronized scene recall.
 
-```{r linkdia}
-DiagrammeR::grViz("sda-links.gv" )
+```{dot sda-links}
+//| label: fig-sda-links
+//| fig-cap: "Console Links"
+//| file: gv/sda-links.gv
 ```
 
 More detail about the Dante configuration can be found in the Dante section.
@@ -328,46 +355,46 @@ links <- tribble(
 "M7CL", 1, "In",  "16",    "Mono",
 "M7CL", 2, "In",  "1-10",  "Wireless Handheld",
 "DM1K", 2, "In",  "1-6",   "Wireless Beltpack"
-)
+) |>
+	mutate(Group = paste(Console, Slot, Direction))
 
 links %>%
-  kable( ) %>%
-    kable_styling("striped", full_width = TRUE) %>%
-    group_rows("DM1K Slot 1 Out", 1, 3) %>%
-    group_rows("M7CL Slot 1 In", 4, 8) %>% 
-    group_rows("M7CL Slot 2 In", 9, 9) %>% 
-    group_rows("DM1K Slot 2 In", 10, 10) 
-   # collapse_rows(columns = 1:3 )
-  
+  gt(rowname_col = "Assignment", groupname_col="Group") |>
+  opt_stylize(style=3)  
+   
 ```
 
-[Back to top](#top)
- 
 
 ### M7 Mix Bus Usage
 
-This console has 16 mix busses. Since the console is capable of multuple routing paths within the console. This is described by the 'And then' description which informs about what happens next within the console.
+This console has 16 mix busses. Since the console is capable of multiple routing paths within the console. This is described by the 'And then' description which informs about what happens next within the console.
 
-|Mix #|Description|And then|
-|------|----------|----------|
-|1|Monitor 1|To Rack EQ and then out to Omni 1|
-|2|Monitor 2|To Rack EQ and then out to Omni 2|
-|3|Monitor 3|To Rack EQ and then out to Omni 3|
-|4|Monitor 4|To Rack EQ and then out to Omni 4|
-|5|Monitor 5|To Rack EQ and then out to Omni 5|
-|6|Monitor 6|To Rack EQ and then out to Omni 6|
-|7|Effect - Reverb plate|To Rack 5 and then to STRIN 1|
-|8|Effect - Rev-X Hall|To Rack 6 and then to STRIN 2|
-|9|Effect - mono Delay|To Rack 7 and then to STRIN 3|
-|10|Effect - Chorus|To Rack 8 and then to STRIN 4|
-|11|||
-|12|||
-|13|||
-|14|Record Mix|Out on Omni 14|
-|15|||
-|16|||
-||||
+```{r m7_busses}
+tribble( 
+~MixNo, ~Description, ~And_then 
+, 1, "Monitor 1", "To Rack EQ and then out to Omni 1" 
+, 2, "Monitor 2", "To Rack EQ and then out to Omni 2" 
+, 3, "Monitor 3", "To Rack EQ and then out to Omni 3" 
+, 4, "Monitor 4", "To Rack EQ and then out to Omni 4" 
+, 5, "Monitor 5", "To Rack EQ and then out to Omni 5" 
+, 6, "Monitor 6", "To Rack EQ and then out to Omni 6"   
+, 7, "Effect- Reverb plate", "To Rack 5 and then to STRIN 1" 
+, 8, "Effect- Rev-X Hall", "To Rack 6 and then to STRIN 2" 
+, 9, "Effect- mono Delay",  "To Rack 7 and then to STRIN 3" 
+,10, "Effect- Chorus", "To Rack 8 and then to STRIN 4"  
+,11, "", "" 
+,12, "","" 
+,13, "",""
+,14,"Record Mix","Out on Omni 14" 
+,15, "",""
+,16, "",""
+) |>
+	gt() |>
+	opt_stylize(style=3)
+```
 
+> TODO: Need to update above table with additional Dante Outs
+	
 ### M7 User Defined Key
 
 The user defined keys allow the operator to quickly acccess common features.
@@ -388,14 +415,15 @@ The user defined keys allow the operator to quickly acccess common features.
 |12|Talkback - operator to stage communication|
 |||
 
-[Back to top](#top)
-
+ 
 ## Amplifiers
 
 Now lets finish our journey to the speakers.  
 
-```{r outputs}
-DiagrammeR::grViz("sda-outputs.gv")
+```{dot sda-outputs}
+//| label: fig-sda-outputs
+//| fig-cap: "Outputs"
+//| file: gv/sda-outputs.gv
 ```
 
 ```{r}
@@ -426,9 +454,9 @@ cs <- c("ZASU-0001-0002",
 print_inv(cs , Tech_Inventory)
 ```
 
-[Back to top](#top)
+ 
 
-<p style="page-break-before: always"></p>
+{{< pagebreak >}} 
 # Dante Configuration
 
 Dante enables certain audio devices to route audio signals using standard network technologies. Routing is managed via software provided by Audinate called "Dante Controller".  
@@ -452,9 +480,13 @@ Visit https://www.audinate.com to learn more about Dante. Audinate have a very g
 
 ## Dante Network Topology
 This is the network topology.
-```{r}
-DiagrammeR::grViz("sda-dante.gv")
+
+```{dot sda-dante}
+//| label: fig-sda-dante
+//| fig-cap: "Dante Network"
+//| file: gv/sda-dante.gv
 ```
+
 
 ```{r}
 cs <- c("ZAIU-B001", "ZAIU-B002" ,
@@ -615,7 +647,7 @@ routing %>%
     row_spec(0, angle=-90 )
 ```
 
-<p style="page-break-before: always"></p>
+{{< pagebreak >}} 
 # Livestream Configuration 
 
 ## Primary Dante Configuration
@@ -634,8 +666,8 @@ In the event of a problem with the reaper computer or short staffed and the live
 
 The audio mix can now be performed on the record bus ... #14.
 
-```{r livestream}
-ls <-' 
+```{dot livestream}
+
 digraph outputs { 
   
 graph [overlap = true, fontsize = 20, 
@@ -663,7 +695,7 @@ avio  [label="{{
 
 
 videomix  [label="{{<i1>L|<i2>R } |{Video\nMixer|ZVKU-A003}|<o1>SDI}"]
-resi  [label="{{<i1>SDI } |{resi|no tag}}"]
+resi  [label="{{<i1>SDI } |{Resi Encoder|no tag}}"]
 
 ZAKU0001:s215 -> avio:ch1 [label="dante"]
 ZAKU0001:s215 -> avio:ch2 
@@ -673,21 +705,19 @@ avio:ch2 -> videomix:i2
 
 videomix:o1 -> resi:i1
 } 
-'
-
-DiagrammeR::grViz(ls, height=350)
+ 
 ```
 
-## Fallback  to Aanalog Configuration
+## Fallback  to Analog Configuration
 
 If this is ever required, take the audio output direclty from the M7 output or the RANE output via mic cable to the video mixer. Audio levels in the video mixer will need to be checked and adjusted. This can be done directly on the panel interface or via the ATEM control software, Audio section.
 
+{{< pagebreak >}} 
 
-<p style="page-break-before: always"></p>
 # Network Details
 Some of the audio system components have network (tcp/ip specicially) connectivity requriements. The primary audio console can be remotely operated from an iPad, so other devices also must be on the network as well, but they are personal devices and not part of this inventory. In the balcony, network switch NSCU-A003 provides wired access.    
 
-```{r} 
+```{r ni716} 
  NetworkInventory %>% 
   filter(Category=="Audio") %>% 
   select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
@@ -695,9 +725,8 @@ Some of the audio system components have network (tcp/ip specicially) connectivi
     kable_styling("striped", full_width = TRUE)
 ```
 
-[Back to top](#top)
+{{< pagebreak >}} 
 
-<p style="page-break-before: always"></p>
 # Equipment Inventory
 
 ```{r inventory, echo=FALSE, asis=TRUE}
@@ -717,28 +746,17 @@ Tech_Inventory %>%
     kable_styling("striped", full_width = TRUE)
 ```
 
-[Back to top](#top)
+ 
 
-<p style="page-break-before: always"></p>
-
-`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
-
-[Back to top](#top)
-
-<p style="page-break-before: always"></p>
-# Document Source
-This document is compiled by merging text and data together using rmarkdown. The source is found here `r getwd()` / `r knitr::current_input()`
-
-# Change History
-
-`r commit.log.html( knitr::current_input() )`
+{{< include common_trailer.qmd >}}
 
 # Input Map for Printing
-<p style="page-break-before: always"></p>
+{{< pagebreak >}} 
 ```{r ToPrint}
 include <- c(seq(1,32), seq(41,46))
 
-g0 <- get_inputs("M7CL", "002") %>% 
+g0 <- get_inputs("M7CL", "002") |>
+	  select( Channel, Usage ,Type , Notes ) |>
   filter(Channel %in% include) 
 
 g1 <- g0[1:19, ]
@@ -757,6 +775,85 @@ g3 %>% # only pprint what is relevant to the stage box
     kable_styling("striped", full_width = TRUE)
 ```
 
+gt version
+
+```{r}
+# gt version
+g1a <- g1
+g2a <- g2
+
+colnames(g1a)<-paste(colnames(g1a),"A",sep="_")
+colnames(g2a)<-paste(colnames(g2a),"B",sep="_")
+
+g3a <- cbind(g1a, data.frame(blank=rep("|",19)), g2a)
+
+g3a |>
+	select( 
+		Channel_A, Usage_A ,Type_A , Notes_A ,
+		blank,
+        Channel_B ,Usage_B,Type_B , Notes_B ) |>
+	gt() |>
+	sub_missing(   missing_text = "---" ) |>
+	tab_style(
+    style = cell_borders(
+      sides = c("left","right") ,
+      color = "red",
+      weight = px(5),
+      style = "solid"
+    ),
+    locations = cells_body(columns = "blank", rows = everything())
+  ) |>
+	tab_style(
+    style = cell_borders(
+      sides = c("left") ,
+      color = "red",
+      weight = px(5),
+      style = "solid"
+    ),
+    locations = cells_body(columns = "Channel_A", rows = everything())
+  ) |>
+	tab_style(
+    style = cell_borders(
+      sides = c("right") ,
+      color = "red",
+      weight = px(5),
+      style = "solid"
+    ),
+    locations = cells_body(columns = "Notes_B", rows = everything())
+  ) |>
+	tab_style(
+    style = cell_borders(
+      sides = c("top") ,
+      color = "red",
+      weight = px(5),
+      style = "solid"
+    ),
+    locations = cells_body(columns = contains("_"), rows = Channel_A == 1 )
+  ) |>
+	tab_style(
+    style = cell_borders(
+      sides = c("bottom") ,
+      color = "red",
+      weight = px(5),
+      style = "solid"
+    ),
+    locations = cells_body(columns = contains("_"), 
+    					   rows = Channel_A == 19 )
+  ) |>
+	cols_label  (
+    Channel_A = "Channel",
+    Usage_A = "Usage",
+    Type_A = "Type",
+    Notes_A = "Notes",
+     Channel_B = "Channel",
+    Usage_B = "Usage",
+    Type_B = "Type",
+    Notes_B = "Notes",
+     blank = "|"
+    )  
+```
+
+
 # Dante Output Dump
 
 ```{r dod}
@@ -774,5 +871,4 @@ merge(o1, o2) %>%
          ) %>%
   kable(caption=glue("Dante Outputs for {do}"))  %>%
     kable_styling(bootstrap_options = c("striped", "hover"))
-
 ```
