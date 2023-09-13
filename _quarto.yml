@@ -6,7 +6,11 @@ project:
     - SystemOperationsLighting.qmd 
     - SystemDesignVideo.qmd
     - SystemDesignAudio.qmd
+    - SystemDesignYouth.qmd
   output-dir: _output
+    
+date-format: "[Last Update] MMM DD YYYY HH:mm:ss"
+    
     
 toc: true
 number-sections: true
@@ -15,7 +19,17 @@ format:
   html:
     css: styles.css
     html-math-method: katex
+    toc-depth: 2
+    toc-location: right
+    number-sections: true
   pdf:
     documentclass: report
-    margin-left: 30mm
-    margin-right: 30mm
+    margin-left: 25mm
+    margin-right: 25mm
+    lot: true
+    lof: true
+    toc: true
+    toc-depth: 2 
+    number-sections: true 
+
+    
