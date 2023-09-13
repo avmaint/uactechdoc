@@ -50,7 +50,7 @@ The descriptions of the configurations will generally start at the input side of
 //| fig-width: 6
 //| label: fig-dante-overview
 //| fig-cap: "Overview of the Audio System"
-//| file: sda-overview.gv
+//| file: ./gv/sda-overview.gv
 ```
 
 [Back to top](#top) 
