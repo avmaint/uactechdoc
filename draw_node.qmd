@@ -1,5 +1,5 @@
 ---
-title: "Nursery and Toddler Video Configuration"
+title: "Draw Node"
 author: "Terry Doner"
 date: last-modified
 date-format: "[Last Updated on] MMMM DD YYYY"
@@ -22,7 +22,7 @@ execute:
   warning: false
   message: false
 ---
- 
+
 ```{r target_shortcuts}
 #target<- c("2308-0002", "2308-0003" , "CDWU-A002" )
  target <- c(  "CDMU-A001",   "2308-0808")
@@ -68,13 +68,14 @@ nursery <- c("ZVIU-A002", "ZVVU-0002", "ZVVU-0003")
 
 vmac <- c( "ZVIU-C002")
 dl <- c("ZVIU-E004")
+lobby <- c("ZVIU-A001")
 ```
 
 ```{r set_target}
 target <- vmac # vs88 #dl_atem 
 #target <- pp
 #target <- daw_network 
-target <- nursery #vs88#dl
+target <- atem#nursery#lobby #vs88 #dl #nursery #vs88#
 ```
 
 This report provides the details for these devices `r target` and the devices connected to them (it).
@@ -101,7 +102,6 @@ target_devices <- c(target_cables$SrcTag ,
 
 # Diagram
 
-
 ```{r draw }
 diag <- get_diagram(target , inventory, cables)
 # clipr::write_clip( diag )
@@ -110,26 +110,17 @@ tf <- tempfile(fileext=".png", tmpdir="~/Downloads")
 
 t <- DiagrammeR::grViz(diag) 
 
-#install.packages("rsvg")
-#install.packages("DiagrammeRsvg")
-library(rsvg)
-library(DiagrammeRsvg)
 grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf) # need for pdf render
+#clipr::write_clip( diag )
 ```
 
-:::{.content-visible when-format="html"}
-
+::: {.content-visible when-format="html"}
 `r t`
-
 :::
 
-:::{.content-visible when-format="pdf"}
-
+::: {.content-visible when-format="pdf"}
 `r sprintf("\\includegraphics {%s}", tf)`
-
 :::
-
-
 
 ```{r gt_inventory}
 table <- inventory |>
@@ -158,17 +149,15 @@ table <- inventory |>
 
 # Devices
 
-:::{.content-visible when-format="pdf"}
-`r sprintf("\\begin{sidewaysfigure}")`
-`r table`
-`r sprintf("\\end{sidewaysfigure}")`
+::: {.content-visible when-format="pdf"}
+`r sprintf("\\begin{sidewaysfigure}")` `r table` `r sprintf("\\end{sidewaysfigure}")`
 :::
 
-:::{.content-visible when-format="html"}
-`r table`
+::: {.content-visible when-format="html"}
+```{r}
+table
+```
 :::
-
-
 
 ```{r gt_cables}
 table <- target_cables |>
@@ -201,15 +190,15 @@ table <- target_cables |>
 		locations=cells_body(columns=Tag)
 	)  
 ```
+
 # Cables
 
-:::{.content-visible when-format="pdf"}
-
-`r sprintf("\\begin{sidewaysfigure}")`
-`r table`
-`r sprintf("\\end{sidewaysfigure}")`
+::: {.content-visible when-format="pdf"}
+`r sprintf("\\begin{sidewaysfigure}")` `r table` `r sprintf("\\end{sidewaysfigure}")`
 :::
 
-:::{.content-visible when-format="html"}
-`r table`
+::: {.content-visible when-format="html"}
+```{r}
+table
+```
 :::
