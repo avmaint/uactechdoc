@@ -81,12 +81,12 @@ get_cable_code <- function(target_cables, cables) {
 	return( paste(cable_code$code , collapse = "\n")	)	
 }
 
-get_diagram <- function(targets, inventory, cables, label="" ) {
+get_diagram <- function(targets, inventory, cables, label=NA ) {
 	
 	labeltxt <- paste(targets, collapse= ', ' )
-	my_label = glue(' label="Connectivity for {labeltxt}\nAs of {Sys.Date()}"')
+	my_label = glue(' "Connectivity for {labeltxt}\nAs of {Sys.Date()}"')
 
-	label <- ifelse(label == "", my_label, label)  
+	label <- ifelse(is.na(label) , my_label, label)  
 	
 	target_cables <- cables |>
 		filter(SrcTag %in% targets | DstTag %in% targets)  
@@ -99,7 +99,7 @@ get_diagram <- function(targets, inventory, cables, label="" ) {
 		"digraph outputs { 
 			graph [overlap = true, fontsize = 20,
 			rankdir=LR, fontname = 'Helvetica' ,"
-		, label ,  
+		, "label=", label ,  
 		"]
       
 	node [shape=Mrecord, tooltip='' ,  fontsize = 10,
@@ -112,4 +112,24 @@ get_diagram <- function(targets, inventory, cables, label="" ) {
 	, "}") 
 	
 	return(  diag  )
+}
+
+get_diagram_aux <- function (dot_code) {
+	
+	temp_png <- tempfile(fileext=".png", tmpdir="_work")
+	
+	grViz(dot_code) |> 
+		export_svg() |> 
+		charToRaw() |> 
+		rsvg_png(temp_png) # write to file
+	
+	out_str <- case_when(
+		knitr::is_latex_output() 
+		~ sprintf("\\includegraphics {%s}", temp_png) , 
+		knitr::is_html_output() 
+		~ sprintf("![](%s)", temp_png),
+		knitr::pandoc_to("docx") ~  "word is unsupported for dynamic diagrams.",
+		TRUE ~ "unsupported output type for diagram"
+	)	
+	return(out_str)
 }
