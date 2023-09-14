@@ -1,9 +1,10 @@
 project:
-  title: "Techdoc"
+  title: "techdoc"
   render:
     - SystemDesignProjection.qmd
     - SystemOperationsProjection.qmd
     - SystemOperationsLighting.qmd 
+    - SystemOperationsVideo.qmd
     - SystemDesignVideo.qmd
     - SystemDesignAudio.qmd
     - SystemDesignYouth.qmd
