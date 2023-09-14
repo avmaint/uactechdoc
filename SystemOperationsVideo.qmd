@@ -1,7 +1,6 @@
 ---
 title: "System Operations - Video"
-author: "Terry Doner"
-date: "`r format(Sys.time(), '%B %d %Y %H:%M')`"
+author: "UAC Media Arts"
 execute: 
   eval: true
   echo: false
@@ -10,17 +9,10 @@ execute:
 format:
   html:
     toc: true
-    number-sections: true
   pdf:
-    number-sections: true 
     toc: true
-    toc-depth: 2
 always_allow_html: yes
 ---
-```{r options, echo=FALSE}
-#knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
-#options(knitr.table.format = "html") 
-```
 
 ```{r packages }
 source("./commonPackages.R")
@@ -32,8 +24,8 @@ source("./commonFunctions.R")
 
 ```{r data}
 network.data <- get.network()
-activities <- get.activities()
-further <- get.further()
+activities   <- get.activities()
+further      <- get.further()
 ```
 
 # Introduction
@@ -74,7 +66,7 @@ Cameras
 
 The RMIP10 (Asset Tag ZVKU-A004) remote control allows a single person to operate three cameras quite easily. 
 
-To adjust a camera position, select the number of the camera you want to adjust on the bottom row (1, 2, or 3) and then either select a preset or move the joy stick. left, right, up and down movements follow the joy stick movement. Zoom is accomplished by turning the ring on the top of the joy stick.
+To adjust a camera position, select the number of the camera you want to adjust on the bottom row (1, 2, or 3) and then either select a preset or move the joystick. left, right, up and down movements follow the joy stick movement. Zoom is accomplished by turning the ring on the top of the joy stick.
 
 We have presets assigned which are programmed to bring a camera to sepcific positions quickly. We have created some standard presets which enable simple operation for many basic situations. All three cameras share these same presets, but since they are positioned in different locations they still provide different perspectives.
 
@@ -923,15 +915,5 @@ Some simple notes for now. Since our cameras are now ceiling mounted, this isn't
 * Adjust the tension knows for smooth operation. There is a tension/lock control for each of three dimensions of motion.
 * Especially when left unattended, cameras 1 and three should be left hugging the wood posts rather than blocking off two pew rows. That way we maximize seating for people and reduce the chance of them being knocked over.
 
-[Back to top](#top)
 
-`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
-
-[Back to top](#top)
-
-# Document Source
-This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
-
-# Change History
-
-`r commit.log.html( knitr::current_input() )`
+{{< include common_trailer.qmd >}}
