@@ -20,13 +20,13 @@ There are several types of documents available.
 chart <- tribble(
   ~Type, ~Description,
 "System Operations Documents",
-"These documents will tell you how to operate each subsystem.",
+"How to operate each subsystem.",
 
 "System Design Documents",
-"These provide a deep dive into where all components are located, how they are wired, how they are configured, and why. A regular operator does not normally need to know this level of detail - until there is a problem.",
+"Subsystem deep dive. Where components are located, how configured, and wired. A regular operator does not normally need to know this level of detail - until there is a problem.",
 
 "Administration Documents",  
-"This will contain information that very few people will need to know and is mostly related to credentials (accounts, userids, and passwords), and what you need to know to manage those." ,
+"Information related to credentials (accounts, userids, and passwords), and what you need to know to manage those." ,
 
 "Manuals",
 "These are publications from the manufactures of the equipment we have."
@@ -44,6 +44,7 @@ There is an operations and a design guide for each of the major subsystems.
 
 ```{r fifurther, asis=FALSE}
  #| tbl-cap: "Index to Other Documents"
+ #| cap-location: bottom
  
 further |>
   mutate (Operations = ifelse(is.na(Operations),"", glue('[X]({Operations})') ),

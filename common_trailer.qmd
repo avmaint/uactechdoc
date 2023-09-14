@@ -7,12 +7,14 @@ ci <- knitr::current_input() # knitr sees a different filename than the input
 ci <- str_replace(ci, 'rmarkdown','qmd')
 ```
 
-# Document Source
+# Document Source and Change History
 
-This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc), project "avmaint/uactechdoc", file "`r ci`".
-
-# Document Change History
+This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc), project "avmaint/uactechdoc", file "`r ci`.
 
 ```{r change_history}
+#| tab-cap: Document Change History
+#| cap-location: bottom
+#| label: tab-change-history
+
 commit.log.html(  ci )
 ```
