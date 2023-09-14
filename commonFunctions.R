@@ -107,10 +107,11 @@ commit.log.html <- function(file.name) {
 #globals
 #tODO - use of globals, cache_assets and cache_network is subject to bugs.
 
-path <- file.path("~", "Documents", "UACTech", "SystemDocumentation")
-data_dir <- file.path(path, "github", "uactechdoc", "data")
-asset_file <- "uac_assets.xlsx"
+path         <- file.path("~", "Documents", "UACTech", "SystemDocumentation")
+data_dir     <- file.path(path, "github", "uactechdoc", "data")
+asset_file   <- "uac_assets.xlsx"
 network_file <- "uac_network.xlsx"
+cables_file  <- "uac_cables.xlsx"
 
 fname.cf <- file.path(path, "TechInventory.xlsx" )
 fname.people <- file.path(path, "db-people.xlsx" )
@@ -139,12 +140,8 @@ get.network <- function() {
 }
 
 get.cables <- function () {
-	path <- file.path("~", "Documents", "UACTech", 
-					  "SystemDocumentation", "github", "uactechdoc", "data")
-	file <- "cables.xlsx"
-	sheet <- "Cables"
-	cables <- read_excel(file.path(path, file), 
-					     sheet = sheet)
+	cables <- read_excel(file.path(data_dir, cables_file), 
+					     sheet = "Cables")
 	return(cables)
 }
 
