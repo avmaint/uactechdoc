@@ -105,14 +105,18 @@ commit.log.html <- function(file.name) {
 # Functions to get data used by most of the reports.
 
 #globals
-#tODO - use of globals, work.inventory and work.network is subject to bugs.
+#tODO - use of globals, cache_assets and cache_network is subject to bugs.
 
 path <- file.path("~", "Documents", "UACTech", "SystemDocumentation")
+data_dir <- file.path(path, "github", "uactechdoc", "data")
+asset_file <- "uac_assets.xlsx"
+network_file <- "uac_network.xlsx"
+
 fname.cf <- file.path(path, "TechInventory.xlsx" )
 fname.people <- file.path(path, "db-people.xlsx" )
 
-work.network <- read_excel(fname.cf, 
-                           sheet = "Network")
+cache_network <- read_excel(file.path(data_dir, network_file), 
+                           sheet = "network")
 
 ct <- c( rep("text",2),    # AssetTag, Category
          rep("numeric",3), # Qty UnitValue AcqValue
@@ -127,12 +131,11 @@ ct <- c( rep("text",2),    # AssetTag, Category
          rep("text",2)     #DisposedComment, Destination
 )
 
-work.inventory <- read_excel(fname.cf, 
-                             sheet = "TechInventory", col_types=ct) 
-
+cache_assets <- read_excel(file.path(data_dir, asset_file), 
+                             sheet = "assets", col_types=ct) 
 
 get.network <- function() {
-  return(work.network)
+  return(cache_network)
 }
 
 get.cables <- function () {
@@ -147,9 +150,11 @@ get.cables <- function () {
 
 #' retrieves the inventory database
 #' @return a data frame containing the inventory database
-get.inventory <- function() {
-  return( work.inventory )
+get.assets <- function() {
+  return( cache_assets )
 }
+
+get.inventory <- get.assets
 
 #' retrieves the dmx details
 #' @return a data frame containing the dmx details
