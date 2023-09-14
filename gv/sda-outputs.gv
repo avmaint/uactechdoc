@@ -31,23 +31,24 @@ mon12 [label="
 {{
   <i1>M1
 | <i2>M2
-} | Monitor Amp\n1&2}
+} | Monitor Amp\n1&2\nZAAU-0001}
 "]
   
 mon34 [label="
 {{
   <i1>M3
 | <i2>M4
-} | Monitor Amp\n3&4}
+} | Monitor Amp\n3&4\nZAAU-0002}
 "]  
  
 mon56 [label="
 {{
   <i1>M5
 | <i2>M6
-} | Monitor Amp\n5&6}
+} | Monitor Amp\n5&6\nZAAU-0003}
 "]   
  }
+ 
 m7:o1 -> mon12:i1
 m7:o2 -> mon12:i2
  
@@ -67,7 +68,7 @@ final [label="
   <il>L  
 | <ir>R  
 } |
-  {Finializer} 
+  {Finializer\nZAXU-0002} 
 |{
   <ol>L  
 | <or>R  
@@ -84,7 +85,7 @@ dom [label="
   <il>L  
 | <ir>R  
 } |
-  {Dominator} 
+  {Dominator\nZAXU-0003} 
 |{
   <ol>L  
 | <or>R  
@@ -98,7 +99,7 @@ rane [label="
   <il>L  
 | <ir>R  
 } |
-  {Rane DA} 
+  {Rane DA\nZAXU-0004} 
 |{
   <o1>1  
 | <o2>2
@@ -126,12 +127,12 @@ lobby [label="
   <il>L  
 | <ir>R  
 } |
-  {Lobby Amp} 
+  {Lobby Amp\nZAAU-0009} 
 
 }
 "]
 
-burner [label="CD Burner"]
+burner [label="HHB CD Burner\nZARU-0001"]
 
 }
 
@@ -157,35 +158,35 @@ ampbalcony [label="
 {{
   <i1>L
 | <i2>R
-} | Balcony Amp }
+} | Balcony Amp\nZAAU-0004 }
 "]  
 
 ampsub [label="
 {{
   <i1>L
 | <i2>R
-} | Sub Amp }
+} | Sub Amp\n2309-0914 }
 "]  
 
 amphousel [label="
 {{
   <i1>L
 | <i2>R
-} | House Left Amp }
+} | House Left Amp\nZAAU-0005 }
 "] 
 
 amphousec [label="
 {{
   <i1>L
 | <i2>R
-} | House Centre Amp }
+} | House Centre Amp\nZAAU-0006 }
 "] 
 
 amphouser [label="
 {{
   <i1>L
 | <i2>R
-} | House Right Amp }
+} | House Right Amp\nZAAU-0007 }
 "] 
 
 }
@@ -226,7 +227,7 @@ videomix  [label="{{<i1>ch1|<i2>ch2 } |{Video\nMixer|ZVKU-A003}|<o1>}"]
  
 rane:o1 -> burner:i1
 rane:o2 -> burner:i2
-rane:o3 -> videomix:i1
-rane:o4 -> videomix:i2
+#rane:o3 -> videomix:i1  
+#rane:o4 -> videomix:i2   
  
   } 
