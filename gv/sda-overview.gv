@@ -1,16 +1,16 @@
 digraph overview { 
 
 graph [overlap = true, fontsize = 24, rankdir=LR 
-      label="Audio Overview (as of 2023-04-06)", 
+      label="Audio Overview (as of 2023-09-12)", 
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
 
-mics [label="Microphones"]
+mics [label="Wireless\nMicrophones"]
 ppcomputer [label="ProPresenter\nComputer"]
-otherinputs [label="Other Inputs"]
+otherinputs [label="Analog\nInputs"]
 
 mics        -> consoles
 ppcomputer  -> consoles  
@@ -18,22 +18,28 @@ otherinputs -> consoles
 
 consoles  -> videomixer
 
-subgraph cluster_foh {label="FoH"   fontsize = 20
+subgraph cluster_fohfront {label="FoH Front Desk"   fontsize = 20
   consoles			[label="Audio Mix\nConsoles"]
-  dsp				[label="House Processors"]
+  dsp				[label="House\nProcessors"]
+}
+
+subgraph cluster_fohrear {label="FoH Rear Desk"   fontsize = 20
   videomixer		[label="Video\nMixer"]
   videomixeravio	[label="Dante Out\nAdapter"]
 }
+
 videomixeravio -> videomixer
 
 subgraph cluster_livestream  {label="LS"   fontsize = 20
-  daw			[label="Reaper\nDigitial Audio Workstation"]
-  refmon		[label="Reference Monitors "]
+  daw			[label="Reaper\nDAW"]
+  refmon		[label="Reference\nMonitors "]
   refmonavio	[label="Dante Out\nAdapter"]
  }
 
+consoles    -> dsp  
+consoles	-> daw
 mics		-> daw
-daw 		-> refmonavio
+daw  		-> refmonavio
 refmonavio	-> refmon
 daw			-> videomixeravio
 ppcomputer	-> daw
@@ -45,7 +51,7 @@ otherinputs
 }
 
 subgraph cluster_amps { label="Amplifiers" fontsize = 20
-  houseamp		[label="Front of House\nAmplifiers"]
+  houseamp		[label="FoH\nAmplifiers"]
   monitoramp	[label="Monitor\nAmplifiers"]  
   lobbyamp		[label="Lobby\nAmplifier"]
 }
@@ -53,11 +59,8 @@ subgraph cluster_amps { label="Amplifiers" fontsize = 20
 subgraph cluster_spkrs {label="Speakers"
   monitorspeakers	[label="Monitor\nSpeakers"] 
   lobbyspeakers 	[label="Lobby\nSpeakers"]
-  housespeakers 	[label="Front of House\nSpeakers"]
+  housespeakers 	[label="FoH\nSpeakers"]
 }
- 
-consoles  -> dsp  
-consolesdante	-> daw
 
 dsp  -> houseamp 
 houseamp -> housespeakers  
@@ -65,6 +68,6 @@ houseamp -> housespeakers
 consoles    -> lobbyamp
 lobbyamp    -> lobbyspeakers
 
-consoles  -> monitoramp 
+consoles    -> monitoramp 
 monitoramp  -> monitorspeakers 
 } 
