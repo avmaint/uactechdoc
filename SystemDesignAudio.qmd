@@ -210,7 +210,7 @@ There are some additional outboard components which complete the signal path. Th
 The monitor amps are feed directly from the M7CL. The house amps are feed from the soundweb.
 
  
-```{dot sda-foh}
+```{dot fig-sda-foh}
 //| label: fig-sda-foh
 //| fig-cap: "Front of House"
 //| file: gv/sda-foh.gv
@@ -489,7 +489,7 @@ Dante VIA
 Dante Controller
 : This is free software. It is used to manage the Dante network and provides virtual patchbay capabilities to link sources (transmitters) and sinks (receivers).
 
-Visit https://www.audinate.com to learn more about Dante. Audinate have a very good certification series of videos on youtube.
+Visit [https://www.audinate.com](https://www.audinate.com) to learn more about Dante. Audinate have a very good certification series of videos on youtube.
 
 ## Dante Network Topology
 This is the network topology.
@@ -660,10 +660,11 @@ routing %>%
     row_spec(0, angle=-90 )
 ```
 
-{{< pagebreak >}} 
 # Livestream Configuration 
 
 ## Primary Dante Configuration
+
+The primary configuration is depcted in @fig-livestream-audio1
 
 * Reaper runs on CUMU-E001
 * DVS on the computer is configured at 48x48 mode.
@@ -673,18 +674,67 @@ routing %>%
 * Repaer audio devices to be configured to use Dante for both input and output
 * Reaper is configured to send two outputs for monitoring and two outputs for the livestream.
 
-## Backup Dante Configuration
+```{dot fig-livestream-audio1 }
+//| fig-cap: Audio Feed to Video
+//| label: fig-livestream-audio1
+//| cap-location: bottom
 
-In the event of a problem with the reaper computer or short staffed and the livestream needs to be mixed by Foh, Change the routing of the M7CL bus 14 to go directly to the avio adapter connected to the video mixer, via Dante Controller .
-
-The audio mix can now be performed on the record bus ... #14.
-
-```{dot livestream}
-
-digraph outputs { 
+digraph livestream_audio1 { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Audio Feed to Video\n(as of 2022-03-19)",
+      label="Primary Audio Feed to Video\n(as of 2022-03-19)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+
+cumue001
+ [label="
+{
+  {Mac Mini|Reaper|CUMU-E001} 
+|{
+  <o01>Livestream L   
+  <o02>Livestream R
+  <o03>RefMon L
+  <o04>RefMon r   
+}
+}
+"]
+
+avio  [label="{{
+  <net>net
+} | {avio|2308-1124}|{<o1>Ch1|<o2>Ch2} }"]
+
+
+videomix  [label="{{<i1>L|<i2>R } |{Video\nMixer|ZVKU-A003}|<o1>SDI}"]
+resi  [label="{{<i1>SDI } |{Resi Encoder|ZVIU-D002}}"]
+
+cumue001:o01 -> avio:ch1 [label="dante"]
+cumue001:o02 -> avio:ch2 
+
+avio:ch1 -> videomix:i1
+avio:ch2 -> videomix:i2
+
+videomix:o1 -> resi:i1
+} 
+```
+
+
+## Backup Dante Configuration
+
+In the event of a problem with the reaper computer or short staffed and the livestream needs to be mixed by Foh, Change the routing of the M7CL bus 14 to go directly to the avio adapter connected to the video mixer, via Dante Controller. The audio mix can now be performed on the record bus ... #14. See @@fig-livestream-audio2
+
+
+```{dot fig-livestream-audio2}
+//| fig-cap: Audio Feed to Video
+//| label: fig-livestream-audio2
+//| cap-location: bottom
+
+digraph livestream_audio2 { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Backup Audio Feed to Video\n(as of 2022-03-19)",
       fontname = Helvetica, bgcolor=white, rankdir=LR
       ]
  
@@ -697,18 +747,18 @@ ZAKU0001
   
   {Dante card|M7CL |ZAIU-E002} 
 |{
-  <S215>Slot2-15   
+  <S215>Slot2-15
 }
 }
 "]
 
 avio  [label="{{
   <net>net
-} | {avio|no tag}|{<o1>Ch1|<o2>Ch2} }"]
+} | {avio|2308-1124}|{<o1>Ch1|<o2>Ch2} }"]
 
 
 videomix  [label="{{<i1>L|<i2>R } |{Video\nMixer|ZVKU-A003}|<o1>SDI}"]
-resi  [label="{{<i1>SDI } |{Resi Encoder|no tag}}"]
+resi  [label="{{<i1>SDI } |{Resi Encoder|ZVIU-D002}}"]
 
 ZAKU0001:s215 -> avio:ch1 [label="dante"]
 ZAKU0001:s215 -> avio:ch2 
@@ -718,14 +768,95 @@ avio:ch2 -> videomix:i2
 
 videomix:o1 -> resi:i1
 } 
- 
 ```
 
-## Fallback  to Analog Configuration
 
-If this is ever required, take the audio output direclty from the M7 output or the RANE output via mic cable to the video mixer. Audio levels in the video mixer will need to be checked and adjusted. This can be done directly on the panel interface or via the ATEM control software, Audio section.
+## Fallback to Analog Configuration
 
-{{< pagebreak >}} 
+If this is ever required, take the audio output direclty from the RANE output via mic cable to the video mixer. Audio levels in the video mixer will need to be checked and adjusted. This can be done directly on the panel interface or via the ATEM control software, Audio section. See @fig-livestream-analog-backup.
+
+```{dot fig-livestream-analog-backup}
+//| fig-cap: Livestream Analog Backup
+//| cap-location: bottom
+//| label: fig-livestream-analog-backup 
+ 
+digraph outputs { 
+graph [overlap = true, fontsize = 30, rankdir=LR 
+      label="Audio Outputs (as of 2023-09-14)",
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" ,  fontsize = 10,
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+
+m7 [label="
+{{    Yamaha\nM7CL\nZAKU-0001} 
+|{
+  <o14>Out 14
+| <o15>Out 15  
+| <o16>Out 16
+}}
+"]
+
+subgraph cluster_foh1 {label="Rack ZAHU-0005" fontsize=12
+
+final [label="
+{
+  {
+  <il>L  
+| <ir>R  
+} |
+  {Finializer\nZAXU-0002} 
+|{
+  <ol>L  
+| <or>R  
+}
+}
+"]
+
+}
+subgraph cluster_foh2 { label="Rack ZAHU-0006" fontsize=12
+dom [label="
+{
+  {
+  <il>L  
+| <ir>R  
+} |
+  {Dominator\nZAXU-0003} 
+|{
+  <ol>L  
+| <or>R  
+}
+}
+"]
+
+rane [label="
+{
+  {
+  <il>L  
+| <ir>R  
+} |
+  {Rane DA\nZAXU-0004} 
+|{
+  <o3>3
+| <o4>4
+ }
+}
+"]
+}
+
+m7:o14 -> final:il
+m7:o16 -> final:ir
+
+final:ol -> dom:il
+dom:ol -> rane:il
+
+videomix  [label="{{<i1>ch1|<i2>ch2 } |{Video\nMixer|ZVKU-A003}|<o1>}"]
+
+rane:o3 -> videomix:i1
+rane:o4 -> videomix:i2
+} 
+```
 
 # Network Details
 Some of the audio system components have network (tcp/ip specicially) connectivity requriements. The primary audio console can be remotely operated from an iPad, so other devices also must be on the network as well, but they are personal devices and not part of this inventory. In the balcony, network switch NSCU-A003 provides wired access.    
