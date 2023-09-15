@@ -24,55 +24,54 @@ source("./commonFunctions.R")
 
 ```{r data}
 network.data <- get.network()
-activities   <- get.activities()
 further      <- get.further()
+cables       <- get.cables()
 ```
 
 # Introduction
 This document provides basic operating information for Video Mixing at Unionville Alliance Church. We do this for several purposes
 
 #. In-house Inclusion
-: We 'broadcast' our mix content internally to the lobby and nursery so that those who can't be in the main sanctuary can participate in those locations.  
+: We 'broadcast' our mix content internally to the lobby, nursery and toddler rooms, so that those who can't be in the main sanctuary can participate in those locations.  
 
 #. Recording for the Web site
 : We record the message and post that as quickly as possible to the web site so that those who may wish to watch the content later can do so.
 
 #. Image Magnification
-: There are times when we want to make small things large. Maybe Pastor has an artifact in hand that he would like everyone to see, or we have something on stage that we need to be featured - like a baptism. We have the capbility to use our cameras to grab the 'image' and routed it to the one or more projectors.
+: There are times when we want to make small things large. Maybe Pastor has an artifact in hand that he would like everyone to see, or we have something on stage that we need to be featured - like a baptism. We have the capability to use our cameras to grab the 'image' and routed it to the one or more projectors.
 
 #. Livestreaming
 : We stream our services to FaceBook Live, Youtube Live and Church Online Platform. 
-
-[Back to top](#top)
-
-{{< pagebreak >}} 
 
 # Turning it on and off
 
 The video mixer will likely have been turned on by the audio engineer. If by chance the Propresenter computer was awoke before you will not see its video feed. See the troubleshooting section for corrective steps.
 
 Main Power
-: On - Flip the switch at the top of the tabletop rack - lableled "Power Switch #4".
+: On - Flip the switch at the top of the tabletop rack - labelled "Power Switch #4".
 : Off - Flip the same switch the other way.
 
 Cameras
 : Both On and OFF are handled by the RMIP10 camera control panel. Hold down the Power Button (beside the big "1" button) and press/release each of the "1", "2", and "3" buttons. This will wake the cameras up. It takes about 30 seconds for an image to appear.
 
-> <small>As we currently operate things, the cameras are 'on' all the time but 'asleep'. To turn them off completely we have to unplug their power source. If this has been done you may need to plug them in. On - there are three ethernet jacks that need to be plugged into the cisco switch (NSCU-A004) so that the cameras can get power. Off - Unplug those same three jacks. There is a little plastic tab that needs to be depressed to release the jack. Be gentle.</small>
+::: {.callout-note}
+<small>As we currently operate things, the cameras are 'on' all the time but 'asleep'. To turn them off completely we have to unplug their power source. If this has been done you may need to plug them in. On - there are three ethernet jacks that need to be plugged into the cisco switch (NSCU-A004) so that the cameras can get power. Off - Unplug those same three jacks. There is a little plastic tab that needs to be depressed to release the jack. Be gentle.</small>
+:::
 
-{{< pagebreak >}}
+# Operating Remote Cameras via the Joystick (RMIP10) 
 
-# Operating Remote Cameras via the RMIP10 
-
-The RMIP10 (Asset Tag ZVKU-A004) remote control allows a single person to operate three cameras quite easily. 
+The RMIP10 joystick (Asset Tag ZVKU-A004) remote control allows a single person to operate three cameras quite easily. 
 
 To adjust a camera position, select the number of the camera you want to adjust on the bottom row (1, 2, or 3) and then either select a preset or move the joystick. left, right, up and down movements follow the joy stick movement. Zoom is accomplished by turning the ring on the top of the joy stick.
 
-We have presets assigned which are programmed to bring a camera to sepcific positions quickly. We have created some standard presets which enable simple operation for many basic situations. All three cameras share these same presets, but since they are positioned in different locations they still provide different perspectives.
+You can adjust the brightness and focus using the adjustment knobs on the left side. To adjust the focus you have to push the "Auto/Manual" button to go into manual mode.
+
+We have presets assigned which are programmed to bring a camera to specific positions quickly. We have created some standard presets which enable simple operation for many basic situations. All three cameras share these same presets, but since they are positioned in different locations they still provide different perspectives.
 
 The middle row of buttons will be typically used to direct a camera to a preset position. 
 
 ![Camera Remote Controls](./images/sov-CamRemote.jpg)
+
 
 1. Teaching Tight 
 : Head and shoulders on the standard teaching spot.
@@ -87,13 +86,11 @@ The middle row of buttons will be typically used to direct a camera to a preset 
 6. Worhsip Team Wide
 : The whole team of 6 or so singers. When used you may need to go wider of narrower depending on the vocal compliment of that week.
 
->As of summer 2023: The last two presets have not been programmed.
+Presets 7 and 8 are available for you ad-hoc usage. 
 
->Although these presets exist, most operators don't use them.
-
-[Back to top](#top)
-
-{{< pagebreak >}} 
+::: {.callout-note}
+Recalling a preset recalls all settings which may cause an unintended colour or brightness shift. 
+:::
 
 # Operating the Video Mixer
 
@@ -111,13 +108,16 @@ __Input #2__
 
 The Key or Fill feed from ProPresenter (via the decklink)
 
-:::{.callout-note}
+:::
+
+{.callout-note}
 TODO: Is it the Key or the Fill??
 :::
 
 __Input #3__
 
 Unused
+
 __Input #4__
 
 The Key or Fill feed from ProPresenter (via the decklink)
@@ -143,6 +143,20 @@ __Input #8__
 Often used for a camera on stage, the Sony PZ-150
 
 And there is also the internal media player sources. 
+
+```{r }
+#| tab-cap: inputs from the cabling database
+#| cap-location: bottom
+#| label: tab-input-map
+
+cables |> 
+	filter(DstTag == "ZVKU-A003") |> 
+	select(DstPort, SrcTag, SrcPort, Usage) |> 
+	arrange(DstPort) |> 
+	gt() |>
+	opt_stylize(style=3)
+```
+
 
 There are two outputs: Program and Auxiliary.
 
@@ -212,10 +226,6 @@ Key 1 Fill
 * This button is used in conjunction with the numbered keys immediately below to select the source to be placed in a PiP.
 
 ![Key 1 Fill, Left Middle](./images/sov-Key1Fill.jpg)
-
-[Back to top](#top)
-
-{{< pagebreak >}} 
 
 # Basic Operation
 
