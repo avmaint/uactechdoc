@@ -1,0 +1,59 @@
+digraph outputs { 
+			graph [overlap = true, fontsize = 20,
+			rankdir=LR, fontname = "Helvetica" , 
+			label="Audio Outputs\nSimple Sketch\nNeed to map out cabling details" ]
+      
+	node [shape=Mrecord, tooltip="" ,  fontsize = 10,
+    	  fillcolor="white:beige"  , style=filled  
+		  gradientangle=270]  
+
+	edge [fontsize=8] 
+ 
+ 
+23080908 [ label= "{
+{  }
+| {  Crossover| AART/CX310 |2308-0908 }
+|{  } 
+}"]
+
+23080904 [ label= "{
+{  }
+| {  Eq| AART/EQ341 |2308-0904 }
+|{  } 
+}"]
+23080903 [ label= "{
+{  }
+| {  Eq| Peavey/EQ |2308-0903 }
+|{  } 
+}"]
+23080902 [ label= "{
+{  }
+| {  Eq| AART/EQ341 |2308-0902 }
+|{  } 
+}"] 
+
+cdwua002 : usb -> 23080008 : usb [label= "2308-0010
+usb" color=red ] 
+rack_dev  -> 23080008 : Mic_In [label= "2308-0011
+audio" color=orange ]  
+
+23080908 -> amp1:ch1 [label="left" ]
+23080908 -> amp1:ch2 [label="right" ]
+23080908 -> amp2:ch1 [label="left"]
+
+eq -> 23080908:l [label="left" ]
+eq -> 23080908:r [label="right" ]
+
+zakua001:L -> eq:L [label="left" ]
+zakua001:R -> eq:R [label="right" ]
+
+amp1:o1 -> cabL
+amp1:o2 -> cabR
+amp2:o1 -> cabSub
+
+guest:l -> zakua001:i13 [label="left" ]
+guest:r -> zakua001:i14 [label="right" ]
+
+cdwua002:l -> zakua001:i15 [label="left" ]
+cdwua002:r -> zakua001:i16 [label="right" ]
+}
