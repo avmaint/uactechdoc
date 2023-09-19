@@ -87,7 +87,7 @@ Video System
 
 # Network Diagram
 
-{#fig-network  .cell-output-display}
+::: {#fig-network  .cell-output-display}
 ```{r network_digram, results="asis"}
 targets <- c( "youthswitch", 
 "NRPU-0001"
@@ -99,6 +99,7 @@ cat(out_str)
 ```
 Network
 ::: 
+
 # Audio Inventory
 
 ```{r audio_inventory}
