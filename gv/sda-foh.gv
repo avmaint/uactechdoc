@@ -1,6 +1,6 @@
 digraph outputs { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Audio Outputs (as of 2021-10-30)",
+      label="Audio Outputs (as of 2023-09-14)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" ,  fontsize = 10,
@@ -239,6 +239,6 @@ rane:o1 -> burner:i1
 rane:o2 -> burner:i2
 rane:o3 -> videomix:i1
 rane:o4 -> videomix:i2
-rane:o15 -> zaiue001:ch1
-rane:o16 -> zaiue001:ch2
+#rane:o15 -> zaiue001:ch1 not implemented
+#rane:o16 -> zaiue001:ch2
 } 
