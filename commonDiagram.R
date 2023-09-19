@@ -98,20 +98,22 @@ get_diagram <- function(targets, inventory, cables, label=NA ) {
 	diag <- paste( 
 		"digraph outputs { 
 			graph [overlap = true, fontsize = 20,
-			rankdir=LR, fontname = 'Helvetica' ,"
+			rankdir=LR, fontname = arial ,"
 		, "label=", label ,  
 		"]
       
-	node [shape=Mrecord, tooltip='' ,  fontsize = 10,
-    	  fillcolor='white:beige'  , style=filled  
+node [shape=Mrecord, tooltip=\"\" 
+	,  fontsize = 10 fontname = arial
+    	  fillcolor=\"white:beige\" , style=filled  
 		  gradientangle=270]  
 
-	edge [fontsize=8]"  
+edge [fontsize=8]
+		"  
 	, get_device_code(target_devices, inventory, cables)
 	, get_cable_code(target_cables, cables)
 	, "}") 
 	
-	return(  diag  )
+	return( diag )
 }
 
 get_diagram_aux <- function (dot_code) {
