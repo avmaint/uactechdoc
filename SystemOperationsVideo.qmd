@@ -26,6 +26,7 @@ source("./commonFunctions.R")
 network.data <- get.network()
 further      <- get.further()
 cables       <- get.cables()
+assets       <- get.assets()
 ```
 
 # Introduction
@@ -98,67 +99,140 @@ Recalling a preset recalls all settings which may cause an unintended colour or 
 
 The Video Mixer (Asset Tag# ZVKU-A003) takes many different inputs such as the PTZ cameras, potentially combining them together and sending the result to the output, such as the video recorder.
 
-The complete list of external sources:
+The complete list of external sources (@tbl-input-map / @fig-atem-inputs):
 
-__Input #1__
-
-The primary video feed from the video matrix (ZVKU-A001), which will usuaully be a feed from ProPresenter screen A (left most).
-
-__Input #2__
-
-The Key or Fill feed from ProPresenter (via the decklink)
-
-:::
-
-{.callout-note}
-TODO: Is it the Key or the Fill??
-:::
-
-__Input #3__
-
-Unused
-
-__Input #4__
-
-The Key or Fill feed from ProPresenter (via the decklink)
-
-:::{.callout-note}
-TODO: Is it the Key or the Fill??
-:::
-
-__Input #5__
-
-PTZ camera #1 - far east side. <small>There are wiring constraints that prohibits camera 1 from being on input 1. Just in case you are wondering why camera 1 was not input 1, etc.</small> 
-
-__Input #6__
-
-PTZ camera #2 - centre
-
-__Input #7__
-
-PTZ camera #3 - far west side
-
-__Input #8__
-
-Often used for a camera on stage, the Sony PZ-150
-
-And there is also the internal media player sources. 
-
-```{r }
-#| tab-cap: inputs from the cabling database
+```{r tbl-input-map}
+#| tbl-cap: Inputs to the ATEM
 #| cap-location: bottom
-#| label: tab-input-map
+#| label: tbl-input-map
 
 cables |> 
 	filter(DstTag == "ZVKU-A003") |> 
-	select(DstPort, SrcTag, SrcPort, Usage) |> 
+	left_join(assets, join_by (SrcTag == AssetTag )) |>
+	select(DstPort, Usage ,  SrcTag, SrcPort, Desc  ) |> 
 	arrange(DstPort) |> 
 	gt() |>
-	opt_stylize(style=3)
+	opt_stylize(style=3) |>
+	cols_label( DstPort = "Input Port",
+				SrcTag  = "Source",
+				SrcPort = "Source Port",
+				Desc    = "Source Description") |>
+	tab_footnote("Usually used for the Stage camera."
+				 , locations= cells_body(columns=DstPort,
+				 						rows = DstPort == 'in8'))
+```
+```{dot fig-atem-inputs}
+//| fig-cap: Inputs to ATEM
+//| cap-location: bottom
+//| label: fig-atem-inputs
+digraph outputs { 
+			graph [overlap = true, fontsize = 20,
+			rankdir=LR, fontname = "Helvetica"  
+			label= "Inputs for Video Mixer
+As of 2023-09-16" ]
+      
+	node [shape=Mrecord, tooltip="" ,  fontsize = 10,
+    	  fillcolor="white:beige"   , style=filled  
+		  gradientangle=270]  
+
+	edge [fontsize=8] 
+	
+zvcua001 [ label= "{
+  {  East Camera|ZVCU-A001 }
+|{ <sdi>sdi } 
+}"]
+
+zvcua002 [ label= "{
+  {  Centre Camera|ZVCU-A002 }
+|{ <sdi>sdi } 
+}"]
+
+zvcua003 [ label= "{
+{  West Camera|ZVCU-A003 }
+|{ <sdi>sdi } 
+}"]
+
+z150 [ label= "{
+{  Stage Camera|ZVVU-C001 }
+|{ <sdi>sdi } 
+}"]
+
+zvkua003 [ label= "{
+{ <ch1_audio>ch1_audio|<ch2_audio>ch2_audio|<in1>in1|<in2>in2|<in3>in3|<in4>in4|<in5>in5|<in6>in6|<in7>in7|<in8>in8 }
+| {  Video Mixer| BMD/ATEM Television Pro HD |ZVKU-A003 }
+|{ <aux>aux|<mv_out>mv_out|<out5>out5|<out6>out6 } 
+}"]
+
+zviua008 [ label= "{
+  {  Fill from DeckLink|ZVIU-A008 }
+|{ <hdmi>hdmi } 
+}"]
+zviuc001 [ label= "{
+  {  HDMI output from ProPresenter|ZVIU-C001 }
+|{ <hdmi out>hdmi out } 
+}"]
+
+zviuc002 [ label= "{
+{ <usbc>usbc }
+| {  USB-C Multiport Adapter| Apple/USB-C Multiport Adapter |ZVIU-C002 }
+|{ <hdmi>hdmi } 
+}"]
+
+cumug001 [ label= "{
+  {  Video Edit Computer|CUMU-G001 }
+|{  <usb>usb  } 
+}"]
+
+
+zviue003 [ label= "{
+  { Key from DeckLink |ZVIU-E003 }
+|{ <hdmi_out>hdmi_out } 
+}"]
+ 
+ 
+23081124 [ label= "{
+{ <ether>network }
+| {  Audio via Dante network|2308-1124 }
+|{ <ch1>ch1|<ch2>ch2 } 
+}"]
+
+ 
+zviua008 : hdmi -> zvkua003 : in4 [label= "2307-1828
+Fill hdmi" color=cyan ] 
+
+
+zviuc001 : hdmiout -> zvkua003 : in1 [label= "2307-2301
+Propresenter hdmi" color=cyan ] 
+
+zvcua001 : sdi -> zvkua003 : in5 [label= "2307-2304
+Cam 1-East sdi" color=blue ] 
+zvcua002 : sdi -> zvkua003 : in6 [label= "2307-2303
+Cam 2-Centre sdi" color=blue ] 
+zvcua003 : sdi -> zvkua003 : in7 [label= "2307-2302
+Cam 3-West sdi" color=blue ] 
+
+23072306 : barrel -> zvkua003 : in8 [label= "2307-2305
+Stage Cam sdi" color=blue ] 
+
+
+23081124 : ch1 -> zvkua003 : ch1_audio [label= "2308-1124L
+Left audio" color=orange ] 
+23081124 : ch2 -> zvkua003 : ch2_audio [label= "2308-1124R
+Right audio" color=orange ] 
+
+zviue003 : hdmi_out -> zvkua003 : in2 [label= "2307-1827
+Key hdmi" color=cyan ] 
+cumug001 : usb -> zviuc002 : usbc [label= " 
+usbc" color=black ] 
+zviuc002 : hdmi -> zvkua003 : in3 [label= " 
+Video from CUMU-G001 hdmi" color=cyan ] 
+
+z150 -> 23072306
+}
+
 ```
 
-
-There are two outputs: Program and Auxiliary.
+There are two outputs: Program and Auxiliary. (See @tab-atem-outputs / @fig-atem-outputs)
 
 The Program output of the video mixer is sent to three different destinations:
 
@@ -172,8 +246,131 @@ The Auxiliary output is sent to two destinations:
 * The video matrix (ZVKU-A001), where it can further routed to any of its outputs. 
 * The Web Presenter (ZVIU-A004) - same as above.
 
-[Back to top](#top)
+
+```{r tbl-atem-outputs}
+#| tbl-cap: ATEM Outputs
+#| cap-location: bottom
+#| label: tab-atem-outputs
+
+cables |> 
+	filter(SrcTag == "ZVKU-A003") |> 
+	left_join(assets, join_by (DstTag == AssetTag )) |>
+	select(SrcPort, Usage ,  DstTag, DstPort, Desc  ) |> 
+	arrange(SrcPort) |> 
+	gt() |>
+	opt_stylize(style=3) |>
+	cols_label( SrcPort = "Output Port",
+				DstTag  = "Destination",
+				DstPort = "Destination Port",
+				Desc    = "Destination Description")  
+```
+
+```{dot fig-atem-outputs}
+//| label: fig-atem-outputs
+//| fig-cap: ATEM Outputs
+//| cap-location: bottom
+digraph outputs { 
+			graph [overlap = true, fontsize = 20,
+			rankdir=LR, fontname = arial , label= "ATEM Outputs
+As of 2023-09-16" ]
+      
+node [shape=Mrecord, tooltip="" 
+	,  fontsize = 10 fontname = arial
+    	  fillcolor="white:beige" , style=filled  
+		  gradientangle=270]  
+
+edge [fontsize=8] 
+
+zvkua001 [ label= "{
+{ <in1>in1|<in2>in2|<in3>in3|<in4>in4|<in5>in5|<in6>in6|<in7>in7|<in8>in8 }
+| {  Video Matrix Switch| Kramer/VS-88DT |ZVKU-A001 }
+|{ <out6>out6|<out_1_HDbT>out_1_HDbT|<out_2_HDbT>out_2_HDbT|<out_3_HDbT>out_3_HDbT|<out_4_HDbT>out_4_HDbT|<out_5_hdmi>out_5_hdmi|<out_7_HDbT>out_7_HDbT|<out_8_HDbT>out_8_HDbT } 
+}"]
+  
+zvkua003 [ label= "{
+ {  Video Mixer| BMD/ATEM Television Pro HD |ZVKU-A003 }
+|{ <aux>aux|<mv_out>mv_out|<out5>out5|<out6>out6 } 
+}"]
+
+zvrua001 [ label= "{
+{ <sdi in>sdi in }
+| {  Video Recorder| BMD/Hyperdeck Studio Mini |ZVRU-A001 }
+|{ <OutA>OutA|<OutB>OutB } 
+}"]
+zviua004 [ label= "{
+{ <SDI In>SDI In|<hdmi in>hdmi in }
+| {  Web Presenter| BMD/BDLKWEBPTR |ZVIU-A004 }
+|{ <hdmi out>hdmi out|<usb>usb } 
+}"]
+zviud001 [ label= "{
+{ <sdi in>sdi in }
+| {  SDI to HDMI -| BMD/CONVCMIC/SH/WPSU |ZVIU-D001 }
+|{ <hdmi>hdmi|<sdi>sdi } 
+}"]
+
  
+ 
+zviud002 [ label= "{
+{ <sdi in>sdi in }
+| {  Stream Encoder| Resi/E1210 |ZVIU-D002 }
+|{  } 
+}"]
+cumug001 [ label= "{
+{ <usb_3>usb_3 }
+| {  Video Edit Computer| Apple/Mac Mini M2 32g 1TB |CUMU-G001 }
+|{ <L>L|<R>R|<hdmi>hdmi|<ndi>ndi|<usb>usb|<usb_1>usb_1|<usb_2>usb_2 } 
+}"]
+ 
+
+zviue004 [ label= "{
+{ <sdi5>sdi5|<sdi7>sdi7|<sw1>sw1|<sw2>sw2|<sw3>sw3|<sw4>sw4|<sw5>sw5|<sw6>sw6|<sw7>sw7|<sw8>sw8 }
+| {  DeckLink| BMD/DeckLink Quad 2 (BDLKDVQD2) |ZVIU-E004 }
+ 
+}"]
+23081123 [ label= "{
+{ <hdmi_in>hdmi_in }
+| {  ATEM Multiview| Samsung/UNH24H4000BF |2308-1123 }
+|{  } 
+}"]
+
+ 
+  
+23071821 [ label= "{
+{ <barrel>barrel }
+| {  Barrel Connector| NA/NA |2307-1821 }
+|{  } 
+}"]
+ 
+ zvkua003 : aux -> zviud001 : sdiin [label= "2307-1808
+sdi" color=blue ] 
+ 
+23071825 : barrel -> zviue004 : sdi5 [label= "2307-1820
+sdi_din" color=blue ] 
+23071826 : barrel -> zviue004 : sdi7 [label= "2307-1821
+sdi_din" color=blue ] 
+
+zviud001 : sdi -> 23071821 : barrel [label= "2307-1826
+extension of din cable via barrel connector sdi" color=blue ] 
+zviua004 : usb -> cumug001 : usb_3 [label= "2307-2100
+usb" color=red ] 
+ 
+ 
+zvrua001 : OutA -> zviua004 : SDIIn [label= "2307-3002
+SDI" color=black ] 
+zviua004 : hdmiout -> zvkua001 : in7 [label= "2307-3003
+ATEM Aux? hdmi" color=cyan ] 
+zvkua003 : out5 -> zvrua001 : sdiin [label= "2307-3005
+Red sdi" color=blue ] 
+zvkua003 : out6 -> zviud002 : sdiin [label= "2307-3006
+Blue sdi" color=blue ] 
+zviud001 : hdmi -> zviua004 : hdmiin [label= "2307-3007
+hdmi" color=cyan ] 
+zvkua003 : mv_out -> 23081123 : hdmi_in [label= "2308-1122
+hdmi" color=cyan ] 
+ }
+```
+
+
 ## Control Overview
 
 There are several sections that we will use a lot. 
@@ -248,28 +445,31 @@ Key 1 Fill
 
 > <small>To turn PiP off ... I don't remember - fiddle with the BKGD and "Key 1 TIE" buttons.</small>
 
-[Back to top](#top)
-
 ## On-Screen Graphics from ProPresenter
 
 :::{.callout-note}
-"Up Stream Key" is abbreviated USK. 
+"Up Stream Key" is abbreviated USK. Downstream Key is abbreviated as DSK.
 :::
 
 :::{.callout-note}
-There is a dedicated word document on this topic that goes into great detail. See "livestream_grapics_guide.docx" 
+There is a dedicated word document on this topic that goes into great detail. See "deepdive_livestream_graphics.docx" 
 :::
 
-> Our regular usage is setup and run by macros.
+:::{.callout-note}
+Our regular usage is setup and run by macros.
+::::
 
-Our system is setup to use two video signals from Propresenter which allows text, graphic or video content to partially overlay the camera image. It si called "alpha keying", and this is how it works. 
+Alpha keying is an essential technique in video production. It allows us to superimpose people, objects, or animations onto our camera images easily, creating amazing scenes and adding a touch of magic to our broadcasts.
 
-Imagine you have two pictures again, but they are a bit special. One is the "key" picture, and the other is the "fill" picture.
+Our system is setup to allow us to use alpha keying. Propresenter sends two video signals (key and fill) from Propresenter which allows text, graphic or video content to partially overlay the camera image.   
 
-Key Picture: This picture is a bit different from 'normal'. It has a special hidden superpower called an "alpha channel" or "transparency information." It's like a hidden code behind the picture that tells the video mixer which parts are see-through and which parts are solid. It is represented by a grayscale image, where white means fully solid and black means fully transparent.   
-Fill Picture: This is the the text or graphic from ProPresenter which we want to show on top of the camera image. Parts of this image that will show through the transparent parts of the key picture. 
+This is how it works. Imagine you have two pictures, but they are a bit special. One is the "key" picture, and the other is the "fill" picture. These are in addition to the selected camera image which will be the background image.
 
-Botht the Key and Fill images come from ProPresenter.
+Fill Picture
+: This is the the text or graphic from ProPresenter which we want to show on top of the camera image. Parts of this image that will show through the transparent parts of the key picture. 
+
+Key Picture
+: This picture is a bit different from 'normal'. It has a special hidden superpower called an "alpha channel" or "transparency information." It's like a hidden code behind the picture that tells the video mixer which parts are see-through and which parts are solid. It is represented by a gray scale image, where white means fully solid (the camera will be hidden) and black means fully transparent (the camera will be revealed).   
 
 Now, here's how the alpha keying works:
 
@@ -277,10 +477,6 @@ Understanding Alpha Channel: The video mixer looks at the key picture and checks
 Combining the Pictures: The video mixer then takes the fill picture and the key picture with its alpha channel and cleverly blends them together. It uses the transparency information from the key picture to know where to make it see-through and let the fill picture show through.
 
 Result: As a result, you see the key picture with its transparent parts combined seamlessly with the fill picture. The person or object from the key picture appears on top of the background from the fill picture, and it looks like they are really there!
-
-Alpha keying is an essential technique in video production. It allows us to superimpose people, objects, or animations onto our camera images easily, creating amazing scenes and adding a touch of magic to our broadcasts.
-
-[Back to top](#top)
 
 ## Using the Built-in Media Player
 
@@ -292,21 +488,26 @@ The ATEM mixer has two built-in media players which can play images and very sho
 
 2. Assigning a media element (image or video) to a player. Two ways to do this
     + Using the ATEM software, media tab as above. You can drag n' drop media from the bin to the player of your choice on the right hand side.
-    + Using the ATEM console itself, you can naviagte to the media player menus and select the item you want by file name.
+    + Using the ATEM console itself, you can navigate to the media player menus and select the item you want by file name.
 
 3. Using the player as a source
     + You can select either media player as a source for a transition using either the Program buttons or the Preview buttons. They are labelled "MP 1" and "MP 2". 
     + You do have to use the 'shift button' to select them. 
     
-[Back to top](#top)
-
 ## Usage of media players and DSK
 
 The built-in media players can be used to playback static graphics or very short videos. The graphics are changed using the ATEM control software on the Mac (CUMU-G001): 
 
 * On the bottom of the screen their are four tabs: Switcher, Media, Audio, Camera, select the "Media" tab.  
+wtf
+* v1 (@mediatablocation) 
+* v2 @mediatablocation
+* v3 @fig:mediatablocation
+* v4 (@fig:mediatablocation) 
+* v5 \@ref(fig:mediatablocation)
+* v6 \ref{fig:mediatablocation}
 
-![Media tab location](./images/sov-softwareswtichermediaarrow.png){height=3in}
+![Media tab location](./images/sov-softwareswtichermediaarrow.png){#fig:mediatablocation }
 
 * On the left hand side there is a file navigator. Dropbox will be one of the "Favourites". Expand it by clicking on the ">".
 * Navigate to the folder for the week, eg "serv_aug25"
@@ -859,65 +1060,26 @@ The device needs to be reset. The steps are:
 
 # Appendix
 
-[Back to top](#top)
+## Terminology
 
-## Video Terminology
+```{r}
+# A hack - gt doesn't provide a means of line-breaking for pdf. So we create a graphic and then include the graphic.
 
-FTB
-: Fade to Black. A gradual transistion of the program output to all black
+tab <- get.glossary() |>
+	filter(Topic == "Video") |>
+	select(Term, Definition) |>
+	arrange(Term) |>
+    gt() |>
+	opt_stylize(style=3) |>
+	fmt_markdown(columns=Definition)
+```
 
-DSK
-: Down Stream Keyer. A video mixing ability to overlay the program output with something like a graphic or a lower third banner.
-
-PTZ
-: a term used to describe a remote controllable camera which provides Pan, Tilt, and Zoom controls.
-
-Pan
-: Moving the camera from side to side.
-
-Tilt
-: Moving the camera up and down.
-
-Video bumper
-: A visual way to provide a “bumper” to your main content – a bumper for the start and finish. Usually short and attention grabbing.
-
-Zoom
-: Moving the image in and out (larger and smaller - technically this is changing the focal length).
-
-Shutter speed
-: Some points:
-
-* Controls the amount of light by varying the rate at which the scence is sampled.
-* Expressed as a fraction, for example 1/90
-* Too slow and motion in the image will blur. This motion blur becomes highly noticable at speeds slower than 1/30 (1/8 and 1/15).
-* The GL2's shutter speed can range from 1/8 at the slowest to 1/15000 at the fastest.
-
-Aperture
-: Controls the amount of light entering the camera by varying the lens iris.
- Also results in the [depth-of-field](http://www.mediacollege.com/video/camera/focus/depth-of-field.html)  changing, but that is not often a concern.
- Ranges from F1.4 to F8.0, but the limits also vary by the focal length
-Gain
-
-Controls image brightness by the amount of electronic amplification of the video signal.
-Typical use +12dB
-Can use +18dB when scene is really dark or +6dB when really bright.
-The smaller the number the less noise the image will have.
-
-Tight Shot
-: Zoomed in so you have only head and shoulders - or less - in the frame.
-
-Long Shot
-: Zoomed out so that you see a good portion of the stage.
-
-Medium Shot
-: Anywhere between a tight and a long shot.
-
-Focus Pull
-: A technique where the camera focus point is changed while live. [ Read more.](http://www.mediacollege.com/video/camera/focus/pull.html)
-
-[Back to top](#top)
+```{r glossary, results='asis'}
+cat(print_gt_table(tab))
+```
 
 ## Setting up a Tripod
+
 Some simple notes for now. Since our cameras are now ceiling mounted, this isn't important unless we bring in a camera for a special purpose.
 
 * Dropping all three legs and make them even before spreading - this helps get them even to start. However if, as is the case on the main floor, the floor is not level, adjust the legs so that the center column is vertical. The bubble level might help you figure this out. This is very important especially when the center column is fully extended. It is more vulnerable to being knocked over.

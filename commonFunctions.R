@@ -1,6 +1,17 @@
 ## A library of common functions used within this collection of Rmds.
 
-#' This function takes a list of asset tags and the inventory  returns a formatted kable table of the results. 
+#Globals
+#tODO - use of globals, cache_assets and cache_network is subject to bugs.
+
+path         <- file.path("~", "Documents", "UACTech", "SystemDocumentation")
+data_dir     <- file.path(path, "github", "uactechdoc", "data")
+asset_file   <- "uac_assets.xlsx"
+network_file <- "uac_network.xlsx"
+cables_file  <- "uac_cables.xlsx"
+glossary_file <- "uac_glossary.xlsx"
+
+#' This function takes a list of asset tags and the inventory 
+#' returns a formatted kable table of the results. 
 #' It will force a stop if there is a mismatch.
 #' The inventory must have certain columns of data within it.
 #' 
@@ -104,14 +115,7 @@ commit.log.html <- function(file.name) {
 
 # Functions to get data used by most of the reports.
 
-#globals
-#tODO - use of globals, cache_assets and cache_network is subject to bugs.
 
-path         <- file.path("~", "Documents", "UACTech", "SystemDocumentation")
-data_dir     <- file.path(path, "github", "uactechdoc", "data")
-asset_file   <- "uac_assets.xlsx"
-network_file <- "uac_network.xlsx"
-cables_file  <- "uac_cables.xlsx"
 
 fname.cf <- file.path(path, "TechInventory.xlsx" )
 fname.people <- file.path(path, "db-people.xlsx" )
@@ -142,6 +146,12 @@ get.network <- function() {
 get.cables <- function () {
 	cables <- read_excel(file.path(data_dir, cables_file), 
 					     sheet = "Cables")
+	return(cables)
+}
+
+get.glossary <- function () {
+	cables <- read_excel(file.path(data_dir, glossary_file), 
+						 sheet = "glossary")
 	return(cables)
 }
 
@@ -266,3 +276,16 @@ get.training <- function() {
   return(read_excel(fname, sheet=sheet))
 }
 
+print_gt_table <- function(gt_table) {
+	temp_png <- tempfile(fileext=".png", tmpdir="_work")
+	gtsave(tab, filename=temp_png)
+	out_str <- case_when(
+		knitr::is_latex_output() 
+		~ sprintf("\\includegraphics {%s}", temp_png) , 
+		knitr::is_html_output() 
+		~ sprintf("![](%s)", temp_png),
+		knitr::pandoc_to("docx") ~  "word is unsupported for dynamic tables",
+		TRUE ~ "unsupported output type for table"
+	)	
+	return(out_str)
+}

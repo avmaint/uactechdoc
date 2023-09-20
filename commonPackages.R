@@ -20,3 +20,4 @@ require(gt)
 #install.packages("DiagrammeRsvg")
 library(rsvg)
 library(DiagrammeRsvg)
+library(webshot2) # used for gtsave

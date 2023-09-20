@@ -482,8 +482,22 @@ Recovery:
 
 # Appendix
 
-## Video Terminology
+## Terminology
 
-> TODO: Write content
+```{r}
+# A hack - gt doesn't provide a means of line-breaking for pdf. So we create a graphic and then include the graphic.
+
+tab <- get.glossary() |>
+	filter(Topic == "ProPresenter7" | Term == 'Bumper') |>
+	select(Term, Definition) |>
+	arrange(Term) |>
+    gt() |>
+	opt_stylize(style=3) |>
+	fmt_markdown(columns=Definition)
+```
+
+```{r glossary, results='asis'}
+cat(print_gt_table(tab))
+```
 
 {{< include common_trailer.qmd >}}

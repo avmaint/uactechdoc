@@ -32,12 +32,16 @@ chart <- tribble(
 "These are publications from the manufactures of the equipment we have."
 )
 
-chart |>
+tab <- chart |>
  	   gt() |>  
 		opt_stylize(style = 3) |>
 	    opt_row_striping(  row_striping = TRUE) |>
 		tab_style( style = cell_text( 	weight = "bold",  	),
 		        	locations = cells_body(  	columns = "Type") )  
+```
+
+```{r fi-image, results='asis'}
+cat(print_gt_table(tab))
 ```
 
 There is an operations and a design guide for each of the major subsystems.  
@@ -60,3 +64,4 @@ further |>
 		tab_style( style = cell_text( 	weight = "bold",  	),
 		        	locations = cells_body(  	columns = "Topic") )    
 ```
+
