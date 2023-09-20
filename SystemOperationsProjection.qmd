@@ -1,7 +1,6 @@
 ---
 title: "System Operations - Projection"
-author: "Terry Doner"
-date: "`r format(Sys.time(), '%B %d %Y')`"
+author: "UAC Media Arts"
 execute: 
   eval: true
   echo: false
@@ -10,16 +9,12 @@ execute:
 format:
   html:
     toc: true
-    number-sections: true
-    css: styles.css
   pdf:
-    number-sections: true 
     toc: true
-    toc-depth: 2
-always_allow_html: yes
 ---
 
-```{r packages }
+```{r packages, echo=FALSE }
+knitr::opts_chunk$set("echo=FALSE") #for some reason the yaml isnt working
 source("commonPackages.R")
 ```
 
@@ -29,30 +24,27 @@ source("commonFunctions.R")
 
 ```{r data}
 NetworkInventory <- get.network()
-activities <- get.activities()
 ```
 
 # Introduction
-This document provides basic operating information for each the video projection systems at Unionville Alliance Church.
+
+This document provides basic operating information for the main video projection system at Unionville Alliance Church.
 
 Our projection system is quite flexible and allows for numerous video sources to be connected to many display devices (including projectors and TVs).
 
 ProPresenter is the primary tool we use for display Lyrics, message support graphics, announcements and other such visuals. The ProPresenter visuals are also used to broadcast and record our services, which is managed by the video crew.
 
-At times you will also need to change the video routing for special features such as baptism. 
+At times you will also need to change the video routing for special features such as baptism.
 
-[Back to top](#top)
-
-{{< pagebreak >}} 
 # ProPresenter Training Videos
 
 The firm that makes ProPresenter, Renewed Vision, has many great training videos on their [web site](https://www.renewedvision.com/propresenter.php?page=tour).
 
-They have been organized in the list below, @fig-training-videos, into basic, intermediate and advanced topics.  
+They have been organized in the list below, @fig-training-videos, into basic, intermediate and advanced topics.
 
 ```{r training}
 #| fig-cap: "Training Videos"
-#| fig-cap-location: bottom
+#| cap-location: bottom
 #| label: fig-training-videos
 #| 
 get.training() %>%
@@ -81,129 +73,174 @@ get.training() %>%
 
 ```
 
-[Back to top](#top)
-
-{{< pagebreak >}} 
-
-# How We Organize our files
-
-## OneDrive service_media
-
-service_media is meant for short term content and provide a means for content creators to contribute content remotely. There are three main directoriy types that will be found here:
-
-Week Specific (eg. serv_feb12)
-: Below ‘service_media’ there would be a folder like serv_feb12. This is used for content that is specific to that date only. The powerpoint for the date, Announcement videos for that date, etc. Anything placed in those folders should be considered deleteable after the event has finished.  If it is to be reused for a few weeks, it should be copied to the appropriate weeks. 
-
-Series Folder (Eg. series_jesus)
-: This is for graphics and media which are to be used for an entire message series. It contains the centre screen graphic, the lower 3rd graphics for video, the series Welcome graphic, bumper video, plus other useful backgrounds.
-
-When we start a new series, we need to update several things in ProPresenter: 
-
-* "Welcome" document
-* "Series Graphic" in "Props"
-* "Bumper"
-* Update the colours on the name and name+title themes and looks
-
-media_assets
-: This directory holds content meant to be reused long term. This includes things like uac logos and branding files.
-
-## Media Resources
-
-This is our main graphic library, for both still and motion graphics. There are some folders which are orgnized by a particular graphical theme (eq baptisms). And others which are organized by the source from which it was downloaded. 
-
-Many files have keywords in the file names that make them easier to search for. For example, you can search 
-
-* by colour, eg "red", 
-* or by content, eg "cross",
-* or format, eg "-tw" for triplewide content.
-
-{{< pagebreak >}} 
-
 # Preparing a ProPresenter Playlist
 
-The playlist is the list of visual elements that we need to present during the service. It will follow very closely the cue sheet that comes from Planning Centre Online (PCO). 
+The playlist is the list of visual elements that we need to present during the service. It will follow very closely the cue sheet that comes from Planning Centre Online (PCO).
 
-There are two ways of doing this, the easiest way is to have ProPresenter create the playlist from PCO. They other way is to do it manually. Most of the time you will use the first option. 
+There are two ways of doing this, the easiest way is to have ProPresenter create the playlist from PCO. They other way is to do it manually. Most of the time you will use the first option.
 
-Early in the week the service cue sheet for the following Sunday will be distributed via Planning Center Online. With that in hand you can prepare the playlist which includes all announcements, song lyrics, and other support elements. 
+Early in the week the service cue sheet for the following Sunday will be distributed via Planning Center Online. With that in hand, you can prepare the playlist which includes all announcements, song lyrics, and other supporting elements.
 
 ## Creating a Playlist from PCO
 
+It is very rare that you won't create your playlist this way. After starting ProPresenter, find the "+" in the upper left corner next to "Library" @fig-sop_pco_playlist7_1
 
-It is very rare that you won't create your playlist this way. After starting ProPresenter, find the "+" in the upper left corner next to "Library". 
+```{r sop_pco_playlist7_1, echo=FALSE}
+#| label: fig-sop_pco_playlist7_1
+#| fig-cap: Click on the "+"
+#| fig.retina: 2
+#| cap-location: bottom
 
-![Click on the Plus](./images/sop_pco_playlist7_1.jpg)
-Then select "Planning Center Service...".
+include_graphics("./images/sop_pco_playlist7_1.jpg")
+```
 
-![Select "New PCO Playlist"](./images/sop_pco_playlist7_2.jpg)
+Then select "Planning Center Service...". @fig-sop_pco_playlist7_2
+ 
+```{r sop_pco_playlist7_2, echo=FALSE}
+#| label: fig-sop_pco_playlist7_2
+#| fig-cap: Select "New PCO Playlist"
+#| fig.retina: 2
+#| cap-location: bottom
 
-Next you will see a pop-up where you need to select the plan that you want to use for your playlist. You may need to scroll sideways to see the date.
+include_graphics("./images/sop_pco_playlist7_2.jpg")
+```
 
-![click on the grey arrow to see the list of services](./images/sop_pco_playlist7_3.jpg)
+Next you will see a pop-up where you need to select the plan that you want to use for your playlist. You may need to scroll sideways to see the date. You may need to click on the grey arrow to see the list of services. @fig-sop_pco_playlist7_3
 
-If you created the playlist before Sunday, you should refresh the playlist on Sunday morning to collect any updates. After doing a refresh check to make sure your arrangement choices haven't been changed.
+```{r sop_pco_playlist7_3 }
+#| label:   fig-sop_pco_playlist7_3
+#| fig-cap: Click on the desired date and then "Select"
+#| fig.retina: 2
+#| cap-location: bottom
 
-![Refresh a PCO Playlist](./images/sop_pco_playlist7_4.jpg)
+include_graphics("./images/sop_pco_playlist7_3.jpg")
+```
 
-A PCO playlist is rigidly linked to PCO. You cannot add items or change the order. If you need to do that, you will need to convert the playlist to a regular playlist. You only need to do this if you need to add or remove items.
+If you created the playlist before Sunday, you should refresh the playlist on Sunday morning to collect any updates. After doing a refresh check to make sure your arrangement choices haven't been changed. @fig-sop_pco_playlist7_4
+ 
+```{r sop_pco_playlist7_4 }
+#| label: fig-sop_pco_playlist7_4
+#| fig-cap: Refresh a PCO playlist
+#| fig.retina: 2
+#| cap-location: bottom
 
-:::{.callout-note}
-TODO: Need to update this to PP7 as it provides some flexibility while not breaking the PCO link.
-:::
+include_graphics("./images/sop_pco_playlist7_4.jpg")
+```
 
-![Convert to a non-PCO playlist](./images/sop_pco_playlist7_5.jpg)
 
-[Back to top](#top)
+A PCO generated playlist remains linked to PCO. Items that were defined in PCO cannot be deleted or repositioned, you can add additional items.
 
-{{< pagebreak >}} 
+If you need more flexibility, you can convert a PCO playlist to a manual one. @fig-sop_pco_playlist7_5
 
-# Importing Powerpoint
+```{r sop_pco_playlist7_5 }
+#| label: fig-sop_pco_playlist7_5
+#| fig-cap: Convert to a non-PCO playlist
+#| fig.retina: 2
+#| cap-location: bottom
 
-ProPresenter is able to import the contents of a Powerpoint presentation. It creates a document containing static images, which means any animations and transition affects that were part of the powerpoint are lost. You also need to ensure that any special fonts used in the powerpoint are installed on the system.
+include_graphics("./images/sop_pco_playlist7_5.jpg")
+```
 
-You execute the import via File > Import > Import Powerpoint.
+## Importing Powerpoint
 
-![Import PowerPoint](./images/sop-ppt-import-1.png)
+ProPresenter is able to import the contents of a PowerPoint presentation. It creates a document containing static images, which means any animations and transition affects that were part of the PowerPoint are lost. You also need to ensure that any special fonts used in the PowerPoint are installed on the system prior to importing the presentation.
 
-and then navigate to the powerpoint file. 
+You execute the import via File \> Import \> Import PowerPoint. @fig-sop-ppt-import-1
 
-![Import](./images/sop_ppt_import7_2.jpg) 
+```{r sop-ppt-import-1 }
+#| label: fig-sop-ppt-import-1
+#| fig-cap: Importing a PowerPoint
+#| fig.retina: 2
+#| cap-location: bottom
 
-Once the import is complete, you can then link the new document to the playlist, and add the multiscreen and prop cues.
+include_graphics("./images/sop_ppt_import7_1.jpg")
+```
 
-**If you see a white flash** as you transition to the first slide, change the background colour to black. The background colour is displayed first and then the graphic is brought in via the transition. To change the backgorund colour "Edit" the slide via the right-click pop-up menu and go to the first tab "Document Properties" - background is the first option.
+and then navigate to the PowerPoint file. @fig-sop-ppt-import-2
+
+```{r sop-ppt-import-2 }
+#| label: fig-sop-ppt-import-2
+#| fig-cap: Import
+#| fig.retina: 2
+#| cap-location: bottom
+
+include_graphics("./images/sop_ppt_import7_2.jpg")
+```
+
+Once the import is complete, you can then link the new document to the playlist.
+Once positioned in the playlist ensure that the correct content and lighting cues are set.
 
 Sometimes this import process doesn't work. If it seems to be breaking, then open PowerPoint directly. When you do that, there may be mesages from PowerPoint that need attention, like a notice of an update. Once those are cleared, you can retry the import process.
 
 You can also do the PowerPoint Export completely outside of ProPresenter and export all slides as images, create a new ProPresenter document for them, and drag and drop all the saved JPGs into the document. This takes more effort to do, so you would only do it this way if the regular import doesn't work. It is also useful to do when moving a PowerPoint from a different machine and you want to ensure all fonts are rendered correctly.
 
-[Back to top](#top)
+## Video Loop Controls
 
-{{< pagebreak >}}
+When adding a video to a presentation, ProPresenter will be default make the video loop. This is good for motion background videos, but not what we want for videos like announcements, bumpers and video feature segments. 
+
+::: {.callout-important}
+You need to make sure that the loop property is set correctly. 
+:::
+
+How this is to be done depends on how the video was adding to the playlist. The two different results are illustrated in @fig-sop-pro7-loop-1
+
+#. if the video was dropped directly onto the playlist on the left, it appears as a small thumbnail with a big play button beside it (first example).
+#. if the a new presentation was created, and the video was dropped into the presentation, it appears as a big thumbnail (second exampe).
+
+::: {.callout-tip}
+The second method is preferred because you can add macros to the slide which you cannot do with the first method.
+:::
+
+!["Two Ways Videos Can Appear in the Playlist"](./images/sop-pro7-loop-1.jpg){#fig-sop-pro7-loop-1 width=50% }
+
+To change the loop setting, you need to use the *inspector* which is located in different locations depending on the method used. See the orange arrows in @fig-sop-pro7-loop-1 .
+
+On the second tab on the *inspector*, there is a dropdown for *playback*. We need to change that from *loop* to *stop* for a featured video, @fig-sop-pro7-loop-2  
+ 
+!["Changing playback setting in *inspector*"](./images/sop-pro7-loop-2.jpg){#fig-sop-pro7-loop-2 width=50% }
+
+# Stage Display
+
+ProPresenter gives us the ability to display other content on the rear display for the stage team to see that is different from what the audience sees. Since it helps give them confidence, it is sometimes called the confidence display as well.
+
+::: {.callout-tip}
+Once the a Stage Display Layout is selected, it will not change until you set it to something else. The *Content* macros set the stage display according to the content.
+:::
+
+The Stage display layouts can be edited using the "Edit Layouts" option on the "Screens" menu. @fig-sop_stage_layouts
+
+![Editing Stage Layouts](./images/sop_stage_layouts.jpg){#fig-sop_stage_layouts width=50%} 
+
+## Lyrics on Stage Display Only
+
+We have a dedicated *Content* Macro for this purpose, "*Content Solo*".  Simply drop this macro on the first slide for which you don't want the lyrics to be displayed. This uses a *Look* to turn off the slide layer on all outputs but leave the media layer on. When you want to show lyrics again, using a different *Content* macro, for example *Content Song TW*, will select a different look.  
 
 # Macros
 
-Macros provide a way of combining a bunch of actions together to be executed as a group. We have two main types of macros. Macros that provide the settings for a particular type of content (prefix content) and another set of macros for lighting cues (prefix Lq).
+Macros provide a way of combining a bunch of actions together to be executed as a group. We have two main types of macros. Macros that provide the settings for a particular type of content (prefix *content*) and another set of macros for lighting cues (prefix *Lq*).
 
 Content Macros
-: These macros set the look and stage display that is most appropriate for the type of content. The looks may also override the theme applied to the text formatting. See @fig-sop_macro_content 
 
-![Sample Content Macros](./images/sop_macro_content.jpg){#fig-sop_macro_content} 
+:   These macros set the look and stage display that is most appropriate for the type of content. The looks may also override the theme applied to the text formatting. See @fig-sop_macro_content
+
+![Sample Content Macros](./images/sop_macro_content.jpg){#fig-sop_macro_content  width=50%}
 
 Lighting Macros
-: Lighting cues set a prop and the automation program (CueCommanderNR) will cleat that cue. The lighting cue that is fired is derived from the name of the prop. See @fig-sop_macros_lighting 
 
-![Sample Lighting Macros](./images/sop_macros_lighting.jpg){#fig-sop_macros_lighting}
+: Lighting cues set a prop and the automation program (CueCommanderNR) will cleat that cue. The lighting cue that is fired is derived from the name of the prop. See @fig-sop_macros_lighting
+
+![Sample Lighting Macros](./images/sop_macros_lighting.jpg){#fig-sop_macros_lighting width=50%}
 
 "Special" Light Cues
+
 : There are 10 predefiend macros (and Props) for use as a spceical. For example, special lighting for a song. These are numbered Lq:80.0 through Lq:89.0. To use them, record your lighting look as a the corresponding numbered cue on the lighting console.
 
-
 Series Standard Lighting Cues
+
 : The are named Lq:90.0 through Lq:99.9. There is a light cue that corresponds to the type of content.
 
-
 Colour Themed Light Cues
+
 : Light cues Lq:100.0 through Lq:899.9 are reserved for light cues that correspond to different colour combinations, suitable to accompany music. The numbers correspond to major colours, see table @fig-digit-convention .
 
 ```{r}
@@ -243,292 +280,206 @@ tribble(
 	tab_style( style = list(  cell_text(weight = "bold") ),
     locations = cells_body(  columns = "Digit",  rows = everything() ) )
 ```
+
 A light cue of Lq:140.0 would be defined to have a main colour of red (#1) and a secondary colour of yellow (#4). For more details, see the **System Operations Lighting** guide.
 
-[Back to top](#top)
+# How We Organize our files
 
-{{< pagebreak >}}
+## OneDrive service_media
 
-# Stage Display
+The service_media directory is contains the short term content and provide a means for content creators to contribute content remotely. There are three main directory types that will be found here and they follow a name pattern:
 
-ProPresenter gives us the ability to display other content on the rear display for the stage team to see that is different from what the audience sees. Since it helps give them confidence, it is sometimes called the confidence display as well. 
+Week Specific (eg. serv_feb12)
 
->Key point. Once the a Stage Display Layout is selected, it will not change until you set it to something else. The "Content" macros set the stage display according to the content.
+:   Within 'service_media' there would be a folder like serv_feb12. This is used for content that is specific to that date only. The powerpoint for the date, Announcement videos for that date, etc. Anything placed in those folders should be considered delete-able after the event has finished. If it is to be reused for a few weeks, it should be copied to the appropriate weeks, or placed in the series folder.
 
-The Stage display layouts can be edited using the "Edit Layouts" option on the "Screens" menu.
+media_assets
 
-![Stage Layouts](./images/sop_stage_layouts.jpg)
+:   This directory holds content meant to be reused long term. This includes things like uac logos and branding files.
+Series Folder (Eg. series_jesus)
 
-## Lyrics on Stage Display Only
+:   This is for graphics and media which are to be used for an entire message series. It contains the centre screen graphic, the lower 3rd graphics for video, the series Welcome graphic, bumper video, plus other useful backgrounds.
 
-We have a dedicated Content Macro for this purpose, "Content Solo". This will turn off the slide layer on all outputs but leave the media layer on.
+When we start a new series, we need to update several things in ProPresenter:
 
-[Back to top](#top)
+-   "Welcome" document
+-   "Series Graphic" in "Props"
+-   "Bumper"
+-   Update the colours on the name and name+title themes and looks
 
-{{< pagebreak >}} 
-# Video Loop Controls
+## Media Resources
 
-:::{.callout-note}
-TODO: Need to update this to PP7  
+This is our main graphic library, for both still and motion graphics. There are some folders which are orgnized by a particular graphical theme (eq baptisms). And others which are organized by the source from which it was downloaded.
+
+Many files have keywords in the file names that make them easier to search for. For example, you can search
+
+-   by colour, eg "red",
+-   or by content, eg "cross",
+-   or format, eg "-tw" for triplewide content.
+
+There are two main locations to look for graphics:
+
+#. "CMG Graphics". These have all been downloaded for http://churchmotiongraphics.com . You can also go to that website and browse for something specific.
+#. "Procontent" - these have been downloaded from https://procontent.renewedvision.com . You can also go there to browse. 
+
+
+
+
+# Running Triple Wide
+
+The ProPresenter projection output is a triple wide configuration. That is three HD images (1920x1080) side by side for a total of 5760x1080 pixels. ProPresenter knows that the projected image is divided up into three projection outputs. 
+
+::: {.callout-note}
+ProPresenter uses the terms *Screen*s and *Output*s very specifically. 
+
+*Output*
+: A video signal that ProPresenter sends out to a display device, for example an HDMI, SDI, or NDI display device.
+*Screen*
+: A collection of one or more *Output*s which either show identical content, which it calls a *Mirror*ed screen, or glued together so that content can span across multiple *Output*s, ProPresenter calls this a *Group*ed screen.  
 :::
-
-This setting is a little hard to find when you ‘Link’ and video file directly to the playlist item. Here is how to do it.
-
-By default when you add a video to ProPresenter it loops the video. Which is what you want for a motion background but not what you want for other content like a Announcement video.
-
-How do you change it? There are two ways, and it depends on how the video was added to the playlist. 
-
-* If the video was directly linked to the playlist, then you need to follow the little blue 'i' process below. 
-* If the video was added to a document which was then linked to the playlist item, then follow the 'Document Process' 
-
-__Little Blue "i" Process__
-
-1) Click on the little blue ‘i’ beside the playlist document. This will pop the media properties window. 
-2) Click on the properties button and 
-3) The behaviour setting to ‘Stop’. If ‘Stop’ is not selectable then you need to change the ‘Media Cue Behaviour’ to ‘foreground’. (Media Cue Behaviour is on the right-click pop-up)
-
-See the three arrow in the image below.
-
-!["Changing Video Loop Behaviour" ](./images/sop_video_loop.jpg){height=3in}
-
-__Document Process__
-
-Right Click on the video and select "Media Properties". And then change the loop Behaviour as above. 
-
-![Media Properties](./images/sop-MediaProperties.jpg){height=3in}
-
-[Back to top](#top)
-
-{{< pagebreak >}} 
-
-# Running Triple Wide{page-break-before="always"}
-
-:::{.callout-note}
-TODO: Need to update this to PP7  
-:::
-
-The ProPresenter projection output is a triplewide configuration. That is three HD images (1920x1080) side by side for a total of 5760x1080 pixels. ProPresenter knows that the projected image is divided up into three projection screens. We use multi-screen cues to control which content is displayed where on that wide canvas. 
-
-There are two kinds of cues that we need to become more familiar with: Props and Multiscreen.
-
-Props
-: A "Prop" is an extra graphic that can float on top of whatever else you have defined and can be turned on and off manually or added as a cue to a slide. The most common usage of Props is to overlay the series graphic on the centre screen. There is a multi-screen cue setup for this You just need to add it to the first slide of the message. On the first Sunday of a new series we also need to change the series graphic in the Props setting. It is also important to add 'Clear Props' cues to the last slide of the message.  There is a "Clear Prop" button in the toolbar (upper left) that will clear it manually if you forgot to add it as a cue.
-
-Multi-screen Cues
-: The multi-screen cues control which content gets displayed where. There are two main variations: Tile and Stretch. Tile repeats the content across all three, and stretch makes the content span all three.
-
-An example of tile versus stretch:
-
-![Tile](./images/sop-triplewide-tile.jpg)
  
-![Stretch](./images/sop-triplewide-stretch.jpg)
+Our Front three projectors are each separate *Output*s. The are then used to define two different *Screen*s:
 
-This tutorial covers Props https://youtu.be/U4bQbLqOjC0 and this one covers the multiscreen features https://youtu.be/OzLyUoKAmDQ .
+TW_Group
+: A *Screen* which groups the three *Output*s into a large horizontal canvas across which images and videos span. See @fig-sop-pro7-tw-group for how it is defined and  @fig-tw-group-abc for an illustration of a possible display.
 
-[Back to top](#top)
+TW_Mirror
+: A *Screen* which defines the three *Output*s as displays which are each to show identical content. See See @fig-sop-pro7-tw-mirror for how it is defined and  @fig-tw-mirror-aaa for an illustration of a possible display.
 
-## Transfering the ProPresenter Playlist to the Streaming Computer
+![Group Screen Definition](./images/sop-pro7-tw-group.png){#fig-sop-pro7-tw-group width=50%}
 
-> This doesn't not normally need to be done.  The most common reasons to do this would be 1) a problem with the video link between the computer and the ATEM, or 2) a desire to have completely different formatting for the same content.
+![Mirror Screen Defintion](./images/sop-pro7-tw-mirror.png){#fig-sop-pro7-tw-mirror  width=50%}
 
-This process sets up the video streaming computer to mirror the main ProPresenter slide content. We do this because the main system is running at a triple wide resolution (5760x1080) and the stream is only single wide (1920x1080). 
+Looks are used to control which *Screen* is sent output. (If both screens are sent output at the same time it can look weird).
 
-#. First finalize the playlist on the main computer (CDMU-A001)
-#. Move the playlist for today to the top of the list
-#. Convert the playlist to a Non-PCO playlist (if required) - right click on the playlist and select "convert to Non-PCO playlist"
-#. Export it - Right click on the playlist again and select 'Export'
-     + There is this tutorial on exporting: https://youtu.be/VCDpLwQEX6Q
-#. Navigate to "Shared Playlists" on the desktop ensure that the checkbox is selected to embed media
-#. Move to the streaming computer, CDMU-A002
-#. Open ProPresenter
-#. Go to File->Import->Import from File
-#. Navigate to CDMU-A001 "Shared Playlists" and click OK (or Open)
-#. You we likely see some pop-ups about existing content. Select the 'apply to all' checkbox and choose 'Overwrite'
-#. Move the newly import playlist to the top of the list.
-#. Go through each song and remove the background graphic and also apply the "UAC Lyrics" template. (Right click and "Remove" the graphic cue. Select the song item in the playlist and apply the "UAC Lyrics" Template either via right-click or the template icon at the top.)
-#. Test that the streaming computer changes slides in-Sync with the main computer. 
+Examples of Group versus Mirror displays:
 
-> The connection between the two computers is defined on the ProPresenter Preferences⟶Network panel. The synchronization is communicated by playlist number, item number, and slide number, not by name. This is why we make the day's playlist, top of the list (#1 on both machines).
+![Display using a Group Configuration](./images/sop-TW-Group-ABC.png){#fig-tw-group-abc}
 
-> After Export/Import, any edits to slide content or sequence on the second computer will need to be repeated on the streaming computer or the export/import will need to be repeated.
+![Display using a Mirror Configuration](./images/sop-TW-Mirror-AAA.png){#fig-tw-mirror-aaa}
 
-[Back to top](#top)
-
-{{< pagebreak >}} 
-# Projectors  
+# Projectors
 
 ## Turning the Front projectors On and Off
 
-The power for the projectors can be operated via the web page for each projector
+The power for the projectors can be operated via the web page for each projector.
 
-## Turning the Confidence Projector On and Off
+If one or more of the front projectors does not repsond via the web page, you can use the Sony remote control. You need to stand below each screen and point the remote at the projector. The swtich on the remote needs to be set to **A** for the east screen, **B** for the centre screen, and **C** for the west screen.
 
-The remote for the balcony projector (aka confidence projector) is  found near the computer monitor. To power off this projector you need to hit the off button twice.
+## Turning the Rear Projector On and Off
 
-[Back to top](#top)
-
-## Trouble Shooting
-
-Filter needs cleaning
-: Please advise Terry.
-
-[Back to top](#top)
-
-{{< pagebreak >}} 
+The remote (Hitachi) for the balcony rear projector (aka confidence projector) is found near the computer monitor. To power off this projector you need to hit the off button twice.
 
 # Operating the Matrix Video Switch
 
-The matrix switch manages the routing of most video sources to various destinations. There are three ways to change the routing:
+The matrix switch (ZVKU-A001) manages the routing of most video sources to various destinations. There are two ways to change the routing:
 
-* Via the matrix's web page
-* Via the front panel buttons
+-   Via the matrix's web page
+-   Via the front panel buttons
 
-__Via the Web Page__
+**Via the Web Page**
 
-Another way to operate the matrix video switch (Asset Tag ZVKU-A001) is from its web page. There should be a shortcut to it on the computer desktop, or use 
-[this](`r NetworkInventory %>% filter(AssetTag == "ZVKU-A001" ) %>% select(URL)`).
+The matrix settings can be adjusted using its web page. There is a shortcut to it in Safari's bookmarks, or use [this - http://192.168.0.184](http://192.168.0.184).
 
 On the page, click the output you want to change, and the input you want to tie it to. There is a little number in the output box which tells you which input it is tied to. The screen will go black for a few seconds while it makes the change.
 
-__Via Front Panel Buttons__
+**Via Front Panel Buttons**
 
-You can do a similar thing directly on the front panel of the switch itself using the OUT and IN buttons.  The unit is located under the desk near the computer.
+You can do a similar thing directly on the front panel of the switch itself using the OUT and IN buttons. The unit is located under the desk near the computer.
 
 ![Matrix Video Swtich](./images/sop-gear-vs88dt-1.jpg)
 
-#### Camera On-screen Configuration  
+## Camera On-screen Configuration
 
-The goal of this configuration is to get a camera image on the screen - usually the centre screen. The best method of achiving this is this
+One common configuration is to get a camera image on the screen - usually the centre screen. The best method of achieving this is :
 
-TODO: figure this out so that we can select the "Proj B" video feed on the ATEM. Atem inputs need to be Fill, Key, HDMI and "Proj B".  
+-   On the Video Matrix: for output **2**, select ATEM Aux (input **7**) See @fig-sop-matrix-camera-onscreen
+-   On the ATEM Aux output, select the Aux feed to come from the Program bus 
 
-* On the Video Matrix: for output 2, select ATEM Aux (input 6) 
-* For ATEM Aux output select one of these two sources, depending on the intent
-    + For Camera on screen select the Aux feed to come from the Program bus
-    + for 'normal' mode, select the Aux ... this is incomplete
+With this configuration, what ever the video operator chooses for camera shots will be shown on the centre screen. 
 
- Normal: decklink sdi6 -> VM_In2 -> VM_Out6 -> ATEM_In4 -> Aux -> VM_In6 -> VM_Out2
- 
- Camera On screen: ATEM_PRG -> ATEM_AUX -> VM_In6 -> VM_Out2
- 
-The centre screen content can be flipped between 'normal' centre screen content from Proprestenter to ATEM Program Output by changing the Aux Bus setting on the ATEM.  
- 
-```{dot}
-//| fig-width: 3
-//| fig-height: 2
-//| label: fig-matrix-camera
-//| fig-cap: "Video matrix configuration for camera on-screen"
-//| file: gv/sdv-PScamera.gv
-```
+![Matrix Configuration for On Screen Camera](./images/sop-matrix-camera-onscreen.png){#fig-sop-matrix-camera-onscreen  width=50%}
 
+::: {.callout-important}
+TODO - Need to work out the best way or routing the centre output to the ATEM so the video operator can route either the Program Bus or the Centre output to the Aux Bus. This way the video operator can make a very smooth transition between the two.
+:::
 
 # Remote Login
 
-Rather than having to come to the church to prepare the playlist, we offer the ability to login remotely. More than one person can do this at the same time which allows two people to see exactly the same thing and work together - this is helpful for training or assistance. 
+Rather than having to come to the church to prepare the playlist, we offer the ability to login remotely. More than one person can do this at the same time which allows two people to see exactly the same thing and work together - this is helpful for training or assistance.
 
 To use the remote tool, you need to start with a web browser. Some work better than others. The preference is:
 
-* Firefox
-* Chrome 
-* Internet Explorer / Safari. 
+-   Firefox
+-   Chrome
+-   Internet Explorer / Safari.
 
-1. The address to get started is: https://remoteassist.neysh.ca/ . 
-2. Click on "login" on the right side. 
+1.  The address to get started is: https://remoteassist.neysh.ca/ .
+2.  Click on "login" on the right side.
 
-!["Starting with the web page"](./images/sop-remote-01.jpg){height=3in}
+!["Starting with the web page"](./images/sop-remote-01.jpg){height="3in"}
 
-3. You will be provided with a userid and password separately.
-4. Please do your best to protect this password from being compromised. 
-5. Click login
+3.  You will be provided with a userid and password separately.
+4.  Please do your best to protect this password from being compromised.
+5.  Click login
 
-!["Logging into the Service"](./images/sop-remote-02.jpg){height=3in}
+!["Logging into the Service"](./images/sop-remote-02.jpg){height="3in"}
 
-6. if you see uacAVtech here you know you are logged in to the service. 
-7. click on "Host" 
+6.  if you see uacAVtech here you know you are logged in to the service.
+7.  click on "Host"
 
-!["Selecting the Host Tab" ](./images/sop-remote-03.jpg){height=3in}
+!["Selecting the Host Tab"](./images/sop-remote-03.jpg){height="3in"}
 
-8. Select this entry in the access list. 
-9. There are several computers on the list, you want "CDMU-A001", click in the checkbox.
+8.  Select this entry in the access list.
+9.  There are several computers on the list, you want "CDMU-A001", click in the checkbox.
 10. Then click "Join"
 
-!["Selecting the Host Tab" ](./images/sop-remote-04.jpg){height=3in}
+!["Selecting the Host Tab"](./images/sop-remote-04.jpg){height="3in"}
 
 The first time in you will need to select one of these options which will install addtional components on your system. Try "Windows Selector" first (on a windows machine), otherwise "ClickOnceDirect" or "WebStartBootstrap".
 
-!["Selecting the Correct Launcher" ](./images/sop-remote-05.jpg){height=3in}
+!["Selecting the Correct Launcher"](./images/sop-remote-05.jpg){height="3in"}
 
-Once logged into CDMU-A001 you will see all three displays that this computer has configured, you will want to use the view menu to select the primary display so you have a decent screen size to work with. 
+Once logged into CDMU-A001 you will see all the displays that this computer has configured, you will want to use the view menu to select the primary display so you have a decent screen size to work with.
 
- 
- 
-{{< pagebreak >}} 
-# Troubleshooting
+# Trouble Shooting
 
-## Stage Display appears on the front Projectors
+## Filter needs cleaning
 
-The problem - two scenarios:
-
-#. ProPresenter has confused which video out is for the front and which is for the  rear. 
-#. The video matrix has been routed to the video feeds incorrectly. This is much less likely.
-
-Recover steps:
-
-* Go into the settings for ProPresenter. (use the ProPresenter top menu) 
-* go to the Displays Tab
-* Swap the "SD" and "Output" rectangles - drag one on top of the other. If that doesn't fix it, do it one more time. 
-* if still not fixed check the routing on the Video Matrix. Outputs 1 through 4 should be sourced from inputs 1 through 4 respectively.
-
- 
-
- 
+: Please advise Terry.
 
 ## Video mixer (ATEM) sees only a black image for the ProPresenter input
 
 The problem:
 
-* The Datapath fx4 is not producing a compatible signal.
+-   The computer was awaken before the ATEM was fully powered on. 
 
 Recovery:
 
-* Option A:
-    * Turn the data path off and on again. This will cause the mac to reset all of its video output as well. 
-    * Restart ProPresenter - ProPresenter doesn't like to have its video outputs reset while it is running.
-    
-* Option B:
-    * On a Web browser, go to the fx4 web page http://192.168.0.192 
-    * Select Wall Designer
-    * click the open icon on the right side.
-    * Navigate to … Dropbox/UAC_Software/DatapathFX4/2017-12-27 sw.wdl (or a more recent file in the same location)
-    * Go to the devices tab, right click on the fx4 graphic, select assign, enter the ip address (192168.0.192) and then apply settings button on the left hand side.
-    * All projectors will be disrupted for about 20 seconds when you do this.
-    * ProPresenter will need to be restarted.
+-   Option A:
+    -   Reboot the Mac (CDMA-A001). 
+-   Option B: (not fully documented)
+    -   Quit ProPresenter
+    -   On the Mac, open the SwitcherX settings application
+    -   Go to the Custom resolutions tab
+    -   Select any video mode, and apply
+    -   Select the 1080p60 mode. And apply.
+    -   The mac video system will reset.
+    -   Restart ProPresenter.
 
-* Option C: (not fully documented)
-    * Quit ProPresenter 
-    * On the Mac, open the SwitcherX settings application 
-    * Go to the Custom resolutions tab 
-    * Select the 1080p60 mode. And apply. 
-    * The mac video system will reset. 
-    * Restart ProPresenter.
-    
-Option C is likely the fastest and least disruptive approach. The duration of the disruption will be from when you apply the correct resolution until ProPresenter fully restarts.    
+Option B is likely the fastest and least disruptive approach. The duration of the disruption will be from when you apply the correct resolution until ProPresenter fully restarts.
 
-Alternate:
-* No easy alternate.
-
-## Projectors don’t respond to the web page request (to turn on or off)
+## Projectors don't respond to the web page request (to turn on or off)
 
 The problem:
 
-* Network trouble
+-   Network trouble
 
 Recovery:
 
-* Use the grey Sony remote controls to turn them on.
-* You need to be pretty much directly below each projection screen and point the remote at the projector. One remote will do all three but you will have to change the selector switch for each projector (not sure if the switch is labelled 1,2,3 or A,B,C.) The east screen is the “first” ( A or 1).
+-   Use the grey Sony remote controls to turn them on.
+-   You need to be pretty much directly below each projection screen and point the remote at the projector. One remote will do all three but you will have to change the selector switch for each projector (not sure if the switch is labelled 1,2,3 or A,B,C.) The east screen is the "first" ( A or 1).
 
-{{< pagebreak >}} 
 # Appendix
 
 ## Video Terminology
