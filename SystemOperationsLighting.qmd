@@ -640,44 +640,25 @@ get.training() %>%
         collapse_rows(columns = 1   )
 ```
 
-{{< pagebreak >}} 
 
-# Lighting Terminology
+#  Appendix
 
-Channel
-: In the context of lighting at UAC, a channel is a configuration item in the colorSource console. It controls one to many DMX addresses. If the console knows what kind of instrument a channel is assigned to, it is automatically configured for the correct behaviours (colour, strobe, etc). 
+## Terminology
 
-Dimmer
-: A device which regulates the power sent to a lighting instrument (typically incandescent) this allows the intensity of the instrument to be varied. Usually DMX controlled, but could be controlled via an analog or proprietary protocols.
+```{r}
+# A hack - gt doesn't provide a means of line-breaking for pdf. So we create a graphic and then include the graphic.
 
-DMX / DMX512
-: an industry standard lighting control protocol. A universe is a group of 512 addresses, numbered 1 through 512. See also RDM. 
+tab <- get.glossary() |>
+	filter(Topic == "Lighting" | Topic == "General" ) |>
+	select(Term, Definition) |>
+	arrange(Term) |>
+    gt() |>
+	opt_stylize(style=3) |>
+	fmt_markdown(columns=Definition)
+```
 
-Gel
-: a coloured sheet of special plastic which is used to physically change the colour of a light. 
-
-Gel Frame
-: a metal or heat-resistant cardboard frame to hold a Gel and slips into a slot on the lighitng instrument.
-
-Gobo
-: a pattern, usually made from thin metal or glass, which enables a lighting instrument to project a pattern. It usually slips in a Gobo frame which slides into the instrument. 
-
-Incandescent
-: a method of producing light by heating a filament (thin wire) inside a glass bulb. A standard old-fashioned lightbulb is incandescent. See Also LED.
-
-LED / Light Emitting Diode
-: A technology that generates lighting from a solid state device rather than a hot piece of wire (incandecent). An LED instrument also typically has a built-in dimming and control. They typically use 3 to 5 DMX channels. See also Incandescent.
-
-Par / Par Can
-: a type of lighting instrument with a fixed beam width. Some of them look like paint cans. Generally used for washes.
-
-RDM / Remote Device Management
-: This is a management protocol that can run over the same cables as DMX. It is a bi-directional protocol. It can be used to change the configuration of some lighting fixtures (such as our ETC fixtures) without having physical access to the fixture.
-
-Rotator
-: a device which spins a Gobo. Usually Inserted into a lighting instrument where the Gobo holder would go. 
-
-Top Hat
-: a light modifier added to the front of a lighting instrument to narrow its beam spread.
+```{r glossary, results='asis'}
+cat(print_gt_table(tab))
+```
 
 {{< include common_trailer.qmd >}}

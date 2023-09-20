@@ -995,9 +995,10 @@ g3a |>
     )  
 ```
 
+
+```{r dod, eval=FALSE}
 # Dante Output Dump
 
-```{r dod}
 o1 <- work.config.consoleoutputs
 o2 <- work.config.dantepatch
 

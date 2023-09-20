@@ -1066,7 +1066,7 @@ The device needs to be reset. The steps are:
 # A hack - gt doesn't provide a means of line-breaking for pdf. So we create a graphic and then include the graphic.
 
 tab <- get.glossary() |>
-	filter(Topic == "Video") |>
+	filter(Topic == "Video" | Topic == "General") |>
 	select(Term, Definition) |>
 	arrange(Term) |>
     gt() |>
