@@ -79,7 +79,7 @@ See the document *deepdive_displaying_a_web_page_within_pp7.docx* for instructio
 ```
 
 :::callout-note
-As of September 2023, the video inputs to the decklink are not fully implemented.
+As of September 2023, the video inputs to the decklink are not implemented.
 :::
 
 [Back to top](#top)
@@ -94,31 +94,34 @@ It can be controlled via the buttons on the front panel or from its built in web
 
 
 ```{r psi}
+#| label: fig-matrix-inputs
+#| fig-caption: Matrix Inputs
+#| cap-location: bottom
 psi <- tribble(
 ~Input, ~Usage, ~Comment,
 1,
 "TW A",
-"The left most third of the ProPresenter triple wide display from the decklink (sdi4). Usually routed to the East projector.",
+"The left most third of the ProPresenter triple wide display from the decklink (sdi4)",
 
 2, 
 "TW B",
-"The centre third of the ProPresenter triple wide display from the decklink (sdi6). Usually routed to the Centre projector",
+"The centre third of the ProPresenter triple wide display from the decklink (sdi6)",
 
 3,
 "TW C",
-"The right most third of the ProPresenter triple wide display from the decklink (sdi8). Usually routed to the West projector",
+"The right most third of the ProPresenter triple wide display from the decklink (sdi8)",
 
 4,
 "Stage Display",
-"The stage display from ProPresenter via the decklink (sdi3). Usually routed to the rear projector.",
+"The stage display from ProPresenter via the decklink (sdi3)",
 
 5,
 "CDWU-0009",
-"Source is Windows machine which can run Powerpoint and OBS. Not usually used.",
+"Source is Windows machine which can run Powerpoint and OBS",
 
 6,
 "ATEM Program",
-"The Program feed from the ATEM, a copy of what is also streamed. Usually routed to the Lobby TV and the TVs downstairs.",
+"The Program feed from the ATEM, a copy of what is also streamed",
 
 7, 
 "ATEM Auxillary",
@@ -126,7 +129,7 @@ psi <- tribble(
 
 8,
 "CDMU-A001 HDMI",
-"The Video output from the HDMI output from CDMU-A001. This would be used as a video source from that computer when a system display is required.")
+"The HDMI Video from CDMU-A001. This would be used when a system display is required.")
 
 psi |> 
 	gt() |>
@@ -144,6 +147,9 @@ psi |>
 ```
 
 ```{r pso}
+#| label: fig-matrix-outputs
+#| fig-caption: Matrix Outputs
+#| cap-location: bottom
 pso <- tribble(
 ~Output, ~Type, ~Usage, ~Comment,
 "1", "HDBaseT", 
@@ -174,7 +180,6 @@ pso <- tribble(
 
 "8" ,  "HDBaseT",
 "Nursery", "Feed to the Nursery TV."
-
 )
 
 pso |> 
@@ -198,9 +203,11 @@ pso |>
 	tab_options(table.width=pct(100))
 ```
 
-[Back to top](#top)
-
 ## Video Matrix Configurations
+
+:::{.calloiut-note}
+Would this be better located in the Video Operations?
+:::
 
 The current matrix routing can be queried and changed using either the webpage or the front panel.
 
@@ -261,17 +268,13 @@ samp_cfg |>
 	)
 ```
 
-[Back to top](#top)
-
 # Topologies
 
 There are a lot of components to the system. One big diagram is daunting. It has been broken down into smaller portions to be more consumable.
 
-[Back to top](#top)
-
 ## Computer Topology
 
-There are three computers in the system:
+There are three computers in the system (@fig-comp-top):
 
 CDMU-A001 MacOS / ProPresenter
 
@@ -293,6 +296,9 @@ CDWU-0009 Windows / Mediashout
 ```
 
 ```{r gt_topComp}
+#| fig-cap: Computer Topologies
+#| cap-location: bottom
+#| label: fig-comp-top
 selected.at <- c(
               "CDWU-0009", "CDMU-A001", "CUMU-G001",
               "ZVKU-A001",  "ZVKU-A003" ,
@@ -311,7 +317,6 @@ Tech_Inventory |>
 	) 
 ```
 
-[Back to top](#top)
 
 ## Projection Topology
 
@@ -325,6 +330,9 @@ Long distance signal transmission is achieved using Cat5e or Cat6 cabling. An in
 ```
 
 ```{r}
+#| fig-cap: Projection Details
+#| cap-location: bottom
+#| label: fig-proj-det
 selected.at <- c(
               "ZVKU-A001", 
               "ZVVU-0001",
@@ -345,8 +353,6 @@ Tech_Inventory |>
 
 ```
 
-[Back to top](#top)
-
 ## Lobby Topology
 
 The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output. HDBaseT is used for this and also requires a converter at the TV to provide the HDMI format.
@@ -359,6 +365,9 @@ The TV in the lobby gets its content from the video matrix. For the main service
 ```
 
 ```{r topLobby}
+#| fig-cap: Lobby Topology
+#| cap-location: bottom
+#| label: fig-lob-top
 selected.at <- c(
               "ZVKU-A001" , "ZVIU-A002", "ZVVU-0002"
               ) 
@@ -376,8 +385,6 @@ Tech_Inventory  |>
 	) 
 ```
 
-[Back to top](#top)
-
 ## Nursery/Toddler Topology
 
 The TV in the nursery gets its content from the video matrix. For the main service it should get its feed from the video mixer program output. HDBaseT is used for this and also requires a converter at the TV to provide the HDMI format.
@@ -394,6 +401,9 @@ Each TV has a remote control.
 ```
 
 ```{r top3}
+#| fig-cap: Nursery Details
+#| cap-location: bottom
+#| label: fig-nursery-det
 selected.at <- c(
               "ZVKU-A001",  
               "ZVVU-0002", "2308-2900",
@@ -412,9 +422,6 @@ Tech_Inventory |>
 		locations=cells_body(columns=AssetTag)
 	) 
 ```
-
-
-[Back to top](#top)
 
 ## Recording Topology
 
@@ -450,6 +457,9 @@ There are some details on the signal path between the Video Mixer and the Web Pr
 ```
 
 ```{r}
+#| fig-cap: WebPresenter Details
+#| cap-location: bottom
+#| label: fig-wp-det
 selected.at <- c(
               "ZVKU-A001" , 
               "ZVCU-A001", "ZVCU-A002", "ZVCU-A003",
@@ -474,11 +484,13 @@ Tech_Inventory|>
 
 The details of the network configuration are not shown. See the Network design document for technically accurate descriptions.
 
-[Back to top](#top)
 
 # Network Details
 
 ```{r}
+#| fig-cap: Network Details
+#| cap-location: bottom
+#| label: fig-net-det
 NetworkInventory %>% 
 filter(Category=="Video") %>% 
 select(AssetTag, Location, Usage, Device, MAC, IP, URL, Notes) %>%
@@ -492,11 +504,12 @@ select(AssetTag, Location, Usage, Device, MAC, IP, URL, Notes) %>%
 	) 
 ```
 
-[Back to top](#top)
-
 # Video Equipment Inventory
 
 ```{r inventory }
+#| fig-cap: Asset Details
+#| cap-location: bottom
+#| label: fig-asset-det
  
 cs = c("AssetTag", "Qty"  ,
   "Manufacturer" ,

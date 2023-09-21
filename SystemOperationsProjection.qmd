@@ -47,11 +47,11 @@ They have been organized in the list below, @fig-training-videos, into basic, in
 #| cap-location: bottom
 #| label: fig-training-videos
 #| 
-get.training() %>%
-  filter(Topic1=="Projection") %>%
-  filter(Topic2=="ProPresenter7") %>%
+get.training() |>
+  filter(Topic1=="Projection") |>
+  filter(Topic2=="ProPresenter7") |>
   mutate(Title = md(glue("[{Title}]({URL})"))) |>	
-  select(Topic3, Episode, Duration , Title, Notes )  %>%
+  select(Topic3, Episode, Duration , Title, Notes )  |>
   arrange(Topic3, Episode) |>	
   rename(Module = Topic3) |>
   gt(rowname_col = "Episode", groupname_col="Module") |>  
@@ -62,15 +62,11 @@ get.training() %>%
   columns = "Title",
   rows = everything(),
   md_engine = c("markdown")) |>
-  sub_missing(
-   columns =  "Notes",
-  rows = everything(),
-  missing_text = "---") |>
-	cols_align( 
-  align =   "left"  ,
-  columns =  "Title"
-)
-
+  sub_missing( columns =  "Notes",
+				rows = everything(),
+				missing_text = "---") |>
+	cols_align( align =   "left"  ,
+				columns =  "Title")
 ```
 
 # Preparing a ProPresenter Playlist
@@ -488,7 +484,7 @@ Recovery:
 # A hack - gt doesn't provide a means of line-breaking for pdf. So we create a graphic and then include the graphic.
 
 tab <- get.glossary() |>
-	filter(Topic == "ProPresenter7" | Term == 'Bumper') |>
+	filter(Topic == "ProPresenter7" | Term == 'Bumper' | Topic == "General") |>
 	select(Term, Definition) |>
 	arrange(Term) |>
     gt() |>
