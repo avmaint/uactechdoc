@@ -40,11 +40,10 @@ source("commonLightingKeypad.R")
 path <- here("..", "..") # "~/Documents/UACTech/SystemDocumentation"
 inventoryfile <- "TechInventory.xlsx"
 fname   <- paste(path, inventoryfile, sep="/")
-playback <- read_excel(fname, sheet = "CS40.Playback")
 
-further <- get.further()
-activities <- get.activities()
+further     <- get.further()
 dmx.details <- get.dmxdetails() 
+playback    <- get.playbacks()   
 ```
 
 # Introduction
@@ -68,17 +67,16 @@ There are two mechanisms to control the lighting:
 
 # Operating the Keypad
 
-There is a simple lighting control panel located next to the auditorium doors by the main office (south east). See @fig-sol-keypad . It enables the house lights to set according to several pre-defined looks, of which there are 8.   Selecting one preset, deselects the previous preset - just like old fashion car radio buttons. The current list of available presets is found in @fig-keypad-presets
+There is a simple lighting control panel located next to the auditorium doors by the main office (south east). See @fig-sol-keypad . It enables the house lights to set according to several pre-defined looks, of which there are 8.   Selecting one preset, deselects the previous preset - just like old fashion car radio buttons. A button turns blue when it is selected, orange otherwise.
+ The current list of available presets is found in @fig-keypad-presets
 
 The keypad and the main console can conflict with each other. When running from the console, the keypad must be in "Console Mode".  (You won't harm any equipment by having the keypad in the wrong mode, but the system will not work properly!)
 
 The "Night Light" preset should be selected when the room is not in use.
 
-A button turns blue when it is selected, orange otherwise.
-
 The sconce lights also have an timed switch which is next to the keypad, **if you want sconce control during the day you will need to manual turn them on as well**. The timer is programmed to turn on the sconse lights during the evening hours (up to midnight), and Sunday morning.
 
-![The Keypad](./images/sol-keypad.jpg){height=3in #fig-sol-keypad}
+![The Keypad](./images/sol-keypad.jpg){width=25% #fig-sol-keypad}
 
 ```{r keypad}
 #| fig-cap: "Keypad Presets"
@@ -92,40 +90,31 @@ keypad %>%
   gt() |>
   opt_stylize(style=3) |>
   tab_style( style = list(  cell_text(weight = "bold") ),
-    locations = cells_body(  columns = "Button"  ) )	
+    locations = cells_body(  columns = "Button"  ) ) |>
+  cols_align(align="left", columns = "Button")	
 ```
 
-{{< pagebreak >}} 
-  
 # Lighting Power Control
-
-> This section needs to be rewritten post the 2018 upgrades.
 
 ## Power On
 
-> TODO: This section needs to be rewritten. Picture needs to be replaced.
+1. In the balcony closet, Turn on the main breakers at the top of the panel as indicated by the arrow and yellow box in the diagram below @fig-breakerbox.
 
-1. Turn on 'Furhman' unit under rear desk / east end - big red switch under the light board (and slightly to the right)
-    + **As of the Fall 2017, this is to be left on at all times. This is temporary as I work through a configuration problem.**
-2. Go to balcony closet
-3. Turn on the main breakers at the top of the panel as indicated by the arrow and yellow box in the diagram below.
+![The switch in the yellow box](./images/sol-BalconyPower2019.png){width=25% #fig-breakerbox}
 
-![The switch in the yellow box](./images/sol-BalconyPower2019.png){height=4in}
+2. Turn on the lighting console (see @fig-console-power)
 
+![Console Power](./images/sol-ETC-CS40AV-Power.png){width=25% #fig-console-power}
 
-4. Turn on the lighting console (see diagram)
-
-![Console Power](./images/sol-ETC-CS40AV-Power.png){height=3in}
-
-5. Switch the keypad (by office doors) to "Console Mode".
+3. Switch the keypad (by office doors) to "Console Mode".
 
 ## Power Off
 
 To turn off, reverse the power on order and turn off.
 
+:::{.callout-important}
 > When leaving the system for the day ensure that lower level keypad is set to "Night Light" (The button will turn blue). 
-
-{{< pagebreak >}} 
+:::
 
 # Controlling the Lighting System
 
@@ -133,9 +122,15 @@ Basic operations of the house lights can be accomplished by using the keypad - w
 
 Advanced operations of house and theater lighting is accomplished via the lighting console in the balcony. See the section below for more details. **The keypad needs to be in "Console Mode" for this to work properly.**
 
-We can also use ProPresenter to fire pre-defined cues via macros. Using this technique a macro can be placed on a slide within a ProPresenter document and when that slide is displayed, the macro will instruct the lighting console to change to the corresponding cue number. ProPresenter macros can also be fired directly from the macro menu.
+We can also use ProPresenter to fire pre-defined cues via macros. Using this technique a macro can be placed on a slide within a ProPresenter document and when that slide is displayed, the macro will instruct the lighting console to change to the corresponding cue number. ProPresenter macros can also be fired directly from the macro menu. There are a few things which must bet set for the macros to work:
 
-{{< pagebreak >}} 
+#. The lighting console must be on
+#. The cue master must be up
+#. CueCommanderNR must be running on CUMU-G001
+
+:::{.callout-note}
+TODO - Add cue master figure and and text about starting CueCommanderNR.
+:::
  
 # Operating the ColorSource 40AV Console
 
@@ -145,6 +140,10 @@ This is the primary and most capable way of controlling (almost) all lighting in
     + The balcony railing lights,   
     + The sconce light swtich (but if the sconce light switch is 'on' the console can control the sconce lights.) and, 
     + The emergency lighting is a completely independent system. It is activated when there is a power outage.
+    
+::: {.callout-important }
+If during the service there is a fire alarm, bring all house lights to full white. 
+:::    
 
 ## Simple Console Operations
 
@@ -154,11 +153,11 @@ There are two pages of playbacks. The on-screen button indicated by the arrow in
 
 There is a button on the left side of the screen that you touch to select playback mode; the yellow arrow in the picture below points at it, see @fig-sol-cs40-playback .
 
-![Playback Mode - The yellow arrow points at the button](./images/sol-cs40-playback.png){#fig-sol-cs40-playback}
+![Playback Mode - The yellow arrow points at the button](./images/sol-cs40-playback.png){#fig-sol-cs40-playback width=25%}
 
-Also the playback master must be up. It is the second slider from the left at the top of the screen. 
+Also the playback master must be up. It is the second slider from the left at the top of the screen, @fig-sol-cs40av-pb-master.
 
-![Playback Master Fader - The arrow points at the Playback master slider](./images/sol-cs40av-pb-master.jpg){height=3in #fig-sol-cs40av-pb-master}
+![Playback Master Fader - The arrow points at the Playback master slider](./images/sol-cs40av-pb-master.jpg){width=25% #fig-sol-cs40av-pb-master}
 
 ### Playback Map
 ```{r}
@@ -167,16 +166,12 @@ simplePlaybackCount <- playback %>%
     nrow()
 ```
 
-There are `r simplePlaybackCount` playbacks that are useful for simple operations. The first three listed (#8,9 and 10) are for the absolute most basic functions. See @fig-playbacks
+There are `r simplePlaybackCount` playbacks that are useful for simple operations. The first three listed (#8,9 and 10) are for the absolute most basic functions. See @fig-playbacks 
 
 The remaining playbacks listed are the first 5 sliders (#21-#26) on the bottom row. They are programmed to looks that are useful for a simple service. These sliders (as well as others) can be used in combination to build a look.
 
 ```{r simple}
-#| fig-cap: "Playbacks"
-#| fig-cap-location: bottom
-#| label: fig-playbacks
-#| 
-playback |>
+tab <- playback |>
   #arrange(Playback) %>%
   filter(IsSimple =="Y") |>
   select(-IsSimple) |>
@@ -185,18 +180,21 @@ playback |>
   tab_style( style = list(  cell_text(weight = "bold") ),
     locations = cells_body(  columns = "Playback"  ) )	|>
   tab_style( style = list( cell_fill(color = "grey") ),
-    locations = cells_body(  columns = everything() , rows = Playback %in% c(8,9, 10)) ) 
-
-#  kable() %>%
-#  column_spec( 1,   bold = TRUE ) %>%
-#  kable_styling("striped", full_width = TRUE) %>%
-#  row_spec(1:3, bold=T, background = "lightgrey")
+    locations = cells_body(  columns = everything()
+    						 , rows = Playback %in% c(8,9, 10)) ) 
 ```
 
+```{r playback-map, results='asis' }
+#| label: fig-playbacks  
+#| fig-cap: Playback Map 
+#| fig-cap-location: bottom
+
+cat(print_gt_table(tab))
+```
 
 ## Intermediate Console Operations
 
-The other playback faders are used to control individual groups of lights. The first six have a designated special purpose for sound triggers.
+The other playback faders are used to control individual groups of lights.
 
 There are terms used in these descriptions to describe areas of the room that you need to know. Not all of these will neccessarily be installed or available at any given point in the future. A common example is that we typically remove the Towers from operation for a baptism service due to the proximity of the fixtures and water.
 
@@ -228,15 +226,13 @@ Scrims
 : A screen or a backdrop used on stage - often backlit.
 
 Top Wash
-: A light the illuminates people from directly overhead.
+: A light the illuminates vocals from directly overhead.
 
 Most of these have a group of three playbacks that are programmed for RGB. This provides an easy way to set the colour of that entire group by adjsuting the relative blend of red, green and blue. Alternately you can select the channels and pick a colour using the colour chips.
 
 The House, has only one slider which is straight white. This is a quick way of getting to white for that group. The Stage Pots have a straight white plus RGB sliders.
 
->Note: if during the service there is a fire alarm, bring all house lights to full white. 
-
-In addtion to the 9 playbacks used for simple opertions covered earlier, the playbacls in the list below can be used for quick color mixing.
+In addtion to the 9 playbacks used for simple opertions covered earlier, the playbacks in the list below can be used for quick color mixing.
 
 > <large>TODO: **The list below is out of date and needs to be updated.**</large>
 
@@ -250,23 +246,23 @@ playback %>%
   kable_styling("striped", full_width = TRUE)
 ```
 
+For longterm storage you can save your show to a file or a USB stick. Save the current settings before overwriting with your saved show.
+
 ```{r lighting.plots}
 
 ```
 
-`r knit_child('commonLightingPlots.Rmd', quiet=TRUE)`
-
-{{< pagebreak >}} 
+{{< include commonLightingPlots.qmd >}}
 
 # Blinds and Shades
 
 We have two ways of controlling the light that enters the sanctuary via the exterior windows: semi-transparent shades and blackout blinds.
 
-### Shade Operation
+## Shade Operation
 
 The semi-transparent shades are operated manually. There is a chrome chain in each window which runs the shade up or down.  
 
-### Blind Operation
+## Blackout Blind Operation
 
 The blackout blinds operate as four banks of three blinds (one bank per wall). The switches are under the rear desk near the east end.
 They are labelled: SE, NE, SW, and NW, which stands for the combinations of South, East, North and West.
@@ -275,9 +271,9 @@ Each switch has three positions: up, center and down. The up and down positions 
 
 To stop a blind mid-way while travelling, momentarily flick the switch in the opposite direction and then return the switch to the centre position. If you pause too long in the opposite direction the blind will reverse direction rather than stop.
 
-**When the service is over, please ensure that the blackout blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.**
-
-{{< pagebreak >}} 
+::: {.callout important}
+When the service is over, please ensure that the blackout blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.
+:::
 
 # Troubleshooting   
 
@@ -288,7 +284,7 @@ If a blackout blind pops out of its track.
 If the lighting console playbacks do not seem to work
 : 1) Verify that the keypad is in console mode
 : 2) Verify that you are in playback mode 
-: 3) Verify that you are on the right playback page (#2)
+: 3) Verify that you are on the right playback page (#1)
 : 4) Verify that the playback master is up. See Instructions in the Simple Console Operations section. 
 : execute 'Clear all' - which will put you into black.
 
@@ -297,8 +293,6 @@ If the lights are on and the console doesn't seem to have control
 : Verify that the console has some control by turining something else on. If that works then it is likely that a keypad preset is forcing the lights on. 
 : Go to the keypad on press "Console Mode".
 : execute 'Clear all' - which will put you into black.
-
-{{< pagebreak >}} 
 
 # Lighting Tutorial
 
@@ -316,208 +310,107 @@ The best way to view these videos is via RightNowMedia. Search for or click on:
 
 Titles classified as Basic are videos every operator should watch (about 21 minutes). 
 
-```{r basic}
+```{r tab-basic}
+#| fig-cap: "Basic Training"
+#| cap-location: bottom
+#| label: fig-basic
+#| 
 get.training() %>%
   filter(Topic1=="Lighting") %>%
   filter(Topic2=="Console Operations") %>%
-  arrange(Topic1, Topic2, Topic3) %>%
   filter(Topic3 == "01 Basic") %>%
-  select(Topic3, Episode, Title, Duration, Notes)  %>%
-  rename(Module = Topic3) %>%
-  kable(caption= "Basic Console Training"  ) %>%
-        kable_styling("striped", full_width = FALSE) %>%
-        collapse_rows(columns = 1   )
-```
-
-```{r}
-
-asd <- function(m,s) {return(as.duration(m*60+s))}
-
-vids <- tribble(
-~Sequence, ~TitleNumber, ~Title, ~Length, ~Level, ~Comments,
-
-10,1,
-"Patching by RDM",
-asd(2,51),
-"Advanced",
-"Useful when setting up a new lighting fixture.",
-
-1,2,
-"Patching - Add Dimmer",
-asd(2,03),
-"Advanced",
-"Useful when setting up a new lighting fixture.",
-
-2,3,
-"Patching - Add Device",
-asd(3,38),
-"Advanced",
-"Useful when setting up a new lighting fixture.",
-
-3,4,
-"Edit Patch",
-asd(3,01),
-"Advanced",
-"Useful when reconfiguring the system.",
-
-6,5,
-"Show File Handling",
-asd(3,40),
-"Basic",
-"Core skill. Saving and restoring show files is a good thing for all to know.",
-
-5,6,
-"Arrange Stage Map",
-asd(3,06),
-"Basic",
-"We may not change the stage map much, but understanding it is a good thing.",
-
-3,7,
-"Quick Select",
-asd(2,21),
-"Basic",
-"Core skill",
-
-1,8,
-"Intensity",
-asd(3,39),
-"Basic",
-"Core skill.",
-
-2,9,
-"Color",
-asd(3,01),
-"Basic",
-"Core skill.",
-
-3,10,
-"Device Parameters",
-asd(4,25),
-"Intermediate",
-"May not be relevant to current fixtures",
-
-4,11,
-"Record to Playback Fader",
-asd(5,14),
-"Basic",
-"Core skill.",
-
-4,12,
-"Record to Cue",
-asd(4,53),
-"Advanced",
-"Don't expect to use cues much",
-
-1,13,
-"Record to Playback Sequence",
-asd(3,37),
-"Intermediate",
-"We could occasionally use a Sequence to automate a complicated set of steps.",
-
-5,14,
-"Apply Effects",
-asd(5,19),
-"Advanced",
-"Not likely to be used in normal operation.",
-
-2,15,
-"Edit Cues and Sequences",
-asd(4,00),
-"Intermediate",
-"Not likely to regularly use cues, but could use sequences.",
-
-11,16,
-"Playback Automark",
-asd(3,29),
-"Advanced",
-"We have no near term plan for moving lights",
-
-9,17,
-"Sound",
-asd(2,48),
-"Advanced",
-"Not likely to be used in normal operation.",
-
-6,18,
-"Live Sound and Sound to Light",
-asd(1,49),
-"Advanced",
-"Not likely to be used in normal operation.",
-
-7,19,
-"Visual Images",
-asd(3,06),
-"Advanced",
-"Not likely to be used in normal operation.",
-
-8,20,
-"Visual Effects",
-asd(2,24),
-"Advanced",
-"Not likely to be used in normal operation."
+  arrange(Topic1, Topic2, Topic3) %>%	
+  mutate(Title = md(glue("[{Title}]({URL})"))) |>	
+  select(Topic3, Episode, Duration , Title, Notes )  %>%
+  arrange(Topic3, Episode) |>	
+  rename(Module = Topic3) |>
+  gt(rowname_col = "Episode", groupname_col="Module") |>  
+	   #summary_rows(fns = list("n") ) |>
+		opt_stylize(style = 3) |>
+	    opt_row_striping(  row_striping = TRUE) |>
+	fmt_markdown(
+  columns = "Title",
+  rows = everything(),
+  md_engine = c("markdown")) |>
+  sub_missing(
+   columns =  "Notes",
+  rows = everything(),
+  missing_text = "---") |>
+	cols_align( 
+  align =   "left"  ,
+  columns =  "Title"
 )
-```
 
-
- 
-```{r basic-old , eval=FALSE}
-vids %>%
-  arrange(Sequence) %>%
-  filter(Level == "Basic") %>%
-  select(-Level) %>%
-  kable() %>%
-  column_spec( 1,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
 ```
  
 The following Intermediate videos should be viewed after you become comfortable with normal operations (12 minutes). 
 
-```{r int-n}
+```{r tab-intermediate}
+#| fig-cap: "Intermediate Training"
+#| cap-location: bottom
+#| label: fig-intermendiate
+#| 
 get.training() %>%
   filter(Topic1=="Lighting") %>%
   filter(Topic2=="Console Operations") %>%
-  arrange(Topic1, Topic2, Topic3) %>%
   filter(Topic3 == "02 Intermediate") %>%
-  select(Topic3, Episode, Title, Duration, Notes)  %>%
-  rename(Module = Topic3) %>%
-  kable(caption= "Intermediate Console Training"  ) %>%
-        kable_styling("striped", full_width = FALSE) %>%
-        collapse_rows(columns = 1   )
-```
+  arrange(Topic1, Topic2, Topic3) %>%	
+  mutate(Title = md(glue("[{Title}]({URL})"))) |>	
+  select(Topic3, Episode, Duration , Title, Notes )  %>%
+  arrange(Topic3, Episode) |>	
+  rename(Module = Topic3) |>
+  gt(rowname_col = "Episode", groupname_col="Module") |>  
+	   #summary_rows(fns = list("n") ) |>
+		opt_stylize(style = 3) |>
+	    opt_row_striping(  row_striping = TRUE) |>
+	fmt_markdown(
+  columns = "Title",
+  rows = everything(),
+  md_engine = c("markdown")) |>
+  sub_missing(
+   columns =  "Notes",
+  rows = everything(),
+  missing_text = "---") |>
+	cols_align( 
+  align =   "left"  ,
+  columns =  "Title"
+)
 
-```{r inter-old , eval=FALSE}
-vids %>%
-  arrange(Sequence) %>%
-  filter(Level == "Intermediate") %>%
-  select(-Level) %>%
-  kable()%>%
-  column_spec( 1,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
 ```
 
 These last titles are classified as Advanced, they are as not likely to be useful to regular Sunday morning staff (35 minutes).  However if you have an interest in digging deeper go explore!
 
-```{r adv-n}
+
+```{r tab-advanced}
+#| fig-cap: "Advanced Training"
+#| cap-location: bottom
+#| label: fig-advanced
+#| 
 get.training() %>%
   filter(Topic1=="Lighting") %>%
   filter(Topic2=="Console Operations") %>%
-  arrange(Topic1, Topic2, Topic3) %>%
   filter(Topic3 == "03 Advanced") %>%
-  select(Topic3, Episode, Title, Duration, Notes)  %>%
-  rename(Module = Topic3) %>%
-  kable(caption= "Advanced Console Training"  ) %>%
-        kable_styling("striped", full_width = FALSE) %>%
-        collapse_rows(columns = 1   )
-```
-
-```{r adv-old , eval=FALSE}
-vids %>%
-  arrange(Sequence) %>%
-  filter(Level == "Advanced") %>%
-  select(-Level) %>%
-  kable() %>%
-  column_spec( 1,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
+  arrange(Topic1, Topic2, Topic3) %>%	
+  mutate(Title = md(glue("[{Title}]({URL})"))) |>	
+  select(Topic3, Episode, Duration , Title, Notes )  %>%
+  arrange(Topic3, Episode) |>	
+  rename(Module = Topic3) |>
+  gt(rowname_col = "Episode", groupname_col="Module") |>  
+	   #summary_rows(fns = list("n") ) |>
+		opt_stylize(style = 3) |>
+	    opt_row_striping(  row_striping = TRUE) |>
+	fmt_markdown(
+  columns = "Title",
+  rows = everything(),
+  md_engine = c("markdown")) |>
+  sub_missing(
+   columns =  "Notes",
+  rows = everything(),
+  missing_text = "---") |>
+	cols_align( 
+  align =   "left"  ,
+  columns =  "Title"
+)
 ```
 
 The "User Manual" is available on the [manufacturer's website](https://www.etcconnect.com/Support/Consoles/ColorSource/Documentation.aspx) 
@@ -549,67 +442,48 @@ Composition
 : Lighting may be used to show only the areas of the stage which the designer wants the audience to see, and to "paint a picture".
 
 Effect
-: In pop and rock concerts or DJ shows or raves, colored lights and lasers may be used as a visual effect.
+: In pop and rock concerts, DJ shows or raves, colored lights  may be used as a visual effect.
 
 ## The Qualities of Light
 
-There is a series of videos on these topics on Right now media. Search for or click on:
+There is a series of videos on these topics on Right now media. Search for or click on: [Lighting / Lighting Design / 01 Basic](https://www.rightnowmedia.org/Training/Post/View/359210)
 
-* [Lighting	/ Lighting Design	/ 01 Basic](https://www.rightnowmedia.org/Training/Post/View/359210)
-
-```{r ld-b2}
+```{r tab-advanced}
+#| fig-cap: Lighting Design
+#| cap-location: bottom
+#| label: fig-ifcb
+#| 
 get.training() %>%
   filter(Topic1=="Lighting") %>%
   filter(Topic2=="Lighting Design") %>%
-  arrange(Topic1, Topic2, Topic3) %>%
   filter(Topic3 == "01 Basic") %>%
-  select(Topic3, Episode, Title, Duration, Notes)  %>%
-  rename(Module = Topic3) %>%
-  kable(caption= "Lighting Design"  ) %>%
-        kable_styling("striped", full_width = FALSE) %>%
-        collapse_rows(columns = 1   )
+  arrange(Topic1, Topic2, Topic3) %>%	
+  mutate(Title = md(glue("[{Title}]({URL})"))) |>	
+  select(Topic3, Episode, Duration , Title, Notes )  %>%
+  arrange(Topic3, Episode) |>	
+  rename(Module = Topic3) |>
+  gt(rowname_col = "Episode", groupname_col="Module") |>  
+	   #summary_rows(fns = list("n") ) |>
+		opt_stylize(style = 3) |>
+	    opt_row_striping(  row_striping = TRUE) |>
+	fmt_markdown(
+  columns = "Title",
+  rows = everything(),
+  md_engine = c("markdown")) |>
+  sub_missing(
+   columns =  "Notes",
+  rows = everything(),
+  missing_text = "---") |>
+	cols_align( 
+  align =   "left"  ,
+  columns =  "Title"
+)
 ```
 
 ### Intensity
 
 The intensity of a luminaire (lighting instrument or fixture) depends on a number of factors including its lamp power, the design of the instrument (and its efficiency), optical obstructions such as colour gels or mechanical filters, the distance to the area to be lit and the beam or field angle of the fixture, the colour and material to be lit, and the relative contrasts to other regions of illumination.
 
-### Color
-
-Every color has some kind of emotion tied to it, and color is just one way that we can express mood. There are some generally accepted relationships between moods and feelings and basic colors:
-
-Red
-: Anger, fear, jealousy, hot, fire
-
-Pink
-: Love, light, delicate, love
-
-Yellow
-: Exciting, bright, flashy, cheerful
-
-Amber
-: Awakening, morning, raw, rustic
-
-Green
-: Organic, calming, natural, mysterious
-
-Purple
-: Regal, powerful, majesty
- 
-Aqua
-: Gentle, simple, water
-
-Blue
-: Water, night, calm, cool, somber
-
-White
-: Open, raw
-
-This is a very simplified way of sharing moods with you, as there are so many more shades that each have their own character and moods. For example faster songs tend to go best in red, yellow, or other bright colors, and slower songs look great in blues, purples and greens.
-
-There are entire books written on colour theory and their emotional effects. We also have the ability to mix colours together which adds even more nuance to our decisions. You can choose a completely monochromatic theme, say varied shades of blue, or a 2-colour combo using complimentary colours, such as blue and yellow, or Triadic colors, which are like complementary colors, but in a triangle across the color wheel.
-
-Whatever your colour choices, it is best if there is agreement between the lighting colours and the colours used in the video backgrounds.
 
 ### Focus
 
@@ -617,15 +491,47 @@ The focus is where an instrument is pointed. The final focus should place the "h
 
 Position refers to the location of an instrument in the auditroium. Hanging is the act of placing the instrument in its assigned position.
 
+
+### Color
+
+Every color has some kind of emotion tied to it, and color is just one way that we can express mood. There are some generally accepted relationships between moods and feelings and basic colors:
+
+```{r emotions}
+tab <- emotions <- tribble( 
+~Colour, ~Emotions
+
+, "Red"   , "Anger, fear, jealousy, hot, fire"
+, "Pink"  , "Love, light, delicate" 
+, "Yellow", "Exciting, bright, flashy, cheerful"
+, "Amber" , "Awakening, morning, raw, rustic"
+, "Green" , "Organic, calming, natural, mysterious"
+, "Purple", "Regal, powerful, majesty"
+, "Aqua"  , "Gentle, simple, water"
+, "Blue"  , "Water, night, calm, cool, somber"
+, "White" , "Open, raw"
+) |>
+	arrange(Colour) |>
+	gt() |>
+	opt_stylize(style=3) 
+```
+
+```{r results="asis"  }
+cat(print_gt_table(tab))
+```
+
+This is a very simplified way of sharing moods with you, as there are so many more shades that each have their own character and moods. For example faster songs tend to go best in red, yellow, or other bright colors, and slower songs look great in blues, purples and greens.
+
+There are entire books written on colour theory and their emotional effects. We also have the ability to mix colours together which adds even more nuance to our decisions. You can choose a completely monochromatic theme, say varied shades of blue, or a 2-colour combo using complimentary colours, such as blue and yellow, or Triadic colors, which are like complementary colors, but in a triangle across the color wheel.
+
+:::{.callout-note}
+Whatever your colour choices, it is best if there is agreement between the lighting colours and the colours used in the video backgrounds.
+:::
+
 ### Beam
 
 Beam refers to the shape, quality and evenness of a lamp's output. The pattern of light an instrument makes is largely determined by a number factors about the instruments design.
 
 Some instruments can have a gobo or break up pattern installed. This is typically a thin sheet of metal with a shape cut into it. It is inserted into the instrument near its aperture. Gobos, or templates, come in many shapes, but often include leaves, waves, stars and similar patterns.
-
-There is a series of videos that review these topics, also on Right now media. Search for or click on:
-
-* [Lighting	/ Lighting Design	/ 01 Basic](https://www.rightnowmedia.org/Training/Post/View/359210)
 
 ```{r ld-b}
 get.training() %>%

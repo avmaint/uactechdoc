@@ -131,17 +131,21 @@ These diagrams are approximations (dimension wise), and somewhat simplified. For
 
 ## Theartrical Channels
 
-This first diagram shows the auditorium and all theatrical fixtures, and so excludes the architectural fixtures (i.e. Excludes stage pots, sconces, house pendants, and the under balcony pots.)
+This first diagram (@fig-clptchan) shows the auditorium and all theatrical fixtures, and so excludes the architectural fixtures (i.e. Excludes stage pots, sconces, house pendants, and the under balcony pots.)
 
 Also excluded are two (black) incandescent fixtures which are hanging from the balcony bars. They are manually controlled via breakers in the closet.
 
 Some items are quite moveable so may not match this diagram, specifically fixtures 34-40 and 67.
 
 * 34-40 are sometimes free standing and washing the walls around the screens. And more recently have been installed inside the white plastic pillars.
-* 67 (which is actually 6 bars) has been used for a ceiling wash, the large scrims, skids, and currently (fall 2019) the geoemtric shapes.
+* 67 (which is actually 6 bars) has been used for a ceiling wash, the large scrims,  etc.
 
-```{r clptchan, echo=FALSE}
-  channels <-  dmx.details %>% filter(!is.na(x))
+```{r fig-clptchan }
+#| label: fig-clptchan
+#| fig-cap: Room Overview
+#| cap-location: bottom
+
+channels <-  dmx.details %>% filter(!is.na(x))
 
   g <- ggplot() + 
         geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
@@ -155,12 +159,16 @@ Some items are quite moveable so may not match this diagram, specifically fixtur
 g
 ```
 
-Zoom in on the stage. Some of the lighting is mounted on the ceiling and some sits on the stage. Some of them are portabe (CSPARs and AW Bars) and are used for lighting scrims, backdrops, etc.
+Zoom in on the stage (@fig-clpzoomstage). Some of the lighting is mounted on the ceiling and some sits on the stage. Some of them are portabe (CSPARs and AW Bars) and are used for lighting scrims, backdrops, etc.
 
-```{r clpzoomstage}
-  channels <-  dmx.details %>% 
-  filter(!is.na(x)) %>%
-  filter(   between(Channel,18,48) | Channel == 67 )
+```{r fig-clpzoomstage}
+#| label: fig-clpzoomstage
+#| fig-cap: Zoom in on stage
+#| cap-location: bottom
+
+channels <-  dmx.details |>
+	filter(!is.na(x)) |>
+	filter(   between(Channel,18,48) | Channel == 67 )
 
 ggplot() + 
   coord_equal() +
@@ -174,8 +182,12 @@ ggplot() +
 
 ## Stage Pots
 
-```{r clpstagepots}
-chs <- dmx.details %>% filter(Location == "Stage Pots") %>% select(Channel, Usage)
+```{r fig-clpstagepots}
+#| label: fig-clpstagepots
+#| fig-cap: Stage Pots
+#| cap-location: bottom
+#| 
+chs <- dmx.details |> filter(Location == "Stage Pots") |> select(Channel, Usage)
 lox <- merge(chs, all.pots, by.x="Usage", by.y="group" )
 
 ggplot() +
@@ -201,7 +213,11 @@ __Pendants over the Balcony__
 
 * These pendants have only two lamps. The two inner pendants have two channels. The diagram exagerates the distance between them so the channel numbers can be read on the diagram. These are designed so that light can be kept on for the technical team while the rest of the baclony is dark. 
 
-```{r clppendants, echo=FALSE}
+```{r clppendants}
+#| label: fig-clppendants
+#| fig-cap: Pendants
+#| cap-location: bottom
+
 pendants <- tribble(
   ~Channel, ~x,  ~y, ~sz,
   73,      -30,  -0,  1, #L+R Spot 
@@ -270,7 +286,6 @@ ggplot() +
     geom_text(data=p2, aes(x=x, y=y, label=Channel ), nudge_x=4, nudge_y=4) +
     geom_curve(data=thrust, aes(x=x,y=y, xend=xend, yend=yend), curvature=-0.4) +
     geom_segment(data=balc.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
-
     coord_equal() + theme(legend.position="none") + scale_size_identity()
 ```
 
@@ -281,7 +296,11 @@ ggplot() +
 
 >Note: Positions are notional. 
 
-```{r clpsconse}
+```{r fig-clpsconse}
+#| label: fig-clpsconse
+#| fig-cap: Pendants
+#| cap-location: bottom
+
 sconse1 <- tribble(
   ~Item, ~Channel, ~x, ~y,
   1,           31, -39,   -3,
@@ -308,7 +327,8 @@ ggplot() +
   geom_text(data=sconse, aes(x=x, y=y, label=Channel ) ) 
 ```
 
-<small>TODO: add boxes on the above diagram to indicate the sconce swtihes</small>
+<small> >TODO: add boxes on the above diagram to indicate the sconce switches
+</small>
 
 ## Under the Balcony
     
@@ -318,7 +338,11 @@ The plot is illustrative - They are not accurately placed. There are 24 pot ligh
 
 >TODO: Correct placement
 
-```{r clpubal, echo=FALSE}
+```{r fig-clpubal, echo=FALSE}
+#| label: fig-clpubal
+#| fig-cap: Under Balcony
+#| cap-location: bottom
+ 
 ubal <- tribble(
   ~Channel, ~x,  ~y, ~sz, 
 # under balcony
@@ -358,6 +382,4 @@ ggplot() +
     coord_equal() + theme(legend.position="none") + 
     scale_size_identity() +     
     coord_cartesian(xlim=c(-40,40),  ylim = c(-65, -25))
-
-  #ylim(-65,-25)
 ```
