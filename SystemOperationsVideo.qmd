@@ -71,7 +71,7 @@ We have presets assigned which are programmed to bring a camera to specific posi
 
 The middle row of buttons will be typically used to direct a camera to a preset position. 
 
-![Camera Remote Controls](./images/sov-CamRemote.jpg)
+![Camera Remote Controls](./images/sov-CamRemote.jpg){width=75%}
 
 
 1. Teaching Tight 
@@ -375,54 +375,60 @@ hdmi" color=cyan ]
 
 There are several sections that we will use a lot. 
 
-Program and Preview buttons
+Program and Preview buttons (@fig-sov-ProgramPreview)
 : In the lower left corner there are two rows of 8 buttons. They are not labelled as Program and Preview, but instead with the corresponding source.
 
 * The top row will have a red button, and the bottom will have a green button. 
 * The red button indicates which source is currently live. 
 * The green button indicates which one is next.
 
-> If these buttons are white rather than red and green, then Aux mode has been selected.
+::: {.callout-tip}
+If these buttons are white rather than red and green, then Aux mode has been selected.
+:::
 
-![Program and Preview, Lower Left](./images/sov-ProgramPreview.jpg)
+![Program and Preview, Lower Left](./images/sov-ProgramPreview.jpg){#fig-sov-ProgramPreview}
 
-CUT and AUTO Buttons (Next to Slider)
+CUT and AUTO Buttons (Next to Slider) @fig-sov-CutAuto
 : In the centre at the bottom the are two buttons.
 
 * Pushing the CUT button will imediately switch the next source (green) to live. And place the one the was live as the next. 
 * The AUTO button also swaps current and next but does so using the select transition effect, such as mix.
 * There is a slider next to the AUTO button, this functions much like the auto button, but gives you direct control over the speed of the transition.
     
-![Cut and Auto, Lower Centre](./images/sov-CutAuto.jpg){height=3in}
+![Cut and Auto, Lower Centre](./images/sov-CutAuto.jpg){#fig-sov-CutAuto width=50%}
     
 Slider
 : Botttom Center.
 
 * the slider executes the same transition as the AUTO button will execute except that you manually control the speed of the transition. You can even stop part way through, and go backwards.
     
-Mix Button
+Mix Button (@fig-sov-Mix)
 : Top centre
 
 * The mix button, when pressed, sets the transition to be a a disolve between the current and next images. (one image will fade away an the other will fade in) 
 
-![Mix, Top Centre](./images/sov-Mix.jpg)
+![Mix, Top Centre](./images/sov-Mix.jpg){#fig-sov-Mix width=50%}
 
-DVE PiP Buttons
+DVE PiP Buttons (@fig-sov-PiP)
 : Left side middle - there are four of them.
 
 * These buttons are used for picture-in-picture effects. Pressing one of those buttons inserts a second video source into that corner of the screen (in the NEXT scene). It will initially appear as a black box. 
 * You would then press the 'Key 1 Fill' button (on the opposite side of the console) and one of the small numbers underneth to select which source you want to use as the fill.
 * Once the look is ready, go live with the AUTO or CUT buttons.
 
-![DVE PiP, Right Middle](./images/sov-PiP.jpg)
+![DVE PiP, Right Middle](./images/sov-PiP.jpg){#fig-sov-PiP width=50%}
 
 
-Key 1 Fill
+Key 1 Fill (@fig-sov-Key1Fill)
 : Left side, middle
 
 * This button is used in conjunction with the numbered keys immediately below to select the source to be placed in a PiP.
 
-![Key 1 Fill, Left Middle](./images/sov-Key1Fill.jpg)
+![Key 1 Fill, Left Middle](./images/sov-Key1Fill.jpg){#fig-sov-Key1Fill width=50%}
+
+:::{.callout-note}
+TODO - add more content about USK and DSK
+:::
 
 # Basic Operation
 
@@ -434,6 +440,10 @@ Key 1 Fill
 * Decide on your transition effect, for most cases a simple cross fade works great.
 * Press the transition button to take the transition effect ("Auto") or "Cut" for an instantaneous transition
 
+::: {.callout-tip}
+Note you can also perform direct cut using the red buttons.
+:::
+
 ## Picture in Picture
 
 * Decide on which source you want to have as the main image
@@ -441,11 +451,20 @@ Key 1 Fill
 * Press the "Key 1 Fill" button and then press the numbered button below which corresponds to the source you desire in the corner.
 * Finally press the CUT or AUTO button to make the transition.
 
-> The Picture in Picture (PiP) feature uses the Upstrem keyer. If you have set the USK to use as a alpha key for lyrics, it will have to be reset to Luma after using PiP.
 
-> <small>To turn PiP off ... I don't remember - fiddle with the BKGD and "Key 1 TIE" buttons.</small>
+:::{.callout-tip}
+The Picture in Picture (PiP) feature uses the Upstrem keyer. If you have set the USK to use as a alpha key for lyrics, it will have to be reset to Luma after using PiP.
+:::
+
+:::{.callout-note}
+TODO  To turn PiP off ... I don't remember - fiddle with the BKGD and "Key 1 TIE" buttons.
+:::
 
 ## On-Screen Graphics from ProPresenter
+
+:::{.callout-note}
+TODO - resume editing here
+:::
 
 :::{.callout-note}
 "Up Stream Key" is abbreviated USK. Downstream Key is abbreviated as DSK.
@@ -615,9 +634,8 @@ There are two types of macros we have defined:
 24. __Setup__ Post-Message video Trailer MP
     1. Move Graphic 3 to MP1
 
-[Back to top](#top) 
-
 ## Going Deeper
+
 Once you are comfortable with the basics, reading through the manual would be beneficial.
 
 The video mixer manual is a massive 1673 pages, but don’t be scared by that. It is the same content repeated for 8 different languages and four different products, so that reduces it to about 100 pages of relevant content for our product. 
@@ -656,10 +674,6 @@ page 157-163
 Page 33
 : Using the ATEM Control Software. Most things can be done directly from the panel, but some things are much easier from the software. 
 
-[Back to top](#top)
-
-{{< pagebreak >}} 
-
 # Operating the Video Recorders
 
 We have two solid state recorders, Black Magic Design Hyperdeck Minis (Asset Tags ZVRU-A001 and ZVRU-A002). These record onto SD memory cards. You can observe and verify what is being recorded by looking at the mini screens on the device. If the screen is black you may want to record a few seconds and then stop recording to esnure things are correctly initialized.
@@ -687,11 +701,9 @@ To format the memory card using the hyperdeck mini:
 6. A Warning message will appear asking you to confirm the choice. Confirm by selecting 'format' with the wheel and then pressing the 'set' button.
 7. A progress bar will show the progress. When complete the message 'formatting complete' will be displayed. Press the 'set' button again to return to the menu.
 
-> Tip: you can also navigate using the arrow keys rather then the jog wheel.
- 
-[Back to top](#top)
-
-{{< pagebreak >}} 
+:::{.callout-tip}
+You can also navigate using the arrow keys rather then the jog wheel.
+:::
 
 # Operating Web Presenter
 
@@ -703,14 +715,9 @@ There is a mini-switcher built into the web presenter. The box is wired to see t
 
 Why #2 for zoom/Skype? In this situation you would want the zoom/skype video output (from CUMU-G001) to go into the ATEM and out on Program to feed the projectors. But you want the video in to Skype to be a camera. Say the centre camera. You would feed the ATEM Aux output the centre camera feed, which goes to input #2. There is a complete separate document on this topic.
 
-[Back to top](#top)
-
-{{< pagebreak >}} 
-
-
 # Camera Settings
 
-The cameras recall their settings for preset 1 when powered on. This includes the video settings documented here. You should not need to adjust these regularly. If you need to reference the procedure to adjust the camera settings follows.
+The cameras recall their settings for preset 1 when powered on. This includes the video settings documented here. You should not need to adjust these regularly. If you need to reference the procedure to adjust the camera settings, see the Video system desgin guide.
 
 Each camera has a web page where we can make these updates. Open Safari and then for each camera do these steps:
 
@@ -748,9 +755,9 @@ network.data  |>
 #. At the bottom of the page, click the "Ok" button. 
     * You will be able to see the chnages take effect.
 
-Here is a screenshot of the page with the settings applied.
+Here is a screenshot of the page with the settings applied. @fig-sdv-camerasettings
 
-![Camera settings](./images/sdv-camerasettings.png)
+![Camera settings](./images/sdv-camerasettings.png){#fig-sdv-camerasettings width=50%}
 
 
 # Livestreaming (Normal)
@@ -802,13 +809,11 @@ resicloud -> YouTube
 resicloud -> "Church Online Platform"
      
 }
-
 ```
 
 # Livestreaming via OBS
 
 We used to stream directly to Facebook using the OBS program on the computer. This is still possible but not part of normal operations. This is what the signal flow looks like in this case.
-
 
 ```{dot}
 digraph livestreaming { 
@@ -852,7 +857,7 @@ cdmua002:ethernet -> Facebook
 
 The video mixer output is sent to the input of the "Web Presenter" box. Its output is feed via USB to the videomac (CUMU-G001)  computer. The computer sees that devices as a web cam.
  
-We use a program called OBS to stream the web cam feed to facebook live, or other destinations.  
+We use a program called OBS to stream the web cam feed to facebook live, or other destinations. 
 
 Somebody will have to create a streaming key for the target service (YouTube or Facebook). 
 
@@ -863,18 +868,6 @@ Somebody will have to create a streaming key for the target service (YouTube or 
    
 At the end of the event, ckick "Stop Streaming".
 
-[Back to top](#top)
-
-{{< pagebreak >}} 
-
-# Camera Settings
-
-The cameras recall their settings for preset 1 when powered on. This includes the video settings documented here. You should not need to adjust these regularly. If you need to reference the procedure to adjust the camera settings, see the Video system desgin guide.
-
-[Back to top](#top)
-
-{{< pagebreak >}} 
-
 # Video Post Processing and Uploading
 
 We have an objective to minimize the delay between end of service and message video publication. Getting our live mix correct means we don't have to fix anything, which eliminates an edit step.
@@ -883,9 +876,7 @@ We make two video recordings: 1) for the entire serice, and 2) just the message 
 
 Our current recording process encodes the video as 1920x1080p60 which produces a file of about 35GB.  
 
-{{< pagebreak >}} 
-
-# Setup
+## Setup
 
 These instructions are written assuming the use of Davinci Resolve V14 video editing software (free for Mac and Windows). 
 
@@ -895,9 +886,9 @@ Take the SD memory card from (usually) recorder #2 and insert it into the back o
 #. Start the program Davinci Resolve.
 It will take a minute to start and then will ask if you want to start a new project (bottom of window). Click "New Project". It will ask for a project name. Choose the date of service, eg "2021-12-31". 
 
-There are four tabs which we will use along the botttom of the screen. We will cover the actions to perform in each tab in turn.
+There are four tabs which we will use along the botttom of the screen. We will cover the actions to perform in each tab in turn. @fig-sov-ResolveTabs
 
-![Resolve UI, Bottom Tabs](./images/sov-ResolveTabs.png)
+![Resolve UI, Bottom Tabs](./images/sov-ResolveTabs.png){#fig-sov-ResolveTabs width=50%}
 
 ## Media
 
@@ -911,17 +902,17 @@ There are four tabs which we will use along the botttom of the screen. We will c
  
 ## Deliver tab
 
-It has three subtabs "Video", "Audio" and "File". You will set video parameters on the 'Video' tab, and name the file on the 'File' tab.
+It has three subtabs "Video", "Audio" and "File". You will set video parameters on the 'Video' tab, and name the file on the 'File' tab. @fig-sov-DeliverTabs
 
 __Video SubTab__
 
-![Deliver UI, Video Audio and File Tabs](./images/sov-DeliverTabs.jpg)
+![Deliver UI, Video Audio and File Tabs](./images/sov-DeliverTabs.jpg){#fig-sov-DeliverTabs width=50%}
 
-The parameters on the video tab should be set to these:
+The parameters on the video tab should be set to these (@fig-sov-VideoParameters):
 
 * Change the codec to "H.264". 
 * Change the quality to restrict to "7000" kbps. 
-![Video Tab, Video Parameters](./images/sov-VideoParameters.jpg)
+![Video Tab, Video Parameters](./images/sov-VideoParameters.jpg){#fig-sov-VideoParameters width=50%}
 
 __Audio Subtab__ 
 
@@ -935,8 +926,9 @@ On the File subtab, and put in today's data as the "custom name", eg 2021-12-31.
 
 #. Save the project Command-S just in case there is a failure during rendering.
 
-#. click "Start Render". It will take about 10-15 minutes.
-![Render Queue, Start Render](./images/sov-StartRender.jpg) 
+#. click "Start Render". It will take about 10-15 minutes @fig-sov-StartRender.
+
+![Render Queue, Start Render](./images/sov-StartRender.jpg){#fig-sov-StartRender width=50%}
 
 #. After Rendering is complete, close the program. 
 
@@ -976,10 +968,6 @@ Once the rendering is complete, you are ready to upload to Youtube. You must be 
 * upload the audio file the was extracted from the video (above)
 * turn on the podcast switch
 * Click on Publish at the bottom.
-  
-[Back to top](#top)
-
-{{< pagebreak >}} 
 
 # Putting it all together and Getting Creative
 
