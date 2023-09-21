@@ -9,6 +9,8 @@ asset_file   <- "uac_assets.xlsx"
 network_file <- "uac_network.xlsx"
 cables_file  <- "uac_cables.xlsx"
 glossary_file <- "uac_glossary.xlsx"
+lighting_file <- "uac_lighting.xlsx"
+training_file <- "training_videos.xlsx"
 
 #' This function takes a list of asset tags and the inventory 
 #' returns a formatted kable table of the results. 
@@ -155,6 +157,11 @@ get.glossary <- function () {
 	return(cables)
 }
 
+get.playbacks <- function () {
+	playback <- read_excel(file.path(data_dir, lighting_file), 
+						   sheet = "CS40.Playback")
+}	
+
 #' retrieves the inventory database
 #' @return a data frame containing the inventory database
 get.assets <- function() {
@@ -166,8 +173,8 @@ get.inventory <- get.assets
 #' retrieves the dmx details
 #' @return a data frame containing the dmx details
 get.dmxdetails <- function() {
-  return( read_excel(fname.cf, 
-                            sheet = "DMX.Details" ))
+  return( read_excel(file.path(data_dir, lighting_file)
+  				   , sheet = "DMX.Details" ))
 }
 
 #' retrieves the further information list
@@ -255,25 +262,31 @@ get.teamskill <- function() {
 }
 
 get.people <- function() {
-  return(read_excel(fname.people, 
-                    sheet = "People")
+  return(read_excel(fname.people
+                   , sheet = "People")
   )
 }
 
 get.peopleskill <- function() {
-  return(read_excel(fname.people, 
-                    sheet = "PeopleSkill")
-  )
+  return(read_excel(fname.people  
+                   , sheet = "PeopleSkill"))
+}
+
+calc_duration <- function(dur) {
+	ss <- str_split(dur ,':')[[1]]
+	h <- as.numeric(ss[1])*60
+	m <- as.numeric(ss[2])
+	s <- as.numeric(ss[3])/60
+	return(h+m+s)
 }
 
 get.training <- function() {
-  path <- file.path("~", "Documents", "UACTech", 
-  				  "SystemDocumentation", "github", "uactechdoc", "data")
-  file <- "training_videos.xlsx"
-  sheet <- "training"
-  
-  fname <- file.path(path, file )
-  return(read_excel(fname, sheet=sheet))
+	data <- read_excel(file.path(data_dir, training_file)
+					   , sheet="training") |>
+		mutate(Episode = as.numeric(Episode)) |>
+		rowwise() |>
+		mutate(Duration = round(calc_duration(Duration),1) )  
+  return(data)
 }
 
 print_gt_table <- function(gt_table) {
