@@ -120,7 +120,11 @@ To turn off, reverse the power on order and turn off.
 
 Basic operations of the house lights can be accomplished by using the keypad - which was discussed in the previous section.  
 
-Advanced operations of house and theater lighting is accomplished via the lighting console in the balcony. See the section below for more details. **The keypad needs to be in "Console Mode" for this to work properly.**
+Advanced operations of house and theater lighting is accomplished via the lighting console in the balcony. See the section below for more details. 
+
+::{.callout-important}
+**The keypad needs to be in "Console Mode" for this to work properly.**
+:::
 
 We can also use ProPresenter to fire pre-defined cues via macros. Using this technique a macro can be placed on a slide within a ProPresenter document and when that slide is displayed, the macro will instruct the lighting console to change to the corresponding cue number. ProPresenter macros can also be fired directly from the macro menu. There are a few things which must bet set for the macros to work:
 
@@ -129,17 +133,20 @@ We can also use ProPresenter to fire pre-defined cues via macros. Using this tec
 #. CueCommanderNR must be running on CUMU-G001
 
 :::{.callout-note}
-TODO - Add cue master figure and and text about starting CueCommanderNR.
+TODO 
+- Add cue master figure
+- add text about starting CueCommanderNR.
 :::
  
 # Operating the ColorSource 40AV Console
 
 This is the primary and most capable way of controlling (almost) all lighting in the auditorium. Simple operations are fairly simple and yet it is not too hard to create some sophisticated looks.  
 
-* What cannot be controlled from the console? 
-    + The balcony railing lights,   
-    + The sconce light swtich (but if the sconce light switch is 'on' the console can control the sconce lights.) and, 
-    + The emergency lighting is a completely independent system. It is activated when there is a power outage.
+*What cannot be controlled from the console? 
+
+* The balcony railing lights,   
+* The sconce light swtich (but if the sconce light switch is 'on' the console can control the sconce lights.) and, 
+* The emergency lighting is a completely independent system. It is activated when there is a power outage.
     
 ::: {.callout-important }
 If during the service there is a fire alarm, bring all house lights to full white. 
@@ -181,7 +188,8 @@ tab <- playback |>
     locations = cells_body(  columns = "Playback"  ) )	|>
   tab_style( style = list( cell_fill(color = "grey") ),
     locations = cells_body(  columns = everything()
-    						 , rows = Playback %in% c(8,9, 10)) ) 
+    						 , rows = Playback %in% c(8,9, 10)) ) |>
+	tab_hdr("Playback Map")
 ```
 
 ```{r playback-map, results='asis' }
@@ -234,9 +242,12 @@ The House, has only one slider which is straight white. This is a quick way of g
 
 In addtion to the 9 playbacks used for simple opertions covered earlier, the playbacks in the list below can be used for quick color mixing.
 
-> <large>TODO: **The list below is out of date and needs to be updated.**</large>
+:::{.callout-note}
+TODO: **The list below is out of date and needs to be updated.** See @fig-intermediate-playbacks
+:::
 
 ```{r intermediate}
+#| label: fig-intermediate-playbacks
 playback %>%
   filter(IsSimple == "N"  ) %>%
 #  arrange(Playback) %>%
@@ -271,7 +282,7 @@ Each switch has three positions: up, center and down. The up and down positions 
 
 To stop a blind mid-way while travelling, momentarily flick the switch in the opposite direction and then return the switch to the centre position. If you pause too long in the opposite direction the blind will reverse direction rather than stop.
 
-::: {.callout important}
+::: {.callout-important}
 When the service is over, please ensure that the blackout blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.
 :::
 
@@ -492,7 +503,7 @@ The focus is where an instrument is pointed. The final focus should place the "h
 Position refers to the location of an instrument in the auditroium. Hanging is the act of placing the instrument in its assigned position.
 
 
-### Color
+### Colour
 
 Every color has some kind of emotion tied to it, and color is just one way that we can express mood. There are some generally accepted relationships between moods and feelings and basic colors:
 
@@ -515,7 +526,7 @@ tab <- emotions <- tribble(
 	opt_stylize(style=3) 
 ```
 
-```{r results="asis"  }
+```{r results="asis" , width=33% }
 cat(print_gt_table(tab))
 ```
 
@@ -534,6 +545,7 @@ Beam refers to the shape, quality and evenness of a lamp's output. The pattern o
 Some instruments can have a gobo or break up pattern installed. This is typically a thin sheet of metal with a shape cut into it. It is inserted into the instrument near its aperture. Gobos, or templates, come in many shapes, but often include leaves, waves, stars and similar patterns.
 
 ```{r ld-b}
+#| label: tag-design-training
 get.training() %>%
   filter(Topic1=="Lighting") %>%
   filter(Topic2=="Lighting Design") %>%
@@ -546,6 +558,9 @@ get.training() %>%
         collapse_rows(columns = 1   )
 ```
 
+:::{.callout-note}
+TODO Remove the NAs and add links in @tag-design-training
+:::
 
 #  Appendix
 
