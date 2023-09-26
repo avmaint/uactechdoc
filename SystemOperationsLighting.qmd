@@ -10,14 +10,9 @@ execute:
 format:
   html:
     toc: true
-    toc-depth: 2
-    toc-location: right
-    number-sections: true
   pdf:
-    number-sections: true 
     toc: true
-    toc-depth: 2  
- 
+    fig-pos: h
 always_allow_html: yes
 ---
 
@@ -76,7 +71,7 @@ The "Night Light" preset should be selected when the room is not in use.
 
 The sconce lights also have an timed switch which is next to the keypad, **if you want sconce control during the day you will need to manual turn them on as well**. The timer is programmed to turn on the sconse lights during the evening hours (up to midnight), and Sunday morning.
 
-![The Keypad](./images/sol-keypad.jpg){width=25% #fig-sol-keypad}
+![The Keypad](./images/sol-keypad.jpg){width=15% #fig-sol-keypad}
 
 ```{r keypad}
 #| fig-cap: "Keypad Presets"
@@ -129,14 +124,14 @@ Advanced operations of house and theater lighting is accomplished via the lighti
 We can also use ProPresenter to fire pre-defined cues via macros. Using this technique a macro can be placed on a slide within a ProPresenter document and when that slide is displayed, the macro will instruct the lighting console to change to the corresponding cue number. ProPresenter macros can also be fired directly from the macro menu. There are a few things which must bet set for the macros to work:
 
 #. The lighting console must be on
-#. The cue master must be up
-#. CueCommanderNR must be running on CUMU-G001
+#. The cue master must be up See @fig-sol-cue-master
+#. CueCommanderNR must be running,  see @sec-cuecommander 
 
-:::{.callout-note}
-TODO 
-- Add cue master figure
-- add text about starting CueCommanderNR.
-:::
+![Cue Master](./images/sol-cue-master.png){#fig-sol-cue-master width=33%}
+
+<!--
+Photoshop source file: ... SystemDocumentation/github/uactechdoc/images/clku-c001-display.psd
+-->
  
 # Operating the ColorSource 40AV Console
 
@@ -189,7 +184,7 @@ tab <- playback |>
   tab_style( style = list( cell_fill(color = "grey") ),
     locations = cells_body(  columns = everything()
     						 , rows = Playback %in% c(8,9, 10)) ) |>
-	tab_hdr("Playback Map")
+	tab_header("Playback Map")
 ```
 
 ```{r playback-map, results='asis' }
@@ -285,6 +280,12 @@ To stop a blind mid-way while travelling, momentarily flick the switch in the op
 ::: {.callout-important}
 When the service is over, please ensure that the blackout blinds are all the way up. If left down for long periods of time in the bright daylight, heat builds up between the blind and the window and the blind deforms and pops out of the track.
 :::
+
+<!--
+#sec-cuecommander is defined in the include. 
+-->
+
+{{< include common_CueCommander.qmd >}}
 
 # Troubleshooting   
 
@@ -526,7 +527,7 @@ tab <- emotions <- tribble(
 	opt_stylize(style=3) 
 ```
 
-```{r results="asis" , width=33% }
+```{r results="asis" , width="30%"}
 cat(print_gt_table(tab))
 ```
 
