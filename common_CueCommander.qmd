@@ -1,0 +1,17 @@
+# Cue Commander {#sec-cuecommander}
+
+## What is CueCommanderNR
+
+CueCommanderNR is automation software written for UAC. It runs on the video computer, CUMU-G001. The source code for the software is on [github: https://github.com/donert/CueCommander-NR](https://github.com/donert/CueCommander-NR). (The "NR" is becuase there were other versions of the program that existed before and this one is based on the [Node-red](https://nodered.org) platform.
+
+## How to Run It
+
+It will run automatically when 'avuser' logs into the computer via an Apple automator script. There is a prompt window that appears during login that asks for confirmation that we want the automation to be active. 
+
+## Using CueCommanderNR
+
+CueCommander frequently polls (asks) ProPresenter for the list of Props. For each active Prop it checks to see if the Prop name is of a special format. If it is it will take an a defined action. See the current documentation for the Prop names it currently looks for. 
+
+One example, if a Prop had a name like "*Lq:456.0:a Test Prop*", it will be recognized as a lighting cue and will instruct the lighting console to fire cue "*456.0*". CueCommander will also tell ProPresenter to clear that Prop as it has already been executed.
+
+CueCommander also has a web interface [http:192.168.0.206:1880/ui](http:192.168.0.206:1880/ui). See the help page on the interface for more information.  

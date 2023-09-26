@@ -11,6 +11,9 @@ format:
     toc: true
   pdf:
     toc: true
+    fig-pos: h
+header-includes:
+ \usepackage{float}    
 ---
 
 ```{r packages, echo=FALSE }
@@ -32,7 +35,7 @@ This document provides basic operating information for the main video projection
 
 Our projection system is quite flexible and allows for numerous video sources to be connected to many display devices (including projectors and TVs).
 
-ProPresenter is the primary tool we use for display Lyrics, message support graphics, announcements and other such visuals. The ProPresenter visuals are also used to broadcast and record our services, which is managed by the video crew.
+ProPresenter is the primary tool we use for display lyrics, message support graphics, announcements and other such visuals. The ProPresenter visuals are also used to broadcast and record our services, which is managed by the video crew.
 
 At times you will also need to change the video routing for special features such as baptism.
 
@@ -92,7 +95,7 @@ include_graphics("./images/sop_pco_playlist7_1.jpg")
 
 Then select "Planning Center Service...". @fig-sop_pco_playlist7_2
  
-```{r sop_pco_playlist7_2, echo=FALSE}
+```{r sop_pco_playlist7_2, fig.pos="H" }
 #| label: fig-sop_pco_playlist7_2
 #| fig-cap: Select "New PCO Playlist"
 #| fig.retina: 2
@@ -103,7 +106,7 @@ include_graphics("./images/sop_pco_playlist7_2.jpg")
 
 Next you will see a pop-up where you need to select the plan that you want to use for your playlist. You may need to scroll sideways to see the date. You may need to click on the grey arrow to see the list of services. @fig-sop_pco_playlist7_3
 
-```{r sop_pco_playlist7_3 }
+```{r sop_pco_playlist7_3  }
 #| label:   fig-sop_pco_playlist7_3
 #| fig-cap: Click on the desired date and then "Select"
 #| fig.retina: 2
@@ -112,9 +115,13 @@ Next you will see a pop-up where you need to select the plan that you want to us
 include_graphics("./images/sop_pco_playlist7_3.jpg")
 ```
 
+The playlist will now show up on the left hand side. If the names of the items in PCO match the names of items that are already in the library, they will be automatically linked to the playlist. If that is incorrect, you can unlink it. 
+
+If a Song is new, you will have to add it. See @sec-songs for more details.
+
 If you created the playlist before Sunday, you should refresh the playlist on Sunday morning to collect any updates. After doing a refresh check to make sure your arrangement choices haven't been changed. @fig-sop_pco_playlist7_4
  
-```{r sop_pco_playlist7_4 }
+```{r sop_pco_playlist7_4 , fig.pos="H" }
 #| label: fig-sop_pco_playlist7_4
 #| fig-cap: Refresh a PCO playlist
 #| fig.retina: 2
@@ -124,7 +131,7 @@ include_graphics("./images/sop_pco_playlist7_4.jpg")
 ```
 
 
-A PCO generated playlist remains linked to PCO. Items that were defined in PCO cannot be deleted or repositioned, you can add additional items.
+A PCO generated playlist remains linked to PCO. Items that were defined in PCO cannot be deleted or re positioned, you can add additional items.
 
 If you need more flexibility, you can convert a PCO playlist to a manual one. @fig-sop_pco_playlist7_5
 
@@ -139,7 +146,7 @@ include_graphics("./images/sop_pco_playlist7_5.jpg")
 
 ## Importing Powerpoint
 
-ProPresenter is able to import the contents of a PowerPoint presentation. It creates a document containing static images, which means any animations and transition affects that were part of the PowerPoint are lost. You also need to ensure that any special fonts used in the PowerPoint are installed on the system prior to importing the presentation.
+ProPresenter is able to import the contents of a PowerPoint presentation. It creates a ProPresenter document containing static images, which means any animations and transition affects that were part of the PowerPoint are lost. You also need to ensure that any special fonts used in the PowerPoint are installed on the system prior to importing the presentation.
 
 You execute the import via File \> Import \> Import PowerPoint. @fig-sop-ppt-import-1
 
@@ -164,11 +171,11 @@ include_graphics("./images/sop_ppt_import7_2.jpg")
 ```
 
 Once the import is complete, you can then link the new document to the playlist.
-Once positioned in the playlist ensure that the correct content and lighting cues are set.
+Once positioned in the playlist ensure that the correct content and lighting cues are set. (See @sec-macros)
 
 Sometimes this import process doesn't work. If it seems to be breaking, then open PowerPoint directly. When you do that, there may be mesages from PowerPoint that need attention, like a notice of an update. Once those are cleared, you can retry the import process.
 
-You can also do the PowerPoint Export completely outside of ProPresenter and export all slides as images, create a new ProPresenter document for them, and drag and drop all the saved JPGs into the document. This takes more effort to do, so you would only do it this way if the regular import doesn't work. It is also useful to do when moving a PowerPoint from a different machine and you want to ensure all fonts are rendered correctly.
+You can also do the PowerPoint Export completely outside of ProPresenter and export all slides as images, create a new ProPresenter document for them, and drag and drop all the saved JPGs into the document. This takes more effort to do, so you would only do it this way if the regular import doesn't work. It is also useful to do when moving a PowerPoint from a different machine and you want to ensure all fonts are rendered correctly.(The export would be performed on the source computer.)
 
 ## Video Loop Controls
 
@@ -194,6 +201,18 @@ To change the loop setting, you need to use the *inspector* which is located in 
 On the second tab on the *inspector*, there is a dropdown for *playback*. We need to change that from *loop* to *stop* for a featured video, @fig-sop-pro7-loop-2  
  
 !["Changing playback setting in *inspector*"](./images/sop-pro7-loop-2.jpg){#fig-sop-pro7-loop-2 width=50% }
+
+## Songs {#sec-songs}
+
+To add a song you 
+
+![Searching for a song](./images/sop-pro7-song-search.png){width=25% #fig-sop-pro7-song-search}
+
+## Scripture
+
+## Themes
+
+## Looks
 
 # Stage Display
 
@@ -223,7 +242,7 @@ Content Macros
 
 Lighting Macros
 
-: Lighting cues set a prop and the automation program (CueCommanderNR) will cleat that cue. The lighting cue that is fired is derived from the name of the prop. See @fig-sop_macros_lighting
+: Lighting cues set a prop and the automation program (CueCommanderNR - see @sec-cuecommander) will clear that cue. The lighting cue that is fired is derived from the name of the prop. See @fig-sop_macros_lighting
 
 ![Sample Lighting Macros](./images/sop_macros_lighting.jpg){#fig-sop_macros_lighting width=50%}
 
@@ -437,6 +456,12 @@ The first time in you will need to select one of these options which will instal
 !["Selecting the Correct Launcher"](./images/sop-remote-05.jpg){height="3in"}
 
 Once logged into CDMU-A001 you will see all the displays that this computer has configured, you will want to use the view menu to select the primary display so you have a decent screen size to work with.
+
+<!--
+#sec-cuecommander is defined in the include. 
+-->
+
+{{< include common_CueCommander.qmd >}}
 
 # Trouble Shooting
 
