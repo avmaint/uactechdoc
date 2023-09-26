@@ -291,7 +291,7 @@ get.training <- function() {
 
 print_gt_table <- function(gt_table) {
 	temp_png <- tempfile(fileext=".png", tmpdir="_work")
-	gtsave(tab, filename=temp_png)
+	gtsave(gt_table, filename=temp_png)
 	out_str <- case_when(
 		knitr::is_latex_output() 
 		~ sprintf("\\includegraphics {%s}", temp_png) , 
