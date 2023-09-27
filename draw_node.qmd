@@ -32,7 +32,7 @@ execute:
 
 daw <- c('2308-1100' ,   '2308-1102'
 		, '2308-1103', '2308-1104', '2308-1105', '2308-1106', '2308-1107', '2308-1110'
-		, '2308-1124'
+		, '2308-1124', "ZVIU-D002"
 		)
 
 daw_network <- c('2308-1100'  
@@ -69,13 +69,25 @@ nursery <- c("ZVIU-A002", "ZVVU-0002", "ZVVU-0003")
 vmac <- c( "ZVIU-C002")
 dl <- c("ZVIU-E004")
 lobby <- c("ZVIU-A001")
+
+dante <- c(
+	"ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003",
+	"CUMU-E001"
+)
+
+sep16 <- c("ZVIU-A003" ,"ZVIU-E003")
+sep16 <- c("ZVIU-E003","ZVIU-A008", "2308-1204","2308-1205")
+atem_out <- c("ZVKU-A003","ZVIU-D001", "ZVIU-A004", "2307-1821", "ZVIU-E004")
 ```
 
 ```{r set_target}
 target <- vmac # vs88 #dl_atem 
 #target <- pp
 #target <- daw_network 
-target <- atem#nursery#lobby #vs88 #dl #nursery #vs88#
+target <- daw #atem#nursery#lobby #vs88 #dl #nursery #vs88#
+target <- dante
+target <- sep16
+target <- atem_out
 ```
 
 This report provides the details for these devices `r target` and the devices connected to them (it).
@@ -104,8 +116,7 @@ target_devices <- c(target_cables$SrcTag ,
 
 ```{r draw }
 diag <- get_diagram(target , inventory, cables)
-# clipr::write_clip( diag )
-
+ 
 tf <- tempfile(fileext=".png", tmpdir="~/Downloads")
 
 t <- DiagrammeR::grViz(diag) 
