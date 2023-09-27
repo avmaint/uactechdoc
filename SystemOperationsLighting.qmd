@@ -13,6 +13,8 @@ format:
   pdf:
     toc: true
     fig-pos: h
+    header-includes:
+       \usepackage{float} 
 always_allow_html: yes
 ---
 
@@ -23,7 +25,6 @@ require(jpeg)
 require(grid)
 require(kableExtra)
 require(lubridate)
-require(here)
 ```
 
 ```{r functions}
@@ -31,17 +32,13 @@ source("commonFunctions.R")
 source("commonLightingKeypad.R")
 ```
 
-```{r getdata}
-path <- here("..", "..") # "~/Documents/UACTech/SystemDocumentation"
-inventoryfile <- "TechInventory.xlsx"
-fname   <- paste(path, inventoryfile, sep="/")
-
+```{r get_data}
 further     <- get.further()
 dmx.details <- get.dmxdetails() 
 playback    <- get.playbacks()   
 ```
 
-# Introduction
+# Introduction {#sec-intro}
 
 This document provides basic operating information for Lighting systems for the auditorium at Unionville Alliance Church.
 
