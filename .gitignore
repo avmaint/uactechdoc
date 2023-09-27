@@ -17,3 +17,5 @@ draw_node_files/
 /.quarto/
 _work/*
 _output/*
+System*.txt
+mac_report.qmd
