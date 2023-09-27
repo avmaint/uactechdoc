@@ -12,8 +12,8 @@ format:
   pdf:
     toc: true
     fig-pos: h
-header-includes:
- \usepackage{float}    
+    header-includes:
+       \usepackage{float}    
 ---
 
 ```{r packages, echo=FALSE }
