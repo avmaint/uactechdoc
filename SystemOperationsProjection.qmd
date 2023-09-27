@@ -204,15 +204,66 @@ On the second tab on the *inspector*, there is a dropdown for *playback*. We nee
 
 ## Songs {#sec-songs}
 
-To add a song you 
+The songs needed may be in the library already; the easiest way to link it to your playlist item is to use the magnifying glass on the item itself, or your could use the search at the top of the screen, or ⌘-F. See @fig-sop-pro7-song-search . 
 
-![Searching for a song](./images/sop-pro7-song-search.png){width=25% #fig-sop-pro7-song-search}
+![Searching for a song](./images/sop-pro7-song-search.png){width=25%                            #fig-sop-pro7-song-search}
+
+Across the top of the search dialogue there are three icons. The left most which looks like the ProPresenter icon directs the search to the local library. The middle icon, which looks like concentric circles direct the search to *SongSelect*, a CCLI service we subscribe to.
+
+In addition to searching by name, you can also search by CCLI song # which is usually found in the PCO song details on the website. If there are many songs with the same title, searching by number can be very helpful.
+
+When adding a new song, there are a few things you should always do:
+
+* Add a blank slide to the beginning and assign it the *group* 'background'. 
+* Add a lighting macro to the background slide
+* Add a content macro to the background slide
+* Add a blank slide to the end of the song and assign it to the *group* 'copyright'.
+* Create an arrangement for the song. See [Arrangement Tutorial: https://youtu.be/hW6oTPQLp8c?si=WCdAOMZ31vSnzNwM](https://youtu.be/hW6oTPQLp8c?si=WCdAOMZ31vSnzNwM)
+* Use the reflow editor to make all slide 1 or 2 lines long @sop-pro7-reflow-icon.
+
+![Reflow Editor](./images/sop-pro7-reflow-icon.png){#sop-pro7-reflow-icon}
+
+:::{.callout-tip}
+**Tips**
+
+* When breaking lines, pick a spot that makes sense musically
+* if there is repetition in the verse format the text which emphasizes that - split the line at the repeat.
+* Try to visually balance the line lengths so they all lines on the screen are about the same length - avoid extermes
+* Don't break lines so that there is only one word on a line
+* Make sure the line breaks look good for both projection and livestream.
+:::
 
 ## Scripture
 
+:::{.callout-important}
+Pay attention to which Bible version is specified on PCO. 
+:::
+
+ProPresenter has a tool made specifically for preparing scripture graphics  @sop-pro7-bible-icon. There is a video tutorial on this topic. [Bible tutorial https://renewedvision.com/propresenter/tutorials/#219264](https://renewedvision.com/propresenter/tutorials/#219264)
+
+![Bible Tool](./images/sop-pro7-bible-icon.png){#sop-pro7-bible-icon}
+
+The recommended process after you have formatted the scripture is to use the "Save As" option at the bottom of the screen. Then return to *Show* mode, use ⌘-F and find the scripture you just created and drag that over to the playlist on the left and drop it below the scripture item. The advantage of this is that we minimize the changes to the scripture item that will need to be changed again next week. 
+
+At this point you can edit the scripture verses in the presentation using the *reflow* editor @sop-pro7-reflow-icon. For scripture we want 3, maybe four lines per verse. Make sure the line breaks look good for both projection and live stream.  
+
 ## Themes
 
-## Looks
+A theme is a predefined design template or style that you can apply to your presentations. It includes elements like fonts, colors, backgrounds, and slide layouts. Themes help maintain a consistent and professional look throughout your presentations by ensuring that all slides have a cohesive design. You can easily change or customize themes to match the branding or mood of your event or service.
+
+A theme can be applied to a slide or a selected group of slides using the right-click menu option. 
+
+Many of our *looks* (see @sec-looks) override the theme that is applied on a particular *screen*. When looking at the *look* defintion you can see if there is an override by looking at the presentation line, see @sop-pro7-theme-override. You can click on the icon to see which theme is being used for the override.
+
+![Theme Override](./images/sop-pro7-theme-override.png){#sop-pro7-theme-override}
+
+## Looks {#sec-looks}
+
+*Looks* refer to pre-defined visual settings that you can apply to your content when displaying it on each *screen*. You can think of *Looks* as templates that control the way your content is displayed on different screens (see @sec-screens). 
+
+*Looks* can override the theme that is applied to a presentation for a each screen, and also choose which layers are to be displayed. 
+
+Songs are good examples of how we use *Looks*. We apply a theme to the triple wide display to make the lyrics show up on each *output* of that configuration as well as formatting the lyrics as a lower third without the background for the live stream.  
 
 # Stage Display
 
@@ -224,19 +275,19 @@ Once the a Stage Display Layout is selected, it will not change until you set it
 
 The Stage display layouts can be edited using the "Edit Layouts" option on the "Screens" menu. @fig-sop_stage_layouts
 
-![Editing Stage Layouts](./images/sop_stage_layouts.jpg){#fig-sop_stage_layouts width=50%} 
+![Editing Stage Layouts](./images/sop_stage_layouts.jpg){#fig-sop_stage_layouts width=30%} 
 
 ## Lyrics on Stage Display Only
 
 We have a dedicated *Content* Macro for this purpose, "*Content Solo*".  Simply drop this macro on the first slide for which you don't want the lyrics to be displayed. This uses a *Look* to turn off the slide layer on all outputs but leave the media layer on. When you want to show lyrics again, using a different *Content* macro, for example *Content Song TW*, will select a different look.  
 
-# Macros
+# Macros {#sec-macros}
 
 Macros provide a way of combining a bunch of actions together to be executed as a group. We have two main types of macros. Macros that provide the settings for a particular type of content (prefix *content*) and another set of macros for lighting cues (prefix *Lq*).
 
 Content Macros
 
-:   These macros set the look and stage display that is most appropriate for the type of content. The looks may also override the theme applied to the text formatting. See @fig-sop_macro_content
+:   These macros set the look and stage display that is most appropriate for the type of content, see @fig-sop_macro_content. The looks may also override the theme applied to the text formatting.
 
 ![Sample Content Macros](./images/sop_macro_content.jpg){#fig-sop_macro_content  width=50%}
 
@@ -252,7 +303,7 @@ Lighting Macros
 
 Series Standard Lighting Cues
 
-: The are named Lq:90.0 through Lq:99.9. There is a light cue that corresponds to the type of content.
+: The are named Lq:90.0 through Lq:99.9. There is a light cue that corresponds to the type of content. Also within this range are **Missions Sunday** versions of the regular series cues; use them on **Missions Sunday**
 
 Colour Themed Light Cues
 
@@ -317,10 +368,11 @@ Series Folder (Eg. series_jesus)
 
 When we start a new series, we need to update several things in ProPresenter:
 
--   "Welcome" document
--   "Series Graphic" in "Props"
--   "Bumper"
--   Update the colours on the name and name+title themes and looks
+* "Welcome" document
+* "Series Graphic" in "Props"
+* "Bumper"
+* Update the colours on the name and name+title themes and looks
+* Also, on the lighting console, re-record the series cues (90.0-99.9) for the series  (don't change the **Missions Sunday** cues).
 
 ## Media Resources
 
@@ -330,28 +382,38 @@ Many files have keywords in the file names that make them easier to search for. 
 
 -   by colour, eg "red",
 -   or by content, eg "cross",
--   or format, eg "-tw" for triplewide content.
+-   or format, eg "tw" for triplewide content.
 
 There are two main locations to look for graphics:
 
 #. "CMG Graphics". These have all been downloaded for http://churchmotiongraphics.com . You can also go to that website and browse for something specific.
 #. "Procontent" - these have been downloaded from https://procontent.renewedvision.com . You can also go there to browse. 
 
+# Screens {#sec-screens}
+
+```{r get_defs}
+scr <- get.glossary() |>
+	filter(Topic == "ProPresenter7" & Term == 'Screen' )  
+opt <- get.glossary() |>
+	filter(Topic == "ProPresenter7" & Term == 'Output' ) 
+```
 
 
+We need to start with some definitions:
 
-# Running Triple Wide
+Screen
+: `r scr$Definition`
+
+Output
+: `r opt$Definition`
+
+We have several *output*s which are obvious. The three projection displays at the front are each and *output*, as is the stage display at the rear. We have a few more that are not so obvious: the Key+Fill video we send to the video matrix, a single wide version of the front display, and a copy of the stage display which we send to the live stream audio engineer. 
+
+Most of those *output*s are linked to a single *screen*. The front projection displays are more complex described next in section @sec-running-tw.  
+
+## Running Triple Wide {#sec-running-tw}
 
 The ProPresenter projection output is a triple wide configuration. That is three HD images (1920x1080) side by side for a total of 5760x1080 pixels. ProPresenter knows that the projected image is divided up into three projection outputs. 
-
-::: {.callout-note}
-ProPresenter uses the terms *Screen*s and *Output*s very specifically. 
-
-*Output*
-: A video signal that ProPresenter sends out to a display device, for example an HDMI, SDI, or NDI display device.
-*Screen*
-: A collection of one or more *Output*s which either show identical content, which it calls a *Mirror*ed screen, or glued together so that content can span across multiple *Output*s, ProPresenter calls this a *Group*ed screen.  
-:::
  
 Our Front three projectors are each separate *Output*s. The are then used to define two different *Screen*s:
 
@@ -365,9 +427,17 @@ TW_Mirror
 
 ![Mirror Screen Defintion](./images/sop-pro7-tw-mirror.png){#fig-sop-pro7-tw-mirror  width=50%}
 
-Looks are used to control which *Screen* is sent output. (If both screens are sent output at the same time it can look weird).
+Looks (@sec-looks) are used to control which *Screen* is sent *output*. 
 
-Examples of Group versus Mirror displays:
+:::{.callout-note}
+If both *screen*s are sent content at the same time it can look weird.
+
+If two (or more) *screen*s map to the same *output* and the active *look* enables the same *layer*, then you can see odd formattting. For example, multiple copies of the same or similar content appearing on a display. 
+
+The most common result would be doubled copies of the lyrics or a narrow triple wide image on top of a single wide image. 
+:::
+
+Examples of *Group* versus *Mirror* displays:
 
 ![Display using a Group Configuration](./images/sop-TW-Group-ABC.png){#fig-tw-group-abc}
 
@@ -377,13 +447,13 @@ Examples of Group versus Mirror displays:
 
 ## Turning the Front projectors On and Off
 
-The power for the projectors can be operated via the web page for each projector.
+The power for the front projectors can be operated via the web page for each projector.
 
 If one or more of the front projectors does not repsond via the web page, you can use the Sony remote control. You need to stand below each screen and point the remote at the projector. The swtich on the remote needs to be set to **A** for the east screen, **B** for the centre screen, and **C** for the west screen.
 
 ## Turning the Rear Projector On and Off
 
-The remote (Hitachi) for the balcony rear projector (aka confidence projector) is found near the computer monitor. To power off this projector you need to hit the off button twice.
+The remote (Hitachi) for the balcony rear projector (aka confidence projector) is found near the computer monitor. To power off this projector you need to hit the off button **twice**.
 
 # Operating the Matrix Video Switch
 
@@ -396,7 +466,7 @@ The matrix switch (ZVKU-A001) manages the routing of most video sources to vario
 
 The matrix settings can be adjusted using its web page. There is a shortcut to it in Safari's bookmarks, or use [this - http://192.168.0.184](http://192.168.0.184).
 
-On the page, click the output you want to change, and the input you want to tie it to. There is a little number in the output box which tells you which input it is tied to. The screen will go black for a few seconds while it makes the change.
+On the page, click the output you want to change, and the input you want to tie it to. There is a little number in the output box which tells you which input it is tied to. The screen will go black for a few seconds while it makes the change, @fig-sop-matrix-camera-onscreen.
 
 **Via Front Panel Buttons**
 
@@ -421,39 +491,35 @@ TODO - Need to work out the best way or routing the centre output to the ATEM so
 
 # Remote Login
 
-Rather than having to come to the church to prepare the playlist, we offer the ability to login remotely. More than one person can do this at the same time which allows two people to see exactly the same thing and work together - this is helpful for training or assistance.
+Rather than having to come to the church to prepare the playlist, we have the ability to login remotely. More than one person can do this at the same time which allows two people to see exactly the same thing and work together - this is helpful for training or assistance.
 
-To use the remote tool, you need to start with a web browser. Some work better than others. The preference is:
-
--   Firefox
--   Chrome
--   Internet Explorer / Safari.
+To use the remote tool, you need to start with a web browser. Some work better than others. 
 
 1.  The address to get started is: https://remoteassist.neysh.ca/ .
 2.  Click on "login" on the right side.
 
-!["Starting with the web page"](./images/sop-remote-01.jpg){height="3in"}
+!["Starting with the web page"](./images/sop-remote-01.jpg){width=50%}
 
 3.  You will be provided with a userid and password separately.
 4.  Please do your best to protect this password from being compromised.
 5.  Click login
 
-!["Logging into the Service"](./images/sop-remote-02.jpg){height="3in"}
+!["Logging into the Service"](./images/sop-remote-02.jpg){width=50%}
 
 6.  if you see uacAVtech here you know you are logged in to the service.
 7.  click on "Host"
 
-!["Selecting the Host Tab"](./images/sop-remote-03.jpg){height="3in"}
+!["Selecting the Host Tab"](./images/sop-remote-03.jpg){width=50%}
 
 8.  Select this entry in the access list.
 9.  There are several computers on the list, you want "CDMU-A001", click in the checkbox.
 10. Then click "Join"
 
-!["Selecting the Host Tab"](./images/sop-remote-04.jpg){height="3in"}
+!["Selecting the Host Tab"](./images/sop-remote-04.jpg){width=50%}
 
-The first time in you will need to select one of these options which will install addtional components on your system. Try "Windows Selector" first (on a windows machine), otherwise "ClickOnceDirect" or "WebStartBootstrap".
+The first time in you will need to select one of these options which will install additional components on your system. Try "Windows Selector" first (on a windows machine), otherwise "ClickOnceDirect" or "WebStartBootstrap".
 
-!["Selecting the Correct Launcher"](./images/sop-remote-05.jpg){height="3in"}
+!["Selecting the Correct Launcher"](./images/sop-remote-05.jpg){width=50%}
 
 Once logged into CDMU-A001 you will see all the displays that this computer has configured, you will want to use the view menu to select the primary display so you have a decent screen size to work with.
 
@@ -467,7 +533,7 @@ Once logged into CDMU-A001 you will see all the displays that this computer has 
 
 ## Filter needs cleaning
 
-: Please advise Terry.
+Please advise Terry.
 
 ## Video mixer (ATEM) sees only a black image for the ProPresenter input
 
@@ -481,9 +547,9 @@ Recovery:
     -   Reboot the Mac (CDMA-A001). 
 -   Option B: (not fully documented)
     -   Quit ProPresenter
-    -   On the Mac, open the SwitcherX settings application
+    -   On the Mac, open the SwitcherX settings application (menu bar)
     -   Go to the Custom resolutions tab
-    -   Select any video mode, and apply
+    -   Select any video mode other than the current, and apply
     -   Select the 1080p60 mode. And apply.
     -   The mac video system will reset.
     -   Restart ProPresenter.
@@ -510,11 +576,15 @@ Recovery:
 
 tab <- get.glossary() |>
 	filter(Topic == "ProPresenter7" | Term == 'Bumper' | Topic == "General") |>
-	select(Term, Definition) |>
-	arrange(Term) |>
-    gt() |>
+	select(Term, Definition, Topic) |>
+	arrange(Topic, Term) |>
+    gt(groupname_col = "Topic") |>
 	opt_stylize(style=3) |>
-	fmt_markdown(columns=Definition)
+	fmt_markdown(columns=Definition) |>
+	tab_style(
+  style = cell_text(weight = "bold", size="large"),
+  locations = cells_row_groups()
+)
 ```
 
 ```{r glossary, results='asis'}
