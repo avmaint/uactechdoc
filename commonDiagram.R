@@ -81,7 +81,9 @@ get_cable_code <- function(target_cables, cables) {
 	return( paste(cable_code$code , collapse = "\n")	)	
 }
 
-get_diagram <- function(targets, inventory, cables, label=NA ) {
+get_diagram <- function(targets, inventory, cables, label=NA, exc_dev  ) {
+	
+# exc_dev : devices to exclude
 	
 	labeltxt <- paste(targets, collapse= ', ' )
 	my_label = glue(' "Connectivity for {labeltxt}\nAs of {Sys.Date()}"')
@@ -91,9 +93,18 @@ get_diagram <- function(targets, inventory, cables, label=NA ) {
 	target_cables <- cables |>
 		filter(SrcTag %in% targets | DstTag %in% targets)  
 	
-	target_devices <- c(target_cables$SrcTag ,
+	if ( !missing(exc_dev) )  {
+		target_cables <- target_cables |> filter(!(SrcTag %in% exc_dev) & !(DstTag %in% exc_dev) )
+	}
+	
+	target_devices <- unique(c(target_cables$SrcTag ,
 						target_cables$DstTag ,
-						targets )
+						targets ))
+ 	if ( !missing(exc_dev) )  {
+ 							   target_devices <- setdiff(target_devices, exc_dev)
+ 							   } 
+
+# todo consider using qreport::makegraphviz	
 
 	diag <- paste( 
 		"digraph outputs { 
