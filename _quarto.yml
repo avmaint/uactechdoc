@@ -36,3 +36,6 @@ format:
     toc: true
     toc-depth: 2 
     number-sections: true 
+    fig-pos: h
+    header-includes:
+       \usepackage{float} 
