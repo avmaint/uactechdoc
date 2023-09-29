@@ -81,7 +81,9 @@ get_cable_code <- function(target_cables, cables) {
 	return( paste(cable_code$code , collapse = "\n")	)	
 }
 
-get_diagram <- function(targets, inventory, cables, label=NA, exc_dev  ) {
+get_diagram <- function(targets, inventory, cables, label=NA
+						, exc_dev
+						, rankdir="LR") {
 	
 # exc_dev : devices to exclude
 	
@@ -109,8 +111,11 @@ get_diagram <- function(targets, inventory, cables, label=NA, exc_dev  ) {
 	diag <- paste( 
 		"digraph outputs { 
 			graph [overlap = true, fontsize = 20,
-			rankdir=LR, fontname = arial ,"
-		, "label=", label ,  
+			rankdir="
+		,rankdir
+		 ,", fontname = arial ,"
+		, "label=", 
+		label ,  
 		"]
       
 node [shape=Mrecord, tooltip=\"\" 
