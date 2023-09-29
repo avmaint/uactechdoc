@@ -1,0 +1,94 @@
+digraph inputs { 
+			graph [overlap = true, fontsize = 20,
+			rankdir=LR, fontname = "Helvetica"  
+			label= "Inputs for Video Mixer\n As of 2023-09-27" ]
+      
+	node [shape=Mrecord, tooltip="" ,  fontsize = 10,
+    	  fillcolor="white:beige"   , style=filled  
+		  gradientangle=270]  
+
+	edge [fontsize=8] 
+
+zvkua001 [ label= "{
+  {  Video Matrix Switch\nKramer/VS-88DT |ZVKU-A001 }
+|{   <out_5>out_5 |<out_6>out_6   } 
+}"]
+	
+zvcua001 [ label= "{
+  {  East Camera|ZVCU-A001 }
+|{ <sdi>sdi } 
+}"]
+
+zvcua002 [ label= "{
+  {  Centre Camera|ZVCU-A002 }
+|{ <sdi>sdi } 
+}"]
+
+zvcua003 [ label= "{
+{  West Camera|ZVCU-A003 }
+|{ <sdi>sdi } 
+}"]
+
+z150 [ label= "{
+{  Stage Camera|ZVVU-C001 }
+|{ <sdi>sdi } 
+}"]
+
+zvkua003 [ label= "{
+{ <ch1_audio>ch1_audio|<ch2_audio>ch2_audio|<in1>in1|<in2>in2|<in3>in3|<in4>in4|<in5>in5|<in6>in6|<in7>in7|<in8>in8 }
+| {  Video Mixer\nBMD/ATEM Television Pro HD |ZVKU-A003 }
+ }"]
+
+zviua008 [ label= "{
+  {  Fill from DeckLink|ZVIU-A008 }
+|{ <hdmi>hdmi } 
+}"]
+zviuc001 [ label= "{
+  {  HDMI  from ProPresenter|ZVIU-C001 }
+|{ <hdmi out>hdmi out } 
+}"]
+
+zviue003 [ label= "{
+  { Key from DeckLink |ZVIU-E003 }
+|{ <hdmi_out>hdmi_out } 
+}"]
+ 
+ 
+23081124 [ label= "{
+{ <ether>network }
+| {  Audio via Dante|2308-1124 }
+|{ <ch1>ch1|<ch2>ch2 } 
+}"]
+
+ 
+zviua008 : hdmi -> zvkua003 : in4 [label= "2307-1828
+Fill hdmi" color=cyan ] 
+
+
+zviuc001 : hdmiout -> zvkua003 : in1 [label= "2307-2301
+Propresenter hdmi" color=cyan ] 
+
+zvcua001 : sdi -> zvkua003 : in5 [label= "2307-2304
+Cam 1-East sdi" color=blue ] 
+zvcua002 : sdi -> zvkua003 : in6 [label= "2307-2303
+Cam 2-Centre sdi" color=blue ] 
+zvcua003 : sdi -> zvkua003 : in7 [label= "2307-2302
+Cam 3-West sdi" color=blue ] 
+
+23072306 : barrel -> zvkua003 : in8 [label= "2307-2305
+Stage Cam sdi" color=blue ] 
+
+
+23081124 : ch1 -> zvkua003 : ch1_audio [label= "2308-1124L
+Left audio" color=orange ] 
+23081124 : ch2 -> zvkua003 : ch2_audio [label= "2308-1124R
+Right audio" color=orange ] 
+
+zviue003 : hdmi_out -> zvkua003 : in2 [label= "2307-1827
+Key hdmi" color=cyan ] 
+ 
+zvkua001 : out_6 -> zvkua003 : in3 [label= "From matrix\nhdmi" color=cyan ] 
+zvkua001 : out_5 -> zviuc001 : in 
+
+z150 -> 23072306
+}

@@ -1,0 +1,41 @@
+digraph livestreaming {  newrank=true;
+  
+graph [overlap = true, fontsize = 20, 
+      label="Livestreaming Topology\n(as of 2023-09-29)",
+      fontname = Helvetica, bgcolor=white
+      rankdir=TB
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+
+rswitch [
+  tooltip="BMD ATEM Television Studio Pro HD"
+  label=" 
+      {Video Mixer\nZVKU-A003}
+      |{ { <o4>out4} }
+     "]
+
+webp [
+	  tooltip="BMD Web Presenter"
+      label=" 
+    {Web Presenter\nZVIU-A004 }
+    |<i1>in1
+    |<o1>usb out"
+]
+
+cumug001 [tooltip="Mac Mini"
+	label="{Video Computer\nCUMU-G001}
+	| {OBS or\nPro7}
+	| {<u>usb}|{<e>ethernet} "]
+
+destination [label="YouTube or\nFacebook"]
+
+resi [label="Resi\nOnly from Pro7"]
+
+rswitch:o4 -> webp:i1 [label=" abbreviated"  ]
+webp:o1 -> cumug001:u    
+
+cumug001:e   -> destination
+cumug001:e   -> resi
+}

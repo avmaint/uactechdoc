@@ -1,0 +1,91 @@
+
+digraph outputs { 
+			graph [overlap = true, fontsize = 20,
+			rankdir=LR, fontname = arial , label= "ATEM Outputs
+As of 2023-09-27" ]
+      
+node [shape=Mrecord, tooltip="" 
+	,  fontsize = 10 fontname = arial
+    	  fillcolor="white:beige" , style=filled  
+		  gradientangle=270]  
+
+edge [fontsize=8] 
+
+zvkua001 [ label= "{
+{ <in1>in1|<in2>in2|<in3>in3|<in4>in4|<in5>in5|<in6>in6|<in7>in7|<in8>in8 }
+| {  Video Matrix Switch\nKramer/VS-88DT |ZVKU-A001 }
+ 
+}"]
+
+zviua005 [label="ZVIU-A005"] 
+  
+zvkua003 [ label= "{
+ {  Video Mixer\nBMD/ATEM Television Pro HD |ZVKU-A003 }
+|{ <aux>aux|<mv_out>mv_out|<out5>out5|<out6>out6 } 
+}"]
+
+zvrua001 [ label= "{
+{ <sdi in>sdi in }
+| {  Video Recorder\nBMD/Hyperdeck Studio Mini |ZVRU-A001 }
+|{ <OutA>OutA|<OutB>OutB } 
+}"]
+zviua004 [ label= "{
+{ <SDI In>SDI In|<hdmi in>hdmi in }
+| {  Web Presenter\nBMD/BDLKWEBPTR |ZVIU-A004 }
+|{ <hdmi out>hdmi out|<usb>usb } 
+}"]
+zviud001 [ label= "{
+{ <sdi in>sdi in }
+| {  SDI to HDMI\nBMD sdi-hdmi |ZVIU-D001 }
+|{ <hdmi>hdmi|<sdi>sdi } 
+}"]
+
+ 
+ 
+zviud002 [ label= "{
+{ <sdi in>sdi in }
+| {  Stream Encoder| Resi/E1210 |ZVIU-D002 }
+|{  } 
+}"]
+cumug001 [ label= "{
+{ <usb_3>usb_3 }
+| {  Video Edit Computer\nApple Mac|CUMU-G001 }
+|{ <L>L|<R>R|<hdmi>hdmi|<ndi>ndi|<usb>usb|<usb_1>usb_1|<usb_2>usb_2 } 
+}"]
+
+23071821 [ label= "{
+{ <barrel>barrel }
+| {  Barrel Connector| NA/NA |2307-1821 }
+|{  } 
+}"]
+ 
+ zvkua003 : aux -> zviud001 : sdiin [label= "2307-1808
+sdi" color=blue ] 
+ 
+ 
+
+zviud001 : sdi -> 23071821 : barrel [label= "2307-1826
+extension of din cable via barrel connector sdi" color=blue ] 
+zviua004 : usb -> cumug001 : usb_3 [label= "2307-2100
+usb" color=red ] 
+ 
+ 
+zvrua001 : OutA -> zviua004 : SDIIn [label= "2307-3002
+SDI" color=black ] 
+
+zviua004 : hdmiout -> zvkua001 : in7 [label= "2307-3003
+ATEM Aux hdmi" color=cyan ] 
+
+zvkua003 : out5 -> zvrua001 : sdiin [label= "2307-3005
+Red sdi" color=blue ] 
+
+zvkua003 : out6 -> zviud002 : sdiin [label= "2307-3006
+Blue sdi" color=blue ] 
+zviud001 : hdmi -> zviua004 : hdmiin [label= "2307-3007
+hdmi" color=cyan ] 
+
+zviua005 -> zvkua001:in6 [label="2308-0800\nATEM Program" color=cyan]
+
+something [label="???? maybe video recorder outB"]
+something -> zviua005
+ }
