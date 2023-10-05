@@ -1,6 +1,8 @@
 digraph topology3 { 
-graph [overlap = true, fontsize = 10, rankdir=TB 
+graph [overlap = true, fontsize = 10, rankdir=LR
       tooltip="Lighting Power Topology",
+      label="Power Topology\nAs of 2023-10-05"
+      fontsize=20
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , 
@@ -8,7 +10,9 @@ node [shape=Mrecord, tooltip="" ,
       gradientangle=270]
       
 balconyeast  [label="{<i>1-10|{Balcony East\nNema 5-15R}|{ fixtures}}"]
-balconywest  [label="{<i>11-20|{Balcony West\nNema 5-15R}|{ fixtures}}"]
+balconywest  [label="{<i>11-20
+		|{Balcony West\nNema 5-15R}
+		|{ fixtures}}"]
 
 fohbar       [label="{FoH Bars\n3 bars|6 4WRD\n7 CS Spots\n4 CS Pars}"]
 topbar       [label="{Stage Overhead Bar|7 CS Pars}"]
@@ -26,8 +30,12 @@ subgraph cluster_bal { label="Balcony"
   patch       [label="{<i>Nema 5-15R|{Nema\nPatch}|{ <o>Nema 5-15P}}"]
   balconyeast
   balconywest
-  chromaq      [label="Rotator\nPower Supply"]
+  chromaq      [label="Rotator\nPower Supply\n2310-0212"] 
+  dimmer0211   [label="4Ch Dimmer\n2310-0211"] 
 }
+
+balcony -> chromaq
+balcony -> dimmer0211
 
 balcony -> patch
 patch -> balconywest
@@ -65,16 +73,5 @@ bulkhead -> topbar
 bulkhead -> points
 bulkhead -> etcrelay -> fohbar
   
-Node [shape=plaintext, fillcolor=white]
-stamp [label= <<table>
-<tr><td>Title</td>
-    <td>Power Topology</td>
-</tr>    
-<tr><td>As of</td>
-    <td>2019-05-23</td>
-</tr>
-</table>> ]  
-
-{rank=same; stamp  fohbar    }
-{rank=same; lp1  amppanel    }
+ 
 }

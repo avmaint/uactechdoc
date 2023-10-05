@@ -1,18 +1,21 @@
 ---
 title: "System Design - Lighting"
-author: "Terry Doner"
-date:  "`r format(Sys.time(), '%B %d %Y')`" 
-output:
-  html_document:
-    toc: yes
-    number_sections: true
-    theme: cosmo
+author: "UAC Media Arts"
+execute: 
+  eval: true
+  echo: false
+  warning: false
+  message: false
+format:
+  html:
+    toc: true
+  pdf:
+    toc: true
+always_allow_html: yes
+editor: 
+  markdown: 
+    wrap: sentence
 ---
-
-```{r options, echo=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
-options(knitr.table.format = "html") # latex for pdf 
-```
 
 ```{r packages}
 source("commonPackages.R")
@@ -26,6 +29,7 @@ require(kableExtra)
 ```{r functions}
 source("commonFunctions.R")
 source("commonLightingKeypad.R")
+source("commonDiagram.R")
 
 circleFun <- function( x= 0, y=0 , r=1, npoints=50, start=0, end=2, fill="black"){
   tt <- seq(start*pi, end*pi, length.out=npoints)
@@ -44,11 +48,13 @@ fin <- function(f, i) {
 
 ```{r getdata, include=FALSE}
 NetworkInventory <- get.network()
-Tech_Inventory <- get.inventory()
+assets <- get.assets()
 dmx.details <- get.dmxdetails() 
+cables <- get.cables()
 ```
 
 # Introduction
+
 This document provides key technical documentation design for the lighting subsystems at UAC. The intended audience of thsi document are the people who need to manage and maintain the system. 
 
 Purpose of the lighting system:
@@ -64,8 +70,7 @@ There are two mechanisms to control the lighting:
 * A touch panel located on the main floor by the south east auditorium doors. Users can select one of several preset configurations. 
 * For more sophisticated control, The primary lighting control console  is an ETC ColorSource 40AV console.  It is used for all lighting operations more sophisticated than can be accomplished via the touchpad panel.
 
-[Back to top](#top)
-
+ 
 # Control Systems
 
 There are two different protocols used to control the lighting levels of our major auditorium lighting systems: 
@@ -78,71 +83,137 @@ How these systems are interconnected is depcited on the diagrams below.
 The handrail lighting in the balcony and the emergency lighting are independent systems. 
 
 ### DMX Topology
+
 The console is protected from power surges via an opto-isolator/DMX splitter.
 
 >TODO: Document the details of the echo node and the N3 box connections.
 >TODO: Document the  ETC dmx relay box in the attic.
->TODO: The chromaq power supply is not in service at this time but will need to be reintorduced when the rotators are installed again.
+ 
+```{r dmx_control}
+dmx_control <- c( 
+		  "ZLKU-C001"
+		, "ZLIU-0003"  
+		, "2310-0220"
+		, "2310-0223" 
+		, "2310-0211" 
+		, "2310-0202", "2310-0204"
+	
+		 )
+xd <- c("ZLKU-B002", "ZLLU-B054"
+		, "ZLLU-B052", "bt_node")
 
+diag <- get_diagram(dmx_control 
+					, assets, cables
+					, exc_dev = xd
+					, rankdir ="TB"
+					, label= '"Balcony Control"' )
+
+write_file(diag, "_work/sdl-dmx_control.gv")
+tf <- "_work/sdl-dmx_control.png" 
+
+grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
+#system(glue("open {tf}"))
+```
+ 
+```{dot fig-sdl-dmx_control }
+//| label: fig-sdl-dmx_control
+//| fig-cap: Control Topology (generated)
+//| cap-location: bottom
+//| file: _work/sdl-dmx_control.gv
+```
+
+```{dot fig-sdl-topology1-control }
+//| label: fig-sdl-topology1-control
+//| fig-cap: Control Topology 
+//| cap-location: bottom
+//| file: gv/sdl-topology1-control.gv
+```
 
 ```{r top1}
-DiagrammeR::grViz("sdl-topology1-control.gv")
+selected.at <- c( "ZLKU-C001",  
+				  "CDWU-0009",
+                  "ZVKU-A001", "ZLIU-0003"
+				  , "ZLIU-A002"
+				  , "ZLIU-A001", "ZLIU-A003" 
+              ) 
 
-selected.at <- c( "ZLKU-C001", "ZLIP-0001", "CDWU-0009",
-                  "ZVKU-A001", "ZLIU-0003", "ZLIU-A002",
-                     
-                   "ZLIU-A001", "ZLIU-A003" 
-              ) %>% 
-  data.frame(AssetTag=.)
-
-merge( Tech_Inventory, selected.at) %>% 
-    select(AssetTag, Manufacturer, Model, Desc ) %>%
-    arrange( AssetTag ) %>%
-    kable(align="l") %>%
-    column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
+assets |> 
+	filter(AssetTag %in% selected.at) |>
+    select(AssetTag, Manufacturer, Model, Desc) |>
+    arrange( AssetTag ) |>
+	gt() |>
+	opt_stylize(style=3)
 ```
 
 ### KetraNet Topology
 
->TODO: Exact pathways for the N3 devices not yet established.
-
->TODO: Label rack
 
 >TODO: fix balcony subgraph
 
-```{r top2}
-DiagrammeR::grViz("sdl-topology2-control.gv")
+```{dot fig-sdl-topology2-control }
+//| label: fig-sdl-topology2-control
+//| fig-cap: Control Topology 
+//| cap-location: bottom
+//| file: gv/sdl-topology2-control.gv
+```
 
+```{r top2}
 selected.at <- c(
                 "ZLKU-C001", "ZLKU-B002", "CDWU-0009",
                 "ZLIU-0003",
                 "ZLIU-A003", "ZLIU-A002", 
               "ZLIU-B001", "ZLIU-B002", "ZLIU-B003" 
-              ) %>% 
-  data.frame(AssetTag=.)
+              )  
 
-merge( Tech_Inventory, selected.at) %>% 
-    select(AssetTag, Manufacturer, Model, Desc ) %>%
-    arrange( AssetTag ) %>%
-    kable(align="l") %>%
-    column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
+assets |> 
+	filter(AssetTag %in% selected.at) |>
+    select(AssetTag, Manufacturer, Model, Desc ) |>
+    arrange( AssetTag ) |>
+	gt() |>
+	opt_stylize(style=3) 
 ```
 
-[Back to top](#top)
-
-## Keypad Topology Control
+ 
+## ETC Echo Control Topology  
 
 There is a simple lighting control panel located next to the auditorium doors by the main office (south east). It enables the house lights to set according to several pre-defined looks. 
 
 The keypad and the main console can conflict with each other. When running from the console, the keypad should be in "Console Mode".  
 
-> The sconce lights has a timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well.
+:::{.callout-note}
+The sconce lights has a timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well.
+:::
+ 
+```{r echo_control}
 
-```{r keypadtop}
-DiagrammeR::grViz("sdl-topology2-keypad.gv")
+echo_control <- c(     
+		  "2310-0220"
+	    ,  "2310-0501"
+ 		,  "bt_node"
+	
+		 )
+xd <- c("2310-0212")  
+
+diag <- get_diagram(  echo_control 
+					, assets, cables
+					, exc_dev = xd
+					, rankdir ="TB"
+					, label= '"Echo Control"' )
+
+write_file(diag, "_work/sdl-echo_control.gv")
+tf <- "_work/sdl-echo_control.png" 
+
+grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
+# system(glue("open {tf}"))
 ```
+ 
+```{dot fig-sdl-dmx_control }
+//| label: fig-sdl-echo_control
+//| fig-cap: Echo Control Topology (generated)
+//| cap-location: bottom
+//| file: _work/sdl-echo_control.gv
+```
+ 
 
 The lighting instruments which are hung from the balcony bars cannot be controlled from the keypad due to the point in the topology where unison and dmx are merged.
 
@@ -158,7 +229,7 @@ Access BT Interface
 : The second page is where you assign names
 
 Inspire 8 Button
-: Associates Button actions to presets.
+: Associates Button actions to presets. See @fig-keypad-index
 
 > TODO: need to define behaviours for: single click, double click, press and hold.
 
@@ -177,50 +248,56 @@ zones2dmx     <- get_zones2dmx()
 ```
 
 ```{r keypad}
-keypad %>%
-  arrange(Button) %>%
-  kable() %>%
-  column_spec( 1,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE) %>%
-    row_spec(1:nrow(keypad), color="blue")
+#| label: fig-keypad-index
+#| fig-cap: Keypad Index
+keypad |>
+  arrange(Button) |>
+	gt() |>
+	opt_stylize(style=3)
 ```
  
 > todo: Control of the ADJ Ultrabar 12 devices on the walls presents a challenge. These are configured as 12 address devices. This DMX footprint is not directly supported by the echo equipment.   
 
->Note: Any one DMX address can only belong to one Zone.
- 
+:::{.callout-note}
+Any one DMX address can only belong to one Zone.
+:::
+
 ```{r zoneConfig}
+
 #Zones to DMX mappings
-zones2dmx %>%
-  arrange(Zone) %>%
-  kable() %>%
-  kable_styling("striped", full_width = TRUE)  %>%
-    row_spec(1:nrow(zones2dmx), color="blue")
+zones2dmx |>
+  arrange(Zone) |>
+	gt() |>
+	opt_stylize(style=3)
 ```
 
 
 ```{r configReport}
-rs <- keypad %>%
-  merge(keypad2preset) %>%
+rs <- keypad |>
+  merge(keypad2preset) |>
   merge(preset2zone )
 
 require(sqldf)  
-rs <- sqldf("Select Button, Name, Preset, z.Zone, B_Description, Z_Description, Details 
+rs.old <- sqldf("Select Button, Name, Preset, z.Zone, B_Description, Z_Description, Details 
             from zones2dmx as z, rs as rs 
             where z.Zone = rs.Zone
             ")
 # no idea why merge didn't work!
+
+rs.new <- zones2dmx |>
+	inner_join(rs, by=join_by(Zone) )
+
+rs <-rs.new
 ```
 
 This table defines the detailed programming for each Button, Preset and Zone. 
 
 ```{r}
-rs %>%  
-  arrange(Button, Zone) %>%
-  kable() %>%
-  #column_spec( 1,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE  ) %>%
-    row_spec(1:nrow(rs), color="blue")
+rs |>  
+  arrange(Button, Name, B_Description, Preset, Zone) |>
+	gt(groupname_col = c("Button", "Name", "B_Description") ) |>
+	tab_header("Detailed program for each Button, Preset and Zone") |>
+	opt_stylize(style=3)
 ```
 
 ## Balcony Railing Lights
@@ -248,32 +325,29 @@ NA , NA, "Rotators - 2 channels each. Will be used in the future.",
 384, 384+8-1, "NO LONGER USED."
 )
 
-dmxmap %>%
-  arrange(DMX.Lo) %>%
-  kable(align="l") %>%
-  column_spec( 1:2,  bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
+dmxmap |>
+  arrange(DMX.Lo) |>
+	gt() |>
+	opt_stylize(style=3)
 ```
 
 ## Channel and DMX Details
 
 ```{r}
-dmx.details %>% 
+dmx.details |> 
   select(Channel, DMX.Lo, Circuit, Location, Type, 
-         InsturmentCount, Mode, Usage) %>%
-  kable(align="l") %>%
-  column_spec( 1,  bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
+         InsturmentCount, Mode, Usage) |>
+	gt() |>
+	opt_stylize(style=3)
 ```
-
-[Back to top](#top)
 
 # Power Distribution Systems
 
->TODO: It is likely that post-August 2018 installs we will decommission the NSI and LMI dimmers. 
-
-```{r}
-DiagrammeR::grViz("sdl-topology3-power.gv")
+```{dot fig-sdl-topology3-power }
+//| label: fig-sdl-topology3-power
+//| fig-cap: Power Topology 
+//| cap-location: bottom
+//| file: gv/sdl-topology3-power.gv
 ```
 
 ## Circuit Destinations 
@@ -291,22 +365,13 @@ circuits <- tribble(
    40,42 ,  "Stage Floor",       "Electrical Room"
 )
 
-circuits %>% 
-  select("Circuit.Lo", 	"Circuit.Hi", "Source", "Destination") %>%
-  kable(align="l") %>%
-  column_spec( 1:2,  bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
+circuits |> 
+  select("Circuit.Lo", 	"Circuit.Hi", "Source", "Destination") |>
+	gt() |>
+	opt_stylize(style=3)
 ```
 
-[Back to top](#top)
-
-```{r lighting.plots, echo=FALSE, results="asis" }
-# really want to put the knit_child statement in here, but doesn't work. :()
-```
-
-`r knit_child('commonLightingPlots.Rmd', quiet=TRUE)`
-
-[Back to top](#top)
+{{< include commonLightingPlots.qmd >}}
 
 # House Lighting
 The house lights consists for many major components:
@@ -330,11 +395,9 @@ The commands from these two control points are added together. Essentially the b
 
 > TBD - how to program the touchpad scenes.
 
-[Back to top](#top)
-
 # Ketra Design - Stage
 
-```{r parms, echo=FALSE, warning=FALSE}
+```{r parms }
 products <- tribble(
   ~model, ~type, ~angle, 
   "Spot",              "S",  10 ,
@@ -352,58 +415,59 @@ locations <- tribble(
 
 a <- 0.7 # Alpha for graphics
 
-lamps <- merge(products, locations)  %>% mutate(rads = angle/180*pi)
+lamps <- merge(products, locations)  |> mutate(rads = angle/180*pi)
 ```
 Ketra S38 product comes in `r nrow(products)` different beam angles:
-```{r, echo=FALSE}
-products %>% formattable(align="l")
+```{r products}
+products |>
+	gt() |>
+	opt_stylize(style=3)
 ```
 For the pots on the west side of the stage I have measured the position of each pot (give or take an inch or three). The east side is taken as the mirror image. This is a pretty good assumption but there is at least one notable exception; one pot is out of place and the stage is not symmetrical. 
 
-```{r echo=FALSE}
+```{r trig}
 # based on pots w2 and w15 - w15 on a 28" riser"
 rise = 19.4 -(16.1 + 28/12)
 run = 25.75 - 4.25
 # use the tan rule as above, convert from radians to degrees
 angle = atan(rise/run) *(180/pi)
-```
 
-```{r echo=FALSE}
-lamps <- lamps %>% mutate(θ = rads/2) %>%
+lamps <- lamps |> 
+	mutate(θ = rads/2) |>
          mutate(beamradius = 2 * tan(θ) * height / 2 )
 ```
-[goto top](#TOC)
-
-```{r plan, echo=FALSE}
+ 
+```{r plan }
 positions <- rbind(pots.w, pots.e, stage.refs)
 
-l1 <- positions %>% filter(type== "ref") %>% 
-  filter(name != "r3") %>% 
-  filter(name != "r6") %>% 
+l1 <- positions |> filter(type== "ref") |> 
+  filter(name != "r3") |> 
+  filter(name != "r6") |> 
   select(x,y)
 
-l2 <- positions %>% filter(type== "ref") %>% 
-  filter(name != "r2") %>% 
-  filter(name != "r4") %>% 
-  filter(name != "r5") %>% 
+l2 <- positions |> filter(type== "ref") |> 
+  filter(name != "r2") |> 
+  filter(name != "r4") |> 
+  filter(name != "r5") |> 
   select(x,y)
 
-plan <- positions %>%
-        filter(type != "ref") %>%
-       # mutate(type ="S") %>%
-        merge(products) %>%
-        select(group, name, type, x,y, z, angle) %>%
-        mutate(rads = angle/180*pi) %>%
-        mutate(θ = rads/2) %>%
+plan <- positions |>
+        filter(type != "ref") |>
+       # mutate(type ="S") |>
+        merge(products) |>
+        select(group, name, type, x,y, z, angle) |>
+        mutate(rads = angle/180*pi) |>
+        mutate(θ = rads/2) |>
         mutate(beamradius = 2 * tan(θ) * z / 2 ) 
 
 #TODO: Using these environment variables was a bad idea. Refactor as a big data frame with key of the instrument name.  
 
 for (i in 1:nrow(plan)) {
-  assign( paste0("p_", plan[i, "name"]), circleFun(x=plan[i, "x"], 
-                                    y=plan[i, "y"], 
-                                    r=plan[i,"beamradius"], 
-                                    fill=plan[i, "type"]  ))
+  assign( paste0("p_", plan[i, "name"])
+  		, circleFun(x=plan[i, "x"]
+  		, y=plan[i, "y"]
+  		, r=plan[i,"beamradius"]
+  		, fill=plan[i, "type"]  ))
 }
 
 makeplot <- function(df) {
@@ -427,7 +491,7 @@ return(g)
 ```
 
 The basic floor plan (stage). 
-```{r echo=FALSE}
+```{r  }
 df <- plan
  g <- ggplot(df) + coord_equal() +
   # geom_path(data=l1, aes(x=x, y=y) ) +
@@ -440,87 +504,74 @@ df <- plan
 g 
 ```
 
-The design has divided up the design into `r plan %>% select(group) %>% unique() %>% count()` zones. Each group would be controlled by its own DMX channel group. 
+The design has divided up the design into `r plan |> select(group) |> unique() |> count()` zones. Each group would be controlled by its own DMX channel group. 
 
-```{r groups, echo=FALSE}
-smry <- plan %>% 
-  group_by(group) %>%
+```{r groups   }
+smry <- plan |> 
+  group_by(group) |>
   summarise(Lamp_Count = n() )
    
-smry %>% formattable(align="l")
+smry |> formattable(align="l")
 ```
-
-[goto top](#TOC)
 
 ## Walls  
 We need to keep the light off the screens so we need to use the spot width lamps next to the walls. With nothing else added, these will create dots on the floor.
-```{r echo=FALSE}
-p1 <- plan %>% 
+```{r  walls477}
+p1 <- plan |> 
    filter(group == "Wall" ) 
 
 makeplot(p1 )
-
-#p1 %>% select(-rads, -θ ) %>% formattable()
 ```
-[goto top](#TOC)
-
+ 
 ## Down Stage (Bulkhead)
 The bulkhead pots can be used to light up the typical vocal area. An eight foot beam diameter should give decent coverage. With all of them on, the centre section wil be brighter than the outside.
 
 For coverage behind the bulkhead, we can use "Two Rows"
 
-```{r echo=FALSE}
-p1 <- plan %>% 
+```{r  }
+p1 <- plan |> 
    filter(group == "Down Stage" ) 
 
 makeplot(p1 )
 
-#p1 %>% select(-rads, -θ ) %>% formattable()
+#p1 |> select(-rads, -θ ) |> formattable()
 ```
-[goto top](#TOC)
-
  
 
 ## Up Stage Centre  
 
 The WF covers most of the riser  
 
-```{r echo=FALSE}
-p1 <- plan %>% 
+```{r  }
+p1 <- plan |> 
    filter(group == "Up Stage" ) 
 
 makeplot(p1 )
 
-#p1 %>% select(-rads, -θ ) %>% formattable()
+#p1 |> select(-rads, -θ ) |> formattable()
 ```
-[goto top](#TOC)
-
+ 
 ## Centre Wash
 
 The there are 10 centre pots are in one groups to wash most of the platform. There will be a hot spot down the centre if all are on at once.
 
 
-```{r echo=FALSE}
-p1 <- plan %>% 
+```{r  }
+p1 <- plan |> 
    filter(group == "Centre"  )   
 
 makeplot(p1)
-
-#p1 %>% select(-rads, -θ ) %>% formattable()
 ```
-
-[goto top](#TOC)
 
 # Ketra Details
-```{r echo=FALSE}
-rbind(pots.w, pots.e) %>% 
-  arrange(group, y, x) %>%
-  kable() %>%
-  column_spec( 1,  bold = TRUE ) %>%
+```{r  }
+rbind(pots.w, pots.e) |> 
+  arrange(group, y, x) |>
+  kable() |>
+  column_spec( 1,  bold = TRUE ) |>
   kable_styling("striped", full_width = TRUE)
 ```
-[goto top](#TOC)
-
+ 
 ## Transition Delay
 The systems supports several profiles:
 
@@ -544,15 +595,14 @@ df <- tribble (
   "T",     "Maximum delay time", T <- 2.7 * ceiling(N*G/45)
 )
 
-df %>% kable() %>%
-  column_spec( 1 ,  bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
+df   |>
+	gt() |>
+	opt_stylize(style=3)
 ```
 
 In this design there are `r G`  groups all using the RGB profile. The expected maximum transition time is `r T` seconds.
 
-[goto top](#TOC)
-
+ 
 # Appendix
 
 # The Room
@@ -569,16 +619,16 @@ In this design there are `r G`  groups all using the RGB profile. The expected m
   "Front to back along centre line", 90, 2,
   "Distance (y dimension)  for corners of SW/NW wall meet",  23, 2,
   "Corner to corner distance", 123, 2
-) %>% 
-  mutate(Distance = Feet + Inches/12) %>%
-  kable() %>%
-  column_spec( 1,  bold = TRUE ) %>%
+) |> 
+  mutate(Distance = Feet + Inches/12) |>
+  kable() |>
+  column_spec( 1,  bold = TRUE ) |>
   kable_styling("striped", full_width = TRUE)
 ```
 
 ## Floor Plan
 Reference location "r1" is the "zero" point.
-```{r room, echo=FALSE}
+```{r room }
 ggplot() + 
         coord_equal() +  
         geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
@@ -590,33 +640,30 @@ ggplot() +
 ```
 
 ```{r l912}
-all.refs %>%
-  select(-group) %>%
-  kable() %>%  
-  column_spec( 1,  bold = TRUE ) %>%
+all.refs |>
+  select(-group) |>
+  kable() |>  
+  column_spec( 1,  bold = TRUE ) |>
   kable_styling("striped", full_width = TRUE)
   
 ```
 
-[Back to top](#top)
-
+ 
 # Network Details
 The lighting system has few network components. RJ45 and cat6 cabling is used for some interconnects - the protocol is DMX not ethernet.
 
 ```{r} 
-NetworkInventory %>% 
-  filter(Category=="Lighting") %>% 
-  select(Location, Usage, Device, MAC, IP, URL, Notes) %>%
-  kable() %>%
-  column_spec( 1,  bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
+NetworkInventory |> 
+  filter(Category=="Lighting") |> 
+  select(Location, Usage, Device, MAC, IP, URL, Notes) |>
+	gt() |>
+	opt_stylize(style=3)
 ```
 
-[Back to top](#top)
-
+ 
 # Lighting Equipment Inventory
 
-```{r inventory, echo=FALSE, asis=TRUE}
+```{r inventory }
  
 cs = c("AssetTag","Qty"  ,
   "Manufacturer" ,
@@ -626,16 +673,14 @@ cs = c("AssetTag","Qty"  ,
   "Type" ,
   "Desc"     )
 
-Tech_Inventory %>%  
-          filter( Category=="Lighting" , InService== "Y") %>%  
-          dplyr::select(one_of(cs)) %>% 
-          arrange(AssetTag) %>%
-          kable(align="l" )  %>%
-          column_spec( 1,  bold = TRUE ) %>%
-          kable_styling("striped", full_width = TRUE)
+assets |>  
+          filter( Category=="Lighting" 
+          		, InService== "Y") |>  
+          dplyr::select(one_of(cs)) |> 
+          arrange(AssetTag) |>
+	gt() |>
+	opt_stylize(style=3)
 ```
-
-[Back to top](#top)
 
 # Appendix
 
@@ -650,21 +695,4 @@ Each one needs two channels.
 
 Intensity of zero is stop. The closer to 50 the slower it rotates. 1-49 and 50-100 rotate in opposite directions.
 
-[Back to top](#top)
-
-`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
-
-[Back to top](#top)
-
-```{r current_input}
-ci <- knitr::current_input() # knitr sees a different filename than the input
-ci <- str_replace(ci, 'rmarkdown','qmd')
-```
-
-# Document Source
-This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc) "`r ci`".
-
-# Change History
-```{r change_history}
-commit.log.html(  ci )
-```
+{{< include common_trailer.qmd >}}

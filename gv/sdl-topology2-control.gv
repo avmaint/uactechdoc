@@ -7,7 +7,7 @@ node [shape=Mrecord, tooltip="" ,
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
-subgraph cluster_avroom {  label='AV Room'
+subgraph cluster_avroom {  label="AV Room"
   ZLIUA003 [label="{<i>dmx|Ketra N3\nZLIU-A003|{<d>dmx|<k>kn}}"]
   ZLIUB001 [label="{<i>dmx|Ketra N3\nZLIU-B001|{<d>dmx|<k>kn}}"] 
   ZLIUB002 [label="{<i>dmx|Ketra N3\nZLIU-B002|{<d>dmx|<k>kn}}"] 
@@ -32,7 +32,7 @@ ZLIUB002:d -> ZLIUB003:i
 ZLIUA003:k, ZLIUB001:k, ZLIUB002:k, ZLIUB003:k -> ketranet  
 n1       -> ketranet
 
-subgraph cluster_room { label='Room'
+subgraph cluster_room { label="Room"
   ketraStage         [label="Pots over stage"]  
   ketraSconce        [label="Sconce Lights"]
   ketraUnderPots     [label="Under Balcony Pots"]
