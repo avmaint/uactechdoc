@@ -190,12 +190,7 @@ cables |>
 				 						rows = DstPort == 'in8'))
 ```
 
-```{dot fig-atem-inputs}
-//| fig-cap: Inputs to ATEM
-//| cap-location: bottom
-//| label: fig-atem-inputs
-//| file:  gv/sov-atem-inputs.gv
-```
+ 
 
 In addition to the eight physical inputs, there are several more internal inputs.
 This is the complete list and the associated key combination for that source.
@@ -277,7 +272,7 @@ cables |>
 				Desc    = "Destination Description")  
 ```
 
-```{dot fig-atem-outputs}
+```{dot fig-atem-outputs }
 //| label: fig-atem-outputs
 //| fig-cap: ATEM Outputs
 //| cap-location: bottom
@@ -700,17 +695,18 @@ The webpresenter can also be used for video calls, see @sec-video-call.
 target <- wp <- c('ZVIU-A004', "ZVKU-A003" )
 
 xd <- c("2308-1124","ZVIU-C001","ZVIU-E003","ZVIU-A008"
+		, "ZVKU-A001"
 		,"ZVCU-A001","ZVCU-A002", "ZVCU-A003"
 		, "2307-2306", "2308-1123", "ZVIU-D002")
 diag <- get_diagram(target , assets, cables
-					, exc_dev =NA
+					, exc_dev =xd
 					, label= '"Web Presenter Connections"'
 					, rankdir ="TB")
 
 write_file(diag, "_work/diag598.gv")
 ```
 
-```{dot   }
+```{dot wpcon   }
 //| fig-cap: Web Presenter Connections
 //| cap-location: bottom
 //| label: fig-wp-conn
@@ -766,7 +762,11 @@ Whatever is on the program output at the time is what our audience will see.
 
 Here is a diagram of the signal flow:
 
-```{dot}
+```{dot livestream  }
+//| fig-cap: Livestream
+//| cap-location: bottom
+//| label: fig-livestream
+//| fig-width: 2
 digraph livestreaming { 
   
 graph [overlap = true, fontsize = 20, 
@@ -815,11 +815,12 @@ We used to stream directly to Facebook using the OBS program on the computer.
 This is still possible but not part of normal operations.
 This is what the signal flow looks like in this case.
 
-```{dot}
+```{dot lsfromcomp }
 //| fig-cap: Livestreaming from the Computer
 //| cap-location: bottom
 //| label: fig-ls-comp
 //| file:  ./gv/sov-ls-obs.gv
+//| fig-width: 3
 ```
  
 The video mixer output is sent to the input of the "Web Presenter" box.
