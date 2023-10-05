@@ -65,20 +65,34 @@ get_device_code <- function(targets, inventory, cables) {
 get_cable_code <- function(target_cables, cables) {
 
 	cable_code <- target_cables |>
-		mutate(SrcTag2 = tolower(str_replace(SrcTag, "-", ""))) |>
-		mutate(DstTag2 = tolower(str_replace(DstTag, "-", ""))) |>
-		mutate(SrcPort = str_replace(SrcPort, ' ' , '')) |>
-		mutate(DstPort = str_replace(DstPort, ' ' , '')) |>
-		mutate(SrcPort2 = ifelse(is.na(SrcPort), "", glue(": {SrcPort}"))) |>
-		mutate(DstPort2 = ifelse(is.na(DstPort), "", glue(": {DstPort}"))) |>
+		filter(! (SrcIsCable | DstIsCable)) |> # extensions handle separately	
 		mutate(cc = cable_color(Type)) |>
-		mutate(usage2 = ifelse( is.na(Usage), "",  glue("{Usage} ")) ) |>
-		mutate(label = glue('[label= "{Tag}\n{usage2}{Type}" color={cc} ]' )) |> 
+		mutate(label = glue('[label= "{Tag}\n{Usage2}{Type}" color={cc} ]' )) |> 
 		mutate(code = glue( 
-			"{SrcTag2} {SrcPort2} -> {DstTag2} : {DstPort} {label} "
+			"{SrcTag2} {SrcPort2} -> {DstTag2} {DstPort2} {label} "
 		))
 	
 	return( paste(cable_code$code , collapse = "\n")	)	
+}
+
+get_extension_node <- function(tcables) {
+	set1 <- tcables |>
+		filter(  DstIsCable) |> 
+		mutate(code = glue("{Tag2}{DstTag2} [label=\"\" shape=point]\n"))
+	return( paste(set1$code , collapse = "\n")	)	
+}
+
+get_extension_edge <- function(tcables) {
+	edge1 <- tcables |>
+		filter(  DstIsCable) |> 
+		mutate(code = glue("{SrcTag2}{SrcPort2} -> {Tag2}{DstTag2} [label=\"{Tag}\n{Usage2}\"]\n"))
+
+	edge2 <- tcables |>
+		filter(  SrcIsCable) |> 
+		mutate(code = glue("{SrcTag2}{Tag2} -> {DstTag2}{DstPort2} [label=\"{Tag}\n{Usage2}\"]\n"))
+
+	edges <- c(edge1$code, edge2$code)
+	return( paste(edges , collapse = "\n")	)	
 }
 
 get_diagram <- function(targets, inventory, cables, label=NA
@@ -93,7 +107,17 @@ get_diagram <- function(targets, inventory, cables, label=NA
 	label <- ifelse(is.na(label) , my_label, label)  
 	
 	target_cables <- cables |>
-		filter(SrcTag %in% targets | DstTag %in% targets)  
+		filter(SrcTag %in% targets | DstTag %in% targets)  |>
+		mutate(SrcIsCable = SrcTag %in% cables$Tag) |>
+		mutate(DstIsCable = DstTag %in% cables$Tag) |>
+		mutate(SrcTag2 = tolower(str_replace(SrcTag, "-", ""))) |>
+		mutate(DstTag2 = tolower(str_replace(DstTag, "-", ""))) |>
+		mutate(SrcPort2 = str_replace(SrcPort, ' ' , '')) |>
+		mutate(DstPort2 = str_replace(DstPort, ' ' , '')) |>
+		mutate(SrcPort2 = ifelse(is.na(SrcPort), "", glue(": {SrcPort2}"))) |>
+		mutate(DstPort2 = ifelse(is.na(DstPort), "", glue(": {DstPort2}"))) |>
+		mutate(Tag2 = tolower(str_replace(Tag, "-", "")))  |>
+		mutate(Usage2 = ifelse( is.na(Usage), "",  glue("{Usage} ")) ) 
 	
 	if ( !missing(exc_dev) )  {
 		target_cables <- target_cables |> filter(!(SrcTag %in% exc_dev) & !(DstTag %in% exc_dev) )
@@ -127,6 +151,8 @@ edge [fontsize=8]
 		"  
 	, get_device_code(target_devices, inventory, cables)
 	, get_cable_code(target_cables, cables)
+	, get_extension_node(target_cables)
+	, get_extension_edge(target_cables)
 	, "}") 
 	
 	return( diag )
