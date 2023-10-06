@@ -1,6 +1,5 @@
 ---
 title: "System Design - Lighting"
-author: "UAC Media Arts"
 execute: 
   eval: true
   echo: false
@@ -19,11 +18,6 @@ editor:
 
 ```{r packages}
 source("commonPackages.R")
-
-require(readr) 
-require(knitr)
-require(formattable)
-require(kableExtra)
 ```
 
 ```{r functions}
@@ -48,47 +42,49 @@ fin <- function(f, i) {
 
 ```{r getdata, include=FALSE}
 NetworkInventory <- get.network()
-assets <- get.assets()
-dmx.details <- get.dmxdetails() 
-cables <- get.cables()
+assets           <- get.assets()
+dmx.details      <- get.dmxdetails() 
+cables           <- get.cables()
 ```
 
 # Introduction
 
-This document provides key technical documentation design for the lighting subsystems at UAC. The intended audience of thsi document are the people who need to manage and maintain the system. 
+This document provides key technical documentation design for the lighting subsystems at UAC.
+The intended audience of this document are the people who need to manage and maintain the system.
 
 Purpose of the lighting system:
 
-* Necessary to help the hearing impaired ( roughly 10% of the population) to lip read
-* Supports video recording
-* Helps draw attention to the central item – conversely makes it easier to ignore clutter
-* Helps audience to focus and concentrate
-* Reinforces the message (spoken or sung)
+-   Necessary to help the hearing impaired ( roughly 10% of the population) to lip read
+-   Supports video recording
+-   Helps draw attention to the central item -- conversely makes it easier to ignore clutter
+-   Helps audience to focus and concentrate
+-   Reinforces the message (spoken or sung)
+- 	Creates a immersive and beautiful environment in which to worship
 
-There are two mechanisms to control the lighting: 
+There are two mechanisms to control the lighting:
 
-* A touch panel located on the main floor by the south east auditorium doors. Users can select one of several preset configurations. 
-* For more sophisticated control, The primary lighting control console  is an ETC ColorSource 40AV console.  It is used for all lighting operations more sophisticated than can be accomplished via the touchpad panel.
+-   A touch panel located on the main floor by the south east auditorium doors. Users can select one of several preset configurations.
+-   For more sophisticated control, The primary lighting control console is an ETC ColorSource 40AV console. It is used for all lighting operations more sophisticated than can be accomplished via the touchpad panel.
 
- 
 # Control Systems
 
-There are two different protocols used to control the lighting levels of our major auditorium lighting systems: 
+There are two different protocols used to control the lighting levels of our major auditorium lighting systems:
 
 * DMX, which is the backbone protocol. We use only one DMX universe for output.
 * and KetraNet Mesh wireless
 
-How these systems are interconnected is depcited on the diagrams below. 
+How these systems are interconnected is depicted on the diagrams below.
 
-The handrail lighting in the balcony and the emergency lighting are independent systems. 
+The handrail lighting in the balcony and the emergency lighting are independent systems.
 
 ### DMX Topology
 
 The console is protected from power surges via an opto-isolator/DMX splitter.
 
->TODO: Document the details of the echo node and the N3 box connections.
->TODO: Document the  ETC dmx relay box in the attic.
- 
+:::{.callout-note}
+TODO: Document the ETC dmx relay box in the attic.
+:::
+
 ```{r dmx_control}
 dmx_control <- c( 
 		  "ZLKU-C001"
@@ -97,7 +93,6 @@ dmx_control <- c(
 		, "2310-0223" 
 		, "2310-0211" 
 		, "2310-0202", "2310-0204"
-	
 		 )
 xd <- c("ZLKU-B002", "ZLLU-B054"
 		, "ZLLU-B052", "bt_node")
@@ -114,7 +109,7 @@ tf <- "_work/sdl-dmx_control.png"
 grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 #system(glue("open {tf}"))
 ```
- 
+
 ```{dot fig-sdl-dmx_control }
 //| label: fig-sdl-dmx_control
 //| fig-cap: Control Topology (generated)
@@ -130,12 +125,7 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 ```
 
 ```{r top1}
-selected.at <- c( "ZLKU-C001",  
-				  "CDWU-0009",
-                  "ZVKU-A001", "ZLIU-0003"
-				  , "ZLIU-A002"
-				  , "ZLIU-A001", "ZLIU-A003" 
-              ) 
+selected.at <- dmx_control
 
 assets |> 
 	filter(AssetTag %in% selected.at) |>
@@ -147,8 +137,7 @@ assets |>
 
 ### KetraNet Topology
 
-
->TODO: fix balcony subgraph
+> TODO: fix balcony subgraph
 
 ```{dot fig-sdl-topology2-control }
 //| label: fig-sdl-topology2-control
@@ -173,17 +162,18 @@ assets |>
 	opt_stylize(style=3) 
 ```
 
- 
-## ETC Echo Control Topology  
+## ETC Echo Control Topology
 
-There is a simple lighting control panel located next to the auditorium doors by the main office (south east). It enables the house lights to set according to several pre-defined looks. 
+There is a simple lighting control panel located next to the auditorium doors by the main office (south east).
+It enables the house lights to set according to several pre-defined looks.
 
-The keypad and the main console can conflict with each other. When running from the console, the keypad should be in "Console Mode".  
+The keypad and the main console can conflict with each other.
+When running from the console, the keypad should be in "Console Mode".
 
-:::{.callout-note}
+::: callout-note
 The sconce lights has a timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well.
 :::
- 
+
 ```{r echo_control}
 
 echo_control <- c(     
@@ -206,18 +196,19 @@ tf <- "_work/sdl-echo_control.png"
 grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 # system(glue("open {tf}"))
 ```
- 
+
 ```{dot fig-sdl-dmx_control }
 //| label: fig-sdl-echo_control
 //| fig-cap: Echo Control Topology (generated)
 //| cap-location: bottom
 //| file: _work/sdl-echo_control.gv
 ```
- 
 
 The lighting instruments which are hung from the balcony bars cannot be controlled from the keypad due to the point in the topology where unison and dmx are merged.
 
-The programming is managed via the Echo Access app which communicates via bluetooth. There is a configuration menu item in the app. There are three items that each contribute to the configuration.
+The programming is managed via the Echo Access app which communicates via bluetooth.
+There is a configuration menu item in the app.
+There are three items that each contribute to the configuration.
 
 > TODO: add commentary before each of the following lists.
 
@@ -226,15 +217,19 @@ The programming is managed via the Echo Access app which communicates via blueto
 > TODO: Fill in the details of the tasks which can be accomplished via each of these three sections.
 
 Access BT Interface
-: The second page is where you assign names
+
+:   The second page is where you assign names
 
 Inspire 8 Button
-: Associates Button actions to presets. See @fig-keypad-index
+
+:   Associates Button actions to presets.
+    See @fig-keypad-index
 
 > TODO: need to define behaviours for: single click, double click, press and hold.
 
 DMX Scene Controller
-: The second page is where the ZONE defintions are managed, including the DMX assignments and the instrument footprint (RGB, IRGBS, etc).
+
+:   The second page is where the ZONE definitions are managed, including the DMX assignments and the instrument footprint (RGB, IRGBS, etc).
 
 The app also allows for direct control of the presets.
 
@@ -255,10 +250,12 @@ keypad |>
 	gt() |>
 	opt_stylize(style=3)
 ```
- 
-> todo: Control of the ADJ Ultrabar 12 devices on the walls presents a challenge. These are configured as 12 address devices. This DMX footprint is not directly supported by the echo equipment.   
 
-:::{.callout-note}
+> todo: Control of the ADJ Ultrabar 12 devices on the walls presents a challenge.
+> These are configured as 12 address devices.
+> This DMX footprint is not directly supported by the echo equipment.
+
+::: callout-note
 Any one DMX address can only belong to one Zone.
 :::
 
@@ -270,7 +267,6 @@ zones2dmx |>
 	gt() |>
 	opt_stylize(style=3)
 ```
-
 
 ```{r configReport}
 rs <- keypad |>
@@ -290,7 +286,7 @@ rs.new <- zones2dmx |>
 rs <-rs.new
 ```
 
-This table defines the detailed programming for each Button, Preset and Zone. 
+This table defines the detailed programming for each Button, Preset and Zone.
 
 ```{r}
 rs |>  
@@ -302,11 +298,12 @@ rs |>
 
 ## Balcony Railing Lights
 
-These white only strip lights are dimmable and are manually operated. The swtich is located near the East balcony door.
+These white only strip lights are dimmable and are manually operated.
+The swtich is located near the East balcony door.
 
 ## DMX Address Map
 
-```{r}
+```{r dmxmap}
 dmxmap <- tribble(
   ~DMX.Lo, ~DMX.Hi, ~Comments,
   1, 11,        "FoH Bar - Centre",
@@ -321,25 +318,47 @@ dmxmap <- tribble(
 458, 465+5-1,   "Balcony Bar- could be readdressed to make room.",
 86, 213+6-1,    "Wash Bulkhead",
 
-NA , NA, "Rotators - 2 channels each. Will be used in the future.",
+NA , NA, "Rotators - 2 channels each. ",
 384, 384+8-1, "NO LONGER USED."
 )
 
-dmxmap |>
+tab <- dmxmap |>
   arrange(DMX.Lo) |>
 	gt() |>
 	opt_stylize(style=3)
+gtsave(tab, filename="_work/sdl-dmxmap.png")
 ```
+
+![DMX Map](_work/sdl-dmxmap.png){#fig-dmxmap}
 
 ## Channel and DMX Details
 
-```{r}
-dmx.details |> 
-  select(Channel, DMX.Lo, Circuit, Location, Type, 
+```{r dmx_details}
+tab1 <- dmx.details |> 
+  select(Channel, DMX.Lo, Location, Type, 
          InsturmentCount, Mode, Usage) |>
+	filter(Channel <41) |>
 	gt() |>
-	opt_stylize(style=3)
+	tab_header("Channels 1-40") |>
+	opt_stylize(style=3) |>
+	cols_label(InsturmentCount = "Count"
+			   , DMX.Lo = "DMX")
+
+tab2 <- dmx.details |> 
+  select(Channel, DMX.Lo, Location, Type, 
+         InsturmentCount, Mode, Usage) |>
+	filter(Channel >40) |>
+	gt() |>
+	tab_header("Channels 41-80") |>
+	opt_stylize(style=3) |>
+	cols_label(InsturmentCount = "Count"
+			   , DMX.Lo = "DMX")
+
+gtsave(tab1, filename="_work/sdl-dmxdetails1.png")
+gtsave(tab2, filename="_work/sdl-dmxdetails2.png")
 ```
+
+![DMX Details](./_work/sdl-dmxdetails1.png){#fig-dmxdetails1} ![DMX Details](./_work/sdl-dmxdetails2.png){#fig-dmxdetails2}
 
 # Power Distribution Systems
 
@@ -350,7 +369,7 @@ dmx.details |>
 //| file: gv/sdl-topology3-power.gv
 ```
 
-## Circuit Destinations 
+## Circuit Destinations
 
 Lines refer to power distribution circuits from the balcony closet to east and west lighting bars, the balcony, the stage and attic.
 
@@ -365,32 +384,38 @@ circuits <- tribble(
    40,42 ,  "Stage Floor",       "Electrical Room"
 )
 
-circuits |> 
+tab <- circuits |> 
   select("Circuit.Lo", 	"Circuit.Hi", "Source", "Destination") |>
 	gt() |>
 	opt_stylize(style=3)
+
+gtsave(tab, "_work/sdl-circuits.png")
 ```
+
+![Circuit Destinations](_work/sdl-circuits.png){#fig-circuits}
 
 {{< include commonLightingPlots.qmd >}}
 
 # House Lighting
+
 The house lights consists for many major components:
-    
+
 ## Control
+
 The house lights (except the railing) can be controlled in two ways:
- 
-#. Via the keypad panel 
-    * Located at the front of the auditorium, office side.
-    * Allows the selection of one of eight preset scenes.
 
-#. Via the Colorsource 40AV console
-    * Located in the balcony on th erear desk.
-    * many sophisticated looks can be programmed into the console.
+1.  Via the keypad panel
+    -   Located at the front of the auditorium, office side.
+    -   Allows the selection of one of eight preset scenes.
+2.  Via the Colorsource 40AV console
+    -   Located in the balcony on th erear desk.
+    -   many sophisticated looks can be programmed into the console.
 
-The commands from these two control points are added together. Essentially the brightest level from either control dicates the brightness of any light. 
-    
->TODO: need to add discussion about the sconce light and the interaction between the 3-way switch, timer and touchpad.    
-    
+The commands from these two control points are added together.
+Essentially the brightest level from either control dicates the brightness of any light.
+
+> TODO: need to add discussion about the sconce light and the interaction between the 3-way switch, timer and touchpad.
+
 ## Programming
 
 > TBD - how to program the touchpad scenes.
@@ -417,13 +442,21 @@ a <- 0.7 # Alpha for graphics
 
 lamps <- merge(products, locations)  |> mutate(rads = angle/180*pi)
 ```
-Ketra S38 product comes in `r nrow(products)` different beam angles:
+
+Ketra S38 product comes in `r nrow(products)` different beam angles, see @fig-products.
+
 ```{r products}
-products |>
+tab <- products |>
 	gt() |>
 	opt_stylize(style=3)
+gtsave(tab, "_work/sdl-products.png")
 ```
-For the pots on the west side of the stage I have measured the position of each pot (give or take an inch or three). The east side is taken as the mirror image. This is a pretty good assumption but there is at least one notable exception; one pot is out of place and the stage is not symmetrical. 
+
+![Ketra S38 Beam Width by Product](./_work/sdl-products.png){#fig-products width=60mm}
+
+The pots on the west side of the stage, the position of each pot has been measured (± 3 inches ).
+The east side is taken as the mirror image.
+This is a pretty good assumption but there is at least one notable exception; one pot is out of place and the stage is not symmetrical.
 
 ```{r trig}
 # based on pots w2 and w15 - w15 on a 28" riser"
@@ -436,7 +469,7 @@ lamps <- lamps |>
 	mutate(θ = rads/2) |>
          mutate(beamradius = 2 * tan(θ) * height / 2 )
 ```
- 
+
 ```{r plan }
 positions <- rbind(pots.w, pots.e, stage.refs)
 
@@ -490,8 +523,11 @@ return(g)
 }
 ```
 
-The basic floor plan (stage). 
-```{r  }
+The basic floor plan (stage). See @fig-basic-floor
+
+```{r fig-basic-floor }
+#| label: fig-basic-floor
+#| fig-cap: Basic Floor Plan
 df <- plan
  g <- ggplot(df) + coord_equal() +
   # geom_path(data=l1, aes(x=x, y=y) ) +
@@ -504,31 +540,47 @@ df <- plan
 g 
 ```
 
-The design has divided up the design into `r plan |> select(group) |> unique() |> count()` zones. Each group would be controlled by its own DMX channel group. 
+The design has divided up the design into `r plan |> select(group) |> unique() |> count()` zones.
+Each group would be controlled by its own DMX channel group.
 
 ```{r groups   }
+#| label: fig-ketra-groups
+#| fig-cap: Ketra Groups
+#| cap-location: bottom
 smry <- plan |> 
   group_by(group) |>
   summarise(Lamp_Count = n() )
    
-smry |> formattable(align="l")
+smry |> 
+	gt() |>
+	opt_stylize(style=3)
 ```
 
-## Walls  
-We need to keep the light off the screens so we need to use the spot width lamps next to the walls. With nothing else added, these will create dots on the floor.
+## Walls
+
+We need to keep the light off the screens so we need to use the spot width lamps next to the walls.
+With nothing else added, these will create dots on the floor.
+
 ```{r  walls477}
+#| label: fig-walls
+#| fig-cap: Walls
 p1 <- plan |> 
    filter(group == "Wall" ) 
 
 makeplot(p1 )
 ```
- 
+
 ## Down Stage (Bulkhead)
-The bulkhead pots can be used to light up the typical vocal area. An eight foot beam diameter should give decent coverage. With all of them on, the centre section wil be brighter than the outside.
+
+The bulkhead pots can be used to light up the typical vocal area.
+An eight foot beam diameter should give decent coverage.
+With all of them on, the centre section wil be brighter than the outside.
 
 For coverage behind the bulkhead, we can use "Two Rows"
 
-```{r  }
+```{r fig-downstage }
+#| label: fig-downstage
+#| fig-cap: Down Stage
 p1 <- plan |> 
    filter(group == "Down Stage" ) 
 
@@ -536,13 +588,14 @@ makeplot(p1 )
 
 #p1 |> select(-rads, -θ ) |> formattable()
 ```
- 
 
-## Up Stage Centre  
+## Up Stage Centre
 
-The WF covers most of the riser  
+The WF covers most of the riser
 
-```{r  }
+```{r  fig-upstagecentre }
+#| label: fig-upstagecentre
+#| fig-cap: Upstage Centre
 p1 <- plan |> 
    filter(group == "Up Stage" ) 
 
@@ -550,13 +603,15 @@ makeplot(p1 )
 
 #p1 |> select(-rads, -θ ) |> formattable()
 ```
- 
+
 ## Centre Wash
 
-The there are 10 centre pots are in one groups to wash most of the platform. There will be a hot spot down the centre if all are on at once.
+The there are 10 centre pots are in one groups to wash most of the platform.
+There will be a hot spot down the centre if all are on at once.
 
-
-```{r  }
+```{r fig-centrewash }
+#| label: fig-centrewash
+#| fig-cap: Centre Wash
 p1 <- plan |> 
    filter(group == "Centre"  )   
 
@@ -564,26 +619,28 @@ makeplot(p1)
 ```
 
 # Ketra Details
+
 ```{r  }
 rbind(pots.w, pots.e) |> 
   arrange(group, y, x) |>
-  kable() |>
-  column_spec( 1,  bold = TRUE ) |>
-  kable_styling("striped", full_width = TRUE)
+	gt()|>
+	fmt_number(decimals=2)
+#  kable() |>
+#  column_spec( 1,  bold = TRUE ) |>
+#  kable_styling("striped", full_width = TRUE)
 ```
- 
+
 ## Transition Delay
+
 The systems supports several profiles:
 
-* RGB  - Red, Green, Blue 
+* RGB - Red, Green, Blue
 * RGBW - RGB plus White
 * RGBIF - RGB plus Intensity and Fade Time
 
-The maximum delay time required to execute a lighting transition follows this formula:
-$$
+The maximum delay time required to execute a lighting transition follows this formula: $$
 T = 2.7 \times {ceiling} (  \frac {N \times G} {45})
-$$
-where:
+$$ where:
 
 ```{r}
 df <- tribble (
@@ -595,21 +652,23 @@ df <- tribble (
   "T",     "Maximum delay time", T <- 2.7 * ceiling(N*G/45)
 )
 
-df   |>
+df |>
 	gt() |>
 	opt_stylize(style=3)
 ```
 
-In this design there are `r G`  groups all using the RGB profile. The expected maximum transition time is `r T` seconds.
+In this design there are `r G` groups all using the RGB profile.
+The expected maximum transition time is `r T` seconds.
 
- 
 # Appendix
 
 # The Room
+
 ## Measurements
+
 ```{r}
   tribble(
-  ~Object, ~Feet, ~Inches, 
+  ~Object,      ~Feet, ~Inches, 
   "SW Wall",      71,  10,  
   "South Wall",   21,  3, 
   "NW Wall",      55, 11, 
@@ -621,13 +680,14 @@ In this design there are `r G`  groups all using the RGB profile. The expected m
   "Corner to corner distance", 123, 2
 ) |> 
   mutate(Distance = Feet + Inches/12) |>
-  kable() |>
-  column_spec( 1,  bold = TRUE ) |>
-  kable_styling("striped", full_width = TRUE)
+  gt() |>
+	fmt_number( decimals =2)
 ```
 
 ## Floor Plan
+
 Reference location "r1" is the "zero" point.
+
 ```{r room }
 ggplot() + 
         coord_equal() +  
@@ -642,17 +702,19 @@ ggplot() +
 ```{r l912}
 all.refs |>
   select(-group) |>
-  kable() |>  
-  column_spec( 1,  bold = TRUE ) |>
-  kable_styling("striped", full_width = TRUE)
-  
+  gt() |>	
+  fmt_number(decimals =2)	
+#  kable() |>  
+#  column_spec( 1,  bold = TRUE ) |>
+#  kable_styling("striped", full_width = TRUE)
 ```
 
- 
 # Network Details
-The lighting system has few network components. RJ45 and cat6 cabling is used for some interconnects - the protocol is DMX not ethernet.
 
-```{r} 
+The lighting system has few network components.
+RJ45 and cat6 cabling is used for some interconnects - the protocol is DMX not Ethernet.
+
+```{r}
 NetworkInventory |> 
   filter(Category=="Lighting") |> 
   select(Location, Usage, Device, MAC, IP, URL, Notes) |>
@@ -660,7 +722,6 @@ NetworkInventory |>
 	opt_stylize(style=3)
 ```
 
- 
 # Lighting Equipment Inventory
 
 ```{r inventory }
@@ -687,12 +748,16 @@ assets |>
 # Accessories
 
 ## GOBO Rotators
->Needs to be updated. DMX info is out-of-date.
+
+> Needs to be updated.
+> DMX info is out-of-date.
 
 Each one needs two channels.
 
-* n is a control channel, n+1 must be zero.
+-   n is a control channel, n+1 must be zero.
 
-Intensity of zero is stop. The closer to 50 the slower it rotates. 1-49 and 50-100 rotate in opposite directions.
+Intensity of zero is stop.
+The closer to 50 the slower it rotates.
+1-49 and 50-100 rotate in opposite directions.
 
 {{< include common_trailer.qmd >}}
