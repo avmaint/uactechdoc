@@ -49,6 +49,8 @@ Purpose of the lighting system:
 * Helps draw attention to the central item – conversely makes it easier to ignore clutter
 * Helps audience to focus and concentrate
 * Reinforces the message (spoken or sung)
+* Creates a immersive and beautiful environment in which to worship
+
 
 There are two mechanisms to control the lighting: 
 

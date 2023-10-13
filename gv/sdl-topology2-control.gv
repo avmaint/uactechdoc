@@ -1,18 +1,23 @@
-digraph topology1 { 
-graph [overlap = true, fontsize = 10, rankdir=TB 
+digraph topology_ketranet  { 
+graph [overlap = true  rankdir=TB 
       tooltip="Control Topology - KetraNet",
+      label="Control Topology - KetraNet\nAsof 2023-10-06"
+      fontsize=16
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , 
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
-subgraph cluster_avroom {  label="AV Room"
+subgraph cluster_avroom {  
+	label="AV Room"  
+ 
   ZLIUA003 [label="{<i>dmx|Ketra N3\nZLIU-A003|{<d>dmx|<k>kn}}"]
   ZLIUB001 [label="{<i>dmx|Ketra N3\nZLIU-B001|{<d>dmx|<k>kn}}"] 
   ZLIUB002 [label="{<i>dmx|Ketra N3\nZLIU-B002|{<d>dmx|<k>kn}}"] 
   ZLIUB003 [label="{<i>dmx|Ketra N3\nZLIU-B003|{<d>dmx|<k>kn}}"] 
   pathway  [label="Pathway\nZLIU-A001"]
+  pathway -> ZLIUB001, ZLIUB002 , ZLIUB003 [style=invis]
 }
 
 subgraph cluster_balcony {  label="Balcony"
@@ -20,10 +25,10 @@ subgraph cluster_balcony {  label="Balcony"
    computer [label="{{Computer\nCDWU-0009}|{ <usb>usb }}"]
 }
 
-ketranet [label="Ketranet\nMesh\nNetwork"]
+ketranet [label="Ketranet\nMesh\nNetwork" fillcolor="green:beige"]
 
 computer:usb -> n1:i
-pathway:o1 -> ZLIUA003 [label="port to be confirmed"]
+pathway:o1 -> ZLIUA003  
 
 ZLIUA003:d -> ZLIUB001:i
 ZLIUB001:d -> ZLIUB002:i
@@ -41,16 +46,4 @@ subgraph cluster_room { label="Room"
 }
 
 ketranet -> ketraStage, ketraSconce, ketraUnderPots, ketraUpperPendants, ketraHousePendant
-  
-Node [shape=plaintext, fillcolor=white]
-stamp [label= <<table>
-<tr><td>Title</td>
-    <td>Control Topology - KetraNet</td>
-</tr>    
-<tr><td>As of</td>
-    <td>2019-05-22</td>
-</tr>
-</table>> ]  
-
-{rank=same; computer stamp   }
 } 

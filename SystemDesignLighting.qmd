@@ -68,9 +68,10 @@ There are two mechanisms to control the lighting:
 
 # Control Systems
 
-There are two different protocols used to control the lighting levels of our major auditorium lighting systems:
+There are three different protocols used to control the lighting levels of our major auditorium lighting systems:
 
-* DMX, which is the backbone protocol. We use only one DMX universe for output.
+* DMX, [an industry standard protocol](https://en.wikipedia.org/wiki/DMX512), is the backbone. We use only one DMX universe for output
+* ETC Echonet
 * and KetraNet Mesh wireless
 
 How these systems are interconnected is depicted on the diagrams below.
@@ -92,7 +93,7 @@ dmx_control <- c(
 		, "2310-0220"
 		, "2310-0223" 
 		, "2310-0211" 
-		, "2310-0202", "2310-0204"
+		, "2310-0202", "2310-0204", "ZLIU-A004"
 		 )
 xd <- c("ZLKU-B002", "ZLLU-B054"
 		, "ZLLU-B052", "bt_node")
@@ -273,33 +274,36 @@ rs <- keypad |>
   merge(keypad2preset) |>
   merge(preset2zone )
 
-require(sqldf)  
-rs.old <- sqldf("Select Button, Name, Preset, z.Zone, B_Description, Z_Description, Details 
-            from zones2dmx as z, rs as rs 
-            where z.Zone = rs.Zone
-            ")
-# no idea why merge didn't work!
-
 rs.new <- zones2dmx |>
 	inner_join(rs, by=join_by(Zone) )
-
-rs <-rs.new
 ```
 
-This table defines the detailed programming for each Button, Preset and Zone.
+This table defines the detailed programming for each Button, Preset and Zone, @fig-detailed-program.
 
-```{r}
-rs |>  
+```{r fig-detailed-program}
+tab1 <- rs.new |>
+	filter(Button <5) |>
   arrange(Button, Name, B_Description, Preset, Zone) |>
 	gt(groupname_col = c("Button", "Name", "B_Description") ) |>
 	tab_header("Detailed program for each Button, Preset and Zone") |>
 	opt_stylize(style=3)
+gtsave(tab1, "./_work/sdl-detail-program1.png")
+tab2 <- rs.new |>
+	filter(Button > 4) |>
+  arrange(Button, Name, B_Description, Preset, Zone) |>
+	gt(groupname_col = c("Button", "Name", "B_Description") ) |>
+	tab_header("Detailed program for each Button, Preset and Zone") |>
+	opt_stylize(style=3)
+gtsave(tab2, "./_work/sdl-detail-program2.png")
+
 ```
+
+![Detailed Programming 1](./_work/sdl-detail-program1.png){fig-detailed-program1} ![Detailed Programming 2](./_work/sdl-detail-program2.png){fig-detailed-program2}
 
 ## Balcony Railing Lights
 
 These white only strip lights are dimmable and are manually operated.
-The swtich is located near the East balcony door.
+The switch is located near the East balcony door.
 
 ## DMX Address Map
 
@@ -329,7 +333,7 @@ tab <- dmxmap |>
 gtsave(tab, filename="_work/sdl-dmxmap.png")
 ```
 
-![DMX Map](_work/sdl-dmxmap.png){#fig-dmxmap}
+![DMX Map](_work/sdl-dmxmap.png){#fig-dmxmap width=90mm}
 
 ## Channel and DMX Details
 
@@ -392,7 +396,7 @@ tab <- circuits |>
 gtsave(tab, "_work/sdl-circuits.png")
 ```
 
-![Circuit Destinations](_work/sdl-circuits.png){#fig-circuits}
+![Circuit Destinations](_work/sdl-circuits.png){#fig-circuits width=75mm}
 
 {{< include commonLightingPlots.qmd >}}
 
@@ -414,7 +418,9 @@ The house lights (except the railing) can be controlled in two ways:
 The commands from these two control points are added together.
 Essentially the brightest level from either control dicates the brightness of any light.
 
-> TODO: need to add discussion about the sconce light and the interaction between the 3-way switch, timer and touchpad.
+:::{.callout-note}
+TODO: need to add discussion about the sconce light and the interaction between the 3-way switch, timer and touchpad.
+:::
 
 ## Programming
 
@@ -433,7 +439,7 @@ products <- tribble(
 
 locations <- tribble(
   ~name, ~height,
-  "Bulkhead", 19+8/12,
+  "Bulkhead",   19+8/12,
   "InnerNorth", 22+4/12,
   "InnerSouth", 15+11/12
 )
@@ -585,8 +591,6 @@ p1 <- plan |>
    filter(group == "Down Stage" ) 
 
 makeplot(p1 )
-
-#p1 |> select(-rads, -θ ) |> formattable()
 ```
 
 ## Up Stage Centre
@@ -600,8 +604,6 @@ p1 <- plan |>
    filter(group == "Up Stage" ) 
 
 makeplot(p1 )
-
-#p1 |> select(-rads, -θ ) |> formattable()
 ```
 
 ## Centre Wash
@@ -625,9 +627,6 @@ rbind(pots.w, pots.e) |>
   arrange(group, y, x) |>
 	gt()|>
 	fmt_number(decimals=2)
-#  kable() |>
-#  column_spec( 1,  bold = TRUE ) |>
-#  kable_styling("striped", full_width = TRUE)
 ```
 
 ## Transition Delay
@@ -681,6 +680,7 @@ The expected maximum transition time is `r T` seconds.
 ) |> 
   mutate(Distance = Feet + Inches/12) |>
   gt() |>
+	tab_header("Room Measurements") |>
 	fmt_number( decimals =2)
 ```
 
@@ -688,25 +688,27 @@ The expected maximum transition time is `r T` seconds.
 
 Reference location "r1" is the "zero" point.
 
-```{r room }
+```{r fig-floor-plan  }
+#| label: fig-floor-plan
+#| fig-cap-location: Floor Plan
+
+key.refs <- all.refs |> filter(group != "post")
 ggplot() + 
-        coord_equal() +  
-        geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
-        geom_segment(data=balc.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
-        geom_curve(data=thrust, aes(x=x,y=y, xend=xend, yend=yend),
-                   curvature=-0.3) +
-        geom_point(data=all.refs, aes(x=x, y=y), color="white", size=6) +
-        geom_text(data=all.refs, aes(x=x, y=y, label=name))
+   coord_equal() +  
+   geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) +
+   geom_segment(data=balc.segments, aes(x=x,y=y, xend=xend, yend=yend) ) +    
+   geom_curve(data=thrust, aes(x=x,y=y, xend=xend, yend=yend),  curvature=-0.3) +
+   geom_point(data=key.refs, aes(x=x, y=y), color="white", size=6) +
+   geom_text(data=key.refs, aes(x=x, y=y, label=name)) +
+   ggtitle("Floor Plan")
 ```
 
 ```{r l912}
 all.refs |>
   select(-group) |>
   gt() |>	
-  fmt_number(decimals =2)	
-#  kable() |>  
-#  column_spec( 1,  bold = TRUE ) |>
-#  kable_styling("striped", full_width = TRUE)
+	tab_header("All Reference Points") |>
+  fmt_number(decimals =2)  
 ```
 
 # Network Details

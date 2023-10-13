@@ -30,7 +30,10 @@ balcony.refs <- tribble(
   "balcony", "b2", "ref",       35,    -25,       0,  "position guessed",
   "balcony", "b3", "ref",       20,    -35,       0,  "position guessed",
   "balcony", "b4", "ref",       12,    -35,       0,  "position guessed",
-  "balcony", "b5", "ref",        6,    -31,       0,  "position guessed"
+  "balcony", "b5", "ref",        6,    -31,       0,  "position guessed",
+  "post",    "b10", "ref",      12,    -36,       0,  "post-position guessed",
+  "post",    "b11", "ref",      13,    -36,       0,  "post-position guessed",
+  "post",    "b12", "ref",      13,    -35,       0,  "post-position guessed"
 )
 ```
 
@@ -85,10 +88,23 @@ b6.wall <- wall.flip2("b4", "b5")
 b7.wall <- wall.flip2("b3", "b4")
 b8.wall <- wall.flip2("b2" , "b3")
 b9.wall  <- wall.flip2("b1","b2")
+
+post1.s1 <- wall("b4", "b10")
+post1.s2 <- wall("b10", "b11")
+post1.s3 <- wall("b11", "b12")
+post1.s4 <- wall("b12", "b4")
+post2.s1 <- wall.flip2("b4", "b10")
+post2.s2 <- wall.flip2("b10", "b11")
+post2.s3 <- wall.flip2("b11", "b12")
+post2.s4 <- wall.flip2("b12", "b4")
+
 balc.segments <- rbind(b1.wall,  b2.wall, b3.wall, 
                        b4.wall, b5.wall, b6.wall, 
-                       b7.wall, b8.wall,b9.wall)
-
+                       b7.wall, b8.wall,b9.wall 
+					   ,post1.s1, post1.s2, post1.s3, post1.s4
+					   ,post2.s1, post2.s2, post2.s3, post2.s4
+					   )
+# drawing the posts didn't display well on the plots - detail too small
 ```
 
 
@@ -147,7 +163,7 @@ Some items are quite moveable so may not match this diagram, specifically fixtur
 
 channels <-  dmx.details %>% filter(!is.na(x))
 
-  g <- ggplot() + 
+g <- ggplot() + 
         geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
         coord_equal() + #scale_size_identity() +
         geom_point(data=channels, aes(x=x, y=y, color=Type), size=2)  +
@@ -155,7 +171,6 @@ channels <-  dmx.details %>% filter(!is.na(x))
               nudge_x=channels$nx, nudge_y=channels$ny   ) +
         geom_segment(data=balc.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
         geom_curve(data=thrust, aes(x=x,y=y, xend=xend, yend=yend), curvature=-0.5)
-
 g
 ```
 
@@ -219,58 +234,58 @@ __Pendants over the Balcony__
 #| cap-location: bottom
 
 pendants <- tribble(
-  ~Channel, ~x,  ~y, ~sz,
-  73,      -30,  -0,  1, #L+R Spot 
-  69,      -30,  -0,  7, #L+R Wash
-  73,       30,  -0,  1, #L+R Spot
-  69,       30,  -0,  7, #L+R Wash
+~fixture,  ~Channel, ~x,  ~y, ~sz,
+"p03",  73,      -24,  -8,  1, #L+R Spot 
+"p03",  69,      -24,  -8,  7, #L+R Wash
+"p12",  73,       24,  -8,  1, #L+R Spot
+"p12",  69,       24,  -8,  7, #L+R Wash
 
-  73,      -26,  -10,  1, #L+R Spot 
-  69,      -26,  -10,  7, #L+R Wash
-  73,       26,  -10,  1, #L+R Spot
-  69,       26,  -10,  7, #L+R Wash  
+"p04",  73,      -32,  -20,  1, #L+R Spot 
+"p04",  69,      -32,  -20,  7, #L+R Wash
+"p13", 73,        32,  -20,  1, #L+R Spot
+"p13",  69,       32,  -20,  7, #L+R Wash  
   
-  73,      -41,  -10,  1, #L+R Spot
-  69,      -41,  -10,  7, #l+R Wash
-  73,       41,  -10,  1, #L+R Spot 
-  69,       41,  -10,  7, #L+R Wash
+"p01",  73,      -41,  -10,  1, #L+R Spot
+"p01",  69,      -41,  -10,  7, #l+R Wash
+"p15",  73,       41,  -10,  1, #L+R Spot 
+"p15",  69,       41,  -10,  7, #L+R Wash
   
-  73,      -34,  -20,  1, #L+R Spot
-  69,      -34,  -20,  7, #l+R Wash
-  73,       34,  -20,  1, #L+R Spot 
-  69,       34,  -20,  7, #L+R Wash    
+"p05",  73,      -42,  -35,  1, #L+R Spot
+"p05",  69,      -42,  -35,  7, #l+R Wash
+"p14",  73,       42,  -35,  1, #L+R Spot 
+"p14",  69,       42,  -35,  7, #L+R Wash    
     
-  73,      -54,  -22,  1, #L+R Spot
-  69,      -54,  -22,  7, #l+R Wash
-  73,       54,  -22,  1, #L+R Spot 
-  69,       54,  -22,  7, #L+R Wash
+"p02",  73,      -54,  -22,  1, #L+R Spot
+"p02",  69,      -54,  -22,  7, #l+R Wash
+"p16",  73,       54,  -22,  1, #L+R Spot 
+"p16",  69,       54,  -22,  7, #L+R Wash
   
-  68,      -10,  -8,  1, #Main Spot
-  71,      -10,  -8,  7, #Main Wash
-  68,       10,  -8,  1, #Main Spot
-  71,       10,  -8,  7, #Main Wash
+"p06", 68,      -10,  -8,  1, #Main Spot
+"p06",  71,      -10,  -8,  7, #Main Wash
+"p09",  68,       10,  -8,  1, #Main Spot
+"p09",  71,       10,  -8,  7, #Main Wash
   
-  68,      -10,  -16,  1, #Main Spot
-  71,      -10,  -16,  7, #Main Wash
-  68,       10,  -16,  1, #Main Spot
-  71,       10,  -16,  7, #Main Wash
+"p07",  68,      -10,  -17,  1, #Main Spot
+"p07",  71,      -10,  -17,  7, #Main Wash
+"p10",  68,       10,  -17,  1, #Main Spot
+"p10",  71,       10,  -17,  7, #Main Wash
   
-  68,      -10,  -27,  1, #Main Spot
-  71,      -10,  -27,  7, #Main Wash
-  68,       10,  -27,  1, #Main Spot
-  71,       10,  -27,  7, #Main Wash
+"p08",  68,      -10,  -27,  1, #Main Spot
+"p08",  71,      -10,  -27,  7, #Main Wash
+"p11",  68,       10,  -27,  1, #Main Spot
+"p11",  71,       10,  -27,  7, #Main Wash
   
 #balcony
-  32,        5,  -43, 1, #Balcony Booth
-  32,       -5,  -43, 1, #Balcony Booth
+"p19",  32,        5,  -43, 1, #Balcony Booth
+"p18",  32,       -5,  -43, 1, #Balcony Booth
 
-  72,        9,  -46, 3, #Balcony Wash
-  72,       -9,  -46, 3, #Balcony Wash
+"p19",  72,        9,  -46, 3, #Balcony Wash
+"p18",  72,       -9,  -46, 3, #Balcony Wash
 
-  72,       25,  -45, 3, #Balcony Wash
-  72,      -25,  -45, 3  #Balcony Wash
-
-) 
+"p20",  72,       25,  -45, 3, #Balcony Wash
+"p17",  72,      -25,  -45, 3  #Balcony Wash
+) |>
+	 mutate(rn = row_number()) 
 
 p1 <- pendants %>% filter(sz==1)
 p2 <- pendants %>% filter(sz==7)
@@ -288,6 +303,23 @@ ggplot() +
     geom_segment(data=balc.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
     coord_equal() + theme(legend.position="none") + scale_size_identity()
 ```
+
+```{r eval=FALSE}
+d <- pendants |> 
+	select(-sz, -Channel, -rn) |>
+	unique()   |>
+	 mutate(rn = row_number()) 
+	
+d |>	
+ggplot() + 
+    geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
+    geom_point( aes(x=x, y=y, color=factor(sz), size=12) ) +
+    geom_text(  aes(x=x, y=y, label=fixture ) ) +
+    geom_curve(data=thrust, aes(x=x,y=y, xend=xend, yend=yend), curvature=-0.4) +
+    geom_segment(data=balc.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
+    coord_equal() + theme(legend.position="none") + scale_size_identity()
+```
+
 
 ## Sconce (Main floor perimeter)
 
@@ -338,48 +370,66 @@ The plot is illustrative - They are not accurately placed. There are 24 pot ligh
 
 >TODO: Correct placement
 
-```{r fig-clpubal, echo=FALSE}
+```{r fig-clpubal }
 #| label: fig-clpubal
 #| fig-cap: Under Balcony
 #| cap-location: bottom
  
 ubal <- tribble(
-  ~Channel, ~x,  ~y, ~sz, 
+~fixture,  ~Channel, ~x,  ~y, ~sz, 
 # under balcony
-  72,        3,  -37, 3,
-  72,       -3,  -37, 3,
-  72,        9,  -40, 3,
-  72,       -9,  -40, 3,
-  72,       14,  -40, 3,
-  72,      -14,  -40, 3,
-  72,       20,  -40, 3,
-  72,      -20,  -40, 3,
-  72,       25,  -37, 3,
-  72,      -25,  -37, 3,
-  72,       30,  -33, 3,
-  72,      -30,  -33, 3,
+"u07",  72,        3,  -37, 3,
+"u06",  72,       -3,  -37, 3,
+"u08",  72,        9,  -40, 3,
+"u05",  72,       -9,  -40, 3,
+"u09",  72,       14,  -40, 3,
+"u04",  72,      -14,  -40, 3,
+"u10",  72,       20,  -40, 3,
+"u03",  72,      -20,  -40, 3,
+"u11",  72,       25,  -37, 3,
+"u02",  72,      -25,  -37, 3,
+"u12",  72,       30,  -33, 3,
+"u01",  72,      -30,  -33, 3,
 
-  72,        3,  -50, 3,
-  72,       -3,  -50, 3,
-  72,        9,  -50, 3,
-  72,       -9,  -50, 3,
-  72,       14,  -50, 3,
-  72,      -14,  -50, 3,
-  72,       20,  -50, 3,
-  72,      -20,  -50, 3,
-  72,       25,  -47, 3,
-  72,      -25,  -47, 3,
-  72,       30,  -43, 3,
-  72,      -30,  -43, 3
+"u23",  72,        3,  -52, 3,
+"u22",  72,       -3,  -52, 3,
+"u24",  72,       11,  -52, 3,
+"u21",  72,      -11,  -52, 3,
+"u25",  72,       22,  -52, 3,
+"u20",  72,      -22,  -52, 3,
+"u26",  72,       30,  -49, 3,
+"u25",  72,      -32,  -49, 3,
 
-) 
+"u13",  72,      -30,  -43, 3,
+"u14",  72,      -25,  -45, 3,
+"u15",  72,      -20,  -46, 3,
+"u18",  72,       30,  -43, 3,
+"u17",  72,       25,  -45, 3,
+"u16",  72,       20,  -46, 3
+)
+```
 
+```{r g.ubal.channels}
+ggplot() +
+    geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) +
+    geom_point(data=ubal, aes(x=x, y=y, size=8), color="lightblue" ) +
+    geom_text(data=ubal, aes(x=x, y=y, label=Channel )) +
+    geom_segment(data=balc.segments, aes(x=x,y=y, xend=xend, yend=yend) ) +
+    coord_equal() + theme(legend.position="none") +
+    scale_size_identity() +
+    coord_cartesian(xlim=c(-40,40),  ylim = c(-65, -25))
+```
+
+```{r g.ubal.names}
+ubal |>
 ggplot() + 
     geom_segment(data=wall.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
     geom_point(data=ubal, aes(x=x, y=y, size=8), color="lightblue" ) +
-    geom_text(data=ubal, aes(x=x, y=y, label=Channel )) +  
+    geom_text(data=ubal, aes(x=x, y=y, label=fixture )) +  
     geom_segment(data=balc.segments, aes(x=x,y=y, xend=xend, yend=yend) ) + 
-    coord_equal() + theme(legend.position="none") + 
+    coord_equal() + 
+	theme(legend.position="none") + 
     scale_size_identity() +     
     coord_cartesian(xlim=c(-40,40),  ylim = c(-65, -25))
 ```
+
