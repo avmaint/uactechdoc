@@ -1,0 +1,192 @@
+---
+title: "System Operations - Audio"
+author: "UAC Media Arts"
+execute: 
+  eval: true
+  echo: false
+  warning: false
+  message: false
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    toc-location: right
+    number-sections: true
+  pdf:
+    number-sections: true 
+    toc: true
+    toc-depth: 2  
+ 
+always_allow_html: yes
+---
+
+```{r options, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options(knitr.table.format = "html") # latex for pdf 
+```
+
+```{r setup, include=FALSE}
+source("commonPackages.R")
+```
+
+```{r functions}
+source("commonFunctions.R")
+source("commonFunctionsAudio.R")
+```
+
+```{r data}
+inventoryfile <- get.inventory()
+activities <- get.activities()
+```
+
+# Introduction
+This document provides basic operating information for each of the Audio systems at UAC.
+
+Purpose of our Sound System:
+
+* Necessary to help the hearing impaired ( roughly 10% of the population) 
+* Supports video recording
+* Helps draw attention to the central item – conversely makes it easier to ignore other noise 
+* Helps audience to focus and concentrate
+* Reinforces the message (spoken or sung)
+
+# Power On and Off
+
+## Power On
+ 
+There are three numbered swtiches located in the balcony required to turn the system on
+
+#. is located at the far west end of the front desk. This energizes the front desk gear.
+#. is located behind the mix position at the top of the rack. This energizies the rear desk audio gear.
+#. is just below #2. This energizes the audio amplifiers.
+
+Allow a 10 second pause between flipping each switch.
+
+After the console has fully started, you would typically want to recall the default scene so all settings are in a known good state.
+
+:::{.callout-important}
+As of 2023, we have a problem with the amplifier switch and the amplifiers must be turned on and off manually. 
+:::
+
+:::{.callout-note}
+Although not part of the audio system, it is often the audio engineer who turns on portions of lighting (blue button) and video system (switch #4) as well
+::: 
+ 
+## Power Off 
+
+Power off is the opposite sequence from power on.  Provide a 30 second pause between switch 3 and 2. This gives the power amps time to cycle off before proceeding.
+
+# Basic Operations
+
+## The Two Consoles
+
+We have two audio consoles in the auditorium. The main console and a sub console to provide expanded input capacity.
+
+Most vocal and stage instruments are wired into the main console (M7CL). Addtional inputs for wireless beltpacks, computers, and palyback machines come in via the sub console. The outputs of the sub console are routed into the corresponding busses of the main console.
+
+The monitor mix busses on both consoles are numbered the same. 
+
+Scene recall on the main console will cause the same numbered scene to be recalled on the sub console as well. 
+
+## Scene Recall 
+
+Scenes are a collection of settings that can be stored and recalled together. This is a very effective way of getting to a good known state. We have created a scene which should be used as a base for start an event. This scenes is locked so that they cannot be easily overwritten. If you would like to make a change to a base scene, please discuss with Terry.
+
+When recalling a scene, whatever is being recalled will (almost) instantly become active or inactive. You __don't__ what to do this when live, unless you know exactly what you are doing.
+
+__Scene 014__
+
+To recall Scene 014, press the up/down keys until “Scene 014” flashes in the SCENE field. Then press the
+[RECALL] key.
+
+![Scene Recall](../../images/soa-scene-recall.png)
+
+## Console Inputs
+
+Part of what is included in the scene defintion is the channel layout. 
+
+```{r}
+get_inputs("M7CL", "002") %>%  
+  kable(caption="M7CL-48 Input Map") %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
+
+get_inputs("DM1K", "002") %>%  
+  kable(caption="DM1000 Input Map") %>%
+    column_spec( 1,  bold = TRUE ) %>%
+    kable_styling("striped", full_width = TRUE)
+```
+
+## Operating a Channel
+
+>TODO: write content
+ 
+# Monitors
+
+We have six monitor amplifier channels, each which can handle a load of two of our monitor wedges. 
+
+Our standard monitor configuration is
+
+```{r gt.monitors}
+get_monitors() |>
+	gt() |>
+	tab_header("Standard Monitor Map") |>
+	opt_stylize(style=3) 
+```
+
+ 
+# Operating the Wireless Microphones
+
+>TODO: write content 
+
+Points to cover:
+
+* Battery Management
+* HA Gain
+* Dante
+* Wipe down
+
+# Appendix
+
+## Audio Recording - Audio CD
+
+We don't do this normally but if desired this is how.
+
+Key Steps:
+
+#. Place a blank CD into the recorder and close the tray. It will take a few moments to recognize the disc type.
+#. Press the Auto/Manual (or is it tracking) button on the left hand side to select whether you want new tracks created automatically or not.
+#. Press the record button to begin recording
+#. Press the record button again to start a new track when desired.
+#. Press stop when done. The display will flash a PMA message for a few moments
+#. To Finalize. 
+    * Press the "Finalize" button, it will think for a moment or three and the display will show a time. (usually 2:01). 
+    * Push Play and it will begin finalizing. The time will count down.
+    * Eject disc, remove disc
+    * Close tray.
+#. If for some reason the audio CD was not finalized, put it back into the recorder and pick up the instructions at step #6.
+
+
+## Terminology
+
+```{r}
+# A hack - gt doesn't provide a means of line-breaking for pdf. So we create a graphic and then include the graphic.
+
+tab <- get.glossary() |>
+	filter(Topic == "Audio" | Topic == "General") |>
+	select(Term, Definition, Topic) |>
+	arrange(Topic, Term) |>
+    gt(groupname_col = "Topic") |>
+	opt_stylize(style=3) |>
+	fmt_markdown(columns=Definition) |>
+	tab_style(
+  style = cell_text(weight = "bold", size="large"),
+  locations = cells_row_groups()
+)
+```
+
+```{r glossary, results='asis'}
+cat(print_gt_table(tab))
+```
+
+{{< include common_trailer.qmd >}}

@@ -21,14 +21,14 @@ get_monitors <- function() {
   data <- tribble(
     ~Monitor, ~Name, ~Description,
     
-    1, "Vocal 1",   "Typically used for the very front vocal line",
-    2, "Vocal 2",   "",
+    1, "Vocal 1",   "Front vocal line - Left and Right",
+    2, "Vocal 2",   "Front vocal line - Centre",
     
-    3, "Spare",     "If needed, used for Synth/B3", 
+    3, "Synth",     "Used for Synth", 
     4, "Backline",  "Guitars and Bass",
     
-    5, "Drums",     "",
-    6, "Keys",      "Piano and Keys"
+    5, "Drums",     "Drums",
+    6, "Piano",      "Piano"
     
   )
   return(data)
