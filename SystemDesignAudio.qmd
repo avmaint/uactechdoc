@@ -1,7 +1,6 @@
 ---
 title: "System Design - Audio"
 author: "UAC Media Arts"
-date: "`r Sys.setenv(TZ= 'Canada/Eastern' ); format(Sys.time(), '%B %d %Y %H:%M %p')`"
 execute: 
   eval: true
   echo: false
