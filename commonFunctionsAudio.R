@@ -3,7 +3,8 @@
 # for testing: 
 #fname <- file.path("/", "Users","donert","Documents","UACTech", "SystemDocumentation", "data", "AudioConfig.xlsx")
  
-fname <- here("..","..","data", "AudioConfig.xlsx")
+#fname <- here("..","..","data", "AudioConfig.xlsx")
+fname <- here("data", "uac_audio_config.xlsx")
 
 work.config.consoleinputs <- read_excel(fname, 
                                      sheet = "ConsoleInputs" )
