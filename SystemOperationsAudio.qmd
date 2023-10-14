@@ -70,6 +70,37 @@ Although not part of the audio system, it is often the audio engineer who turns 
 
 Power off is the opposite sequence from power on.  Provide a 30 second pause between switch 3 and 2. This gives the power amps time to cycle off before proceeding.
 
+# Training Videos
+
+See this (@fig-training-videos) list of training videos
+ 
+```{r training}
+#| fig-cap: "Training Videos"
+#| cap-location: bottom
+#| label: fig-training-videos
+#| 
+get.training() |>
+  filter(Topic1=="Audio") |>
+  filter(Topic3 %in% c("01 Basic M7CL", "Mixing") ) |>
+  mutate(Title = md(glue("[{Title}]({URL})"))) |>	
+  select(Topic3, Episode, Duration , Title, Notes )  |>
+  arrange(Topic3, Episode) |>	
+  rename(Module = Topic3) |>
+  gt(rowname_col = "Episode", groupname_col="Module") |>  
+	   #summary_rows(fns = list("n") ) |>
+		opt_stylize(style = 3) |>
+	    opt_row_striping(  row_striping = TRUE) |>
+	fmt_markdown(
+  columns = "Title",
+  rows = everything(),
+  md_engine = c("markdown")) |>
+  sub_missing( columns =  "Notes",
+				rows = everything(),
+				missing_text = "---") |>
+	cols_align( align =   "left"  ,
+				columns =  "Title")
+```
+
 # Basic Operations
 
 ## The Two Consoles
@@ -84,7 +115,7 @@ Scene recall on the main console will cause the same numbered scene to be recall
 
 ## Scene Recall 
 
-Scenes are a collection of settings that can be stored and recalled together. This is a very effective way of getting to a good known state. We have created a scene which should be used as a base for start an event. This scenes is locked so that they cannot be easily overwritten. If you would like to make a change to a base scene, please discuss with Terry.
+Scenes are a collection of settings that can be stored and recalled together. This is a very effective way of getting to a good known state. We have created a scene (**scene #014**) which should be used as a base for start an event. This scenes is locked so that they cannot be easily overwritten. If you would like to make a change to a base scene, please discuss with Terry.
 
 When recalling a scene, whatever is being recalled will (almost) instantly become active or inactive. You __don't__ what to do this when live, unless you know exactly what you are doing.
 
@@ -93,9 +124,9 @@ __Scene 014__
 To recall Scene 014, press the up/down keys until “Scene 014” flashes in the SCENE field. Then press the
 [RECALL] key.
 
-![Scene Recall](../../images/soa-scene-recall.png)
+![Scene Recall](./images/soa-scene-recall.png)
 
-## Console Inputs
+# Console Inputs
 
 Part of what is included in the scene definition is the channel layout.  See @fig-m7cl-inputs and @fig-dm1k-inputs.
 
@@ -132,7 +163,9 @@ get_inputs("DM1K", "002") |>
 
 >TODO: write content
  
-# Monitors
+# Console Ooutputs
+
+## Monitors
 
 We have six monitor amplifier channels, each which can handle a load of two of our monitor wedges. 
 
@@ -147,24 +180,71 @@ get_monitors() |>
 	opt_stylize(style=3) 
 ```
 
-# Non-monitor Busses
+## Effects
+
+Busses 7, 8, 9 and 10 are used for routing a mix to the internal effects processor which then appears as inputs on the return faders. 
+
+Bus 7
+: The Post-fade mix is sent to a **plate reverb** processor which then appears on return channel 1.
+
+Bus 8
+: The Post-fade mix is sent to a **hall reverb** processor which then appears on return channel 2.
+
+Bus 9
+: The Post-fade mix is sent to a **delay** processor which then appears on return channel 3.
+
+Bus 10
+: The Post-fade mix is sent to a **chorus** processor which then appears on return channel 4.
+
+## Dante Outputs
+
+```{r dante_outputs}
+#| label: fig-dante-outputs
+#| fig-cap: Dante Ouputs
+get_dante_outputs() |>
+	filter(Device == 'ZAKU-0001') |>
+	select(-Device) |>
+	gt() |>
+	tab_header("M7 Dante Outputs") |>
+	opt_stylize(style=3)
+```
+
+
+## Other Busses
 Bus 14 is used for recording. 
 The Mono bus is used for lobby.
 
 ::::{.callout-note}
-TODO: Write content
+TODO: Write content... Need to cover Stereo LR as distinct from Bus 14 and Mono
 :::
  
 # Operating the Wireless Microphones
 
->TODO: write content 
+We have 18 wireless transmitters and 12 receivers. A receiver can only be paried with on transmitter at a time, which means we can have, at most 12 active transmitters.
 
-Points to cover:
+Of the 18 transmitters, 12 are handheld microphones, and 6 are beltpack units that can be fitted with either a headset or lavalier microphone.
 
-* Battery Management
-* HA Gain
-* Dante
-* Wipe down
+The six beltpack trasnmitters are all routed to the DM1K mixer, with BP06 also being routed to the M7CL as it is used by Ken for his vocal mic.
+
+The 12 handheld transmitters are all routed to the M7CL to be used as for talking or singing.
+
+__Battery Management__
+
+Each trasnmitter takes two AA batteries. The battery level is visible on both the trasnmitter and the reciever displays. When using Duracell Coppertop batteries each 'segment' on the display indicates about 30 minutes of runtime, but never count on the last segment. In figure @fig-soa-battery1, channel 3 has about 1.5 hours of runtime and channel 4 has about 2 hours (5 segments minus one). 
+
+The display on the microphone is similar.
+
+![Receiver Display](./images/soa-battery1.png){#fig-soa-battery1}
+
+Old batteries are to be discarded in the collection bin to the left of the console.
+
+__Head Amp Gain__
+
+The preamplifier gain cannot be controlled from the console. It is set via the buttons on the front panel of the receivers. This also means that the gain setting is not recalled with a scene recall.
+
+__Wipe Down__
+
+Wipe the microphone with a Lysol wipe before giving them to the people.
 
 # Appendix
 
