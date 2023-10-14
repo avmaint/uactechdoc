@@ -1,9 +1,5 @@
 # Common code for SystemOperationsAudio and SystemDesignAudio 
 
-# for testing: 
-#fname <- file.path("/", "Users","donert","Documents","UACTech", "SystemDocumentation", "data", "AudioConfig.xlsx")
- 
-#fname <- here("..","..","data", "AudioConfig.xlsx")
 fname <- here("data", "uac_audio_config.xlsx")
 
 work.config.consoleinputs <- read_excel(fname, 
@@ -56,4 +52,10 @@ get_inputs <- function(console, scene) {
       stop(paste("Unknown Scene:", scene))
   
   return(res)
+}
+
+get_dante_outputs <- function() {
+	data <- read_excel(fname
+					   , sheet="dante_outputs")
+	return(data)
 }
