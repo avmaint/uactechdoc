@@ -4,7 +4,7 @@ project:
     - SystemOperationsProjection.qmd
     - SystemOperationsLighting.qmd 
     - SystemOperationsVideo.qmd
-    - SystemOperartionsAudio.qmd
+    - SystemOperationsAudio.qmd
     - SystemDesignProjection.qmd
     - SystemDesignVideo.qmd
     - SystemDesignAudio.qmd
