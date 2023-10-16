@@ -46,6 +46,7 @@ format:
        \usepackage{float} 
        
   titlepage-pdf:
+      output-dir: _output
       documentclass: scrbook
       margin-left: 25mm
       margin-right: 25mm
@@ -63,7 +64,7 @@ format:
       titlepage-footer: |
         Media Arts\
         Unionville Alliance Church\ 
-      keep-tex: true	
+      keep-tex: false	
       titlepage-theme:   
          title-fontstyle: Huge
          elements: ["\\titleblock", "\\authorblock", "\\vfill", "\\dateblock", "\\vfil", "\\affiliationblock",  "\\logoblock", "\\footerblock"]
