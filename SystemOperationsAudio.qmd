@@ -16,7 +16,9 @@ format:
     number-sections: true 
     toc: true
     toc-depth: 2  
- 
+  titlepage-pdf:
+    toc: true
+
 always_allow_html: yes
 ---
 
@@ -72,7 +74,7 @@ Power off is the opposite sequence from power on.  Provide a 30 second pause bet
 
 # Training Videos
 
-See this (@fig-training-videos) list of training videos
+See (@fig-training-videos) for a list of training videos. The titles are links you can follow.
  
 ```{r training}
 #| fig-cap: "Training Videos"
@@ -81,7 +83,37 @@ See this (@fig-training-videos) list of training videos
 #| 
 get.training() |>
   filter(Topic1=="Audio") |>
-  filter(Topic3 %in% c("01 Basic M7CL", "Mixing") ) |>
+  filter(Topic2 %in% c(	"Console Operations", "Mixing" )) |>
+  filter(Topic3 != "01 Basic DM1K"  ) |>
+  mutate(Title = md(glue("[{Title}]({URL})"))) |>	
+  select(Topic3, Episode, Duration , Title, Notes )  |>
+  arrange(Topic3, Episode) |>	
+  rename(Module = Topic3) |>
+  gt(rowname_col = "Episode", groupname_col="Module") |>  
+	   #summary_rows(fns = list("n") ) |>
+		opt_stylize(style = 3) |>
+	    opt_row_striping(  row_striping = TRUE) |>
+	fmt_markdown(
+  columns = "Title",
+  rows = everything(),
+  md_engine = c("markdown")) |>
+  sub_missing( columns =  "Notes",
+				rows = everything(),
+				missing_text = "---") |>
+	cols_align( align =   "left"  ,
+				columns =  "Title")
+```
+
+There is a good collection of videos on YouTube from the [Dante Certification program](https://www.audinate.com/learning/training-certification/dante-certification-program) . You can enroll in the program which will give you access to all of the videos. 
+
+```{r training-dante}
+#| fig-cap: "Dante Training Videos"
+#| cap-location: bottom
+#| label: fig-training-videos-dante
+#| 
+get.training() |>
+  filter(Topic1=="Audio") |>
+  filter(Topic2 %in% c(	  "Dante")) |>
   mutate(Title = md(glue("[{Title}]({URL})"))) |>	
   select(Topic3, Episode, Duration , Title, Notes )  |>
   arrange(Topic3, Episode) |>	
@@ -121,14 +153,18 @@ When recalling a scene, whatever is being recalled will (almost) instantly becom
 
 __Scene 014__
 
-To recall Scene 014, press the up/down keys until “Scene 014” flashes in the SCENE field. Then press the
-[RECALL] key.
+To recall Scene 014, press the up/down keys until “Scene 014” flashes in the SCENE field. Then press the [RECALL] key (@fig-soa-scene-recall).
 
-![Scene Recall](./images/soa-scene-recall.png)
+![Scene Recall](./images/soa-scene-recall.png){#fig-soa-scene-recall width=65mm}
 
 # Console Inputs
 
 Part of what is included in the scene definition is the channel layout.  See @fig-m7cl-inputs and @fig-dm1k-inputs.
+
+:::{.callout-important}
+TODO - need to discuss interaction between FoH and Livestream mixes
+:::
+
 
 :::{.callout-note}
 * Channels 41-48 will be reassigned sometime in 2023.
@@ -159,11 +195,73 @@ get_inputs("DM1K", "002") |>
 			  , NetworkDeviceChannel = "Net Channel")
 ```
 
-## Operating a Channel
+# Operating a Channel
 
->TODO: write content
- 
-# Console Ooutputs
+The channels are laid out 32 on the left hand side and 16 on the right; all in groups of 8. The bank of 8 faders in the centre mirrors one of those groups or can be used to access other functions like the monitor masters. 
+
+## The Buttons
+
+Each of the channel strips has three buttons, **SEL**, **CUE**, and **ON**.
+
+__SEL__
+
+The **SEL** button *selects* that channel and brings it into focus on the display. The knobs to the left of the display make the adjustments to the selected channel.  
+
+__CUE__
+
+The **CUE** button activates that channel to be heard via the headphones. The volume on the headphones can be adjusted via the monitor level below-right to the screen as well as the the knob under the wrist rest in the centre. 
+
+Multiple channels can be **CUE**d at the same time. 
+
+__ON__
+
+The **ON** button turns the channel on. 
+
+:::{.callout-note}
+Turning a channel off also affects the direct out send to the livestream mixer.
+:::
+
+## Monitors on Faders
+
+To adjust the monitor mix you can press on of the buttons labelled "M1" thru "M6" to the lower-right of the screen. Pressing the same button will revert the faders to the main mix.
+
+## Preamp Gain Adjustments
+
+The preamp gain is also refered to as *Head Amplifier*, and abbreviated *HA*.
+
+The means to adjust the preamp gain follows one of two methods: Analog (wired) inputs and Dante (wireless) inputs.
+
+Adjusting the preamp input gain also affects the level sent to the livestream mixer.
+
+__Analog (wired) Inputs__
+
+To adjust the gain for a microphone, use the **SEL** button and then use the **HA** knob. 
+
+__Dante (wireless) Inputs__
+
+The mixer cannot control the preamp gain for the wireless receivers. Instead this needs to be adjusted directly on the receivers. Each receiver is for 4 microphones and there are a pair of up-down buttons for each which will adjust the gain.
+
+The wireless gain settings are not stored and recalled as part of the scene so you will inherit whatever was last used. 
+
+## Handling Feedback
+
+Audio feedback occurs when a microphone and a speaker, creates a loop in which sound from the speaker is picked up by the microphone and then amplified and re-emitted by the speaker. This results in a high-pitched, unpleasant squealing or howling noise. Audio feedback is an unintended and undesirable phenomenon in audio systems, and it can be caused by factors like microphone placement, high microphone sensitivity, or a loudspeaker's proximity to the microphone. 
+
+To control/eliminate feedback, several approaches can be taken. In approximate priority of application:
+
+* Turn off any other microphones that are not needed.
+
+* Turn down the problem microphone in the speaker which is causing the problem. This could be a monitor or the main house.
+
+* Change the placement of the microphone and/or the monitor speakers involved.
+
+* Eq can be applied to reduce the level of the problem frequency. (Ear training helps the engineer quickly know what frequency to target.) You typically want a high Q, which means the EQ filter applies to a narrow band of frequencies.
+
+* In some circumstances you can add a slight delay, less than 10 ms, on the problem microphone and that can inhibit the feedback cycle.
+
+* Using the phase invesion switch can help when desperate but can cause other weird effects, especially of multiple microphones are in use.
+
+# Console Outputs
 
 ## Monitors
 
@@ -205,7 +303,7 @@ get_dante_outputs() |>
 	filter(Device == 'ZAKU-0001') |>
 	select(-Device) |>
 	gt() |>
-	tab_header("M7 Dante Outputs") |>
+	tab_header("M7CL Dante Outputs") |>
 	opt_stylize(style=3)
 ```
 
@@ -215,7 +313,9 @@ Bus 14 is used for recording.
 The Mono bus is used for lobby.
 
 ::::{.callout-note}
-TODO: Write content... Need to cover Stereo LR as distinct from Bus 14 and Mono
+TODO: Write content... Need to cover Stereo LR as distinct from Bus 14 and Mono.
+
+Discuss that the lobby level (yellow fader) should be at zero for music, about +5 for a loud talker, and +10 for a quiet talker. 
 :::
  
 # Operating the Wireless Microphones
@@ -232,9 +332,9 @@ __Battery Management__
 
 Each trasnmitter takes two AA batteries. The battery level is visible on both the trasnmitter and the reciever displays. When using Duracell Coppertop batteries each 'segment' on the display indicates about 30 minutes of runtime, but never count on the last segment. In figure @fig-soa-battery1, channel 3 has about 1.5 hours of runtime and channel 4 has about 2 hours (5 segments minus one). 
 
-The display on the microphone is similar.
+The display on the microphone is similar, but for one channel only.
 
-![Receiver Display](./images/soa-battery1.png){#fig-soa-battery1}
+![Receiver Display](./images/soa-battery1.png){#fig-soa-battery1 width=65mm}
 
 Old batteries are to be discarded in the collection bin to the left of the console.
 
