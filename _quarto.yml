@@ -57,7 +57,7 @@ format:
       lot: false
       urlcolor: blue
       titlepage: "bg-image"
-      titlepage-bg-image: "./titlepage/img/corner-bg5.png" 
+      titlepage-bg-image: "./images/titlepage-corner-bg.png" 
       titlepage-logo: "wordcloud/wordcloud-6.png"
       titlepage-header: "The Publisher"
       titlepage-footer: |
