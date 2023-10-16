@@ -16,5 +16,9 @@ This document is compiled by merging text and data together using [quarto](https
 #| cap-location: bottom
 #| label: tab-change-history
 
-commit.log.html(  ci )
+tab <- commit.log.html(  ci )
+```
+
+```{r print-ch, results='asis'}
+cat(print_gt_table(tab))
 ```

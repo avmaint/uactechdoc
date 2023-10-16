@@ -109,7 +109,9 @@ commit.log.html <- function(file.name) {
   require(gt)
   formatted <- df |> 
   	select(user, date, message) |>
-  	gt()
+  	gt() |>
+  	opt_stylize(style=3) |>
+  	tab_header("Change History")
   
   return( formatted )
  
