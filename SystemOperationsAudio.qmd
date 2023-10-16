@@ -157,6 +157,37 @@ To recall Scene 014, press the up/down keys until “Scene 014” flashes in the
 
 ![Scene Recall](./images/soa-scene-recall.png){#fig-soa-scene-recall width=65mm}
 
+## M7 User Defined Keys
+
+The user defined keys allow the operator to quickly access common features. They are located on the *USER DEFINED KEYS* section of the centre controls, see figure @fig-soa-m7cl-centre-controls
+
+```{r}
+#| label: fig-user-defined-keys-table
+#| fig-cap: M7CL User Defined Keys
+udk <- tribble(
+~Key , ~Function 
+,"1","Monitor 1 to faders"  
+,"2","Monitor 2 to faders"  
+,"3","Monitor 3 to faders"  
+,"4","Monitor 4 to faders"  
+,"5","Monitor 5 to faders"  
+,"6","Monitor 6 to faders"  
+,"7","Fx1 to faders" 
+,"8","Fx2 to faders"
+,"9","Record Bus to faders"
+,"10","48v - phantom power control"
+,"11","Tap - effect timing"
+,"12","Talkback - operator to stage communication" 
+	)
+
+gt(udk) |>
+	opt_stylize(style=3) |>
+	tab_header("User Defined Keys")
+```
+
+
+![M7Cl Centre Controls](./images/soa-m7cl-centre-controls.jpg){#fig-soa-m7cl-centre-controls width=50mm}
+
 # Console Inputs
 
 Part of what is included in the scene definition is the channel layout.  See @fig-m7cl-inputs-analog, @fig-m7cl-inputs-dante and @fig-dm1k-inputs.

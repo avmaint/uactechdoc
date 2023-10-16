@@ -400,27 +400,6 @@ tribble(
 	opt_stylize(style=3)
 ```
 
-### M7 User Defined Key
-
-The user defined keys allow the operator to quickly acccess common features.
-
-|Key|Function|
-|----|----|
-|1|Monitor 1 to faders|
-|2|Monitor 2 to faders|
-|3|Monitor 3 to faders|
-|4|Monitor 4 to faders|
-|5|Monitor 5 to faders|
-|6|Monitor 6 to faders|
-|7|Fx1 to faders|
-|8|Fx2 to faders|
-|9|Record to faders|
-|10|48v - phantom power control|
-|11|Tap - effect timing|
-|12|Talkback - operator to stage communication|
-|||
-
- 
 ## Amplifiers
 
 Now lets finish our journey to the speakers.  
