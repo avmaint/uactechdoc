@@ -27,10 +27,12 @@ format:
     toc-depth: 2
     toc-location: right
     number-sections: true
+    cap-location: bottom
   pdf:
     author: "UAC Media Arts"
     date: last-modified
     documentclass: report
+    urlcolor: blue
     margin-left: 25mm
     margin-right: 25mm
     lot: false
@@ -38,6 +40,35 @@ format:
     toc: true
     toc-depth: 2 
     number-sections: true 
+    cap-location: bottom
     fig-pos: h
     header-includes:
        \usepackage{float} 
+       
+  titlepage-pdf:
+      documentclass: scrbook
+      margin-left: 25mm
+      margin-right: 25mm
+      date: last-modified
+      classoption: ["oneside", "open=any"]
+      number-sections: true
+      toc: true
+      lof: true
+      lot: false
+      urlcolor: blue
+      titlepage: "bg-image"
+      titlepage-bg-image: "./titlepage/img/corner-bg5.png" 
+      titlepage-logo: "wordcloud/wordcloud-6.png"
+      titlepage-header: "The Publisher"
+      titlepage-footer: |
+        Media Arts\
+        Unionville Alliance Church\ 
+      keep-tex: true	
+      titlepage-theme:   
+         title-fontstyle: Huge
+         elements: ["\\titleblock", "\\authorblock", "\\vfill", "\\dateblock", "\\vfil", "\\affiliationblock",  "\\logoblock", "\\footerblock"]
+      cap-location: bottom
+      fig-pos: h
+      header-includes:
+         - \usepackage{float} 
+         - \usepackage{rotating}  
