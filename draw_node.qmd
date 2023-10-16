@@ -1,19 +1,37 @@
 ---
 title: "Draw Node"
+subtitle: A dynamically generated report focused selected items.
 author: "Terry Doner"
 date: last-modified
 date-format: "[Last Updated on] MMMM DD YYYY"
 format:
-  html:
-    toc: true
-    number-sections: true
-    css: styles.css
-  pdf:
-    number-sections: true 
-    toc: true
-    toc-depth: 2
-    header-includes:
-       - \usepackage{rotating}    
+    titlepage-pdf:
+      documentclass: scrbook
+      classoption: ["oneside", "open=any"]
+      number-sections: true
+      toc: true
+      lof: true
+      lot: true
+      titlepage: "bg-image"
+      titlepage-bg-image: "./titlepage/img/corner-bg5.png" 
+      titlepage-logo: "wordcloud/wordcloud-6.png"
+      titlepage-header: "The Publisher"
+      titlepage-footer: |
+        Media Arts\
+        Unionville Alliance Church\ 
+      keep-tex: true	
+      header-includes:
+         - \usepackage{rotating}  
+    html:
+      toc: true
+      number-sections: true
+      css: styles.css
+    pdf:
+      number-sections: true 
+      toc: true
+      toc-depth: 2
+      header-includes:
+         - \usepackage{rotating}    
 always_allow_html: yes
 editor: visual
 execute: 
@@ -77,7 +95,28 @@ dante <- c(
 
 sep16 <- c("ZVIU-A003" ,"ZVIU-E003")
 sep16 <- c("ZVIU-E003","ZVIU-A008", "2308-1204","2308-1205")
-atem_out <- c("ZVKU-A003","ZVIU-D001", "ZVIU-A004", "2307-1821", "ZVIU-E004")
+atem_out <- c("ZVKU-A003","ZVIU-D001", "ZVIU-A004" , "ZVRU-A001"
+			  ,"ZVIU-A005")
+light1 <- c(#"2309-3004" 
+		#, "2309-3003" 
+		#, "2309-3002" 
+		#, "2309-3001"
+		  "ZLKU-C001"
+		, "ZLIU-0003"
+		, "ZLIU-B001"
+		, "ZLIU-B002"
+		, "ZLIU-B003"
+		, "ZLKU-B002"
+		, "ZLIU-A004"
+		, "ZLIU-A001"
+		, "ZLIU-A002"
+		, "ZLIU-A003"
+		, "2310-0220"
+		, "2310-0223", "2310-0224"
+		, "ZLLU-B051"
+		, "ZLLU-B054"
+		, 'ZLLU-B052'
+		, "ZLLU-B053")
 ```
 
 ```{r set_target}
@@ -87,7 +126,29 @@ target <- vmac # vs88 #dl_atem
 target <- daw #atem#nursery#lobby #vs88 #dl #nursery #vs88#
 target <- dante
 target <- sep16
+
+target <- wp <- c('ZVIU-A004', "ZVKU-A003")
+
+# xd <- c("2308-1124", "ZVIU-C001", "ZVIU-A008",
+# 		"ZVCU-A001", "ZVCU-A002", "ZVCU-A003",
+# 		"ZVIU-E003", "CUMU-G001")
+xd <- NA
+xd_atem_out <- c("2308-1124","ZVIU-C001","ZVIU-E003"
+				 ,"ZVIU-A008", "ZVKU-A001"
+				 , "ZVIU-A005"
+		,"ZVCU-A001","ZVCU-A002", "ZVCU-A003"
+		, "2307-2306", "2308-1123", "ZVIU-D002")
+
+xd_decklink_out <- c("2308-1204","2308-1205","ZVIU-E001", "ZVIU-G003", "ZVIU-G002", "ZVIU-G001", "ZVIU-G004", "ZVIU-G005")
+
+target <- vs88
+target <- c('ZVIU-D001', "2307-1821")
 target <- atem_out
+xd     <- xd_atem_out
+xd <- c(xd_decklink_out, "CDMU-A001")
+target <- c(atem_out, "ZVIU-E004", "ZVIU-A005")
+#target <- "ZVIU-A005"
+xd <- c("ZVCU-A003", "ZVCU-A002", "ZVCU-A001", "ZVIU-DO02", "2308-1123", "2308-1124") 
 ```
 
 This report provides the details for these devices `r target` and the devices connected to them (it).
@@ -115,22 +176,29 @@ target_devices <- c(target_cables$SrcTag ,
 # Diagram
 
 ```{r draw }
-diag <- get_diagram(target , inventory, cables)
+diag <- get_diagram(target , inventory, cables
+					, exc_dev =xd
+					, rankdir ="TB")
+
+write_file(diag, "_work/diag.gv")
  
-tf <- tempfile(fileext=".png", tmpdir="~/Downloads")
+png_f <- tempfile(fileext=".png", tmpdir="_work")
+dot_f <- tempfile(fileext=".gv",  tmpdir="_work")
 
-t <- DiagrammeR::grViz(diag) 
+dot <-  grViz(diag) 
+write_file(diag, dot_f)
 
-grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf) # need for pdf render
+# need for pdf render
+dot |> export_svg() |> charToRaw() |> rsvg_png(png_f) 
 #clipr::write_clip( diag )
 ```
 
 ::: {.content-visible when-format="html"}
-`r t`
+`r dot`
 :::
 
 ::: {.content-visible when-format="pdf"}
-`r sprintf("\\includegraphics {%s}", tf)`
+`r sprintf("\\includegraphics {%s}", png_f)`
 :::
 
 ```{r gt_inventory}
