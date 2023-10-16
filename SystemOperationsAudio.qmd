@@ -104,16 +104,16 @@ get.training() |>
 				columns =  "Title")
 ```
 
-There is a good collection of videos on YouTube from the [Dante Certification program](https://www.audinate.com/learning/training-certification/dante-certification-program) . You can enroll in the program which will give you access to all of the videos. 
+There is a good collection of videos on YouTube from the [Dante Certification program](https://www.audinate.com/learning/training-certification/dante-certification-program) . You can enroll in the program which will give you access to all of the videos. The level 1 videos are listed here @fig-training-videos-dante.
 
 ```{r training-dante}
 #| fig-cap: "Dante Training Videos"
-#| cap-location: bottom
 #| label: fig-training-videos-dante
 #| 
 get.training() |>
   filter(Topic1=="Audio") |>
   filter(Topic2 %in% c(	  "Dante")) |>
+  filter(Topic3 == "Level 3") |>
   mutate(Title = md(glue("[{Title}]({URL})"))) |>	
   select(Topic3, Episode, Duration , Title, Notes )  |>
   arrange(Topic3, Episode) |>	
@@ -159,11 +159,7 @@ To recall Scene 014, press the up/down keys until “Scene 014” flashes in the
 
 # Console Inputs
 
-Part of what is included in the scene definition is the channel layout.  See @fig-m7cl-inputs and @fig-dm1k-inputs.
-
-:::{.callout-important}
-TODO - need to discuss interaction between FoH and Livestream mixes
-:::
+Part of what is included in the scene definition is the channel layout.  See @fig-m7cl-inputs-analog, @fig-m7cl-inputs-dante and @fig-dm1k-inputs.
 
 
 :::{.callout-note}
@@ -171,12 +167,25 @@ TODO - need to discuss interaction between FoH and Livestream mixes
 * BP06 is currently assigned to this range as well ... don't remember which channel.
 :::
 
-```{r}
-#| label: fig-m7cl-inputs
-#| fig-cap: M7CL Inputs
+```{r m7-inputs-analog}
+#| label: fig-m7cl-inputs-analog
+#| fig-cap: M7CL Inputs (Analog)
 get_inputs("M7CL", "002") |>
+  filter(is.na(NetworkDevice)) |>	
+  select(-NetworkDevice, -NetworkDeviceChannel) |>	
   gt() |>
-  tab_header("M7CL-48 Input Map") |>
+  tab_header("M7CL-48 Input Map - Analog") |>
+  opt_stylize(style=3) |>
+	sub_missing(  missing_text = "-")  
+```
+
+```{r m7-inputs-dante}
+#| label: fig-m7cl-inputs-dante
+#| fig-cap: M7CL Inputs (Dante)
+get_inputs("M7CL", "002") |>
+  filter(!is.na(NetworkDevice)) |>	
+  gt() |>
+  tab_header("M7CL-48 Input Map - Dante") |>
   opt_stylize(style=3) |>
 	sub_missing(  missing_text = "-") |>
 	cols_label( NetworkDevice ="Net Device"
@@ -196,6 +205,18 @@ get_inputs("DM1K", "002") |>
 ```
 
 # Operating a Channel
+
+:::{.callout-important}
+Some of the changes you make on channel inputs can also affect what happens on the Livestrean mixer. These require communication between the two engineers.
+
+* Microphone selection for anything non-standard, or extra
+
+* Adjustments to preamp gain (aka headamp gain), it is normal to change early during rehearsal, but after that a change should be communicated. 
+
+* Other changes can also make an impact but are not likely to occur in normal operation. For example: adjusting the *Direct Out* levels of certain channels, or adjusting the mix or master level of busses 11-14.
+
+See @fig-dante-outputs for more details.
+:::
 
 The channels are laid out 32 on the left hand side and 16 on the right; all in groups of 8. The bank of 8 faders in the centre mirrors one of those groups or can be used to access other functions like the monitor masters. 
 
