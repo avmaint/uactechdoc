@@ -10,6 +10,9 @@ format:
     toc: true
   pdf:
      toc: true
+  titlepage-pdf:
+    toc: true
+   
 always_allow_html: yes
 ---
 
@@ -96,10 +99,12 @@ pso <- tribble(
 
 ## Inputs
 
-```{r}
+All inputs to the matrix are HDMI. An input can be routed to a one or more outputs at once.
+
+```{r matrix_in, results='asis'}
 #| tbl-cap: "Video Matrix Inputs"
 #| tbl-cap-location: bottom
-psi |>  
+tab <- psi |>  
    gt() |>  
 		opt_stylize(style = 3) |>
 		tab_style(
@@ -108,14 +113,18 @@ psi |>
 				),
 			locations = cells_body(
 				columns = "Input")
-		)  
+		) 
+print_gt_table(tab) |> cat()
 ```
 
 ## Outputs
-```{r}
+
+Each matrix output can be either HDMI or HDBaseT. Several typical configurations are discussed on the Operations document.   
+
+```{r matrix_out, results='asis'}
 #| tbl-cap: "Video Matrix Outputs"
 #| tbl-cap-location: bottom
-pso |> 
+tab <- pso |> 
  gt() |>  
 		opt_stylize(style = 3) |>
 		tab_style(
@@ -124,7 +133,8 @@ pso |>
 				),
 			locations = cells_body(
 				columns = "Output")
-		)  
+		) 
+print_gt_table(tab) |> cat()
 ```
 
 # Topologies
@@ -147,8 +157,8 @@ CDMU-A001 MacOS / ProPresenter / DVD Player
 CDWU-0009 Windows / OBS  
 : This windows 10 system has a dual output video card. One is used for the operator display, and the second for presentation. It has Powerpoint for Windows installed.
 
-CUMU-G001 MacOS / ATEM Control / OBS / Propresenter
-: This system runs the ATEM switcher software, and OBS (for prayer room monitoring) and can also run things like Skype.
+CUMU-G001 MacOS / ATEM Control / OBS / ProPresenter
+: This system runs the ATEM switcher software, and OBS (for prayer room monitoring) and can also run things like Zoom. Although it has an unused HDMI output via a dongle, it is not currently connected.
 
 ```{dot}
 //| label: fig-topology1-computer
@@ -156,19 +166,21 @@ CUMU-G001 MacOS / ATEM Control / OBS / Propresenter
 //| file: gv/sdv-topology1-computer.gv
 ```
 
-```{r topology1-computer}
+```{r topology1-computer, results='asis'}
 # TODO: fix the code below.
 #| label: tab-topology1-computer
 #| fig-cap: "Computer Topology"
 
-print_inv(c("CDWU-0009","CDMU-A001" , "ZVIU-E004" #"CDMU-G001" ,
-		     ), Tech_Inventory)
+print_inv(c("CUMU-G001","CDMU-A001" , "ZVIU-E004"  
+		     ), Tech_Inventory) |>
+	print_gt_table() |>
+    cat()
 ```
 
 ## Projection Topology
-There are four projectors in the auditorium, three FoH and one at the rear for confidence. Thet are all feed an hdmi signal via HDBaseT (Over Cat6).
+There are four projectors in the auditorium, three FoH and one at the rear for confidence. They are all feed an HDMI signal via HDBaseT (Over Cat6).
 
-```{dot}
+```{dot fig-topology-projection}
 //| fig-width: 4
 //| fig-height: 2
 //| label: fig-topology-projection
@@ -177,7 +189,8 @@ There are four projectors in the auditorium, three FoH and one at the rear for c
 ```
 
 ```{r top2}
-print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003", "ZVVU-0001"),
+print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003"
+			, "ZVVU-0001", "2310-1700"),
           Tech_Inventory)
 ```
 
@@ -238,7 +251,7 @@ A key constraint for the ATEM video mixer is that all inputs must have the same 
 
 ### Outputs
 
-```{dot}
+```{dot fig-topology-recout}
 //| fig-width: 4
 //| fig-height: 2
 //| label: fig-topology-recout
@@ -250,7 +263,7 @@ A key constraint for the ATEM video mixer is that all inputs must have the same 
 
 The WebPresenter (see @fig-topology-webpres) converts its input (SDI or HDMI) to a usb webcam format which can be used by the computer (it also acts as a two-channel switch). 
  
-```{dot}
+```{dot fig-topology-webpres}
 //| fig-width: 4
 //| fig-height: 3
 //| label: fig-topology-webpres
@@ -258,8 +271,8 @@ The WebPresenter (see @fig-topology-webpres) converts its input (SDI or HDMI) to
 //| file: gv/sdv-topology6-rec-wp.gv
 ``` 
  
-```{r}
-print_inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002",
+```{r wp-inv}
+print_inv(c("ZVKU-A004", "ZVKU-A001", "CUMU-G001",
            "ZVCU-A001", "ZVIU-C001",
            "ZVCU-A002", "ZVCU-A003", "ZVKU-A003",
            "ZVRU-A001", "ZVRU-A002", "ZVIU-A004"), Tech_Inventory)
@@ -267,7 +280,7 @@ print_inv(c("ZVKU-A004", "ZVKU-A001", "CDMU-A002",
 
 # Network Details
 
-```{r} 
+```{r net-details, results='asis'} 
 network.data %>% 
 filter(Category=="Video") %>% 
 select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
@@ -280,8 +293,9 @@ select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
 			locations = cells_body(
 				columns = "AssetTag")
 		) |>
-		tab_options(table.font.size="50%")
-
+		tab_options(table.font.size="50%") |>
+	print_gt_table() |>
+	cat()
 ```
 
 # Video Equipment Inventory

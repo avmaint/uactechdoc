@@ -77,10 +77,10 @@ subgraph sdi_edges {
 	edge  [fontsize=10, color="cyan"]
 rswitch:o5 -> zvrua001:i1  [label="2307-3005"]
 rswitch:o6 -> zviud002:sdi [label="2307-3006"]
-zvrua001:outb -> zvrua002:i1 [label="2307-3001" ]	rswitch:aux   -> zviud001 [label="2307-1808" ]
+zvrua001:outb -> zvrua002:i1 [label="2307-3001" ]
+rswitch:aux   -> zviud001 [label="2307-1808" ]
 
-rswitch:pgm -> zviua005:sdi [label="2307-1806???\nverify" color=red fontcolor="red" ]
-  
+rswitch:pgm -> zviua005:sdi [label="2307-1806" ]
 }
 
 subgraph hdmi_edges {
