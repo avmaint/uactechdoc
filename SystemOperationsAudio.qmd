@@ -9,13 +9,8 @@ execute:
 format:
   html:
     toc: true
-    toc-depth: 2
-    toc-location: right
-    number-sections: true
   pdf:
-    number-sections: true 
-    toc: true
-    toc-depth: 2  
+     toc: true
   titlepage-pdf:
     toc: true
 
@@ -185,9 +180,8 @@ gt(udk) |>
 	tab_header("User Defined Keys")
 ```
 
-
-![M7Cl Centre Controls](./images/soa-m7cl-centre-controls.jpg){#fig-soa-m7cl-centre-controls width=50mm}
-
+![M7CL Centre Controls](./images/soa-m7cl-centre-controls.jpg){#fig-soa-m7cl-centre-controls width=50mm}
+ 
 # Console Inputs
 
 Part of what is included in the scene definition is the channel layout.  See @fig-m7cl-inputs-analog, @fig-m7cl-inputs-dante and @fig-dm1k-inputs.
