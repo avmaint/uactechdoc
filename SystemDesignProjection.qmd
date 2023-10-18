@@ -545,7 +545,8 @@ Video_Inventory <- assets |>
           filter( Category=="Video" 
           		, InService== "Y"
           		, Building == "Main"
-          		, Floor != "Basement") 
+          		, Floor != "Basement"
+          		, Type != "Hardware") 
 nr <- nrow(Video_Inventory)
 
 Video_Inventory |>
