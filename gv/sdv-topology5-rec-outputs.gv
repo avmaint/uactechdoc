@@ -1,7 +1,7 @@
 digraph recording { 
 	
 graph [overlap = true, fontsize = 20, 
-      label="Video Recording Topology - Outputs\n(as of 2023-08-02)",
+      label="Video Recording Topology - Outputs\nAs of 2023-10-18",
       fontname = Helvetica, bgcolor=white
       ]
  
@@ -16,14 +16,10 @@ rswitch [
   tooltip="BMD ATEM Television Studio Pro HD"
 
   label="{
-    {{<al>AudioL}|{<ar>AudioR}|
-      {<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}
-      |{<i5>sdi|In5}|{<i6>sdi|In6}|{<i7>sdi|In7}|{<i8>sdi|In8}}
-      |Recording Switcher\nZVKU-A003
+     Recording Switcher\nZVKU-A003
       |
       {{Out5|<o5>sdi}
       |{Out6|<o6>sdi}
-      |{Out7|<o7>sdi}
       |{Out8|<o8>sdi}
       |{Pgm|<pgm>sdi}
       |{Aux|<aux>sdi}
@@ -31,13 +27,16 @@ rswitch [
     }"
 ]
 
+ 2310090723101600 [label="" shape=point] 
+
+
 pswitch [
   tooltip="Kramer VS-88DT"
   label="{
   {
-    <i1>In1|<i2>In2|<i3>In3|<i4>In4|<i5>In5| <i6> In6 |<i7>In7|{<i8>In8}}
-  |Video Matrix\nZVKU-A001|
-  {<o1>Out1|<o2>Out2|<o3>Out3|<o4>Out4|<o5>Out5|<o6>Out6 |<o7>Out7|{Out8<o8>}} }"]
+     <i5>In5| <i6> In6   }
+  |Video Matrix\nZVKU-A001 
+    } }"]
    
 switchmonitor [label="{
     <i>hdmi|In
@@ -45,6 +44,15 @@ switchmonitor [label="{
    }"
    tooltip="Samsung"
    ]
+   
+zviue004 [shape=record label="
+  {{  
+  <c5> Quad 3\nsdi5
+| <c7> Quad 4\nsdi7
+ }
+|{ DeckLink Video\nInterface\nZVIU-E004 
+ }} 
+"];
 
 zvrua001 [
   label="{
@@ -70,8 +78,6 @@ zviud002 [label="{
    }"
    tooltip="in rack"
    ]
-   
- note [label="it could be that 2307-1806\ncomes from the Pgm out"]  
 
 subgraph sdi_edges {
 	edge  [fontsize=10, color="cyan"]
@@ -81,13 +87,16 @@ zvrua001:outb -> zvrua002:i1 [label="2307-3001" ]
 rswitch:aux   -> zviud001 [label="2307-1808" ]
 
 rswitch:pgm -> zviua005:sdi [label="2307-1806" ]
+
+rswitch: out8 -> 2310090723101600 [label="2310-0907"]
+2310090723101600 -> zviue004: c7 [label="2310-1600"]
 }
 
 subgraph hdmi_edges {
 	edge  [fontsize=10, color="magenta"]
-zviua005:hdmi -> pswitch:i5
-zviud001:hdmi -> pswitch:i6
-rswitch:mv -> switchmonitor:i
+zviua005:hdmi -> pswitch:i5 [label="2308-2500"]
+zviud001:hdmi -> pswitch:i6 [label="2308-0800"]
+rswitch:mv -> switchmonitor:i [label="2308-1122"]
 	
 }
 } 

@@ -1,0 +1,67 @@
+digraph TopologyDeckLink {
+    labelloc=t
+    label="Decklink and ProPresenter\n2023-10-17" fontsize="20"
+    edge [style=dotted] 
+    node [shape=box]
+    //resolution=70 size= "22,17!"  ratio=fill
+    //dot -Tpdf decklink_propresenter.gv >decklink_propresenter.pdf 
+    
+subgraph cluster_triplewide {   
+	label="Triple Wide Config"
+    
+zviue004tw [shape=record label="
+ DeckLink Video\nInterface\nZVIU-E004 | 
+{{ 
+  <c4> Quad 6\nsdi4
+| <c6> Quad 7\nsdi6
+| <c8> Quad 8\nsdi8 
+}
+}
+"];    
+
+cdmua001tw [shape=record label="
+ProPresenter\nCDMU-A001 
+|
+{{ 
+ {  Front_TW | { <pa> ProjA  | <pb> ProjB | <pc> ProjC }   } 	
+	
+}}
+| { <tb> UsbC } 	
+"]; 
+
+zvkua001tw  [shape=record label="
+Video Matrix\nZVKU-A001
+| <in1> In1
+| <in2> In2
+| <in3> In3
+ "] 
+ 
+zviug003    [label="sdi-hmdi\nZVIU-G003"]
+zviug004    [label="sdi-hmdi\nZVIU-G004"]
+zviug005    [label="sdi-hmdi\nZVIU-G005"] 
+} //cluster_triplewide
+
+subgraph hdmi_edges {
+	edge [style=solid, color="#009900", fontsize="12pt" ]
+zviug003 -> zvkua001tw:in1 [label="2307-1816\nhdmi" ]
+zviug004 -> zvkua001tw:in2 [label="2307-1817\nhdmi" ]
+zviug005 -> zvkua001tw:in3 [label="2307-1818\nhdmi" ]
+}
+
+subgraph sdidin_edges {
+	edge [style=solid, color="red", fontsize="12pt" ]
+ 
+zviue004tw:c4      -> zviug003  [label="2307-1812\nsdidin" ]
+zviue004tw:c6      -> zviug004  [label="2307-1813\nsdidin" ]
+zviue004tw:c8      -> zviug005  [label="2307-1814\nsdidin" ]
+}
+
+subgraph sw_edges { 
+	edge [style="solid", color="blue" fontsize="12pt"]
+	
+cdmua001tw:pa -> zviue004tw:c4   [label="2307-1802\nsw" ]
+cdmua001tw:pb -> zviue004tw:c6   [label="2307-1803\nsw" ]
+cdmua001tw:pc -> zviue004tw:c8   [label="2307-1804\nsw" ]
+}
+ 
+}

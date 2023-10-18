@@ -1,0 +1,51 @@
+digraph TopologyDeckLink {
+    labelloc=t
+    label="Decklink and ProPresenter\n2023-10-18\nAux feed not implemented" fontsize="20"
+    edge [style=dotted] 
+    node [shape=box]
+    
+subgraph cluster_VideoInputs {
+ label="Video Inputs from ATEM"
+ 
+zvkua003in   [shape=record label="
+ATEM Mixer\nZVKU-A003
+| { <prg> Prog}
+| { <aux> Aux}
+| { <out8> Out8}
+"] 
+  
+zviud001 [label="sdi-hdmi\nZVIU-D001"]
+
+zviue004in [shape=record label="
+ DeckLink Video\nInterface\nZVIU-E004 | 
+{{ 
+  <c5> Quad 3\nsdi5
+| <c7> Quad 4\nsdi7
+}} 
+"];  
+ 
+cdmua001in [shape=record label="
+ProPresenter\nCDMU-A001 
+| { { <in1> In 1  | <in3> In3 }    } 
+"];   
+  
+ 2310090723101600 [label="" shape=point] 
+} // cluster_VideoInputs
+
+subgraph sdi_edges {
+	edge [style=solid, color="cyan", fontsize="12pt" ]
+	
+zvkua003in: out8 -> 2310090723101600 [label="2310-0907"]
+2310090723101600 -> zviue004in: c7 [label="2310-1600"]
+ 
+zvkua003in :aux    -> zviud001  [label="2307-1808\nsdi" ] 
+ 
+}
+
+subgraph sw_edges { 
+	edge [style="solid", color="blue" fontsize="12pt"]
+zviue004in:c5  -> cdmua001in:in1 [label="2307-1807\nsw" ]
+zviue004in:c7  -> cdmua001in:in3 [label="2307-1809\nsw" ]
+}
+
+}

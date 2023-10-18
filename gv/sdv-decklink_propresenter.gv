@@ -30,7 +30,7 @@ ProPresenter\nCDMU-A001
 "]; 
 
 zvkua001tw  [shape=record label="
-Video Matrix\nZVKU-A001
+Video Matrixtw\nZVKU-A001
 | <in1> In1
 | <in2> In2
 | <in3> In3
@@ -114,7 +114,7 @@ zviue004sd [shape=record label="
 "];   
 
 zvkua001in  [shape=record label="
-Video Matrix\nZVKU-A001
+Video Matrixin\nZVKU-A001
  | <in4> In4
 "] 
 

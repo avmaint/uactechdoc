@@ -1,7 +1,6 @@
 ---
 title: "System Design - Projection"
-author: "Terry Doner"
-date: "`r format(Sys.time(), '%B %d %Y')`"
+ 
 execute: 
   eval: true
   echo: false
@@ -9,14 +8,11 @@ execute:
   message: false
 format:
   html:
-    toc: true
-    toc-depth: 2
-    toc-location: right
-    number-sections: true
+    toc: true 
   pdf:
-    number-sections: true 
     toc: true
-    toc-depth: 2
+  titlepage-pdf:
+    toc: true
 always_allow_html: yes
 ---
 
@@ -32,7 +28,7 @@ source("commonFunctions.R")
 
 ```{r data }
 NetworkInventory <- get.network()
-Tech_Inventory   <- get.inventory()
+assets           <- get.assets()
 further          <- get.further() 
 ```
 
@@ -47,7 +43,7 @@ This document provides key technical documentation for the video subsystems at U
 //| file: gv/sdv-topology0-overview.gv
 ```
 
-# ProPresenter
+# ProPresenter {#sec-propresenter}
 
 ProPresenter generates 7 physical video outputs, and those are five of the 8 inputs into the video matrix. It also has one [NDI](https://sites.google.com/view/buzz-sparky-and-flip/articles/video/ndi-overview) output which is a network interface.
 
@@ -57,7 +53,7 @@ ProPresenter generates 7 physical video outputs, and those are five of the 8 inp
 
 * One output is the stage display via the Decklink.
 
-* An HDMI output which can be used when the decklink outputs are not appropriate.  
+* An HDMI output which can be used when the decklink outputs are not appropriate (eg: Powerpoint and DVDs).  
 
 * The NDI output is a copy of the stage display that is sent out over the network and provides key status information to the audio engineer running the livestream.  
 
@@ -71,18 +67,34 @@ The Decklink outputs are special purpose outputs which are not recognized by the
 See the document *deepdive_displaying_a_web_page_within_pp7.docx* for instructions on how to display a browser webpage via ProPresenter.
 :::
 
-```{dot pp_and_decklink}
-//| fig-width: 4
-//| label: fig-ProPresenter-and-decklink
-//| fig-cap: "ProPresenter and Decklink Configurations"
-//| file: gv/sdv-decklink_ProPresenter.gv
+::: {#fig-decklink-tw-sd layout-ncol=2}
+```{dot pp_and_decklink-tw}
+//| fig-cap: (a) Triplewide
+//| file: gv/sdv-decklink_ProPresenter-tw.gv
 ```
-
-:::callout-note
-As of September 2023, the video inputs to the decklink are not implemented.
+```{dot pp_and_decklink-sd}
+//| fig-cap: (b) Stage Display
+//| file: gv/sdv-decklink_ProPresenter-sd.gv
+//| 
+```
+ProPresenter and Decklink Configurations
 :::
 
-[Back to top](#top)
+::: {#fig-decklink-kf-in layout-ncol=2}
+```{dot pp_and_decklink-kf}
+//| fig-cap: (a) Key and Fill
+//| file: gv/sdv-decklink_ProPresenter-kf.gv
+```
+```{dot pp_and_decklink-in}
+//| fig-cap: (b) Inputs
+//| file: gv/sdv-decklink_ProPresenter-in.gv
+```
+ProPresenter and Decklink Configurations
+:::
+
+:::callout-note
+When using the video input into ProPresenter from the ATEM, the video is delayed about 20ms. This may be noticeable in some circumstances; lip synchronization on a tight shot vocal or a drummer might be noticeable to the audience.  
+:::
 
 # Video Matrix
 
@@ -93,10 +105,10 @@ Our video matrix is a Kramer VS-88DT which is an 8x8 matrix and can handle HDMI 
 It can be controlled via the buttons on the front panel or from its built in web page.
 
 
-```{r psi}
+```{r psi, results='asis'}
 #| label: fig-matrix-inputs
-#| fig-caption: Matrix Inputs
-#| cap-location: bottom
+#| fig-cap: Matrix Inputs
+
 psi <- tribble(
 ~Input, ~Usage, ~Comment,
 1,
@@ -131,25 +143,28 @@ psi <- tribble(
 "CDMU-A001 HDMI",
 "The HDMI Video from CDMU-A001. This would be used when a system display is required.")
 
-psi |> 
+tab <- psi |> 
 	gt() |>
 	opt_stylize(style = 3) |>
-	tab_header("Video Matrix Inputs" ) |>
+ 	tab_header("Video Matrix Inputs" ) |>
 	tab_style(
 		style=list( cell_text(weight = "bold") ),
 		locations=cells_body(columns=Input)
-	) |>
-  cols_width(
-    Comment ~ pct(70),
-    Usage   ~ pct(15),
-    Input  ~ pct(15)
-  )
+	)
+# 	) |>
+#   cols_width(
+#     Comment ~ pct(70),
+#     Usage   ~ pct(15),
+#     Input  ~ pct(15)
+#   )
+
+print_gt_table(tab) |> cat()
 ```
 
-```{r pso}
+```{r pso, results='asis'}
 #| label: fig-matrix-outputs
-#| fig-caption: Matrix Outputs
-#| cap-location: bottom
+#| fig-cap: Matrix Outputs
+ 
 pso <- tribble(
 ~Output, ~Type, ~Usage, ~Comment,
 "1", "HDBaseT", 
@@ -182,7 +197,7 @@ pso <- tribble(
 "Nursery", "Feed to the Nursery TV."
 )
 
-pso |> 
+tab <- pso |> 
 	gt() |>
 	opt_stylize(style = 3) |>
 	tab_header("Video Matrix Outputs" ) |>
@@ -193,14 +208,16 @@ pso |>
 	tab_footnote("A potential future output would be an audio feed to the Audio mix console, or a decklink input.", 
 				 locations=cells_body(
 				 	columns=Comment , 
-				 	rows= Output==6)) |>
-  cols_width(
-    Comment ~ pct(55),
-    Usage   ~ pct(15),
-    Type    ~ pct(15),
-    Output  ~ pct(15)
-  ) |>
-	tab_options(table.width=pct(100))
+				 	rows= Output==6)) 
+# |>
+#   cols_width(
+#     Comment ~ pct(55),
+#     Usage   ~ pct(15),
+#     Type    ~ pct(15),
+#     Output  ~ pct(15)
+#   ) |>
+# 	tab_options(table.width=pct(100))
+print_gt_table(tab) |> cat()
 ```
 
 ## Video Matrix Configurations
@@ -211,10 +228,7 @@ Would this be better located in the Video Operations?
 
 The current matrix routing can be queried and changed using either the webpage or the front panel.
 
-The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicated no source has been selected. Here are two sample configurations.
-
-### Sample Configurations
-Here are some common configurations to use and some ideas abuot when to use them. The detailed setings are in the table @tbl-vmsc that follows.
+The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicates no source has been selected. Here are a few sample configurations. The detailed settings are in the table @tbl-vmsc that follows.
 
 Full_TW
 : Use this when you want triple wide capability. 
@@ -278,15 +292,15 @@ There are three computers in the system (@fig-comp-top):
 
 CDMU-A001 MacOS / ProPresenter
 
-:   This system runs ProPresenter and has a built in operator display, and a displayport output to the datapath video processor which split the output to three separate video signals for the front projectors, and a separate video output that drives the rear confidence montitor. It also has Powerpoint for Mac and Keynote installed.
+: This system runs ProPresenter and has a built in operator display and a number of other outputs, see @sec-propresenter for details. It also has Powerpoint for Mac and Keynote installed.
 
 CUMU-G001 MacOS / ATEM - OBS
 
-:   This system runs the ATEM switcher software, and OBS (for distrbution of the ATEM program output over the network) and can also run things like Skype. It has a USBC-HDMI adapter that is *not* currently connected to Input 3 of the video mixer.
+: This system runs the ATEM switcher software, and OBS (for distrbution of the ATEM program output over the network) and can also run things like Skype. It has a USBC-HDMI adapter that is *not* currently connected to Input 3 of the video mixer.
 
-CDWU-0009 Windows / Mediashout
+CDWU-0009 Windows / PowerPoint
 
-:   The windows system runs Mediashout and has a dual output video card. One is used for the operator display, and the second for presentation. It also has Powerpoint for Windows installed.
+: The windows system runs the windowns version of PowerPoint and has a dual output video card. One is used for the operator display, and the second for presentation.  This can be used if a guest has a PowerPoint that can only be run on Windows.
 
 ```{dot dot_top_comp}
 //| fig-width: 4
@@ -296,15 +310,15 @@ CDWU-0009 Windows / Mediashout
 ```
 
 ```{r gt_topComp}
-#| fig-cap: Computer Topologies
-#| cap-location: bottom
+#| fig-cap: Computer Inventory
 #| label: fig-comp-top
 selected.at <- c(
-              "CDWU-0009", "CDMU-A001", "CUMU-G001",
-              "ZVKU-A001",  "ZVKU-A003" ,
-              "ZVIU-A004", "ZVIU-E004") 
+                "CDWU-0009", "CDMU-A001"
+              , "CUMU-G001", "CUMU-E001"
+              , "ZVKU-A001",  "ZVKU-A003" 
+              , "ZVIU-A004", "ZVIU-E004") 
 
-Tech_Inventory |>
+assets |>
    filter( AssetTag %in% selected.at) |> 
     select(AssetTag, Manufacturer, Model, Desc ) |>
     arrange( AssetTag ) |> 
@@ -330,8 +344,7 @@ Long distance signal transmission is achieved using Cat5e or Cat6 cabling. An in
 ```
 
 ```{r}
-#| fig-cap: Projection Details
-#| cap-location: bottom
+#| fig-cap: Projection Topology Inventory
 #| label: fig-proj-det
 selected.at <- c(
               "ZVKU-A001", 
@@ -339,7 +352,7 @@ selected.at <- c(
               "ZVVU-A001", "ZVVU-A002", "ZVVU-A003" 
               )
 
-Tech_Inventory |>
+assets |>
    filter( AssetTag %in% selected.at) |> 
     select(AssetTag, Manufacturer, Model, Desc ) |>
     arrange( AssetTag ) |> 
@@ -364,15 +377,16 @@ The TV in the lobby gets its content from the video matrix. For the main service
 //| file: gv/sdv-topology3-lobby.gv
 ```
 
-```{r topLobby}
-#| fig-cap: Lobby Topology
-#| cap-location: bottom
+```{r gt-topLobby}
+#| fig-cap: Lobby Inventory
 #| label: fig-lob-top
+
 selected.at <- c(
-              "ZVKU-A001" , "ZVIU-A002", "ZVVU-0002"
+              "ZVKU-A001" , "ZVIU-A002"
+              , "2310-1700"
               ) 
 
-Tech_Inventory  |>
+assets  |>
    filter( AssetTag %in% selected.at) |> 
     select(AssetTag, Manufacturer, Model, Desc ) |>
     arrange( AssetTag ) |> 
@@ -401,16 +415,16 @@ Each TV has a remote control.
 ```
 
 ```{r top3}
-#| fig-cap: Nursery Details
-#| cap-location: bottom
+#| fig-cap: Nursery Topology Inventoru
 #| label: fig-nursery-det
+
 selected.at <- c(
               "ZVKU-A001",  
               "ZVVU-0002", "2308-2900",
               "ZVIU-A002", "ZVVU-0003"
               )  
 
-Tech_Inventory |>
+assets |>
    filter( AssetTag %in% selected.at) |> 
     select(AssetTag, Manufacturer, Model, Desc ) |>
     arrange( AssetTag ) |> 
@@ -425,9 +439,11 @@ Tech_Inventory |>
 
 ## Recording Topology
 
-The recording topology is quite complex and so it is broken up into peices.
+The recording topology is quite complex and so it is broken up into pieces.
 
 ### Inputs
+
+See @fig-rec-inputs
 
 ```{dot top_rec-inputs}
 //| fig-width: 4
@@ -438,6 +454,8 @@ The recording topology is quite complex and so it is broken up into peices.
 
 ### Outputs
 
+See @fig-rec-outputs
+
 ```{dot top_rec-outputs}
 //| fig-width: 4
 //| label: fig-rec-outputs
@@ -447,7 +465,7 @@ The recording topology is quite complex and so it is broken up into peices.
 
 ### Web Presenter
 
-There are some details on the signal path between the Video Mixer and the Web Presenter that need to be documented.
+See @fig-rec-wp and @fig-wp-det
 
 ```{dot top_rec-wp}
 //| fig-width: 4
@@ -461,15 +479,14 @@ There are some details on the signal path between the Video Mixer and the Web Pr
 #| cap-location: bottom
 #| label: fig-wp-det
 selected.at <- c(
-              "ZVKU-A001" , 
-              "ZVCU-A001", "ZVCU-A002", "ZVCU-A003",
-              "ZVKU-A003", "ZVKU-A004", 
+              "ZVKU-A003", 
               "ZVRU-A001", "ZVRU-A002",
               "ZVIU-A004",
-              "CDMU-A002"
+              "CUMU-G001"
+              , "ZVIU-D001"
               ) 
 
-Tech_Inventory|>
+assets|>
    filter( AssetTag %in% selected.at) |> 
     select(AssetTag, Manufacturer, Model, Desc ) |>
     arrange( AssetTag ) |> 
@@ -487,21 +504,26 @@ The details of the network configuration are not shown. See the Network design d
 
 # Network Details
 
-```{r}
+See @fig-net-det
+
+```{r gt-net-details, results="asis", fig.id=TRUE }
 #| fig-cap: Network Details
 #| cap-location: bottom
 #| label: fig-net-det
-NetworkInventory %>% 
-filter(Category=="Video") %>% 
-select(AssetTag, Location, Usage, Device, MAC, IP, URL, Notes) %>%
-  arrange(AssetTag) |>
+NetworkInventory |> 
+ left_join(assets) |>
+ filter(Category=="Video") |> 
+ filter(Building == "Main") |>
+ select(AssetTag, Location, Usage, Device, MAC, IP, URL, Notes) |>
+ arrange(AssetTag) |>
 	gt() |>
 	opt_stylize(style = 3) |>
 	tab_header("Network Device Details" ) |>
 	tab_style(
 		style=list( cell_text(weight = "bold") ),
 		locations=cells_body(columns=AssetTag)
-	) 
+	)  |>
+ print_gt_table() |> cat()	
 ```
 
 # Video Equipment Inventory
@@ -519,21 +541,46 @@ cs = c("AssetTag", "Qty"  ,
   "Type" ,
   "Desc"     )
 
-Video_Inventory <- Tech_Inventory %>%  
-          filter( Category=="Video" , InService== "Y") %>%  
-          dplyr::select(one_of(cs))   
+Video_Inventory <- assets |>  
+          filter( Category=="Video" 
+          		, InService== "Y"
+          		, Building == "Main"
+          		, Floor != "Basement") 
+nr <- nrow(Video_Inventory)
 
 Video_Inventory |>
-   filter( AssetTag %in% selected.at) |> 
+   #filter( AssetTag %in% selected.at) |> 
     select(AssetTag, Location, Manufacturer, Model, Desc ) |>
     arrange( AssetTag ) |> 
 	gt() |>
 	opt_stylize(style = 3) |>
-	tab_header("Video Device Details" ) |>
+	tab_header(glue("Video Device Details n={nr} ") ) |>
 	tab_style(
 		style=list( cell_text(weight = "bold") ),
 		locations=cells_body(columns=AssetTag)
 	) 
+```
+
+## Terminology
+
+```{r terminology, results="asis"}
+# A hack - gt doesn't provide a means of line-breaking for pdf. So we create a graphic and then include the graphic.
+
+tab <- get.glossary() |>
+	filter(  Topic == "Video" 
+		   | Topic == "General"
+		   | Term == "Category Cable") |>
+	select(Term, Definition, Topic) |>
+	arrange(Topic, Term) |>
+    gt(groupname_col = "Topic") |>
+	opt_stylize(style=3) |>
+	fmt_markdown(columns=Definition) |>
+	tab_style(
+       style = cell_text(weight = "bold"
+  				  , size="large")
+                  , locations = cells_row_groups() ) |>
+	print_gt_table() |>
+	cat()
 ```
 
 {{< include common_trailer.qmd >}}

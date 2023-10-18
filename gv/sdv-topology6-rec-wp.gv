@@ -1,7 +1,7 @@
 digraph WebPresenter { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Video Recording Topology - Web Presenter\n(as of 2023-09-08)",
+      label="Video Recording Topology - Web Presenter\n(as of 2023-10-18)",
       fontname = Helvetica, bgcolor=white
       ]
  
@@ -23,7 +23,8 @@ cumug001 [label="{<usb>usb|MacMini\nOBS & Zoom|CUMU-G001}"]
  
 zviud001 [label="{<i>sdi|sdi→hdmi|ZVIU-D001|<o>hdmi}"]
 
-zviua004 -> cumug001 [label="?\nusb"]
+zviua004 -> cumug001 [label="?\nusb" color="red"]
+note [label="missing label on usb cable" color="red"]
 
 subgraph sdi_cables { 
 	edge [style="solid", color="blue" fontsize="10pt"]

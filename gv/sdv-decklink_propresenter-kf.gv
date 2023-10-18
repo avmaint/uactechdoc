@@ -1,0 +1,63 @@
+digraph TopologyDeckLink {
+    labelloc=t
+    label="Decklink and ProPresenter\n2023-10-17" fontsize="20"
+    edge [style=dotted] 
+    node [shape=box]
+    //resolution=70 size= "22,17!"  ratio=fill
+    //dot -Tpdf decklink_propresenter.gv >decklink_propresenter.pdf 
+    
+subgraph cluster_KeyFill {
+	label="Key+Fill to ATEM"
+
+zvkua003a  [shape=record label="
+ATEM Mixer\nZVKU-A003
+| { <in2> in2\nKey}
+| { <in4> in4\nFill}
+"] 
+
+zviue004kf [shape=record label="
+ DeckLink Video\nInterface\nZVIU-E004 | 
+{{ 
+  <c1> Quad 1\nsdi1 
+| <c2> Quad 5\nsdi2
+}} 
+"];   
+
+cdmua001kf [shape=record label="
+ProPresenter\nCDMU-A001 
+| { { <k> Key  | <f> Fill }   }
+"];    
+
+zviua003 [label="sdi-hdmi\nZVIU-A003"]
+zviua008 [label="sdi-hdmi\nZVIU-A008"]
+b1810  [shape=cylinder width=0.2 height=0.3 label=""]
+b1811  [shape=cylinder width=0.2 height=0.3 label=""]
+} // cluster_KeyFill
+    
+subgraph hdmi_edges {
+	edge [style=solid, color="#009900", fontsize="12pt" ] 
+zviua003 -> zvkua003a:in2  [label="2307-1822\nhdmi" ]
+zviua008 -> zvkua003a:in4  [label="2307-1823\nhdmi" ]
+}
+
+subgraph sdi_edges {
+	edge [style=solid, color="cyan", fontsize="12pt" ]
+	
+b1810 -> zviua003 [label="2307-1827\nsdi" ]
+b1811 -> zviua008 [label="2307-1828\nsdi" ]
+}
+
+subgraph sdidin_edges {
+	edge [style=solid, color="red", fontsize="12pt" ]
+
+zviue004kf:c1      -> b1810 [label="2307-1810\nsdidin" ]
+zviue004kf:c2      -> b1811 [label="2307-1811\nsdidin" ]
+}
+
+subgraph sw_edges { 
+	edge [style="solid", color="blue" fontsize="12pt"]
+cdmua001kf:k  -> zviue004kf:c1   [label="2307-1800\nsw" ]
+cdmua001kf:f  -> zviue004kf:c2   [label="2307-1801\nsw" ] 
+}
+
+}

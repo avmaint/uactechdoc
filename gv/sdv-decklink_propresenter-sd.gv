@@ -1,0 +1,62 @@
+digraph TopologyDeckLink {
+    labelloc=t
+    label="Decklink and ProPresenter\n2023-10-17" fontsize="20"
+    edge [style=dotted] 
+    node [shape=box]
+    //resolution=70 size= "22,17!"  ratio=fill
+    //dot -Tpdf decklink_propresenter.gv >decklink_propresenter.pdf 
+
+subgraph cluster_StageDisplay {    
+	label="Stage Display"
+
+cdmua001sd [shape=record label="
+ProPresenter\nCDMU-A001 
+| {   <sd> RearDeckLink } | { <tb> UsbC } 
+"];    
+
+zviue004sd [shape=record label="
+ DeckLink Video\nInterface\nZVIU-E004 | 
+{{ 
+  <c3> Quad 2\nsdi3 
+}} 
+"];   
+
+zvkua001in  [shape=record label="
+Video Matrix\nZVKU-A001
+ | <in4> In4
+"] 
+
+zviue001 [label="sdi-hmdi\nZVIU-E001"]
+
+zviue005 [shape=record label="
+{
+   {<usbc> UsbC
+ | ZVIU-A004\nDeckLink
+}
+| Sonnet Enclosure\nZVIU-E005}"] 
+
+} // cluster_StageDisplay
+
+subgraph hdmi_edges {
+	edge [style=solid, color="#009900", fontsize="12pt" ] 
+zviue001 -> zvkua001in:in4 [label="2307-1819\nhdmi" ]
+}
+
+subgraph sdidin_edges {
+	edge [style=solid, color="red", fontsize="12pt" ]
+ 
+zviue004sd:c3      -> zviue001  [label="2307-1815\nsdidin" ]
+}
+
+subgraph sw_edges { 
+	edge [style="solid", color="blue" fontsize="12pt"]
+	 
+cdmua001sd:sd -> zviue004sd:c3   [label="2307-1805\nsw" ] 
+}
+ 
+subgraph tb_edges { 
+	edge [style="solid", color="magenta" fontsize="12pt"]
+cdmua001sd:tb -> zviue005:usbc  [label="2307-1824\nThunderbolt"]
+} 
+
+}
