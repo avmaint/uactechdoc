@@ -561,7 +561,7 @@ Video_Inventory |>
 	) 
 ```
 
-## Terminology
+# Terminology
 
 ```{r terminology, results="asis"}
 # A hack - gt doesn't provide a means of line-breaking for pdf. So we create a graphic and then include the graphic.
