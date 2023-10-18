@@ -31,13 +31,13 @@ inventoryfile <- get.inventory()
 ```
 
 # Introduction
-This document provides basic operating information for each of the Audio systems at UAC.
+This document provides basic operating information for each of the main auditorium audio system at UAC.
 
 Purpose of our Sound System:
 
 * Necessary to help the hearing impaired ( roughly 10% of the population) 
-* Supports video recording
-* Helps draw attention to the central item – conversely makes it easier to ignore other noise 
+* Supports video recording and streaming
+* For music, creates a pleasing blend of all the instruments and vocals
 * Helps audience to focus and concentrate
 * Reinforces the message (spoken or sung)
 
