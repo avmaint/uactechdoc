@@ -5,8 +5,7 @@ fname <- here("data", "uac_audio_config.xlsx")
 work.config.consoleinputs <- read_excel(fname, 
                                      sheet = "ConsoleInputs" )
 
-work.config.dantedevices <- read_excel(fname, 
-                                       sheet = "DanteDevices" )
+
 
 work.config.dantepatch <- read_excel(fname, 
                                        sheet = "DantePatch" )
@@ -59,3 +58,9 @@ get_dante_outputs <- function() {
 					   , sheet="dante_outputs")
 	return(data)
 }
+
+get_dante_devices <- function() {
+	db <- read_excel(fname, sheet = "DanteDevices" )
+	return(db)
+}
+	
