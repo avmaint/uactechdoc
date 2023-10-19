@@ -1,6 +1,6 @@
 digraph topology1 { 
-graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="DM1000 Inputs (as of 2019-02-11)",
+graph [overlap = true, fontsize = 20, rankdir=LR 
+      label="DM1000 Inputs\nAs of 2023-10-19",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10,
@@ -9,11 +9,10 @@ node [shape=Mrecord, tooltip="" , fontsize = 10,
       
 dm1k [label="Yamaha\nDM1000" fontsize=20 ]
 
-cdmua001 [label="Presentation Computer|CDMU-A001"]
+cdmua001 [label="ProPresenter Computer|CDMU-A001"]
 
-cd01u    [label="CD player cd01u| "]
- 
-{zamub002 zamub003 cdmua001} -> dm1k
+{zamub002 zamub003 } -> dm1k [label="dante" fontsize=6 style=dashed]
+cdmua001 -> dm1k
 cd01u -> dm1k
   
 subgraph cluster_rear { label="Rear Desk" fontsize=15
@@ -21,7 +20,7 @@ subgraph cluster_rear { label="Rear Desk" fontsize=15
 }
 
 subgraph cluster_front { label="Rack ZAHU-0005" fontsize=15
- cd01u    [label="CD player cd01u| "]
+ cd01u    [label="CD player cd01u\n?AssetTag? "]
  zamub002 [label="Wirelees receiver|ZAMU-B002"]
 zamub003 [label="Wirelees receiver|ZAMU-B003"]
 }

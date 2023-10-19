@@ -1,15 +1,15 @@
-digraph outputs { 
-graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Audio Outputs (as of 2023-09-14)",
+digraph foh_outputs { 
+graph [overlap = true, fontsize = 20, rankdir=LR 
+      label="Audio Outputs\nAs of 2023-10-19",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" ,  fontsize = 10,
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
 
-m7 [label="
+zaku0001 [label="
 { 
-  {    Yamaha\nM7CL|ZAKU-0001} 
+  {    Yamaha\nM7CL\nZAKU-0001} 
 |{
   <o1>Out 1 
 | <o2>Out 2
@@ -21,6 +21,7 @@ m7 [label="
 | <o13>Out 13
 | <o14>Out 14
 | <o16>Out 16
+| <b14>Mix14 Dante
 }
 }
 "]
@@ -31,33 +32,33 @@ mon12 [label="
 {{
   <i1>M1
 | <i2>M2
-} | Monitor Amp\n1&2}
+} | Monitor Amp\n1&2\nZAAU-0001}
 "]
   
 mon34 [label="
 {{
   <i1>M3
 | <i2>M4
-} | Monitor Amp\n3&4}
+} | Monitor Amp\n3&4\nZAAU-0002}
 "]  
  
 mon56 [label="
 {{
   <i1>M5
 | <i2>M6
-} | Monitor Amp\n5&6}
+} | Monitor Amp\n5&6\nZAAU-0003}
 "]   
  }
-m7:o1 -> mon12:i1
-m7:o2 -> mon12:i2
+zaku0001:o1 -> mon12:i1
+zaku0001:o2 -> mon12:i2
  
-m7:o3 -> mon34:i1
-m7:o4 -> mon34:i2
+zaku0001:o3 -> mon34:i1
+zaku0001:o4 -> mon34:i2
 
-m7:o5 -> mon56:i1
-m7:o6 -> mon56:i2
+zaku0001:o5 -> mon56:i1
+zaku0001:o6 -> mon56:i2
 
-m7:o13 -> lobby:il
+zaku0001:o13 -> lobby:il
 
 subgraph cluster_foh1 {label="ZAHU-0005" 
 
@@ -67,7 +68,7 @@ final [label="
   <il>L  
 | <ir>R  
 } |
-  {Finializer} 
+  {Finializer\nZAXU-0002} 
 |{
   <ol>L  
 | <or>R  
@@ -83,7 +84,7 @@ dom [label="
   <il>L  
 | <ir>R  
 } |
-  {Dominator} 
+  {Dominator\nZAXU-0003} 
 |{
   <ol>L  
 | <or>R  
@@ -97,7 +98,7 @@ rane [label="
   <il>L  
 | <ir>R  
 } |
-  {Rane DA} 
+  {Rane DA\nZAXU-0004} 
 |{
   <o1>1  
 | <o2>2
@@ -125,7 +126,7 @@ zaiue001 [label="
   <ch1>L  
 | <ch2>R  
 } |
-  {2Ch Input/nDante|ZAIU-E003} 
+  {2Ch Input\nDante\nZAIU-E003} 
 |{
   <net>net   
 }
@@ -138,12 +139,12 @@ lobby [label="
   <il>L  
 | <ir>R  
 } |
-  {Lobby Amp} 
+  {Lobby Amp\nZAAU-0010} 
 
 }
 "]
 
-burner [label="CD Burner"]
+burner [label="CD Burner\nZARU-0001"]
 
 }
 
@@ -176,28 +177,28 @@ ampsub [label="
 {{
   <i1>L
 | <i2>R
-} | Sub Amp }
+} | Sub Amp\n2309-0914}
 "]  
 
 amphousel [label="
 {{
   <i1>L
 | <i2>R
-} | House Left Amp }
+} | House Left Amp\nZAAU-0005 }
 "] 
 
 amphousec [label="
 {{
   <i1>L
 | <i2>R
-} | House Centre Amp }
+} | House Centre Amp\nZAAU-0006 }
 "] 
 
 amphouser [label="
 {{
   <i1>L
 | <i2>R
-} | House Right Amp }
+} | House Right Amp\nZAAU-0007 }
 "] 
 
 }
@@ -213,7 +214,7 @@ soundweb [label="
 | <i6>6
 | <i7>7
 | <i8>8
-} | FoH DSP\nSoundWeb\nExact Map tbd |
+} | FoH DSP\nSoundWeb\nZAXU-0001 |
 {
   <o1>1
 | <o2>2
@@ -227,18 +228,30 @@ soundweb [label="
 "] 
 }
 
-m7:o14 -> final:il
-m7:o16 -> final:ir
+zaku0001:o14 -> final:il
+zaku0001:o16 -> final:ir
 
 final:ol -> dom:il
 dom:ol -> rane:il
 
-videomix  [label="{{<i1>ch1|<i2>ch2 } |{Video\nMixer|ZVKU-A003}|<o1>}"]
+subgraph cluster_reardesk {
+	label="Rear Video Desk" 
+	zvkua003 [label="{{<i1>ch1|<i2>ch2 } |{Video\nMixer\nZVKU-A003} }"]
+	23081124 [ label= "{
+		{ <ether>ether }
+		| {  Audio to ATEM\n2Ch Dante out\n2308-1124 }
+		|{ <ch1>ch1|<ch2>ch2 } 
+		}"] 
+23081124:ch1 -> zvkua003:ch1
+23081124:ch2 -> zvkua003:ch2
+} // end of subgraph reardesk
+
+
+zaku0001:b14 -> 23081124:ether [style=dotted ]
 
 rane:o1 -> burner:i1
-rane:o2 -> burner:i2
-rane:o3 -> videomix:i1
-rane:o4 -> videomix:i2
+rane:o2 -> burner:i2 
+
 #rane:o15 -> zaiue001:ch1 not implemented
 #rane:o16 -> zaiue001:ch2
 } 

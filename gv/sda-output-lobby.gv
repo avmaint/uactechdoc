@@ -1,0 +1,31 @@
+graph output_lobby { 
+	fontsize = 20
+	label="Lobby Audio Topology\nAs of 2023-10-19" 
+	fontname = Helvetica  bgcolor=white  rankdir=LR
+    
+node [shape = Mrecord style=filled
+	fillcolor="white:beige"  
+	fontsize = 10
+    gradientangle=270   ]
+  
+subgraph cluster_rack { 
+	label="ZVHU-0006 rack"
+	fontsize=10
+    tooltip="Front desk Rack"
+        zaxu0004 [label="Rane DA\nZAXU-0004"]                       
+        zaau0009 [label="{Audio Hub\nZAAU-0009}", 
+                  tooltip="Stuart"]
+} // end of cluster_rack
+
+subgraph cluster_lobby {
+	label="Lobby Ceiling" 
+	fontsize=10
+	zaau0010A  [label="Speaker+Amp\nZAAU-0010 A", tooltip="Speaker"]
+	zaau0010B  [label="Speaker+Amp\nZAAU-0010 B", tooltip="Speaker"]
+	zaau0010C  [label="Speaker+Amp\nZAAU-0010 C", tooltip="Speaker"]
+	zaau0010D  [label="Speaker+Amp\nZAAU-0010 D", tooltip="Speaker"]
+} // end of cluster lobby
+ 
+zaxu0004 -- zaau0009  
+zaau0009 -- {zaau0010A zaau0010B zaau0010C zaau0010D} [label="cat5" fontsize=6]
+} 

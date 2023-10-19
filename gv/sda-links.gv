@@ -1,6 +1,6 @@
 digraph topology1 { 
-graph [overlap = true, fontsize = 30, rankdir=TB 
-      label="Console Links (as of 2019-01-08)",
+graph [fontsize = 15, rankdir=TB 
+      label="Console Links\nAs of 2023-10-19"
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10,
@@ -8,23 +8,32 @@ node [shape=Mrecord, tooltip="" , fontsize = 10,
       gradientangle=270]
       
 dm1k [label="
-   {Yamaha\nDM1000}|
-  {{ <link>Slot 1\nOut} }|{<midi>midi in} | {<net>Slot 2\n16x16\nin x out}"]
+     Yamaha\nDM1000
+   | <link>Slot 1\nOut
+   | <midi>midi in
+   | <a>audio\nbus 1-8\n+LR
+   | <net>Slot 2\n16x16\nin x out
+   "] 
 
 m7 [label="
-    {  Yamaha\nM7CL} |
-    <link>Slot 1\nIn |
-    <midi>midi out   | {<net>Slot 2\n16x16\nin x out}
-"]
+     Yamaha\nM7CL  
+     | <link>Slot 1\nIn
+     | <midi>midi out
+     | <a>audio
+     | <net>Slot 2\n16x16\nin x out
+	"]
 
 nscua003 [label="
-   {Network\nSwitch}|
-   { <net2
-   > Port}| {<net1> Port}   "]
+      Network\nSwitch 
+    | <net2> Port 
+    | <net1> Port 
+    "]
 
-dm1k:link -> m7:link
-m7:midi -> dm1k:midi
+dm1k:link -> m7:link [label="midi" color=green fontsize=10 ]
+m7:midi -> dm1k:midi [label="midi" color=green fontsize=10 ]
+ 
+dm1k:net -> nscua003:net1 [label="dante" color=blue fontsize=10 ]
+m7:net   -> nscua003:net2 [label="dante" color=blue fontsize=10]
 
-dm1k:net -> nscua003:net1 [label="Dante"]
-m7:net -> nscua003:net2 [label="Dante"]
+dm1k:a -> m7:a [label="aes/ebu?" color=orange fontsize=10 ]
 } 

@@ -1,7 +1,7 @@
 digraph overview { 
 
-graph [overlap = true, fontsize = 24, rankdir=LR 
-      label="Audio Overview (as of 2023-09-12)", 
+graph [overlap = true, fontsize = 20, rankdir=LR 
+      label="Audio Overview\nAs of 2023-10-18", 
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
@@ -26,9 +26,11 @@ subgraph cluster_fohfront {label="FoH Front Desk"   fontsize = 20
 subgraph cluster_fohrear {label="FoH Rear Desk"   fontsize = 20
   videomixer		[label="Video\nMixer"]
   videomixeravio	[label="Dante Out\nAdapter"]
+  videodestinations [label="Video Destinations"]
 }
 
 videomixeravio -> videomixer
+videomixer -> videodestinations
 
 subgraph cluster_livestream  {label="LS"   fontsize = 20
   daw			[label="Reaper\nDAW"]
