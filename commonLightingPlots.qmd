@@ -143,18 +143,9 @@ The following diagrams in this section illustrate the physical layout of the lig
 
 Each channel maps to one or more DMX addresses and is documented in the [DMX Details](#channel-and-dmx-details) section. 
 
-These diagrams are approximations (dimension wise), and somewhat simplified. For example, the stage has some rounded corners at the front which are not depicted, and the physical stage is not quite symmetrical. 
+These diagrams are approximations (dimension wise), and somewhat simplified. For example, the stage has some rounded corners at the front which are not depicted, and the physical stage is not symmetrical. 
 
 ## Theartrical Channels
-
-This first diagram (@fig-clptchan) shows the auditorium and all theatrical fixtures, and so excludes the architectural fixtures (i.e. Excludes stage pots, sconces, house pendants, and the under balcony pots.)
-
-Also excluded are two (black) incandescent fixtures which are hanging from the balcony bars. They are manually controlled via breakers in the closet.
-
-Some items are quite moveable so may not match this diagram, specifically fixtures 34-40 and 67.
-
-* 34-40 are sometimes free standing and washing the walls around the screens. And more recently have been installed inside the white plastic pillars.
-* 67 (which is actually 6 bars) has been used for a ceiling wash, the large scrims,  etc.
 
 ```{r fig-clptchan }
 #| label: fig-clptchan
@@ -173,6 +164,17 @@ g <- ggplot() +
         geom_curve(data=thrust, aes(x=x,y=y, xend=xend, yend=yend), curvature=-0.5)
 g
 ```
+
+
+This first diagram (@fig-clptchan) shows the auditorium and all theatrical fixtures, and so excludes the architectural fixtures (i.e. Excludes stage pots, sconces, house pendants, and the under balcony pots.)
+
+Also excluded are two (black) incandescent fixtures which are hanging from the balcony bars. 
+
+Some items are quite moveable so may not match this diagram, specifically fixtures 34-40 and 67.
+
+* 34-40 are sometimes free standing and washing the walls around the screens, backlight for the scrims or installed inside the white plastic pillars.
+* 67 (which is actually 6 bars) has been used for a ceiling wash, the large scrims,  etc.
+
 
 Zoom in on the stage (@fig-clpzoomstage). Some of the lighting is mounted on the ceiling and some sits on the stage. Some of them are portabe (CSPARs and AW Bars) and are used for lighting scrims, backdrops, etc.
 
@@ -197,6 +199,8 @@ ggplot() +
 
 ## Stage Pots
 
+@fig-clpstagepots
+
 ```{r fig-clpstagepots}
 #| label: fig-clpstagepots
 #| fig-cap: Stage Pots
@@ -217,11 +221,9 @@ ggplot() +
 
 ## House Pendants
 
->TODO: Positions are only notional.
-
 __Pendants over the main floor sections__
 
-* Each pendant has two groups of lamps. An outer group of four lamps and an inner single lamp . The four outer lamps have a wide beam spread, the inner one is narrow. They are colour colour controllable (LED RGB).
+* Each main house pendant has two groups of lamps. An outer group of four lamps and an inner single lamp . The four outer lamps have a wide beam spread, the inner one is narrow. They are colour colour controllable (LED RGB).
 * The main floor lighting is divided into two groups so that the middle of the auditorium can be lit independently from the outer sections.
 
 __Pendants over the Balcony__
@@ -320,13 +322,10 @@ ggplot() +
     coord_equal() + theme(legend.position="none") + scale_size_identity()
 ```
 
-
 ## Sconce (Main floor perimeter)
 
 * These lamps are RGB lamps.
 * There is a pair of 3-way light swtiches at the entrance doors that can turn off the lights. These are controlled via a switch located by the south-east and north-east doors. The control at the south-east door has a programmable timer. This is to ensure that there is some lighting in the evenings between dusk and midnight to enable safe passage.
-
->Note: Positions are notional. 
 
 ```{r fig-clpsconse}
 #| label: fig-clpsconse
@@ -359,16 +358,15 @@ ggplot() +
   geom_text(data=sconse, aes(x=x, y=y, label=Channel ) ) 
 ```
 
-<small> >TODO: add boxes on the above diagram to indicate the sconce switches
-</small>
+:::{.callout-note}
+The sconce lights will likely be replaced by white LEDs and and no longer DMX controlled at some point in the future.
+:::
 
 ## Under the Balcony
     
 Each Pot under the Balcony is an RGB lamp.
 
-The plot is illustrative - They are not accurately placed. There are 24 pot lights (all Ketra). 
-
->TODO: Correct placement
+The plot is illustrative - They are not accurately placed. There are 26 pot lights (all Ketra). 
 
 ```{r fig-clpubal }
 #| label: fig-clpubal

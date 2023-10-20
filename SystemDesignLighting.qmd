@@ -10,6 +10,8 @@ format:
     toc: true
   pdf:
     toc: true
+  titlepage-pdf:
+    toc: true    
 always_allow_html: yes
 editor: 
   markdown: 
@@ -78,13 +80,7 @@ How these systems are interconnected is depicted on the diagrams below.
 
 The handrail lighting in the balcony and the emergency lighting are independent systems.
 
-### DMX Topology
-
-The console is protected from power surges via an opto-isolator/DMX splitter.
-
-:::{.callout-note}
-TODO: Document the ETC dmx relay box in the attic.
-:::
+## DMX Topology
 
 ```{r dmx_control}
 dmx_control <- c( 
@@ -111,9 +107,9 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 #system(glue("open {tf}"))
 ```
 
-```{dot fig-sdl-dmx_control }
+```{  fig-sdl-dmx_control }
 //| label: fig-sdl-dmx_control
-//| fig-cap: Control Topology (generated)
+//| fig-cap: Control Topology (cables with an 'a' prefix are unlabeled)
 //| cap-location: bottom
 //| file: _work/sdl-dmx_control.gv
 ```
@@ -136,7 +132,9 @@ assets |>
 	opt_stylize(style=3)
 ```
 
-### KetraNet Topology
+The console is protected from power surges via an opto-isolator/DMX splitter.
+
+## KetraNet Topology
 
 > TODO: fix balcony subgraph
 
@@ -171,9 +169,7 @@ It enables the house lights to set according to several pre-defined looks.
 The keypad and the main console can conflict with each other.
 When running from the console, the keypad should be in "Console Mode".
 
-::: callout-note
-The sconce lights has a timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well.
-:::
+The *EchoAccess App* available for your phone  allows control of the active scene and can change the programming.
 
 ```{r echo_control}
 
@@ -205,7 +201,12 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 //| file: _work/sdl-echo_control.gv
 ```
 
-The lighting instruments which are hung from the balcony bars cannot be controlled from the keypad due to the point in the topology where unison and dmx are merged.
+__Restrictions__
+
+* The sconce lights has a timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well.
+* The lighting instruments which are hung from the balcony bars cannot be controlled from the keypad due to the point in the topology where unison and dmx are merged. 
+* Any one DMX address can only belong to one Zone.
+* Control of the ADJ Ultrabar 12 devices on the walls presents a challenge as they are configured as 12 address devices andt his DMX footprint is not directly supported by the *Echo* equipment.
 
 The programming is managed via the Echo Access app which communicates via bluetooth.
 There is a configuration menu item in the app.
@@ -232,7 +233,6 @@ DMX Scene Controller
 
 :   The second page is where the ZONE definitions are managed, including the DMX assignments and the instrument footprint (RGB, IRGBS, etc).
 
-The app also allows for direct control of the presets.
 
 > TODO: update charts with the latest programming
 
@@ -252,12 +252,9 @@ keypad |>
 	opt_stylize(style=3)
 ```
 
-> todo: Control of the ADJ Ultrabar 12 devices on the walls presents a challenge.
-> These are configured as 12 address devices.
-> This DMX footprint is not directly supported by the echo equipment.
+
 
 ::: callout-note
-Any one DMX address can only belong to one Zone.
 :::
 
 ```{r zoneConfig}
@@ -298,12 +295,11 @@ gtsave(tab2, "./_work/sdl-detail-program2.png")
 
 ```
 
-![Detailed Programming 1](./_work/sdl-detail-program1.png){fig-detailed-program1} ![Detailed Programming 2](./_work/sdl-detail-program2.png){fig-detailed-program2}
+![Detailed Programming 1](./_work/sdl-detail-program1.png){fig-detailed-program1} 
 
-## Balcony Railing Lights
+![Detailed Programming 2](./_work/sdl-detail-program2.png){fig-detailed-program2}
 
-These white only strip lights are dimmable and are manually operated.
-The switch is located near the East balcony door.
+
 
 ## DMX Address Map
 
@@ -316,7 +312,7 @@ dmxmap <- tribble(
 101, 145,       "ColorSource Pars Topbar and Thrust",
 
 151, 162,       "Ketra S38 Stage Pots",
-172, 202+5-1,   "CS Pars on Floor (flares)",
+172, 202+5-1,   "CS Pars on Floor",
 219, 291+12-1,  "Wall Wash East",
 303, 375+12-1,  "Wall Wash West",
 458, 465+5-1,   "Balcony Bar- could be readdressed to make room.",
@@ -329,7 +325,8 @@ NA , NA, "Rotators - 2 channels each. ",
 tab <- dmxmap |>
   arrange(DMX.Lo) |>
 	gt() |>
-	opt_stylize(style=3)
+	opt_stylize(style=3) |>
+	tab_footnote("The rotators do have an assigned channel... TODO get the channel numbers")
 gtsave(tab, filename="_work/sdl-dmxmap.png")
 ```
 
@@ -363,6 +360,11 @@ gtsave(tab2, filename="_work/sdl-dmxdetails2.png")
 ```
 
 ![DMX Details](./_work/sdl-dmxdetails1.png){#fig-dmxdetails1} ![DMX Details](./_work/sdl-dmxdetails2.png){#fig-dmxdetails2}
+
+## Balcony Railing Lights
+
+These white only strip lights are dimmable and are manually operated.
+The switch is located near the East balcony door.
 
 # Power Distribution Systems
 
@@ -415,8 +417,7 @@ The house lights (except the railing) can be controlled in two ways:
     -   Located in the balcony on th erear desk.
     -   many sophisticated looks can be programmed into the console.
 
-The commands from these two control points are added together.
-Essentially the brightest level from either control dicates the brightness of any light.
+These two control systems cannot be succesfully used at the same time. When using the main console select the *Console Mode* button on the keypad.
 
 :::{.callout-note}
 TODO: need to add discussion about the sconce light and the interaction between the 3-way switch, timer and touchpad.
@@ -424,7 +425,9 @@ TODO: need to add discussion about the sconce light and the interaction between 
 
 ## Programming
 
-> TBD - how to program the touchpad scenes.
+:::{.callout-note}
+TODO: how to program the touchpad scenes.
+:::
 
 # Ketra Design - Stage
 
@@ -716,17 +719,20 @@ all.refs |>
 The lighting system has few network components.
 RJ45 and cat6 cabling is used for some interconnects - the protocol is DMX not Ethernet.
 
-```{r}
+```{r net_dets, results="asis"}
 NetworkInventory |> 
   filter(Category=="Lighting") |> 
   select(Location, Usage, Device, MAC, IP, URL, Notes) |>
 	gt() |>
-	opt_stylize(style=3)
+	opt_stylize(style=3) |>
+	tab_header("Network Details") |>
+	print_gt_table() |>
+	cat()
 ```
 
 # Lighting Equipment Inventory
 
-```{r inventory }
+```{r inventory, results="asis"}
  
 cs = c("AssetTag","Qty"  ,
   "Manufacturer" ,
@@ -736,23 +742,53 @@ cs = c("AssetTag","Qty"  ,
   "Type" ,
   "Desc"     )
 
-assets |>  
-          filter( Category=="Lighting" 
+df <- assets |>  
+     filter( Category=="Lighting" 
           		, InService== "Y") |>  
-          dplyr::select(one_of(cs)) |> 
-          arrange(AssetTag) |>
-	gt() |>
-	opt_stylize(style=3)
+	 filter(!Type %in% c("Cable", "Bulb" , "Other")) |>
+     dplyr::select(one_of(cs)) |> 
+     arrange(AssetTag)
+
+nr <- nrow(df)
+n <- 25
+df1 <- df |> filter(between(row_number(),           1     ,            n )) 
+df2 <- df |> filter(between(row_number(),       (n+1)     , min(2*n,nr ) ))
+df3 <- df |> filter(between(row_number(), min((2*n+1), nr), nr           ))
+ 
+#nrow(df1);nrow(df2);nrow(df3)
+#View(df1);View(df2);View(df3)
+
+header1 <- glue("Lighting Inventory 1-{n} of {nr}")
+header2 <- glue("Lighting Inventory {n+1}-{min(2*n ,nr)} of {nr}")
+header3 <- glue("Lighting Inventory {2*n+1}-{nr} of {nr}")
+
+tab1 <- df1 |>	gt() |>
+	opt_stylize(style=3) |>
+	tab_header(header1)  
+tab2 <-df2 |>	gt() |>
+	opt_stylize(style=3) |>
+	tab_header(header2)  
+tab3 <-df2 |>	gt() |>
+	opt_stylize(style=3) |>
+	tab_header(header3) 
 ```
 
+```{r inv1,results="asis"}
+tab1 |> print_gt_table() |> cat()
+```
+
+```{r inv2,results="asis"}
+tab2 |> print_gt_table() |> cat()
+```
+
+```{r inv3,results="asis", eval=FALSE}
+tab3 |> print_gt_table() |> cat()
+```
 # Appendix
 
 # Accessories
 
 ## GOBO Rotators
-
-> Needs to be updated.
-> DMX info is out-of-date.
 
 Each one needs two channels.
 
@@ -761,5 +797,28 @@ Each one needs two channels.
 Intensity of zero is stop.
 The closer to 50 the slower it rotates.
 1-49 and 50-100 rotate in opposite directions.
+
+
+## Terminology
+
+```{r gt_terminology}
+# A hack - gt doesn't provide a means of line-breaking for pdf. So we create a graphic and then include the graphic.
+
+tab <- get.glossary() |>
+	filter(Topic == "Lighting" | Topic == "General" | Topic == "Power") |>
+	select(Term, Definition, Topic) |>
+	arrange(Topic, Term) |>
+    gt(groupname_col = "Topic") |>
+	opt_stylize(style=3) |>
+	fmt_markdown(columns=Definition) |>
+	tab_style(
+  style = cell_text(weight = "bold", size="large"),
+  locations = cells_row_groups()
+)
+```
+
+```{r glossary, results='asis'}
+cat(print_gt_table(tab))
+```
 
 {{< include common_trailer.qmd >}}
