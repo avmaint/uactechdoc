@@ -1,16 +1,18 @@
 project:
   title: "techdoc"
   render:
-    - SystemOperationsProjection.qmd
-    - SystemOperationsLighting.qmd 
-    - SystemOperationsVideo.qmd
     - SystemOperationsAudio.qmd
+    - SystemOperationsLighting.qmd 
+    - SystemOperationsProjection.qmd
+    - SystemOperationsVideo.qmd
+
+    - SystemDesignAudio.qmd
+    - SystemDesignLighting.qmd
     - SystemDesignProjection.qmd
     - SystemDesignVideo.qmd
-    - SystemDesignAudio.qmd
+    
     - SystemDesignYouth.qmd
     - SystemDesignDante.qmd
-    - SystemDesignLighting.qmd
   output-dir: _output
     
 date-format: "[Last Update] MMM DD YYYY HH:mm:ss"
