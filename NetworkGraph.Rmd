@@ -143,7 +143,7 @@ merge(NetworkInventory, selected.at) %>%
  ---building
  ----level
  -----room
- ------container (rack/desk)
+ ------container (rack/desk - could be asset tag)
  -------position (u count from top, U21-2/3 = 21 units down, 2nd of 3 devices)
 
 ```
