@@ -117,6 +117,9 @@ light1 <- c(#"2309-3004"
 		, "ZLLU-B054"
 		, 'ZLLU-B052'
 		, "ZLLU-B053")
+
+target <- c("ZVKU-A003", "ZVIU-A005", "ZVIU-E004", "CDMU-A001")
+xd <- NA
 ```
 
 ```{r set_target}
@@ -149,6 +152,25 @@ xd <- c(xd_decklink_out, "CDMU-A001")
 target <- c(atem_out, "ZVIU-E004", "ZVIU-A005")
 #target <- "ZVIU-A005"
 xd <- c("ZVCU-A003", "ZVCU-A002", "ZVCU-A001", "ZVIU-DO02", "2308-1123", "2308-1124") 
+
+target <- c("ZVKU-A003", "ZVIU-A005", "ZVIU-E004" )
+xd <- c("ZVKU-A001", "ZVIU-C001", "ZVIU-E003"
+		, "ZVIU-A008"
+		, "ZVIU-G001", "ZVIU-G002", "ZVIU-G003" 
+		, "CUMU-E001", "CDMU-A001"
+		, "2308-1123"
+		, "ZVCU-A003", "ZVCU-A002", "ZVCU-A001"
+		, "ZVIU-D002"
+		, "ZVIU-A005"
+		, "ZVIU-E005"
+		, "NSCU-A004"
+		, "2308-1124"
+		, "ZVIU-D001", "ZVRU-A001"
+		, "2308-1204", "2308-1205", "ZVIU-E001"
+		, "ZVIU-G004", "ZVIU-G005" )
+
+target <- "2308-0912"
+xd <- NA
 ```
 
 This report provides the details for these devices `r target` and the devices connected to them (it).
@@ -162,15 +184,6 @@ source('commonDiagram.R')
 ```{r get_data}
 inventory <- get.inventory() #; nrow(inventory)
 cables <- get.cables()
-```
-
-```{r calc_targets}
-target_cables <- cables |>
-	filter(SrcTag %in% target | DstTag %in% target)  
-
-target_devices <- c(target_cables$SrcTag ,
-	target_cables$DstTag ,
-	target )
 ```
 
 # Diagram
@@ -191,6 +204,9 @@ write_file(diag, dot_f)
 # need for pdf render
 dot |> export_svg() |> charToRaw() |> rsvg_png(png_f) 
 #clipr::write_clip( diag )
+system(glue("open {png_f}"))
+system(glue("open {dot_f}"))
+
 ```
 
 ::: {.content-visible when-format="html"}
@@ -200,6 +216,15 @@ dot |> export_svg() |> charToRaw() |> rsvg_png(png_f)
 ::: {.content-visible when-format="pdf"}
 `r sprintf("\\includegraphics {%s}", png_f)`
 :::
+
+```{r calc_targets }
+target_cables <- cables |>
+	filter(SrcTag %in% target | DstTag %in% target)  
+
+target_devices <- c(target_cables$SrcTag ,
+	target_cables$DstTag ,
+	target )
+```
 
 ```{r gt_inventory}
 table <- inventory |>

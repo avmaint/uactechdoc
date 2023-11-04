@@ -13,6 +13,8 @@ format:
     toc: true
   pdf:
     toc: true
+  titlepage-pdf:
+    toc: true     
 
 always_allow_html: yes  
 ---
@@ -27,6 +29,7 @@ Notes for future updates.
 -   front rack tag 0813 - or not
 -   I have a note that suggest 2308-0011 is a cable into the audio interface 2308-0008
 -   Need to remove dead gear
+-   Change EQ from Peavey to AART
 
 ```{r packages_functions }
 source('commonPackages.R')
@@ -48,8 +51,10 @@ label <- "'Audio inputs'"
 targets <- c('2308-0906', 'CDWU-A002', '2308-0914', "2308-0008"
 			  ,'ZAKU-A001'
 			  , "RearGuest"
-			 ,"youth_snake", "2309-2503") 
-xd <- c("youthswitch", "2308-0902", "2308-0002", "VMNU-0029", "2308-0006", "2308-0008", "d228", "d229", "d227", "b236")
+			 ,"2310-2500", "2309-2503", "2309-2504") 
+xd <- c("youthswitch", "2308-0902", "2308-0002", "VMNU-0029", 
+		"2308-0006", "2308-0008", "d228", "d229", "d227", "b236"
+		,"2308-0908","2308-0911","2308-0903")
 dot_code <- get_diagram(targets, inventory, cables
 						, label=label , exc_dev=xd )
 out_str <- get_diagram_aux(dot_code)
@@ -62,23 +67,42 @@ Audio Inputs
 
 # Audio Outputs Diagram
 
+As of 2023-11-04 Amplifier '2308-0912' and speaker "2311-0206" were noit connected to anything.
+
 ::: {#fig-audio-outputs .cell-output-display}
 ```{r audio_out, results="asis" }
-targets <- c(  '2308-0008', '2308-0913', '2308-0912', '2308-0911'
+targets <- c(  '2308-0008', '2308-0913', '2308-0911'
 			   #, 'ZAKU-A001'
 			, '2308-0910', '2308-0909', '2308-0908', '2308-0904', '2308-0903'
-			, '2308-0902' , '2308-1000')
+			, '2308-0902' , '2308-1000'
+			, "2311-0200",  "2311-0201", "2311-0202"
+			, "2311-0204",  "2311-0205", "2311-0206", "2311-0207"
+			, '2308-0912', "2311-0206" # these two were disconnected asof 2023-11-04
+			)
 
 label <- "'Audio Outputs'"
 xd <- c('CDWU-A002')
 
 dot_code <- get_diagram(targets, inventory, cables, label=label, exc_dev=xd)
 out_str <- get_diagram_aux(dot_code)
+#dot_code |> clipr::write_clip()
 cat(out_str)
+#
 ```
 
 Audio Outputs
 :::
+
+```{r temp}
+x <-'2310-2500'
+cables |> 
+	filter(SrcTag == x | DstTag== x | str_detect(Tag, x)) |> 
+	select(-Invoice, -GraphFormula, -`Labelled?`) |>
+	arrange(SrcTag, DstTag) |>
+	gt() |> 
+	opt_stylize(style=3) |>
+	tab_header("Snake Connected Cables")
+```
 
 ```{dot}
 //| label: fig-sdy-audio-outputs4
@@ -105,6 +129,8 @@ cat(out_str)
 Video System
 :::
 
+{{< pagebreak >}}
+
 # Network Diagram
 
 ::: {#fig-network .cell-output-display}
@@ -113,13 +139,15 @@ targets <- c( "youthswitch",
 "NRPU-0001"
 ,"NAPU-B002")
  
-dot_code <- get_diagram(targets, inventory, cables, label="'Video System'")
+dot_code <- get_diagram(targets, inventory, cables, label="'Network System'")
 out_str <- get_diagram_aux(dot_code)
 cat(out_str)
 ```
 
 Network
 :::
+
+{{< pagebreak >}}
 
 # Audio Inventory
 
@@ -128,13 +156,19 @@ Network
 #| tbl-cap: Audio Inventory
 #| tbl-cap-location: bottom
 
-inventory |>
+asset_items <- inventory |>
 	filter(Category == 'Audio'
 		   & Building == 'Portable' 
 		   & Disposition == 'N') |> 
 	filter(!is.na(Building) ) |>
 	arrange(AssetTag) |>
-	select(AssetTag, SN, Manufacturer, Model, Location, Desc) |>
+	select(AssetTag, SN, Manufacturer, Model, Type, Location, Desc) 
+
+nr <- nrow(asset_items)
+mhdr <- glue("Installed Audio Devices in the Youth Building")
+shdr <- glue("n={nr}")
+
+asset_items |>
 	gt() |>
 			opt_stylize(style = 3) |>
 	tab_header( glue("Audio Inventory ")
@@ -143,8 +177,32 @@ inventory |>
 	tab_style(
 		style=list( cell_text(weight = "bold") ),
 		locations=cells_body(columns=AssetTag)
-	)
+	) |>
+	tab_header(mhdr, subtitle = shdr) |>
+	sub_missing(missing_text="")
 ```
+
+```{r audio_cables}
+
+cable_items <- cables |>
+	filter(SrcTag %in% asset_items$AssetTag | DstTag %in% asset_items$AssetTag) |>
+	filter(!is.na(SrcTag) & !is.na(DstTag))
+
+nr <- nrow(cable_items)
+mhdr <- glue("Installed Audio Cables in the Youth")
+shdr <- glue("n={nr}")
+
+cable_items |>
+	arrange(Tag) |>
+	select(Tag, SrcTag, SrcPort, DstTag, DstPort, Type, Usage, Notes) |>
+	gt() |>
+	opt_stylize(style=3) |>
+	tab_header(mhdr, subtitle = shdr) |>
+	sub_missing(missing_text="")
+
+```
+
+{{< pagebreak >}}
 
 # Video Inventory
 
@@ -153,12 +211,18 @@ inventory |>
 #| tbl-cap: Video Inventory
 #| tbl-cap-location: bottom
 
-inventory |>
+asset_items <- inventory |>
 	filter(Category == 'Video'
 		   & Building == 'Portable' 
 		   & Disposition == 'N') |> 
 	filter(!is.na(Building) ) |>
-	select(AssetTag, SN, Manufacturer, Model, Desc) |>
+	select(AssetTag, SN, Manufacturer, Model, Type, Desc) 
+
+nr <- nrow(cable_items)
+mhdr <- glue("Installed Video Devices in the Youth")
+shdr <- glue("n={nr}") 
+
+asset_items |>
 	gt() |>
 			opt_stylize(style = 3) |>
 	tab_header( glue("Video Inventory ")
@@ -170,39 +234,73 @@ inventory |>
 	)
 ```
 
-```{r}
-targets <- "2308-0008"
-target_devices <- targets
+```{r video_cables}
+cable_items <- cables |>
+	filter(SrcTag %in% asset_items$AssetTag | DstTag %in% asset_items$AssetTag) |>
+	filter(!is.na(SrcTag) & !is.na(DstTag))
+
+nr <- nrow(cable_items)
+mhdr <- glue("Installed Audio Cables in the Youth")
+shdr <- glue("n={nr}")
+
+cable_items |>
+	arrange(Tag) |>
+	select(Tag, SrcTag, SrcPort, DstTag, DstPort, Type, Usage, Notes) |>
+	gt() |>
+	opt_stylize(style=3) |>
+	tab_header(mhdr, subtitle = shdr) |>
+	sub_missing(missing_text="")
 ```
 
-```{r gt_cables, eval=FALSE}
-target_cables |>	
-		select(-GraphFormula) |>
+{{< pagebreak >}}
+
+# Network Inventory
+
+```{r net_inventory}
+#| label: tbl-net_inventory
+#| tbl-cap: Network Inventory
+
+asset_items <- inventory |>
+	filter((Category == 'Network'
+		   & Building == 'Portable' 
+		   & Disposition == 'N' ) 
+		   | (AssetTag == "CDWU-A002" | AssetTag == "2308-0003") 
+		   ) |> 
+	filter(!is.na(Building) ) |>
+	arrange(AssetTag) |>
+	select(AssetTag, SN, Manufacturer, Model, Type, Location, Desc) 
+
+nr <- nrow(asset_items)
+mhdr <- glue("Installed Network Devices in the Youth Building")
+shdr <- glue("n={nr}")
+
+asset_items |>
 	gt() |>
 			opt_stylize(style = 3) |>
-	tab_header( glue("Cables connected to {paste(target, collapse=', ')}") 
-			  , subtitle = "They are highlighted in yellow"
-			   ) |>
-    tab_style(
-      style = list(
-        cell_fill(color = "yellow")
-        ),
-      locations = cells_body(
-        columns = SrcTag ,
-        rows = SrcTag %in% target
-    )
-  )|>
-    tab_style(
-      style = list(
-        cell_fill(color = "yellow") 
-        ),
-      locations = cells_body(
-        columns = DstTag ,
-        rows = DstTag %in% target
-    )
-  ) |>
+	tab_header( mhdr, subtitle=shdr )   |>
 	tab_style(
 		style=list( cell_text(weight = "bold") ),
-		locations=cells_body(columns=Tag)
-	)  
+		locations=cells_body(columns=AssetTag)
+	) |>
+	tab_header(mhdr, subtitle = shdr) |>
+	sub_missing(missing_text="")
+```
+
+```{r net_cables}
+cable_items <- cables |>
+	filter(SrcTag %in% asset_items$AssetTag | DstTag %in% asset_items$AssetTag) |>
+	filter(!is.na(SrcTag) & !is.na(DstTag))
+
+nr <- nrow(cable_items)
+mhdr <- glue("Installed Network Cables in the Youth")
+shdr <- glue("n={nr}")
+
+cable_items |>
+	arrange(Tag) |>
+	select(Tag, SrcTag, SrcPort, DstTag, DstPort, Type, Usage, Notes) |>
+	gt() |>
+	opt_stylize(style=3) |>
+	tab_header(mhdr, subtitle = shdr) |>
+	sub_missing(missing_text="")
+
 ```
