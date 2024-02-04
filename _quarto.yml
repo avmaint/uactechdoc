@@ -13,6 +13,9 @@ project:
     
     - SystemDesignYouth.qmd
     - SystemDesignDante.qmd
+    
+    - SystemDesignFH.qmd
+    
   output-dir: _output
     
 date-format: "[Last Update] MMM DD YYYY HH:mm:ss"
