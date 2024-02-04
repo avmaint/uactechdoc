@@ -15,6 +15,7 @@ project:
     - SystemDesignDante.qmd
     
     - SystemDesignFH.qmd
+    - SystemDesignNetwork.qmd
     
   output-dir: _output
     
