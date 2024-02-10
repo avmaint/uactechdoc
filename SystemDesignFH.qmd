@@ -49,12 +49,13 @@ cables <- get.cables()
 # Audio Diagram
 
 ::: {#fig-audio-inputs .cell-output-display}
-```{r audio_inputs, results="asis"}
+```{r audio_diag, results="asis"}
 label <- "'Audio '"
 
 targets <- c(  'CDWU-A001'   
 			 , "2401-2800" # audio extractor
 			 , "2401-3001" # hdmi-sdi
+			 , "2401-3003" # mixer
 			 , "2401-3100", "2401-3101" # Speakers
 			 ) 
 xd <- c() 
@@ -64,46 +65,26 @@ out_str <- get_diagram_aux(dot_code)
 cat(out_str)
 
 ```
-
-Audio Inputs
-:::
-
-# Audio Outputs Diagram
-
-::: {#fig-audio-outputs .cell-output-display}
-```{r audio_out, results="asis" , eval=FALSE}
-targets <- c(  '2308-0008', '2308-0913', '2308-0911'
-			   #, 'ZAKU-A001'
-			, '2308-0910', '2308-0909', '2308-0908', '2308-0904', '2308-0903'
-			, '2308-0902' , '2308-1000'
-			, "2311-0200",  "2311-0201", "2311-0202"
-			, "2311-0204",  "2311-0205", "2311-0206", "2311-0207"
-			, '2308-0912', "2311-0206" # these two were disconnected asof 2023-11-04
-			)
-
-label <- "'Audio Outputs'"
-xd <- c('CDWU-A002')
-
-dot_code <- get_diagram(targets, inventory, cables, label=label, exc_dev=xd)
-out_str <- get_diagram_aux(dot_code)
-#dot_code |> clipr::write_clip()
-cat(out_str)
-#
+```{r audio_devices}
+inventory |>
+	filter(AssetTag %in% targets) |>
+	select(AssetTag, Manufacturer, Model, Desc) |>
+	gt() |> 
+	opt_stylize(style=3) |>
+	tab_header("Audio Devices")
 ```
 
-Audio Outputs
-:::
-
-```{r temp}
-x <-'2310-2500'
+```{r audio_cables}
+x <- targets
 cables |> 
-	filter(SrcTag == x | DstTag== x | str_detect(Tag, x)) |> 
+	filter(SrcTag %in% x | DstTag %in% x  ) |> 
 	select(-Invoice, -GraphFormula, -`Labelled?`) |>
 	arrange(SrcTag, DstTag) |>
 	gt() |> 
 	opt_stylize(style=3) |>
-	tab_header("Snake Connected Cables")
+	tab_header("Audio Cables")
 ```
+ 
 
 # Video System Diagram
 
@@ -113,7 +94,8 @@ targets <- c(  'CDWU-A001'
             , '2401-3001'
             , '2401-3002'  
 			, "2401-3004"
-			, "1704-0100"
+			, "1704-0100", 
+			"2401-3012" #bluray
             )
  
 xd <- c( )
@@ -124,8 +106,26 @@ out_str <- get_diagram_aux(dot_code)
 cat(out_str)
 ```
 
-Video System
-:::
+```{r video_devices}
+inventory |>
+	filter(AssetTag %in% targets) |>
+	select(AssetTag, Manufacturer, Model, Desc) |>
+	gt() |> 
+	opt_stylize(style=3) |>
+	tab_header("Video Devices")
+
+```
+
+```{r video_cables}
+x <- targets
+cables |> 
+	filter(SrcTag %in% x | DstTag %in% x  ) |> 
+	select(-Invoice, -GraphFormula, -`Labelled?`) |>
+	arrange(SrcTag, DstTag) |>
+	gt() |> 
+	opt_stylize(style=3) |>
+	tab_header("Video Cables")
+```
 
 {{< pagebreak >}}
 
@@ -175,7 +175,7 @@ asset_items |>
 	sub_missing(missing_text="")
 ```
 
-```{r audio_cables}
+```{r audio_cables2}
 
 cable_items <- cables |>
 	filter(SrcTag %in% asset_items$AssetTag | DstTag %in% asset_items$AssetTag) |>
@@ -197,43 +197,41 @@ cable_items |>
 
 {{< pagebreak >}}
 
-# Video Inventory
+# Item Inventory
 
-```{r video_inventory}
-#| label: tbl-video_inventory
-#| tbl-cap: Video Inventory
+```{r item_inventory}
+#| label: tbl-item_inventory
+#| tbl-cap: Item Inventory
 #| tbl-cap-location: bottom
 
 asset_items <- inventory |>
-	filter(Category == 'Video'
-		   & Building == 'Portable' 
-		   & Disposition == 'N') |> 
-	filter(!is.na(Building) ) |>
-	select(AssetTag, SN, Manufacturer, Model, Type, Desc) 
+	filter(  Building == 'Main' 
+		   & Room     == 'FellowshipHall' 
+		   ) |> 
+    arrange(AssetTag) |>
+	select(AssetTag, Category ,Location, SN, Manufacturer, Model, Type, Desc) 
 
-nr <- nrow(cable_items)
-mhdr <- glue("Installed Video Devices")
+nr <- nrow(asset_items )
+mhdr <- glue("Installed Items (excluding cables)")
 shdr <- glue("n={nr}") 
 
 asset_items |>
 	gt() |>
-			opt_stylize(style = 3) |>
-	tab_header( glue("Video Inventory ")
-			   
-			  )   |>
+	opt_stylize(style = 3) |>
+	tab_header( mhdr, subtitle = shdr  )   |>
 	tab_style(
 		style=list( cell_text(weight = "bold") ),
 		locations=cells_body(columns=AssetTag)
 	)
 ```
 
-```{r video_cables}
+```{r installed_cables}
 cable_items <- cables |>
 	filter(SrcTag %in% asset_items$AssetTag | DstTag %in% asset_items$AssetTag) |>
 	filter(!is.na(SrcTag) & !is.na(DstTag))
 
 nr <- nrow(cable_items)
-mhdr <- glue("Installed Audio Cables ")
+mhdr <- glue("Installed Cables ")
 shdr <- glue("n={nr}")
 
 cable_items |>
@@ -245,56 +243,5 @@ cable_items |>
 	sub_missing(missing_text="")
 ```
 
-{{< pagebreak >}}
+{{< include common_trailer.qmd >}}
 
-# Network Inventory
-
-```{r net_inventory}
-#| label: tbl-net_inventory
-#| tbl-cap: Network Inventory
-
-asset_items <- inventory |>
-	filter((Category == 'Network'
-		   & Building == 'Main'  #Main	Basement	FellowshipHall
-			& Floor == 'Basement'
-		   & Disposition == 'N' ) 
-		   | (AssetTag == "CDWU-A001"  ) 
-		   ) |> 
-	filter(!is.na(Building) ) |>
-	arrange(AssetTag) |>
-	select(AssetTag, SN, Manufacturer, Model, Type, Location, Desc) 
-
-nr <- nrow(asset_items)
-mhdr <- glue("Installed Network Devices ")
-shdr <- glue("n={nr}")
-
-asset_items |>
-	gt() |>
-			opt_stylize(style = 3) |>
-	tab_header( mhdr, subtitle=shdr )   |>
-	tab_style(
-		style=list( cell_text(weight = "bold") ),
-		locations=cells_body(columns=AssetTag)
-	) |>
-	tab_header(mhdr, subtitle = shdr) |>
-	sub_missing(missing_text="")
-```
-
-```{r net_cables}
-cable_items <- cables |>
-	filter(SrcTag %in% asset_items$AssetTag | DstTag %in% asset_items$AssetTag) |>
-	filter(!is.na(SrcTag) & !is.na(DstTag))
-
-nr <- nrow(cable_items)
-mhdr <- glue("Installed Network Cables  ")
-shdr <- glue("n={nr}")
-
-cable_items |>
-	arrange(Tag) |>
-	select(Tag, SrcTag, SrcPort, DstTag, DstPort, Type, Usage, Notes) |>
-	gt() |>
-	opt_stylize(style=3) |>
-	tab_header(mhdr, subtitle = shdr) |>
-	sub_missing(missing_text="")
-
-```
