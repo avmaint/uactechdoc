@@ -21,7 +21,7 @@ always_allow_html: yes
 
 # Introduction
 
-This is a detailed design report for the Audio and Video systems in Fellowship Hall. This documents is not complete as a lot of mapping work remains.
+This is a detailed design report for the Audio and Video systems in Fellowship Hall. This documents is almost complete, with the bluray player details missing.
 
 ```{r packages_functions }
 source('commonPackages.R')
@@ -45,13 +45,41 @@ cables <- get.cables()
 
 Diagrams have been broken up into sections to be more readable.
 
-::: {#fig-audio-inputs .cell-output-display}
+::: {#fig-audio-inputs-vid .cell-output-display}
+```{r audio_diag_in_vid, results="asis"}
+label <- "'Audio '"
 
+targets_v <- c(  
+			   'CDWU-A001'   
+			 , "fh_guest"
+			 , "2402-0701" # audio extractor
+			 , "ZVPU-0001" #bluray
+			 
+			   , "2401-3004" # video switch
+			 ) 
+xd <- c("2401-2800","2401-3001" , "2402-0702", "2401-3002"
+		 , "2401-3100",  "2401-3101"
+		, "NSCU-A002" #ether switch
+ 		, "NAHU-B008" #wifi wap
+	    , "2401-3003" #audio mixer
+		) 
+dot_code <- get_diagram(targets_v
+						, inventory, cables
+						, label=label , exc_dev=xd )
+out_str <- get_diagram_aux(dot_code)
+cat(out_str)
+#grViz(dot_code)
+```
+
+Audio Inputs from Video Diagram
+:::
+
+::: {#fig-audio-inputs .cell-output-display}
 ```{r audio_diag_in, results="asis"}
 label <- "'Audio '"
 
 targets_i <- c(  "2401-6034"
-			 , 'CDWU-A001'   
+			  
 			 , "2402-0701" # audio extractor
 			 , "2401-3001" # hdmi-sdi
 			 , "2401-3003" # mixer
@@ -61,7 +89,7 @@ xd <- c("2401-2800","2401-3001" , "2402-0702", "2401-3002"
 		 , "2401-3100",  "2401-3101"
 		, "NSCU-A002" #ether switch
  		, "NAHU-B008" #wifi wap
-		#, "2401-3004"
+		 , "2401-3004"
 		) 
 dot_code <- get_diagram(targets_i
 						, inventory, cables
@@ -70,12 +98,11 @@ out_str <- get_diagram_aux(dot_code)
 cat(out_str)
 #grViz(dot_code)
 ```
-Audio Input Diagram
-::: 
 
+Audio Inputs (non-video) Diagram
+:::
 
 ::: {#fig-audio-outputs .cell-output-display}
-
 ```{r audio_diag_out, results="asis"}
 label <- "'Audio '"
 
@@ -94,17 +121,19 @@ out_str <- get_diagram_aux(dot_code)
 cat(out_str)
 #grViz(dot_code)
 ```
+
 Audio Output Diagram
-::: 
+:::
 
 ::: {#fig-audio-dev .cell-output-display}
 ```{r audio_devices, results="asis"}
 
-targets <- c(  targets_i, targets_o   ) 
+targets <- c(  targets_i, targets_o , targets_v  ) 
 
 inventory |>
 	filter(AssetTag %in% targets) |>
 	select(AssetTag, Manufacturer, Model, Desc) |>
+	arrange(AssetTag) |>
 	gt() |> 
 	opt_stylize(style=3) |>
 	tab_header("Audio Devices") |>
@@ -132,17 +161,17 @@ cables |>
 	print_gt_table() |>
 	cat()
 ```
+
 Audio Cables
 :::
 
 # Video System Diagrams
 
 ::: {#fig-video-system1 .cell-output-display}
-
 ```{r video_diagram_1, results="asis" }
 targets1 <- c(  'CDWU-A001' 
 			, "2401-3004"
-			, "2401-3012" #bluray
+			, "ZVPU-0001" #bluray
 			, "2402-0701"
 			, "fh_guest"
             )
@@ -156,11 +185,11 @@ out_str <- get_diagram_aux(dot_code)
 cat(out_str)
 #grViz(dot_code)
 ```
+
 Video Diagram - Source to Audio Extractor
 :::
 
 ::: {#fig-video-system2 .cell-output-display}
-
 ```{r video_diagram_2, results="asis" }
 targets2 <- c(   
               '2401-3002'  
@@ -177,11 +206,11 @@ out_str <- get_diagram_aux(dot_code)
 cat(out_str)
 #grViz(dot_code)
 ```
+
 Video Diagram - Audio Extractor to Projector
 :::
 
-::: {#fig-video-diag  .cell-output-display}
-
+::: {#fig-video-diag .cell-output-display}
 ```{r video_devices, results="asis"}
 targets <- c( targets1, targets2)
 inventory |>
@@ -194,11 +223,11 @@ inventory |>
 	cat()
 
 ```
+
 Video Devices
 :::
 
 ::: {#fig-video-cables .cell-output-display}
-
 ```{r video_cables, results="asis"}
 x <- targets
 cables |> 
@@ -212,6 +241,7 @@ cables |>
 	print_gt_table() |>
 	cat()
 ```
+
 Video Cables
 :::
 
@@ -232,17 +262,18 @@ dot_code <- get_diagram(targets, inventory, cables
 out_str <- get_diagram_aux(dot_code)
 cat(out_str)
 ```
+
 Network
 :::
- 
+
 {{< pagebreak >}}
 
-# Item Inventory
+# Full Inventories
 
-```{r item_inventory}
-#| label: tbl-item_inventory
-#| tbl-cap: Item Inventory
-#| tbl-cap-location: bottom
+::: {#fig-item-inv .cell-output-display}
+
+```{r item_inventory, results='asis'}
+#| label: fig-item_inventory
 
 asset_items <- inventory |>
 	filter(  Building == 'Main' 
@@ -262,12 +293,19 @@ asset_items |>
 	tab_style(
 		style=list( cell_text(weight = "bold") ),
 		locations=cells_body(columns=AssetTag)
-	)
+	) |>
+	print_gt_table() |>
+	cat()
 ```
+Item Inventory
+:::
 
-```{r installed_cables}
+::: {#fig-installed-cables .cell-output-display}
+
+```{r installed_cables, results="asis"}
 cable_items <- cables |>
-	filter(SrcTag %in% asset_items$AssetTag | DstTag %in% asset_items$AssetTag) |>
+	filter(SrcTag %in% asset_items$AssetTag 
+		   | DstTag %in% asset_items$AssetTag) |>
 	filter(!is.na(SrcTag) & !is.na(DstTag))
 
 nr <- nrow(cable_items)
@@ -280,7 +318,11 @@ cable_items |>
 	gt() |>
 	opt_stylize(style=3) |>
 	tab_header(mhdr, subtitle = shdr) |>
-	sub_missing(missing_text="")
+	sub_missing(missing_text="") |>
+	print_gt_table() |>
+	cat()
 ```
+Installed Cables
+:::
 
 {{< include common_trailer.qmd >}}
