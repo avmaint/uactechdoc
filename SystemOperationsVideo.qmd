@@ -10,7 +10,10 @@ format:
   html:
     toc: true
   pdf:
+     toc: true
+  titlepage-pdf:
     toc: true
+
 always_allow_html: yes
 editor: 
   markdown: 
