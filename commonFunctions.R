@@ -11,6 +11,7 @@ cables_file  <- "uac_cables.xlsx"
 glossary_file <- "uac_glossary.xlsx"
 lighting_file <- "uac_lighting.xlsx"
 training_file <- "training_videos.xlsx"
+rooms_file    <- "uac_rooms.xlsx"
 
 #' This function takes a list of asset tags and the inventory 
 #' returns a formatted kable table of the results. 
@@ -289,6 +290,12 @@ get.training <- function() {
 		rowwise() |>
 		mutate(Duration = round(calc_duration(Duration),1) )  
   return(data)
+}
+
+get.rooms <- function() {
+	data <- read_excel(file.path(data_dir, rooms_file)
+					   , sheet="rooms")  
+	return(data)
 }
 
 print_gt_table <- function(gt_table) {
