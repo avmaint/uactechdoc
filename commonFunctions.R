@@ -130,7 +130,7 @@ cache_network <- read_excel(file.path(data_dir, network_file),
 
 ct <- c( rep("text",2),    # AssetTag, Category
          rep("numeric",3), # Qty UnitValue AcqValue
-         rep("text",10),   # Manufacturer	Model	Building	Floor	Room	Location	Type	Desc	SN	InService
+         rep("text",13),   # Manufacturer	Model	Building	Floor	Room	Location	Type	Desc	SN	InService
          "date",           # PurcDate
          rep("text",2),    # PurcFrom Invoice
          "text",           # Comments	
