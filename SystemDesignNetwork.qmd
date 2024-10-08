@@ -22,20 +22,35 @@ always_allow_html: yes
 ```{r functions}
 source("commonPackages.R")
 source("commonFunctions.R")
-```
+source("commonDiagram.R")
+
+portmap <- function(sw) {
+ cap <- glue("Port Usage for {sw}")
+
+ t<- cables |>
+	filter(SrcTag == sw  ) |>
+ 	mutate(Comments = paste(Usage, Notes)) |>
+	select(  Tag
+		   , SrcPort
+		   , DstTag
+		   , DstPort
+		   , Type
+		   , Length
+		   , Comments) |>
+ 	arrange(SrcPort) |>
+	gt() |>
+	opt_stylize(style=3) |>
+	tab_header(cap) |>
+	cols_label( Tag = "Label")
  
-```{r packages, include=FALSE}
-require(readr)
-require(dplyr)
-require(readxl)
-require(knitr)
-require(formattable)
-require(kableExtra)
+ return(t)
+}
 ```
 
 ```{r getdata}
-NetworkInventory <- get.network()
-TechInventory <- get.inventory()
+network <- get.network()
+inventory <- get.inventory()
+cables <- get.cables()
 ```
 
 # Introduction
@@ -44,31 +59,105 @@ This document provides key technical documentation for the Network subsystems at
 
 The network is used for these purposes:
 
-#. Production Management - specifically use of servcices like Dropbox, Planning Centre Online, Song Select, Vimeo and the church website.
-#. Pre/Post Service Content Distribution - Pre service is typically handled via Dropbox services. Post Service consists of uploads of audio to the church website and the service recording to Vimeo
-#. Device Control - many devices depend on the network for operational controls. Examples: the projectors, cameras, recorders.
-#. LiveStreming via Facebook Live . **Bandwidth Critical**
-#. Audio media stremaing via Dante **Bandwidth Critical**
-#. Video media stremaing via NDI and RTSP **Bandwidth Critical**
+1.  Production Management - specifically use of services like OneDrive, Planning Centre Online, Song Select, YouTube and the church website.
+2.  Pre/Post Service Content Distribution - Pre service is typically handled via OneDrive services. Post Service consists of uploads of audio to the church website and the service recording to YouTube
+3.  Device Control - many devices depend on the network for operational controls. Examples: the projectors, cameras, recorders.
+4.  LiveStreming via Resi **Bandwidth Critical**
+5.  Audio media stremaing via Dante **Bandwidth Critical**
+6.  Video media stremaing via NDI and RTSP **Bandwidth Critical**
 
-[Back to top](#top)
+There are content filtering rules applied to the network which blocks access to sites which are contrary to church policies. These rules should not cause any operational problems. If connection challenges arise it is good to know that they are in place.
 
-# Overall Switch Topology
+# Protocols in Use
 
-```{r overalltopology}
-st <-' 
+## Dante
+
+Audinate’s Dante protocol uses a combination of network protocols for different purposes:
+
+1.  [**Addressing**: Dante devices use DHCP for addressing when available or will auto-assign an IP address in the 169.254.0.0/16 range on the primary network and 172.31.0.0/16 on the secondary network if DHCP is not available^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+
+2.  **Audio Transport**: Dante audio is unicast by default but can be set to use multicast for cases of one-to-many distribution. [The ports used are UDP 14336-14591 for unicast and UDP 4321 for multicast^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+
+3.  **Video Transport**: Dante video is optimized to run on Gigabit Ethernet and has a bandwidth cap of 700 Mbps. [Dante video flows must be multicast if video is being sent to more than one destination^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+
+4.  [**Device Discovery**: mDNS and DNS-SD are used for discovery and enumeration of other Dante devices including Dante Controller^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+
+5.  [**Synchronization**: Dante uses Precision Time Protocol (PTP version 1, IEEE 1588-2002) by default for time synchronization^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+
+6.  **Control and Monitoring Traffic**: Dante monitoring and control traffic uses various ports. [For example, UDP 8700-8708 for multicast control and monitoring, and UDP 4440, 4444, 4455 for audio control^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+
+7.  **Quality of Service (QoS)**: Dante as a real-time media streaming service benefits from low latency and jitter on the network. [QoS should be used for prioritization of Dante clock and audio on mixed-use networks^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+
+## NDI
+
+NewTek’s Network Device Interface (NDI) uses a combination of network protocols for different purposes:
+
+1.  [**Addressing**: NDI resolves host names to IP addresses over the LAN automatically^1^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/). [It uses mDNS (multicast Domain Name System) to create a zero-configuration environment for discovery^1^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/).
+
+2.  [**Video and Audio Transport**: NDI is designed to run over gigabit Ethernet^2^](https://en.wikipedia.org/wiki/Network_Device_Interface). [It operates bi-directionally over a LAN with many video streams on a shared connection^1^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/). [Its encoding algorithm is resolution and frame-rate independent, supporting 4K resolutions and beyond along with 16 channels and more of floating-point audio^1^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/).
+
+3.  [**Discovery and Registration**: NDI uses mDNS for automatic discovery and registration^1^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/). [It also supports 2 other discovery modes (NDI Access, NDI Discovery Server) that allow for operations across subnets and without mDNS^2^](https://en.wikipedia.org/wiki/Network_Device_Interface).
+
+4.  [**Transport Protocols**: NDI uses TCP by default^2^](https://en.wikipedia.org/wiki/Network_Device_Interface). [NDI 3.x has options to use UDP multicast or unicast with forward error correction (FEC) instead of TCP, and can load balance streams across multiple network interface controllers (NICs) without using link aggregation^2^](https://en.wikipedia.org/wiki/Network_Device_Interface). [The release of NDI version 4.0 introduces the ‘Multi-TCP’ transport^2^](https://en.wikipedia.org/wiki/Network_Device_Interface).
+
+# ISP Service
+
+```{dot isp_service}
 digraph overall { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Overall Switch Topology\n(as of 2019-01-01)",
-      fontname = Helvetica, bgcolor=white
+      label="ISP Service Entrance\n(as of 2024-05-13)",
+      fontname = raleway
+      bgcolor=white
+      rankdir=LR
       ]
  
-node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
-      gradientangle=270 fontname = Helvetica ]
+node [shape = Mrecord 
+		style=filled 
+		fillcolor="white:beige" 
+		fontsize = 10,
+    	gradientangle=270 ]
+
+subgraph cluster_internet { label="Internet"
+ isp [label="Rogers ISP"] 
+}
+
+subgraph cluster_electrical { label="Electrical"
+ split [label="Splitter"] 
+ phone [label="Phone Interface"]
+ split -> phone [label="coax"]
+}
 
 subgraph cluster_1 { label="Server Room"
-      isp [label="Server room in office"] 
+      nscua001 [label="NSCU-A001", tooltip="Cisco SG250-26P"]
+}
+
+isp    -> split    [label="coax"]
+split  -> modem    [label="coax"]
+modem  -> router   [label="cat"]
+router -> nscua001 [label="cat"]
+} 
+```
+
+# Overall Switch Topology
+
+```{dot overalltopology}
+digraph overall { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Overall Switch Topology\n(as of 2024-05-13)",
+      fontname = raleway
+      bgcolor=white
+      rankdir=LR
+      ]
+ 
+node [shape = Mrecord 
+		style=filled 
+		fillcolor="white:beige" 
+		fontsize = 10,
+    	gradientangle=270 ]
+
+subgraph cluster_1 { label="Server Room"
       nscua001 [label="NSCU-A001", tooltip="Cisco SG250-26P"]
 }
 
@@ -83,14 +172,14 @@ subgraph cluster_library {
 }
 
 subgraph cluster_avroom { label="AV Room"
-
     nscua005    [label="NSCU-A005"
                  tooltip="Cisco SG250-26P"]
 }
 
-subgraph cluster_youth { label="Board Room"
+subgraph cluster_youth { label="Youth Building"
     youth    [label="youth"
                     tooltip="youth"]
+    NSTUH001 [label="switch"]               
 }
 
 subgraph cluster_balcony { 
@@ -101,7 +190,6 @@ subgraph cluster_balcony {
 
   ap23 [label="NAHU-B007", tooltip="HP IAP-315"]
   ap24 [label="NAHU-B009", tooltip="HP IAP-315"]
-
 }
 
 subgraph cluster_bsmt {
@@ -118,6 +206,11 @@ subgraph cluster_office {
   label="Office"
 
   ap21 [label="NAHU-B001", tooltip="HP IAP-315"]
+  
+  subgraph cluster_prayer {
+  label="Prayer Room"
+  23081100 [label="Dante Switch"]
+}
 }
 
 subgraph cluster_lobby {
@@ -130,6 +223,7 @@ nscua001 -> ap21
 nscua005 -> ap22
 nscua005 -> ap23
 nscua005 -> ap24
+nscua001 -> 23081100
 
 nscua002 -> ap11
 nscua002 -> ap12
@@ -137,7 +231,9 @@ nscua002 -> ap13
 nscua002 -> ap14
 nscua002 -> ap15
 
-isp -> nscua001 [label="simplified"]
+isp -> split [label="coax"]
+split -> nscua001 [label="coax"]
+
 nscua001 -> nscua002
 nscua001 -> nscua005
 nscua001 -> balconyfront  
@@ -147,7 +243,7 @@ balconyfront -> balconyrear
  
 library -> youth
 } 
-'
+
 #
 # NAHU-B001	Network	Office	na	Wireless Access Point
 # NAHU-B002	Network	bsmt Hallway West	na	Wireless Access Point
@@ -158,41 +254,71 @@ library -> youth
 # NAHU-B009	Network	Balcony East	na	Wireless Access Point
 # NAHU-B007	Network	Balcony West	na	Wireless Access Point
 # NAHU-B005	Network	Lobby	na	Wireless Access Point
-
-DiagrammeR::grViz(st, height=350)
-
-selected.at <- c( "NSCU-A001", "NSCU-A002",  "NSCU-A003",
-                  "NSCU-A004", "NSCU-A005" ,
-                  "NAHU-B001", "NAHU-B002", "NAHU-B003",
-                  "NAHU-B004", "NAHU-B005", "NAHU-B006",
-                  "NAHU-B007", "NAHU-B008" 
-                   ) %>%  
-  data.frame(AssetTag=.)
-
-merge(NetworkInventory, selected.at) %>% 
-    select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
-    kable(caption="Switch Inventory") %>% 
-    kable_styling("striped", full_width = TRUE)
 ```
 
-[Back to top](#top)
+```{r gt.switch_inv }
+selected.at <-   
+  		   	c( "NSCU-A001"
+  		   	 , "NSCU-A002"
+  		   	 , "NSCU-A003"
+  		   	 , "NSCU-A004"
+  		   	 , "NSCU-A005"
+  		   	 , "2308-1100"
+  		   	 , "NSTU-H001"
+                   )
 
-# Wifi 
+ network |>
+ 	filter( AssetTag %in% selected.at) |> 
+    select(AssetTag, Device, Usage, MAC, IP, Notes) |>
+ 	arrange(AssetTag) |>
+	gt() |> 
+	tab_header("Switch Inventory - MACs and IP") |>
+    opt_stylize(style=3) 
+ 
+ inventory |> 
+	filter( AssetTag %in% selected.at) |> 
+ 	select(AssetTag, Manufacturer
+ 		   , Model
+ 		   , Building
+ 		   , Floor
+ 		   , Room
+ 		   , Location
+ 		   , Desc) |>
+ 	arrange(AssetTag) |>
+ 	gt() |> 
+	tab_header("Switch Inventory") |>
+    opt_stylize(style=3) 
+```
+
+# Wifi
 
 From an AV Technical Production perspective, our Wifi network is not normally used for media transport, but rather for control functions. Examples include:
 
-* Audiante Dante Controller
-* Shure Wireless Workbench
-* Renewed Vision Propresenter Remote
-* Yamaha Studio Manager
-* ETC Web control / Lighting Console
-* etc
+-   Audiante Dante Controller
+-   Shure Wireless Workbench
+-   Renewed Vision Propresenter Remote
+-   Yamaha Studio Manager
+-   ETC Web control / Lighting Console
+-   etc
 
-We have used them for NDI video trnasport from cell phone to a production computer. 
+We have used them for NDI video trnasport from cell phone to a production computer.
 
-There is a network of nine wireless access points distributed around the building (Hewlett Packard Enterprise IAP-315).  These WAPs support three SSIDs, each of which has specifc purposes:
+There is a network of nine wireless access points distributed around the building (Hewlett Packard Enterprise IAP-315). There is also a WAP in the Youth building.
 
-```{r}
+```{r gt_wap_list}
+inventory |>
+	filter(Manufacturer == "Aruba") |>
+	select(AssetTag, Manufacturer, Model, Building, Floor, Room, SN, Desc) |>
+	arrange(AssetTag) |>
+	gt() |>
+	tab_header("Wifi SSID Inventory") |>
+    opt_stylize(style=3) |>
+	tab_header("WAP Inventory")
+```
+
+These WAPs support three SSIDs, each of which has specific purpose:
+
+```{r SSIDS}
 ssid <- tribble(
   ~SSID, ~Usage, ~Access, ~Bandwidth, ~MAC_Registration, ~Filtering,
 "UAC",
@@ -217,22 +343,30 @@ ssid <- tribble(
 "L01"
 )
 
-ssid %>%
-  kable()  %>%
-  kable_styling("striped", full_width = FALSE)
+ssid |>
+	gt() |>
+	tab_header("Wifi SSID Inventory") |>
+    opt_stylize(style=3) 
 ```
 
 > Only UAC-SR has access to internal network devices. In order to control any systems or stream media to a production computer over the wifi network, the device would need to be on the UAC-SR network.
 
-The are content filtering rules applied to the network which blocks access to sites which are contrary to church policies. These rules should not cause any operational problems. If connection challenges arise it is good to know that they are in place. 
+# Server Room
 
+```{r sr_portmap}
+portmap( "NSCU-A001")
+```
 
-[Back to top](#top)
-  
 # AV Rack Room
- 
-```{r audiorack}
-ar <-' 
+
+Cables in ports that need identification:
+
+-   port 4 Grey
+-   port 5 Black
+-   port 6 Black
+-   port 26 is the link for A001
+
+```{dot audiorack}
 digraph overall { 
   
 graph [overlap = true, fontsize = 20, 
@@ -259,35 +393,53 @@ nscua005 -> fohprojs
 nscua005 -> fohprojw
 
 } 
-'
-
-DiagrammeR::grViz(ar, height=350)
 ```
 
-```{r, trdetails}
-selected.at <- c( "ZVVU-A001", "ZVVU-A002",  
-                  "ZVVU-A003", "NSCU-A005" ) %>%  data.frame(AssetTag=.)
+```{r}
+sw <- c("NSCU-A005")
+cap <- glue("Location for {sw} ")
 
-merge(NetworkInventory, selected.at) %>% 
-    select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
- kable()  %>%
-  kable_styling("striped", full_width = FALSE)
-
-selected.at <- c( "ZAHU-0001") %>%  data.frame(AssetTag=.)
-
-merge(TechInventory, selected.at) %>% 
-    select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) %>%
- kable()  %>%
-  kable_styling("striped", full_width = FALSE)
+inventory |> 
+	filter( AssetTag %in% sw) |> 
+ 	select(AssetTag, Manufacturer
+ 		   , Model
+ 		   , Building
+ 		   , Floor
+ 		   , Room
+ 		   , Location
+ 		   , Desc) |>
+ 	arrange(AssetTag) |>
+ 	gt() |> 
+	tab_header(cap) |>
+    opt_stylize(style=3) 
 ```
 
-[Back to top](#top)
+```{r, trdetails, eval=FALSE}
+selected.at <- data.frame(AssetTag=c( "ZVVU-A001", "ZVVU-A002",  
+                  "ZVVU-A003", "NSCU-A005" ))
+
+merge(network, selected.at) |>
+    select(AssetTag, Device, Usage, MAC, IP, Notes) |>
+	gt()  |>
+	opt_stylize(style=3)
+
+selected.at <- data.frame(AssetTag=c( "ZAHU-0001"))
+
+merge(inventory, selected.at) |> 
+    select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) |>
+	gt()  |>
+	opt_stylize(style=3)
+```
+
+```{r a005_ports}
+portmap( "NSCU-A005")
+
+```
 
 # Balcony Front Desk
- 
-```{r BalconyFrontSwitch}
-ar1 <-' 
- graph bfs { 
+
+```{dot BalconyFrontRack}
+graph bfs { 
   
 graph [overlap = true, fontsize = 20, 
       label="Balcony Front Rack Topology\n(as of 2019-01-26)",
@@ -297,7 +449,7 @@ graph [overlap = true, fontsize = 20,
 node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
       gradientangle=270 fontname = Helvetica ]
       
-   subgraph cluster_zahu0004 { label="Rack: ZAHU-0004"  tooltip="Front desk Rack"
+   subgraph cluster_zahu0004 { label="Rack: ZAHU-0004"  tooltip="Front Desk Rack"
 
          nscua003 [label="{Balcony Front|NSCU-A003}"
                         tooltip="Cisco SG250-26P"]
@@ -316,20 +468,7 @@ nscua003 -- frontguest
 nscua003 -- zaiub001  
 nscua003 -- zaiub002  
 
-} 
-'
-
-ar2 <-' 
- graph bfs { 
-  
-graph [overlap = true, fontsize = 20, 
-      label="Balcony Front Rack Topology\n(as of 2019-01-26)",
-      fontname = Helvetica, bgcolor=white, rankdir=LR
-      ]
  
-node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
-      gradientangle=270 fontname = Helvetica ]
-      
    subgraph cluster_zahu0004 { label="Rack: ZAHU-0004"  tooltip="Front desk Rack"
 
          nscua003 [label="{Balcony Front|NSCU-A003}"
@@ -350,43 +489,42 @@ nscua003 -- zamub001
 nscua003 -- zamub002  
 nscua003 -- zamub003  
 } 
-'
-
-DiagrammeR::grViz(ar1, height=350)
-DiagrammeR::grViz(ar2, height=350)
 ```
 
 ```{r, fddetails}
-selected.at <- c( "ZAKU-0001", "NSCU-A003",
+selected.at <-   
+  data.frame(AssetTag=c( "ZAKU-0001", "NSCU-A003","NSCU-A004",
                   "ZAIU-B001", "ZAIU-B002",
                   "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003",
                   "ZAKU-0002"
-                  ) %>%  
-  data.frame(AssetTag=.)
+                  ))
 
-merge(NetworkInventory, selected.at) %>% 
-    select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
- kable()  %>%
-  kable_styling("striped", full_width = FALSE)
+merge(network, selected.at) |> 
+    select(AssetTag, Device, Usage, MAC, IP, Notes) |>
+	gt()  |>
+	opt_stylize(style=3) 
 
-selected.at <- c( "ZAHU-0004") %>%  data.frame(AssetTag=.)
+#selected.at <- data.frame(AssetTag=c( "ZAHU-0004"))
 
-merge(TechInventory, selected.at) %>% 
-    select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) %>%
- kable()  %>%
-  kable_styling("striped", full_width = FALSE)
+merge(inventory, selected.at) |> 
+    select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) |>
+	gt()  |>
+	opt_stylize(style=3) 
+```
+
+```{r  a003_ports}
+portmap( "NSCU-A003")
 ```
 
 # Balcony Rear Desk
 
-The rear switch topology has been broken out into multiple diagrams so they are more readable.  
+The rear switch topology has been broken out into multiple diagrams so they are more readable.
 
-```{r BalconyRearSwitch }
-brs.west <-' 
+```{dot BalconyRearSwitch }
 graph bfs { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Balcony Rear Rack (West) Topology\n(as of 2017-08-10)",
+      label="Balcony Rear Rack (West) Topology\n(as of 2024-02-05)",
       fontname = Helvetica, bgcolor=white, rankdir=LR
       ]
  
@@ -399,24 +537,29 @@ balconyrear [label="{Balcony Rear|NSCU-A004}" tooltip="Cisco SG250-26P"]
 
   }
 
-  subgraph cluster_zvhu0003 { label="ZVHU-0003 rack"  tooltip="Rack on desk"
+  subgraph cluster_zvhu0003 { label="ZVHU-0003 rack"  tooltip="Rack on Desk"
  
 recorder1  [label="{BMD Recorder 1|ZVRU-A001}", tooltip="BMD HyperDeck Mini"]
 recorder2  [label="{BMD Recorder 2|ZVRU-A002}", tooltip="BMD HyperDeck Mini"]
-} 
-atem       [label="{Recording Switcher|ZVKU-A003}", tooltip="BMD ATEM Television Pro HD"]
- 
-cdmua002 [label="{Video Computer|CDMU-A002}", tooltip="TBD "]
+cumug001 [label="{Video Computer|CUMU-G001}", tooltip="TBD "]
 
+} 
+
+atem [label="{Recording Switcher|ZVKU-A003}", tooltip="BMD ATEM Television Pro HD"]
+ 
 balconyrear -- recorder1
 balconyrear -- recorder2
 balconyrear -- atem
-  
-balconyrear -- cdmua002
+balconyrear -- cumug001
+balconyrear -- resi
+balconyrear -- cumug002
+balconyrear -- vs88dt
+balconyrear -- lc
+balconyrear -- cdwu0009
 } 
-'
+```
 
-brs.cams <-' 
+```{dot cameras}
 graph bfs { 
   
 graph [overlap = true, fontsize = 20, 
@@ -427,10 +570,9 @@ graph [overlap = true, fontsize = 20,
 node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
       gradientangle=270 fontname = Helvetica ]
   
-  subgraph cluster_zvhu0002 { label="ZVHU-0002 rack"  tooltip="Rear Desk Rack"
-
-balconyrear [label="{Balcony Rear|NSCU-A004}" tooltip="Cisco SG250-26P"]
-
+subgraph cluster_zvhu0002 { 
+	label="ZVHU-0002 rack"  tooltip="Rear Desk Rack"
+	balconyrear [label="{Balcony Rear|NSCU-A004}" tooltip="Cisco SG250-26P"]
   }
 
 rmip       [label="{Camera Control|ZVKU-A004}", tooltip="Sony RMIP10"]
@@ -444,102 +586,245 @@ balconyrear -- camera2 [label="PoE+"]
 balconyrear -- camera3 [label="PoE+"]
 balconyrear -- rmip
 } 
-'
+```
 
-brs.east <-' 
+```{dot rre}
 graph bfs { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Balcony Rear Rack (East) Topology\n(as of 2017-08-10)",
+      label="Balcony Rear Rack (East) Topology\n(as of 2024-02-05)",
       fontname = Helvetica, bgcolor=white, rankdir=LR
       ]
  
 node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
       gradientangle=270 fontname = Helvetica ]
   
-  subgraph cluster_zvhu0002 { label="ZVHU-0002 rack"  
+subgraph cluster_zvhu0002 { label="ZVHU-0002 rack"  
                               tooltip="Front desk Rack"
         balconyrear [label="{Balcony Rear|NSCU-A004}", 
                       tooltip="Cisco "]
   }
 
-rearguest  [label="Rear Guest ", tooltip="as needed "]
-cdwu0009   [label="{Mediashout|CDWU-0009}", tooltip="CDWU-0009 Windows"]
-iMac       [label="{ProPresenter|CDMU-A001}", tooltip="Apple iMac27 "]
-cs         [label="{ETC Ligthing Console|ZLKU-C001}"]
+cdwu0009 [label="{Windows|CDWU-0009}", tooltip="CDWU-0009 Windows"]
+cumug002 [label="{ProPresenter|CUMU-G002}", tooltip="Apple Mac Studio "]
+ZLKUC001 [label="{ETC Ligthing Console|ZLKU-C001}"]
 
-  subgraph cluster_zvhu0001 { label="ZVHU-0001 rack"  
-                              tooltip="Front desk Rack"
-        vs88dt     [label="{Video Matrix|ZVKU-A001}", 
-                  tooltip=" Kramer vs88-dt"]
-        fx4        [label="{Video Processor|ZVKU-A002}", 
-                  tooltip="Datapath fx4 "]
+subgraph cluster_zvhu0001 { label="ZVHU-0001 rack"  
+                            tooltip="Front Desk Rack"
+        zvkua001     [label="{Video Matrix|ZVKU-A001}", 
+                  tooltip=" Kramer VS88-DT"] 
   }
 
-balconyrear -- rearguest
- 
 balconyrear -- cdwu0009
  
-balconyrear -- iMac
-balconyrear -- vs88dt
-balconyrear -- fx4
-balconyrear -- cs
+balconyrear -- cumug002
+balconyrear -- zvkua001
+balconyrear -- ZLKUC001
 } 
-'
-
-DiagrammeR::grViz(brs.west, height=350)
-DiagrammeR::grViz(brs.east, height=350)
-DiagrammeR::grViz(brs.cams, height=350)
 ```
 
 ```{r, rddetails}
-selected.at <- c( "ZVRU-A001", "ZVRU-A002",  "ZVKU-A003",
+selected.at <- data.frame(AssetTag=
+                c( "ZVRU-A001", "ZVRU-A002",  "ZVKU-A003",
                   "ZVKU-A004", 
                   "ZVCU-A001", "ZVCU-A002", "ZVCU-A003",
                   "NSCU-A004",
-                  "CDWU-0009", "CDMU-A001", "CDMU-A002",
-                  "ZVKU-A001", "ZVKU-A002",
+                  "CDWU-0009",   "CUMU-G001","CUMU-G002",
+                  "ZVKU-A001",  
                   "NSCU-A004",
-                  "ZLKU-C001") %>%  
-                data.frame(AssetTag=.)
+                  "ZLKU-C001") 
+                		   	)
 
-merge(NetworkInventory, selected.at) %>% 
-    arrange(AssetTag) %>%
-    select(AssetTag, Device, Usage, MAC, IP, Notes) %>%
- kable()  %>%
-  kable_styling("striped", full_width = FALSE)
+merge(network, selected.at) |> 
+    arrange(AssetTag) |>
+    select(AssetTag, Device, Usage, MAC, IP, Notes) |>
+	gt()  |>
+	opt_stylize(style=3)
   
-selected.at <- c("ZVHU-0002") %>%  data.frame(AssetTag=.)
+selected.at <- data.frame(AssetTag=c("ZVHU-0002"))
 
-
-merge(TechInventory, selected.at) %>% 
-    select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) %>%
- kable()  %>%
-  kable_styling("striped", full_width = FALSE)
-  
+merge(inventory, selected.at) |> 
+    select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) |>
+	gt()  |>
+	opt_stylize(style=3)
 ```
-[Back to top](#top)
+
+```{r}
+portmap( "NSCU-A004")
+```
+
+# Prayer Room
+
+The Prayer room is used as the streaming/broadcast station.
+
+```{dot daw}
+graph bfs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Prayer Room Topology\n(as of 2024-02-17)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
  
+node [shape = Mrecord style=filled , fillcolor="white:beige" , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+      
+nscua001 [label="{Office Switch|NSCU-A004}", tooltip="Main Office Switch"]
+ 
+cumue001 [label="{Repear & OBS|CUMU-E001}", tooltip="Apple Mac Mini"]
+zaiue002 [label="{Dante Avio Adapter|ZAIU-E002 }"]
+
+23081100 [label="{Switch|2308-1100}"]
+
+nscua001 -- 23081100
+23081100 -- cumue001
+23081100 -- zaiue002
+23081100 -- guest 
+} 
+```
+
+```{r, pr_details}
+selected.at <- data.frame(AssetTag=
+                c( "2308-1100", 
+                   "ZAIU-E002",    
+                  "NSCU-A001",
+                  "CUMU-E001") 
+                		   	)
+
+merge(network, selected.at) |> 
+    arrange(AssetTag) |>
+    select(AssetTag, Device, Usage, MAC, IP, Notes) |>
+	gt()  |>
+	opt_stylize(style=3)
+  
+merge(inventory, selected.at) |> 
+    select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) |>
+	gt()  |>
+	opt_stylize(style=3)
+```
+
+# Fellowship Hall
+
+to be written
+
+# Electrical Room
+
+```{r er_portmap}
+portmap( "NSCU-A002")
+```
+
+```{r er_connected_gear}
+targ <- "NSCU-A002" 
+cap <- glue("Devices connected to {targ}")
+
+cables |>
+	filter(SrcTag == targ) |>
+	left_join(inventory, by=join_by(DstTag == AssetTag )) |>
+	mutate(MM = md(glue("{Manufacturer}<br>{Model}"))) |>
+	mutate(Loc = md(glue("{Building}/{Floor}<br>{Room}/{Location}"))) |>
+	select( SrcPort, Tag, DstTag
+		  , MM
+	      , Loc 
+		  , Desc) |>
+	arrange(SrcPort) |>
+	gt() |>
+	opt_stylize(style=3) |>
+	tab_header(cap) |>
+	cols_label( Tag = "Cable"
+			  , DstTag ="Asset"	
+			  , MM  = md("Make<br>Model")
+			  , Loc = md("Building/Floor<br>Room/Location")	
+				) |>
+	fmt_markdown(columns = TRUE) 
+```
+
+# Youth Building
+
+The Digiflex LDMX3-CAT-IN and LDMX3-CAT-OUT devices (2404-2706 and 2404-2705) are not network devices but they use cat6 cabling to transmit analog audio between them. They are connected to each other via a jumper at the patch panel.
+
+```{r}
+portmap( "NSTU-H001")
+portmap( "2405-2502")
+```
+
+::: {#fig-youth-network .cell-output-display}
+```{r youth-network1, results="asis"}
+label <- "'Youth Network - Core Switch to Edge Switch'"
+
+targets_v <- c( "NSTU-H001" # youth switch
+			  , "NCPU-H001", "NCPU-H002" # coax modem
+			  , "NSCU-A001"
+			  , "NSCU-A002"  
+			 ) 
+
+xd <- c(   "CDWU-A001" # FH COmputer
+		 , "NAHU-B008" #FH WAP
+		 , "NAHU-B001"
+		 , "NSCU-A005"
+		 , "off_camera"
+		 , "2405-2502"
+		 , "lower_door"
+		) 
+
+dot_code <- get_diagram(targets_v
+						, inventory, cables
+						, label=label , exc_dev=xd )
+out_str <- get_diagram_aux(dot_code)
+cat(out_str)
+#grViz(dot_code)
+```
+
+Youth Network - Core Switch to Edge Switch
+:::
+
+::: {#fig-youth-network .cell-output-display}
+```{r youth-network2, results="asis"}
+label <- "'Youth Network - Edge Switch'"
+
+targets_v <- c( "NSTU-H001" # youth switch
+			   , "NAHU-H001" # wap switch
+			   , "2404-1700" # audio mixer
+			   , "2405-2502" # patch panel
+			   ,"2404-2705", "2404-2706" #audio snake 
+			 ) 
+
+xd <- c( "2404-2701" #audio amp
+	   , "2404-2702" #audio amp
+	   , "2404-2703" #audio amp
+	   , "2404-2704" #audio amp
+	    , "CDWU-A001" # FH COmputer
+		 , "NAHU-B008" #FH WAP
+		 , "NCPU-H002"
+		) 
+
+dot_code <- get_diagram(targets_v
+						, inventory, cables
+						, label=label , exc_dev=xd )
+out_str <- get_diagram_aux(dot_code)
+cat(out_str)
+#grViz(dot_code)
+```
+
+Youth Network - Edge Switch
+:::
+
 # Network Details - All Locations
 
-```{r} 
-NetworkInventory %>% 
-#filter(Category=="Video") %>% 
-select(Location, AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
- kable()  %>%
-  kable_styling("striped", full_width = FALSE)
-
+```{r}
+network |> 
+	select(Location, AssetTag, Usage, Device, MAC, IP, URL, Notes) |>
+	gt()  |>
+	opt_stylize(style=3)
 ```
 
 ```{r mac_needed, eval=FALSE}
 # Devices which are in need of IP Address Allocation
 #Allocation is pending delivery of equipment so we can know the MAC address.  
-NetworkInventory %>% 
-  select(-Category, -Location, -Usage, -Notes, -URL) %>% 
-  filter( ! is.na(MAC)  ) %>% 
-  filter(   is.na(IP)   )   %>% 
- kable()  %>%
-  kable_styling("striped", full_width = FALSE)
+network |>
+  select(-Category, -Location, -Usage, -Notes, -URL) |> 
+  filter( ! is.na(MAC)  ) |> 
+  filter(   is.na(IP)   ) |> 
+	gt()  |>
+	opt_stylize(style=3)
 ```
 
 {{< include common_trailer.qmd >}}

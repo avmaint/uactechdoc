@@ -463,7 +463,7 @@ I would expect we would do a project for every series. Sometimes we may just rem
 
 <div style="page-break-after: always;"/> 
 
-`r knit_child('FurtherInformation.Rmd', quiet=TRUE)`
+ r knit_child('FurtherInformation.Rmd', quiet=TRUE)
 
 [Back to top](#top)
 

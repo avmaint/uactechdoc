@@ -247,6 +247,22 @@ The recommended process after you have formatted the scripture is to use the "Sa
 
 At this point you can edit the scripture verses in the presentation using the *reflow* editor @sop-pro7-reflow-icon. For scripture we want 3, maybe four lines per verse. Make sure the line breaks look good for both projection and live stream.  
 
+## Displaying Live Videio
+
+We have the ability to display the program output of the ATEM video mixer as a slide within ProPresenter. This can be done as a slide within a presentation or as a Prop.
+
+To do this, create a new slide (or Prop) and then add an object to the slide using the white 'Plus'
+
+![Add An Object](./images/sop-add-an-object.png){#sop-add-an-object}
+
+From that menu select video input
+
+![Add Video Input](./images/sop-video-input.png)
+
+![Video Input Details](./images/sop-video-input-details.png)
+
+# Themes and Looks
+
 ## Themes
 
 A theme is a predefined design template or style that you can apply to your presentations. It includes elements like fonts, colors, backgrounds, and slide layouts. Themes help maintain a consistent and professional look throughout your presentations by ensuring that all slides have a cohesive design. You can easily change or customize themes to match the branding or mood of your event or service.
