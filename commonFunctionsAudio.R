@@ -1,5 +1,5 @@
 # Common code for SystemOperationsAudio and SystemDesignAudio 
-
+library(here)
 fname <- here("data", "uac_audio_config.xlsx")
 
 work.config.consoleinputs <- read_excel(fname, 

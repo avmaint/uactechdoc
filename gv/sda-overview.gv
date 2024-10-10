@@ -1,7 +1,7 @@
 digraph overview { 
 
 graph [overlap = true, fontsize = 20, rankdir=LR 
-      label="Audio Overview\nAs of 2023-10-18", 
+      label="Audio Overview\nAs of 2024-10-09", 
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
@@ -16,8 +16,6 @@ mics        -> consoles
 ppcomputer  -> consoles  
 otherinputs -> consoles
 
-consoles  -> videomixer
-
 subgraph cluster_fohfront {label="FoH Front Desk"   fontsize = 20
   consoles			[label="Audio Mix\nConsoles"]
   dsp				[label="House\nProcessors"]
@@ -25,25 +23,22 @@ subgraph cluster_fohfront {label="FoH Front Desk"   fontsize = 20
 
 subgraph cluster_fohrear {label="FoH Rear Desk"   fontsize = 20
   videomixer		[label="Video\nMixer"]
-  videomixeravio	[label="Dante Out\nAdapter"]
   videodestinations [label="Video Destinations"]
 }
 
-videomixeravio -> videomixer
+daw -> videomixer
 videomixer -> videodestinations
 
-subgraph cluster_livestream  {label="LS"   fontsize = 20
+subgraph cluster_livestream  {label="LiveStream"   fontsize = 20
   daw			[label="Reaper\nDAW"]
   refmon		[label="Reference\nMonitors "]
-  refmonavio	[label="Dante Out\nAdapter"]
+
  }
 
 consoles    -> dsp  
 consoles	-> daw
 mics		-> daw
-daw  		-> refmonavio
-refmonavio	-> refmon
-daw			-> videomixeravio
+daw  		-> refmon
 ppcomputer	-> daw
 
 subgraph cluster_inputs {label="Inputs" fontsize = 20

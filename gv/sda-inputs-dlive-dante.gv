@@ -1,0 +1,46 @@
+digraph ddi { 
+graph [overlap = true, fontsize = 24, rankdir=TB 
+      label="dLive Dante Inputs\nAs of 2024-10-09", 
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" , fontsize = 10, 
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+
+subgraph cluster_amproom {
+	label="Amp Room"
+	subgraph cluster_mixrack {
+		label="A&H DM64\n2407-3000"
+	"2407-3002" [label="{A&H M-DL-Dante128|2407-3002}"]
+	}
+}
+
+subgraph cluster_fr {
+	label="Front Rack"
+	zamua001 [label="ZAMU-A001\nShure\nULX-D Quad", fillcolor="white:cyan" ]
+	zamub001 [label="ZAMU-B001\nShure\nULX-D Quad", fillcolor="white:cyan"]
+	zamub002 [label="ZAMU-B002\nShure\nULX-D Quad", fillcolor="white:cyan"]
+	zamub003 [label="ZAMU-B003\nShure\nULX-D Quad", fillcolor="white:cyan"]
+}
+
+subgraph cluster_reardesk {
+	label="Rear Desk"
+	cdwu0009 [label="CDWU-0009\nWin7\nDante VSC", fillcolor="white:pink"]
+	cumug002 [label="CDMU-A001\niMac\nFuture\nDante VSC", fillcolor="white:pink"]
+	cumug001 [label="CDMU-A002\niMac\nDante Controller\nDante VSC", fillcolor="white:pink"]
+}
+
+subgraph cluster_broadcast {
+	label="Broadcast"
+	cumue001 [label="CUMU-E001\nMacMini\nDante Controller\nDante VSC\nReaper", fillcolor="white:pink"]
+}
+
+zamua001 -> "2407-3002"
+zamub001 -> "2407-3002"  
+zamub002 -> "2407-3002"  
+zamub003 -> "2407-3002"  
+cumue001 -> "2407-3002"
+cumug001 -> "2407-3002"
+cumug002 -> "2407-3002"
+
+} 

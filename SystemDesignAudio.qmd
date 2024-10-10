@@ -27,7 +27,7 @@ source("commonFunctionsAudio.R")
 
 ```{r getdata}
 NetworkInventory <- get.network()
-assets   <- get.assets()
+assets   <- get.assets() #Assets are cached via commonFunctions.R
 ```
 
 ```{r dci}
@@ -82,14 +82,23 @@ The descriptions of the configurations will generally start at the input side of
 //| file: gv/sda-overview.gv
 ``` 
  
+The connecting lines are illustrative not specifc. Some of those lines are implemented as analog connections, some are GigaAce, and some as Dante.
+ 
 ## Inputs
 
-There are a variety of microphone inputs that come from the stage as well as CD players, tape players and computer inputs in the balcony. These all are fed into one of two audio mix consoles: A Yamaha M7CL-48 and a Yamaha DM1000. The M7CL is the primary console while the DM1000 handles inputs located at the mix position. Some of those inputs also feed the livestream DAW.
+There are a variety of microphone inputs that come from the stage. 48 from the floor pockets, and an additional 16 via a stagebox.
 
-```{dot sda-inputs-m7}
-//| label: fig-sda-inputs-m7
-//| fig-cap: "M7CL Inputs"
-//| file: gv/sda-inputs-m7.gv
+In the balcony, there are analog inputs for the talkback mic, reference mic, the CD player, as well as a *guest* input for a laptop or media player (1/8").
+
+There is also 128 dante inputs availalble. Those are used for the Shure Wireless Mics, the feed from ProPresenter and from the Livestream DAW.
+
+The mixer consists three components: The mix surface in the balcony, a 16-input stagebox on the drum riser, and the main mix engine (called a MixRack) located in the amp rack. These three components are linked together via and STP cable.
+
+
+```{dot sda-inputs-dlive}
+//| label: fig-sda-inputs-dlive-analog
+//| fig-cap: "dLive Analog Inputs"
+//| file: gv/sda-inputs-dlive-analog.gv
 ``` 
 
 ### M7CL Input Assignments
@@ -118,64 +127,11 @@ get_inputs("M7CL", "002") |>
 	opt_stylize(style=3) |>
 	tab_header("M7CL Input Map") 
 ```
-
-```{r m7.dante}
-#| label: tab-sda-inputs-m7-dante
-#| tab-cap: "M7CL Inputs via Dante"
-di <- "ZAKU-0001"
-
-dante.console.ins %>% 
-  filter(DeviceIn == di) %>%
-  mutate(Card.In = glue("{NetworkDeviceIn}:{NetworkDeviceChannelIn}")) %>%
-  mutate(ComesFrom = glue("{NetworkDeviceOut}:{NetworkDeviceChannelOut}")) %>%
-  select(Channel,
-    Card.In, LabelIn, NotesIn, 
-         ComesFrom , 
-         LabelOut, NotesOut
-         ) %>%
-  arrange(   Channel) %>%
-  kable( caption=glue("Dante Input Mapping for {di}")  ) %>%
-    kable_styling(bootstrap_options = c("striped", "hover"))
-```
  
-### DM1000 Inputs
-
-The DM1000 inputs are all located in the FoH mix position. The chart below describes Scene 014 default definitions. See @fig-sda-inputs-dm and @fig-sda-inputs-dm-map
-
-```{dot gv-sda-inputs-dm}
-//| label: fig-sda-inputs-dm
-//| fig-cap: "DM1000 Inputs"
-//| file: gv/sda-inputs-dm.gv
-```
  
-```{r dmin}
-#| label: fig-sda-inputs-dm-map
-#| fig-cap: "DM1000 Inputs"
-get_inputs("DM1K", "002") |>
- 	gt() |>
-	opt_stylize(style=3) |>
-	tab_header("DM1000 Input Map") |>
-	sub_missing(missing_text = "")
-```
-
-```{r dm.dante}
-#| label: tab-sda-inputs-dm-dante
-#| tab-cap: "DM1000 Inputs via Dante"
-di <- "ZAKU-0002"
-
-dante.console.ins %>% 
-  filter(DeviceIn == di) %>%
-  mutate(Card.In = glue("{NetworkDeviceIn}:{NetworkDeviceChannelIn}")) %>%
-  mutate(ComesFrom = glue("{NetworkDeviceOut}:{NetworkDeviceChannelOut}")) %>%
-  select(Channel,
-    Card.In, LabelIn, NotesIn, 
-         ComesFrom , 
-         LabelOut, NotesOut
-         )  %>%
-  arrange(   Channel) %>%
-  kable( caption=glue("Dante Input Mapping for {di}")  ) %>%
-    kable_styling(bootstrap_options = c("striped", "hover"))
-```
+ 
+ 
+ 
 
 ```{r top1}
 print_inv(c( "CDMU-A001", "ZAKU-0002",
@@ -226,143 +182,75 @@ print_inv(cs , assets)
 
 These can all be found in the diagram above, @fig-foh-inv.
 
-#### Finalizer
-
-The finalizer is used to apply multi-band compression to the FOH signal. It gets signal from the Console main stereo bus.
-
-The Left channel goes and the Soundweb or Dominator.
-The Right channel goes and the Soundweb or Dominator.
-
->TODO: resolve which - Left or Right
->TODO: Document settings.
+ 
 
 #### Rane DA
 
 This is an audio distribution amplifer. 
-
-#### Dominator II
-
-The settings for this device are all manual and not "storeable". See @fig-dom_settings.
-
-```{r dom_settings}
-#| label: fig-dom_settings
-#| tap-cap: Dominator Settings
-#| cap-location: bottom
-
-dom <- tribble(
-  ~Parameter, ~Setting,
-  "Input Gain", "0",
-  "Process", "In",
-  "LF EQ", "0",
-  "XOver1", "100",
-  "HF EQ", "-2",
-  "XOver2", "34",
-  "Release", "23",
-  "Stereo Coupling", "On",
-  "RCH Density", "0",
-  "Fine", "+2",
-  "Range", "-10",
-  "Course", "12"
-)
-
-dom |> 
-  gt() |>
-  opt_stylize(style=3) |>	
-  tab_header("Dominator Settings")	
-```
-
-#### SoundWeb
-
-The soundweb settings are all stored in memory. 
-
+ 
 #### Lobby Speakers
 
-One of the outputs of the RANE DA is connected to the lobby amplifier, a Stuart Audio Hub. This in turn drives four 10W amplifiers which are mounted on the speakers in the lobby ceiling. Signal and power distribution is via Cat5 cable (it is __not__ ethernet). 
+The lobby speakers are driven from an AVIO adapter which normally has audio routed to it from a matrix output on the mixrack via Dante.
 
-```{r lobby}
-lobby <-' 
+The lobby distribution is handled via a Stuart Audio Hub. It drives four 10W amplifiers which are mounted on the speakers in the lobby ceiling. Signal and power distribution is via Cat5 cable (which is __not__ ethernet). 
+
+```{dot lobby}
 graph bfs { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Lobby Audio Topology\n(as of 2019-06-10)",
+      label="Lobby Audio Topology\n(as of 2024-10-09)",
       fontname = Helvetica, bgcolor=white, rankdir=LR
       ]
  
 node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
       gradientangle=270 fontname = Helvetica ]
   
-  subgraph cluster_rack { label="ZVHU-____ rack"  
+  subgraph cluster_rack { label="ZVHU-0005 rack"  
                               tooltip="Front desk Rack"
-        rane                       
-        ZAAU0009 [label="{Audio Hub|ZAAU-009}", 
+                               
+        ZAAU0009 [label="{{Audio Hub|ZAAU-009}}", 
                       tooltip="Stuart"]
+        24100800 [label="{{Dante Interface|2410-0800}}"]
+        24100802 [label="{{DirectBox|2410-0802}}"]
+        24100803 [label="{{GenderBender|2410-0803}}"]
   }
+  
+ subgraph cluster_mixrack {
+ label="dLive MixRack"
+ 24073002 [label="{{dante interface|2407-3002|{<o67>67|<o68>68}}}"]
+ } 
 
-ZAAU0010A  [label="Speaker with Amp\nZAAU-0010 A", tooltip="Speaker"]
-ZAAU0010B  [label="Speaker with Amp\nZAAU-0010 B", tooltip="Speaker"]
-ZAAU0010C  [label="Speaker with Amp\nZAAU-0010 C", tooltip="Speaker"]
-ZAAU0010D  [label="Speaker with Amp\nZAAU-0010 D", tooltip="Speaker"]
+subgraph cluster_lobby { 
+label="Lobby Ceiling"
+ZAAU0010A  [label="Speaker with Amp|ZAAU-0010 A", tooltip="Speaker"]
+ZAAU0010B  [label="Speaker with Amp|ZAAU-0010 B", tooltip="Speaker"]
+ZAAU0010C  [label="Speaker with Amp|ZAAU-0010 C", tooltip="Speaker"]
+ZAAU0010D  [label="Speaker with Amp|ZAAU-0010 D", tooltip="Speaker"]
+}
+
+24073002:o67 -- 24100800
+24073002:o68 -- 24100800
  
-rane -- ZAAU0009  
+24100800 -- 24100803
+24100803 -- 24100802
+24100802 -- ZAAU0009  [label="2410-0801"]
+
 ZAAU0009 -- ZAAU0010A [label="cat5"]
 ZAAU0009 -- ZAAU0010B [label="cat5"]
 ZAAU0009 -- ZAAU0010C [label="cat5"]
 ZAAU0009 -- ZAAU0010D [label="cat5"]
 } 
-'
-
-DiagrammeR::grViz(lobby, height=350)
 ```
-
-
 
 #### Inventory details for this section
 
-```{r}
-cs <- c("ZAXU-0003", "ZAXU-0004", "ZAAU-0009", "ZAAU-0010")
+```{r lobby.inv}
+cs <- c("2410-0800", "2410-0803", "ZAAU-0009", "ZAAU-0010")
 
 print_inv(cs , assets)
 ```
 
-### Console Links
-
-There is are ADAT IO expansion card in each of the two consoles. This enables console-to-console communication. The buses in the DM1000 console are linked to the buses in the M7 using these cards. The Flow is from the DM1000 to the M7. The link cards are in slot one of each console.
-
-There is also a midi link between the two which enables synchronized scene recall.
-
-```{dot sda-links}
-//| label: fig-sda-links
-//| fig-cap: "Console Links"
-//| file: gv/sda-links.gv
-```
-
-More detail about the Dante configuration can be found in the Dante section.
-
-```{r lnks}
-links <- tribble(
-~Console, ~Slot, ~Direction, ~Channel, ~Assignment,
-"DM1K", 1, "Out", "1-6",   "Monitor 1-6",
-"DM1K", 1, "Out", "8",     "Record",
-"DM1K", 1, "Out", "15-16", "Stereo LR",
-"M7CL", 1, "In",  "1-6",   "Mix 1-6",
-"M7CL", 1, "In",  "8",     "Mix 14",
-"M7CL", 1, "In",  "13-14", "Cue LR",
-"M7CL", 1, "In",  "15-16", "Stereo LR",
-"M7CL", 1, "In",  "16",    "Mono",
-"M7CL", 2, "In",  "1-12",  "Wireless Handheld",
-"M7CL", 2, "In",  "BP06",  "Wireless Beltpack",
-"DM1K", 2, "In",  "1-6",   "Wireless Beltpack"
-) |>
-	mutate(Group = paste(Console, Slot, Direction))
-
-links %>%
-  gt(rowname_col = "Assignment", groupname_col="Group") |>
-  opt_stylize(style=3)  |>
-	tab_header("Console in/out summary") |>
-	tab_footnote("Is this table of value?")
-   
-```
-
+ 
 
 ### M7 Mix Bus Usage
 
@@ -481,7 +369,11 @@ fmt_dante_chart <- function(dir, targets, header) {
 	filter(Used == "Y") |>
  	left_join(assets, by=join_by(Device == AssetTag)) |>
 	mutate(GroupTitle = paste(Device, Model, Desc)) |>
-	select(GroupTitle, NetworkDevice, NetworkDeviceChannel, Label, Usage) |>
+#todo figure out why USage isn't in the data
+		
+	#select(GroupTitle, NetworkDevice, NetworkDeviceChannel, Label, Usage) |>
+
+			select(GroupTitle, NetworkDevice, NetworkDeviceChannel, Label) |>
 	gt(groupname_col = "GroupTitle") |>
 	opt_stylize(style=3) |>
 	tab_header(header) |>
@@ -702,9 +594,9 @@ routing  %>%
     filter(rs >0) %>%
     select(-rs) %>%
     kable(caption="Whole Routing Matrix", format = "html") %>%
-    kable_styling("striped" , full_width= F) %>%
+    #kable_styling("striped" , full_width= F) %>%
     row_spec(0, angle=-90) %>%
-    kable_styling(bootstrap_options = c("striped", "hover"))
+    # kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
 ```{r printmatixhh, eval=FALSE}
@@ -720,9 +612,9 @@ routing %>%
     select(-rs) %>%
     mutate_all(funs(ifelse(is.na(.), "", .))) %>%
     kable(caption="Wireless Handheld Sources", format = "html") %>%
-    kable_styling("striped" , full_width= F) %>%
+    # kable_styling("striped" , full_width= F) %>%
     row_spec(0, angle=-90) %>%
-    kable_styling(bootstrap_options = c("striped", "hover"))
+    # kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
 ```{r printmatrixbp, eval=FALSE}
@@ -736,7 +628,7 @@ routing %>%
     select(-rs) %>%
     mutate_all(funs(ifelse(is.na(.), "", .))) %>%
     kable(caption="Wireless Beltpacks Sources", format = "html") %>%
-    kable_styling("striped" , full_width= F) %>%
+    # kable_styling("striped" , full_width= F) %>%
     row_spec(0, angle=-90 )
 ```
 
@@ -772,7 +664,7 @@ The primary configuration is depcted in @fig-livestream-audio1
 * Repaer audio devices to be configured to use Dante for both input and output
 * Reaper is configured to send two outputs for monitoring and two outputs for the livestream.
 
-```{dot fig-livestream-audio1 }
+```{dot fig-livestream-audio1, eval=FALSE }
 //| fig-cap: Audio Feed to Video
 //| label: fig-livestream-audio1
 //| cap-location: bottom
@@ -792,10 +684,10 @@ cumue001
 {
   {Mac Mini|Reaper|CUMU-E001} 
 |{
-  <o01>Livestream L   
-  <o02>Livestream R
-  <o03>RefMon L
-  <o04>RefMon r   
+|  <o01>Livestream L   
+|  <o02>Livestream R
+|  <o03>RefMon L
+|  <o04>RefMon r   
 }
 }
 "]
@@ -963,8 +855,8 @@ Some of the audio system components have network (tcp/ip specicially) connectivi
  NetworkInventory %>% 
   filter(Category=="Audio") %>% 
   select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
-  kable()  %>%
-    kable_styling("striped", full_width = TRUE)
+  kable()  
+    # kable_styling("striped", full_width = TRUE)
 ```
 
 {{< pagebreak >}} 
@@ -984,8 +876,8 @@ cs = c("AssetTag", "Qty"  ,
 assets %>%  
           filter( Category=="Audio" , InService== "Y") %>%  
           dplyr::select(one_of(cs)) %>% 
-          kable(   )   %>%
-    kable_styling("striped", full_width = TRUE)
+          kable(   )   
+    # kable_styling("striped", full_width = TRUE)
 ```
 
 
@@ -1011,7 +903,7 @@ tab <- get.glossary() |>
 cat(print_gt_table(tab))
 ``` 
 
-{{< include common_trailer.qmd >}}
+'' < include common_trailer.qmd >}}
 
 # Input Map for Printing
 {{< pagebreak >}} 
@@ -1130,6 +1022,6 @@ merge(o1, o2) %>%
   select(Output, Sent.From, Label, Usage, 
          Sent.To
          ) %>%
-  kable(caption=glue("Dante Outputs for {do}"))  %>%
-    kable_styling(bootstrap_options = c("striped", "hover"))
+  kable(caption=glue("Dante Outputs for {do}"))  
+    # kable_styling(bootstrap_options = c("striped", "hover"))
 ```
