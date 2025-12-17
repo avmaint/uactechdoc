@@ -1,6 +1,6 @@
 
 ```{r fipackages}
-require(kableExtra)
+#require(kableExtra)
 require(readxl)
 require(dplyr)
 ```
@@ -31,7 +31,7 @@ chart <- tribble(
 "Manuals",
 "These are publications from the manufactures of the equipment we have."
 )
-
+ 
 tab <- chart |>
  	   gt() |>  
 		opt_stylize(style = 3) |>
@@ -56,12 +56,11 @@ further |>
   mutate (Design = ifelse(is.na(Design),"", glue('[X]({Design})') ),
 	      Design = map(Design, gt::md))     |>
   mutate (Other = ifelse(is.na(Other),"", glue('[X]({Design})') ),
-  		 Other = map(Other, gt::md) 		   )  |>
-  gt() |> 
-		tab_header( "Index to Other Documents" ) |>
-		opt_stylize(style = 3) |>
-	    opt_row_striping(  row_striping = TRUE) |>
-		tab_style( style = cell_text( 	weight = "bold",  	),
-		        	locations = cells_body(  	columns = "Topic") )    
+  		 Other = map(Other, gt::md) 		   )  #|>
+#  gt() #|> 
+# 		tab_header( "Index to Other Documents" ) |>
+# 		opt_stylize(style = 3) |>
+# 	    opt_row_striping(  row_striping = TRUE) |>
+# 		tab_style( style = cell_text( 	weight = "bold",  	),
+# 		        	locations = cells_body(  	columns = "Topic") )    
 ```
-
