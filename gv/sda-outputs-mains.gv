@@ -1,0 +1,45 @@
+digraph foh_outputs { 
+graph [overlap = true, fontsize = 20, rankdir=LR 
+      label="Audio Outputs\nAs of 2024-10-12",
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" ,  fontsize = 10,
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+      
+24073000 [label= "A&H\nDM64\nMixRack"]
+24073002 [label= "A&H\nM-DL-Dante128\nDante interface"]  
+
+core [label= "Q-Sys Core"]
+
+24073000 [label="
+{ 
+{
+  <o1>GigaAce A 
+| <o2>GigaAce B
+} |
+  {    A&H\nDM64\nMixRack\n2407-3000} 
+
+}
+"]
+
+24073001 [label="
+{ 
+  {    A&H\nS5000\n2407-3001} 
+|{
+  <o1>GigaAce A 
+| <o2>GigaAce B
+} 
+}
+"]
+
+24073001:o1 -> 24073000:o1
+24073001:o2 -> 24073000:o2
+
+24073000 ->24073002
+
+24073002 -> core
+
+core -> amps  
+  
+} 

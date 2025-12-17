@@ -1,0 +1,150 @@
+digraph KLangDante { 
+	label="IEM outputs\nAs Of 2025-12-16" 
+    bgcolor="white"
+    rankdir=LR
+    compound=true
+    fontsize=32
+    
+    node [  fontname="Arial", fontsize=12, fontcolor="black"
+		    shape=record, style=filled
+		    , fillcolor="palegreen", color="#34495E"
+		    , penwidth=3]
+		    
+    edge [color="#2C3E50", penwidth=2]
+
+24073000 [label= "A&H\nDM64\nMixRack"]
+24073002 [label= "A&H\nM-DL-Dante128\nDante interface"]  
+
+konductor [ label="{  Konductor\nKNA18012
+               |{<m1>Mix 1\n\n\n\nVox 1
+               |<m2>Mix 2\n\n\n\nVox 2
+               |<m3>Mix 3\n\n\n\nVox 3
+               |<m4>Mix 4\n\n\n\nVox 4
+               |<m5>Mix 5\n\n\nPiano
+               |<m5>Mix 6\n\n\nSynth
+               |<m7>Mix 7\n\n\nB3
+               |<m8>Mix 8\n\n\nAG 1
+               |<m9>Mix 9\n\n\nEG 1
+               |<m10>Mix 10\n\n\nBass
+               |<m11>Mix 11\n\n\n
+               |<m12>Mix 12\n\n\n
+               |<m13>Mix 13\n\n\nDrums
+               |<m14>Mix 14
+               |<m15>Mix 15
+               |<m16>Mix 16
+               } }"
+               , fontname="Arial", fontsize=12 ]
+               
+quelle [  label="{ {<i1>In1
+               			|<i2>In2
+               			|<i3>In3
+               			|<i4>In4
+               			|<i5>In5
+               			|<i6>In6
+               			|<i7>In7
+               			|<i8>In8
+               } |
+               Quelle\nK..c08
+               |{<o1>Out 1 
+               |<o2>Out 2 
+               |<o3>Out 3 
+               |<o4>Out 4 
+               |<o5>Out 5 
+               |<o5>Out 6 
+               |<o7>Out 7 
+               |<o8>Out 8  
+               } }"
+               , fontname="Arial", fontsize=12 ]       
+               
+kmix1 [label="{Vox 1\nKontroller|<o1>Mix 1 }"]
+kmix2 [label="{Vox 2\nKontroller|<o1>Mix 2 }"]
+kmix3 [label="{Vox 3\nKontroller|<o1>Mix 3 }"]
+kmix4 [label="{Vox 4\nKontroller|<o1>Mix 4 }"]
+        
+kmix5 [label="{??? 4\nKontroller|<o1>Mix 5 }"]
+kmix6 [label="{??? 4\nKontroller|<o1>Mix 6 }"]
+kmix7 [label="{?? 4\nKontroller|<o1>Mix 7 }"]
+kmix8 [label="{?? 4\nKontroller|<o1>Mix 8 }"]
+        
+kmix9 [label="{? 4\nKontroller|<o1>Mix 9 }"]
+kmix10 [label="{? 4\nKontroller|<o1>Mix 10 }"]
+kmix11 [label="{? 4\nKontroller|<o1>Mix 11 }"]
+kmix12 [label="{? 4\nKontroller|<o1>Mix 12 }"]
+
+kmix13 [ label="{Drums\nKontroller|Mix 13 }" ]
+               
+psm10000_1 [label="{{<lr1>LR1|<lr2>LR2 }|Shure PSM1000\nunit 1 |{<m1>Mix 1|<m2>Mix 2} }" ]
+
+psm10000_2 [label="{{<lr1>LR1|<lr2>LR2 }|Shure PSM1000\nunit 2 |{<m3>Mix 3|<m4>Mix 4} }" ]
+	 
+subgraph cluster_mix1 { label="Mix 1" 
+	 	p10r1 [label="belt\npack" ]
+		buds1 [label="ear\nbuds" ]
+}
+
+subgraph cluster_mix2 { label="Mix 2" 
+	 	p10r2 [label="belt\npack"  ]
+		buds2 [label="ear\nbuds" ]
+}
+
+subgraph cluster_mix3 { label="Mix 3"
+	 	p10r3 [label="belt\npack" ]
+		buds3 [label="ear\nbuds" ]
+}
+
+subgraph cluster_mix4 { label="Mix 4"
+	 	p10r4 [label="belt\npack" ]
+		buds4 [label="ear\nbuds" ]
+}
+
+buds11 [label="ear\nbuds",    shape=record,style=filled,  fillcolor="palegreen", color="#34495E", penwidth=3, fontcolor="black"]
+
+// Edges
+    
+24073000 ->24073002
+     
+24073002  -> konductor:i1
+    
+konductor:m1 ->kmix1  
+konductor:m2 ->kmix2
+konductor:m3 ->kmix3 
+konductor:m4 ->kmix4
+    
+konductor:m5 ->kmix5 ->buds5
+konductor:m6 ->kmix6 ->buds6
+konductor:m7 ->kmix7 ->buds7
+konductor:m8 ->kmix8 ->buds8
+    
+konductor:m9 ->kmix9 ->buds9
+konductor:m10 ->kmix10 ->buds10
+konductor:m11 ->kmix11 ->buds11
+konductor:m12 ->kmix12 ->buds12
+    
+konductor:m13 -> kmix13 ->buds13
+
+konductor:m1 -> quelle:i1
+konductor:m1 -> quelle:i2
+konductor:m2 -> quelle:i3
+konductor:m2 -> quelle:i4
+konductor:m3 -> quelle:i5
+konductor:m3 -> quelle:i6
+konductor:m4 -> quelle:i7
+konductor:m4 -> quelle:i8
+    
+quelle:o1 -> psm10000_1:lr1
+quelle:o2 -> psm10000_1:lr1
+quelle:o3 -> psm10000_1:lr2
+quelle:o4 -> psm10000_1:lr2
+    
+quelle:o5 -> psm10000_2:lr1
+quelle:o6 -> psm10000_2:lr1
+quelle:o7 -> psm10000_2:lr2
+quelle:o8 -> psm10000_2:lr2 
+
+psm10000_1:m1 -> p10r1 -> buds1
+psm10000_1:m2 -> p10r2 -> buds2
+    
+psm10000_2:m3 -> p10r3 -> buds3
+psm10000_2:m4 -> p10r4 -> buds4 
+
+}

@@ -1,0 +1,72 @@
+digraph foh_outputs { 
+graph [overlap = true, fontsize = 20, rankdir=LR 
+      label="Audio Outputs\nAs of 2025-12-17",
+      fontname = Helvetica]
+
+node [shape=Mrecord
+		, tooltip="" 
+		, fontsize = 10
+		, fillcolor="white:beige" 
+		, style=filled 
+		, gradientangle=270]
+      
+24073000 [label="
+{ 
+{
+  <o1>GigaAce A 
+| <o2>GigaAce B
+} |
+  {    A&H\nDM64\nMixRack\n2407-3000} 
+
+}
+"]
+
+24073001 [label="
+{ 
+  {    A&H\nS5000\n2407-3001} 
+|{
+  <o1>GigaAce A 
+| <o2>GigaAce B
+} 
+}
+"]
+
+24073002 [label= "A&H\nM-DL-Dante128\nDante interface"]  
+
+24073001:o1 -> 24073000:o1
+24073001:o2 -> 24073000:o2
+
+subgraph cluster_monitors { label="ZAHU-0001"
+
+mon1234 [label="
+{{
+  <i1>M1
+| <i2>M2 
+| <i3>M3
+| <i4>M4
+} | Monitor Amp\n1 - 4\n?}
+"]
+  
+mon5678 [label="
+{{
+  <i1>M5
+| <i2>M6
+| <i3>M7
+| <i4>M8
+} | Monitor Amp\n5 - 8\n?}
+"]  
+ 
+} 
+24073000 ->24073002
+
+24073002:o1 -> mon1234:i1
+24073002:o2 -> mon1234:i2
+24073002:o3 -> mon1234:i3
+24073002:o4 -> mon1234:i4
+
+24073002:o5 -> mon5678:i1
+24073002:o6 -> mon5678:i2
+24073002:o7 -> mon5678:i3
+24073002:o8 -> mon5678:i4
+
+} 
