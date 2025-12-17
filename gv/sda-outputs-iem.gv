@@ -33,7 +33,7 @@ konductor [ label="{  Konductor\nKNA18012
                |<m15>Mix 15
                |<m16>Mix 16
                } }"
-               , fontname="Arial", fontsize=12 ]
+                ]
                
 quelle [  label="{ {<i1>In1
                			|<i2>In2
@@ -54,7 +54,7 @@ quelle [  label="{ {<i1>In1
                |<o7>Out 7 
                |<o8>Out 8  
                } }"
-               , fontname="Arial", fontsize=12 ]       
+                 ]       
                
 kmix1 [label="{Vox 1\nKontroller|<o1>Mix 1 }"]
 kmix2 [label="{Vox 2\nKontroller|<o1>Mix 2 }"]
@@ -97,7 +97,7 @@ subgraph cluster_mix4 { label="Mix 4"
 		buds4 [label="ear\nbuds" ]
 }
 
-buds11 [label="ear\nbuds",    shape=record,style=filled,  fillcolor="palegreen", color="#34495E", penwidth=3, fontcolor="black"]
+buds11 [label="ear\nbuds" ]
 
 // Edges
     
