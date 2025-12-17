@@ -41,22 +41,30 @@ Purpose of our Sound System:
 * Helps audience to focus and concentrate
 * Reinforces the message (spoken or sung)
 
+## Audio System Overview
+
+
+```{dot fig-soa-system-overview }
+//| label: fig-soa-system-overview
+//| fig-cap: Audio System Overview
+//| cap-location: bottom
+//| file: gv/soa-audio-overview.gv
+```
+
 # Power On and Off
 
 ## Power On
- 
-There are three numbered swtiches located in the balcony required to turn the system on
 
-#. is located at the far west end of the front desk. This energizes the front desk gear.
-#. is located behind the mix position at the top of the rack. This energizies the rear desk audio gear.
-#. is just below #2. This energizes the audio amplifiers.
+To the left of the audio console there is a small touch screen that displays the church logo. 
 
-Allow a 10 second pause between flipping each switch.
-
-After the console has fully started, you would typically want to recall the default scene so all settings are in a known good state.
-
+* Touch it once to bring up the menu.
+* In the upper left there will be a button that says "Off", which is the current state, touch it and the system start up sequence will begin.
+* Wait about two minutes and the system will be ready to use.
+* Meanwhile take off and stow the dust cover.
+* The next step is, typically, to recall the desired scene. To do so touch the "scene" button on the right hand side of the console. Then on the right hand console screen, scroll to find the scene you want, touch it and then press the "Go" button which is also on the right hand side. 
+  
 :::{.callout-important}
-As of 2023, we have a problem with the amplifier switch and the amplifiers must be turned on and off manually. 
+If you don't know what scene to use, please discuss with Terry.
 :::
 
 :::{.callout-note}
@@ -65,7 +73,10 @@ Although not part of the audio system, it is often the audio engineer who turns 
  
 ## Power Off 
 
-Power off is the opposite sequence from power on.  Provide a 30 second pause between switch 3 and 2. This gives the power amps time to cycle off before proceeding.
+* on the right side of the console, push the "Home" button.
+* on the right screen, there will be a button labelled "Power Down", touch it.
+* put on the dust cover
+* on the mini touch screen on the left side of the console, touch it once to bring up the menu, and then touch the "On" button in the upper left. The system will then begin the power down sequence.
 
 # Training Videos
 
@@ -128,71 +139,28 @@ get.training() |>
 				columns =  "Title")
 ```
 
-# Basic Operations
+There is also an extensive library of videos on MxU. 
 
-## The Two Consoles
-
-We have two audio consoles in the auditorium. The main console and a sub console to provide expanded input capacity.
-
-Most vocal and stage instruments are wired into the main console (M7CL). Addtional inputs for wireless beltpacks, computers, and palyback machines come in via the sub console. The outputs of the sub console are routed into the corresponding busses of the main console.
-
-The monitor mix busses on both consoles are numbered the same. 
-
-Scene recall on the main console will cause the same numbered scene to be recalled on the sub console as well. 
-
-## Scene Recall 
-
-Scenes are a collection of settings that can be stored and recalled together. This is a very effective way of getting to a good known state. We have created a scene (**scene #014**) which should be used as a base for start an event. This scenes is locked so that they cannot be easily overwritten. If you would like to make a change to a base scene, please discuss with Terry.
-
-When recalling a scene, whatever is being recalled will (almost) instantly become active or inactive. You __don't__ what to do this when live, unless you know exactly what you are doing.
-
-__Scene 014__
-
-To recall Scene 014, press the up/down keys until “Scene 014” flashes in the SCENE field. Then press the [RECALL] key (@fig-soa-scene-recall).
-
-![Scene Recall](./images/soa-scene-recall.png){#fig-soa-scene-recall width=65mm}
-
-## M7 User Defined Keys
-
-The user defined keys allow the operator to quickly access common features. They are located on the *USER DEFINED KEYS* section of the centre controls, see figure @fig-soa-m7cl-centre-controls
-
-```{r}
-#| label: fig-user-defined-keys-table
-#| fig-cap: M7CL User Defined Keys
-udk <- tribble(
-~Key , ~Function 
-,"1","Monitor 1 to faders"  
-,"2","Monitor 2 to faders"  
-,"3","Monitor 3 to faders"  
-,"4","Monitor 4 to faders"  
-,"5","Monitor 5 to faders"  
-,"6","Monitor 6 to faders"  
-,"7","Fx1 to faders" 
-,"8","Fx2 to faders"
-,"9","Record Bus to faders"
-,"10","48v - phantom power control"
-,"11","Tap - effect timing"
-,"12","Talkback - operator to stage communication" 
-	)
-
-gt(udk) |>
-	opt_stylize(style=3) |>
-	tab_header("User Defined Keys")
-```
-
-![M7CL Centre Controls](./images/soa-m7cl-centre-controls.jpg){#fig-soa-m7cl-centre-controls width=50mm}
- 
 # Console Inputs
 
-Part of what is included in the scene definition is the channel layout.  See @fig-m7cl-inputs-analog, @fig-m7cl-inputs-dante and @fig-dm1k-inputs.
+There are four interfaces which facilitate inputs to the dLive system. In total all possible inputs map to the system maximum of 128 inputs.
 
+__1. DM64 Inputs__
+ The analog input jacks on the DM64 mounted in the amp rack. There are 64 inputs. The first 52 of those are wired to the jacks in the floor pockets on stage.
 
-:::{.callout-note}
-* Channels 41-48 will be reassigned sometime in 2023.
-* BP06 is currently assigned to this range as well ... don't remember which channel.
-:::
+__2. DX168 Inputs__
+There are 16 analog inputs in the small stage rack located next to the drum riser. There are used for the drum inputs, and the bass. 
 
-```{r m7-inputs-analog}
+__3. Dante Inputs__
+I/O expansion port #1 on the DM64 is fitted with a 128x128 port Dante card. This is used for 16 inputs from the Shure ULXD receivers, two inputs from the ProPresenter computer, and 64 inputs from the Propresenter computer used for Virtual Soundcheck. The other computers can also provide Dante inputs.
+
+__4. Surface Inputs__ The console surface has 8 analog inputs on the back which are used for the talkback mic, the reference mic, the guest computer and the CD Player.
+
+Part of what is included in the scene definition is the channel layout. 
+
+See @fig-m7cl-inputs-analog, @fig-m7cl-inputs-dante and @fig-dm1k-inputs.
+
+```{r m7-inputs-analog, eval=FALSE}
 #| label: fig-m7cl-inputs-analog
 #| fig-cap: M7CL Inputs (Analog)
 get_inputs("M7CL", "002") |>
@@ -204,7 +172,7 @@ get_inputs("M7CL", "002") |>
 	sub_missing(  missing_text = "-")  
 ```
 
-```{r m7-inputs-dante}
+```{r m7-inputs-dante, eval=FALSE}
 #| label: fig-m7cl-inputs-dante
 #| fig-cap: M7CL Inputs (Dante)
 get_inputs("M7CL", "002") |>
@@ -217,7 +185,7 @@ get_inputs("M7CL", "002") |>
 			  , NetworkDeviceChannel = "Net Channel")
 ```
 
-```{r}
+```{r, eval=FALSE}
 #| label: fig-dm1k-inputs
 #| fig-cap: DM1K Inputs
 get_inputs("DM1K", "002") |>
@@ -229,6 +197,117 @@ get_inputs("DM1K", "002") |>
 			  , NetworkDeviceChannel = "Net Channel")
 ```
 
+
+# Console Outputs
+
+Similar to the system inputs, there are outputs in four separate interfaces. 
+
+__1. DM64 Outputs__
+There are 32 analog outputs on the front face of the DM64 mounted in the amp rack. Two of those are used as analog backup 
+
+## Monitors
+
+We have six monitor amplifier channels, each which can handle a load of two of our monitor wedges. 
+
+Our standard monitor configuration is (@fig-monitors)
+
+```{r gt.monitors}
+#| label: fig-monitors
+#| fig-cap: Standard Monitor Map
+get_monitors() |>
+	gt() |>
+	tab_header("Standard Monitor Map") |>
+	opt_stylize(style=3) 
+```
+
+## Effects
+
+Busses 7, 8, 9 and 10 are used for routing a mix to the internal effects processor which then appears as inputs on the return faders. 
+
+Bus 7
+: The Post-fade mix is sent to a **plate reverb** processor which then appears on return channel 1.
+
+Bus 8
+: The Post-fade mix is sent to a **hall reverb** processor which then appears on return channel 2.
+
+Bus 9
+: The Post-fade mix is sent to a **delay** processor which then appears on return channel 3.
+
+Bus 10
+: The Post-fade mix is sent to a **chorus** processor which then appears on return channel 4.
+
+## Dante Outputs
+
+```{r dante_outputs}
+#| label: fig-dante-outputs
+#| fig-cap: Dante Ouputs
+get_dante_outputs() |>
+	filter(Device == 'ZAKU-0001') |>
+	select(-Device) |>
+	gt() |>
+	tab_header("M7CL Dante Outputs") |>
+	opt_stylize(style=3)
+```
+
+
+## Other Busses
+Bus 14 is used for recording. 
+The Mono bus is used for lobby.
+
+ 
+ 
+
+
+
+# Basic Operations
+
+## The Console
+
+The main audio console is located in the balcony. It can also be operated remotely via dLive Director installed on the Mac in the broadcast room or a tablet running the dLive Mix App.
+
+## Scene Recall 
+
+Scenes are a collection of settings that can be stored and recalled together. This is a very effective way of getting to a good known state. We have created a scene (**Master #001**) which should be used as a base for start an event. This scenes is locked so that they cannot be easily overwritten. If you would like to make a change to a base scene, please discuss with Terry.
+
+When recalling a scene, whatever is being recalled will (almost) instantly become active or inactive. You __don't__ what to do this when live, unless you know exactly what you are doing.
+
+__Scene 001__
+
+To recall Scene 001, press the scene button on the right hand side, and then using the right monitor, scroll to the top of the list where you will find "Master". Touch it to select it and then press the physical "Go" button to the right.   (@fig-soa-dlive-scene-recall).
+
+![Scene Recall](./images/soa-dlive-scene-recall.png){#fig-soa-scene-recall width=65mm}
+
+## dLive Softkeys 
+
+The softkeys allow the operator to quickly access common features. They are located on the very right hand side of the console, see figure @fig-soa-dlive-softkeys
+
+```{r}
+#| label: fig-user-defined-keys-table
+#| fig-cap: M7CL User Defined Keys
+softkeys <- tribble(
+~Key , ~Function 
+,"1","Monitor 1 to faders"  
+,"2","Monitor 2 to faders"  
+,"3","Monitor 3 to faders"  
+,"4","Monitor 4 to faders"  
+,"5","Monitor 5 to faders"  
+,"6","Monitor 6 to faders"  
+,"7","Monitor 7 to faders" 
+,"8","Monitor 8 to faders"
+,"x","Delay Tap-effect timing"
+,"x","Plate effect to faders"
+,"x","Hall effect to faders"
+,"x","Delay effect to faders"
+,"x","Chorus effect to faders"
+	)
+
+gt(softkeys) |>
+	opt_stylize(style=3) |>
+	tab_header("Softkeys Keys")
+```
+
+![M7CL Centre Controls](./images/soa-m7cl-centre-controls.jpg){#fig-soa-m7cl-centre-controls width=50mm}
+ 
 # Operating a Channel
 
 :::{.callout-important}
@@ -307,63 +386,7 @@ To control/eliminate feedback, several approaches can be taken. In approximate p
 
 * Using the phase invesion switch can help when desperate but can cause other weird effects, especially of multiple microphones are in use.
 
-# Console Outputs
 
-## Monitors
-
-We have six monitor amplifier channels, each which can handle a load of two of our monitor wedges. 
-
-Our standard monitor configuration is (@fig-monitors)
-
-```{r gt.monitors}
-#| label: fig-monitors
-#| fig-cap: Standard Monitor Map
-get_monitors() |>
-	gt() |>
-	tab_header("Standard Monitor Map") |>
-	opt_stylize(style=3) 
-```
-
-## Effects
-
-Busses 7, 8, 9 and 10 are used for routing a mix to the internal effects processor which then appears as inputs on the return faders. 
-
-Bus 7
-: The Post-fade mix is sent to a **plate reverb** processor which then appears on return channel 1.
-
-Bus 8
-: The Post-fade mix is sent to a **hall reverb** processor which then appears on return channel 2.
-
-Bus 9
-: The Post-fade mix is sent to a **delay** processor which then appears on return channel 3.
-
-Bus 10
-: The Post-fade mix is sent to a **chorus** processor which then appears on return channel 4.
-
-## Dante Outputs
-
-```{r dante_outputs}
-#| label: fig-dante-outputs
-#| fig-cap: Dante Ouputs
-get_dante_outputs() |>
-	filter(Device == 'ZAKU-0001') |>
-	select(-Device) |>
-	gt() |>
-	tab_header("M7CL Dante Outputs") |>
-	opt_stylize(style=3)
-```
-
-
-## Other Busses
-Bus 14 is used for recording. 
-The Mono bus is used for lobby.
-
-::::{.callout-note}
-TODO: Write content... Need to cover Stereo LR as distinct from Bus 14 and Mono.
-
-Discuss that the lobby level (yellow fader) should be at zero for music, about +5 for a loud talker, and +10 for a quiet talker. 
-:::
- 
 # Operating the Wireless Microphones
 
 We have 18 wireless transmitters and 12 receivers. A receiver can only be paried with on transmitter at a time, which means we can have, at most 12 active transmitters.
@@ -387,10 +410,7 @@ Old batteries are to be discarded in the collection bin to the left of the conso
 __Head Amp Gain__
 
 The preamplifier gain cannot be controlled from the console. It is set via the buttons on the front panel of the receivers. This also means that the gain setting is not recalled with a scene recall.
-
-__Wipe Down__
-
-Wipe the microphone with a Lysol wipe before giving them to the people.
+ 
 
 # Appendix
 

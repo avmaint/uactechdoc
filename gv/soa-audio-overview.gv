@@ -1,0 +1,191 @@
+digraph AudioSystemOverview {  newrank=true;
+  
+graph [overlap = true, fontsize = 20, 
+      label="Audio System Overview\n(as of 2025-12-16)",
+      fontname = Helvetica, bgcolor=white
+      rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+
+floorpockets[
+  tooltip="5 floor pockets on the stage floor"
+  label=" 
+      {Floor Pockets} 
+     "]
+     
+ drumriser [
+  tooltip="Drum mics and Bass"
+  label=" 
+      {Drum Riser\nInputs} 
+     "]
+     
+ danteinputs [
+  tooltip="16 Wireless Mic inputs plus Computers"
+  label=" 
+      {Dante\nInputs} 
+     "]     
+
+dm64 [
+  tooltip="A&H DM64 mounted in Amp Rack"
+  label=" 
+      {A&H DM64\nInputs} 
+     "]
+     
+dx168 [
+  tooltip="16 inputs via a DX168 mounted in the stage rack by the drum riser"
+  label=" 
+      {A&H DX168} 
+     "]
+     
+shure [
+  tooltip="16 ULXD Microphone Receivers"
+  label=" 
+      {Shure Wireless\nMicrophones} 
+     "]
+     
+computers [
+  tooltip="ProPresenter and other computers"
+  label=" 
+      {Computer\nInputs} 
+     "]
+     
+s5000 [
+  tooltip="Analog inputs on console surface"
+  label=" 
+      {A&H S5000\nConsole Inputs} 
+     "]  
+     
+cd [
+  tooltip="CD Player"
+  label=" 
+      {CD Player} 
+     "]    
+
+guest [
+  tooltip="1/8\" trs inputs" 
+  label=" 
+      {Guest Input} 
+     "] 
+     
+refmic [
+  tooltip="Reference Mic at console"
+  label=" 
+      {Reference Mic} 
+     "]
+     
+talkback [
+  tooltip="Talkback Mic at console"
+  label=" 
+      {Talkback Mic} 
+     "]   
+     
+danteoutputs  [
+  tooltip="Dante Outputs from the DM64"
+  label=" 
+      {Dante\nOutputs} 
+     "]
+     
+monitoramps  [
+  tooltip="8x Bose Monitor Amps"
+  label=" 
+      {8x Bose\nMonitor Amps} 
+     "] 
+     
+aviolobby [
+  tooltip="Interface to Lobby Amp"
+  label=" 
+      {Interface to\nLobby Amps} 
+     "]
+
+aviovm [
+  tooltip="AVIO Interface to Video Mixer"
+  label=" 
+      {AVIO Interface\nto Video Mixer} 
+     "]
+ 
+reaper [
+  tooltip="Reaper Broadcast DAW"
+  label=" 
+      {Reaper\nBroadcast DAW} 
+     "] 
+     
+konductor [
+  tooltip="Klang Konductor IEM Processor"
+  label=" 
+      {Klang\nKonductor} 
+     "]
+     
+quelle [
+  tooltip="Klang Quelle Analog Interface"
+  label=" 
+      {Klang\nQuelle} 
+     "]      
+
+shurexmtrs [
+  tooltip="Shure Transmitters (4)"
+  label=" 
+      {4x Shure\nTransmitters} 
+     "]      
+
+kontrollers [
+  tooltip="Klang Kontrollers (10)"
+  label=" 
+      {10x Klang\nKontrollers} 
+     "]
+
+core [
+  tooltip="Q-Sys Core"
+  label=" 
+      {Q-Sys\nCore} 
+     "]
+
+fohamps [
+  tooltip="Bose FoH Amplifers"
+  label=" 
+      {Bose FoH\nAmplifers} 
+     "]
+
+floorpockets -> dm64 
+drumriser    -> dx168
+dx168        -> dm64
+danteinputs  -> dm64
+s5000        -> dm64  
+shure        -> danteinputs
+computers    -> danteinputs
+cd       -> s5000
+guest    -> s5000
+refmic   -> s5000
+talkback -> s5000
+
+ 
+danteoutputs
+
+dm64 -> danteoutputs
+
+core
+
+danteoutputs -> core
+
+core -> fohamps
+
+danteoutputs -> monitoramps
+
+danteoutputs -> reaper
+
+reaper -> core
+
+core -> aviovm 
+
+danteoutputs -> konductor
+
+konductor -> quelle
+
+quelle -> shurexmtrs
+
+konductor -> kontrollers
+
+danteoutputs -> aviolobby
+
+}
