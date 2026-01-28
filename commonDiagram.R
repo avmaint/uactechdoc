@@ -21,7 +21,14 @@ cable_color <- function(type) {
 	return( cc )
 }
 
-inports <- function(dev, cables) {
+
+
+#   Sort ports using a natural sort to handle mixed numbers and strings (e.g., "2", "10", "MV1")
+#	inputs <- inputs[stringr::str_order(inputs$Port, numeric = TRUE),]
+
+# modify this function to use natural sort of DstPort to handle mixed numbers and strings	
+
+inports_old <- function(dev, cables) {
 	text <- cables |>
 		filter(DstTag == dev) |>
 		arrange(DstPort) |>
@@ -31,10 +38,26 @@ inports <- function(dev, cables) {
 	return( paste("{", text, "}")   )
 }
 
+inports <- function(dev, cables) {
+
+	text <- cables |>
+		      filter(DstTag == dev) |>
+		      # Use slice() with str_order() to perform a natural sort on the port names
+	          slice(stringr::str_order(DstPort, numeric = TRUE)) |>
+		      mutate(text = glue("<{DstPort}>{DstPort}")) |>
+		      pull(text) |>
+		      paste(collapse = "|")
+	  
+	 return(paste("{", text, "}"))
+}
+
+
 outports <- function(dev, cables) {
 	text <- cables |>
 		filter(SrcTag == dev) |>
-		arrange(SrcPort) |>
+		# Use slice() with str_order() to perform a natural sort on the port names
+		slice(stringr::str_order(SrcPort, numeric = TRUE)) |>
+		#arrange(SrcPort) |>
 		mutate(text = glue( "<{SrcPort}>{SrcPort}"  )) |>
 		pull(text) |> paste(    collapse="|")
 	
@@ -158,14 +181,23 @@ edge [fontsize=8]
 	return( diag )
 }
 
-get_diagram_aux <- function (dot_code) {
+get_diagram_aux <- function (dot_code, res = 600) {
 	
 	temp_png <- tempfile(fileext=".png", tmpdir="_work")
 	
-	grViz(dot_code) |> 
+	# Create a raw SVG object
+	svg_raw <- grViz(dot_code) |> 
 		export_svg() |> 
-		charToRaw() |> 
-		rsvg_png(temp_png) # write to file
+		charToRaw()
+	
+	# Check if the installed rsvg_png function supports the 'res' argument
+	if ("res" %in% names(formals(rsvg::rsvg_png))) {
+		# If yes, use it for high-resolution output
+		rsvg::rsvg_png(svg_raw, temp_png, res = res)
+	} else {
+		# Otherwise, use the older call without 'res' to avoid an error
+		rsvg::rsvg_png(svg_raw, temp_png)
+	}
 	
 	out_str <- case_when(
 		knitr::is_latex_output() 

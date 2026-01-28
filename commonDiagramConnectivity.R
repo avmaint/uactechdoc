@@ -31,7 +31,8 @@ connectivity_inports <- function(dev, cables) {
 		filter(DstTag == dev) |>
 		# Use slice() with str_order() to perform a natural sort on the port names
 	slice(stringr::str_order(DstPort, numeric = TRUE)) |>
-		mutate(text = glue("<{DstPort}>{DstPort}")) |>
+		mutate(port_id = paste0("p", str_replace_all(DstPort, "[^A-Za-z0-9_]", ""))) |>
+		mutate(text = glue("<{port_id}>{DstPort}")) |>
 		pull(text) |>
 		paste(collapse = "|")
 	
@@ -46,7 +47,8 @@ connectivity_outports <- function(dev, cables) {
 		filter(SrcTag == dev) |>
 		# Use slice() with str_order() to perform a natural sort on the port names
 	slice(stringr::str_order(SrcPort, numeric = TRUE)) |>
-		mutate(text = glue("<{SrcPort}>{SrcPort}")) |>
+		mutate(port_id = paste0("p", str_replace_all(SrcPort, "[^A-Za-z0-9_]", ""))) |>
+		mutate(text = glue("<{port_id}>{SrcPort}")) |>
 		pull(text) |>
 		paste(collapse = "|")
 	
@@ -72,7 +74,7 @@ get_connectivity_device_code <- function(targets, inventory, relevant_cables) {
 			| {{  {Desc}|{mm}|{AssetTag} }}
 			|{outports} 
 			}}"]' ))  |>
-		mutate(code = paste(tag, label)) |>
+		mutate(code = paste0('"', tag, '" ', label)) |>
 		select(AssetTag, Desc, tag, label,  code)
 	
 	return( paste(devices_data$code, collapse="\n") )
@@ -88,7 +90,7 @@ get_connectivity_cable_code <- function(target_cables) {
 		mutate(cc = connectivity_cable_color(Type)) |>
 		mutate(label = glue('[label= "{Tag}\n{Usage2}{Type}" color={cc} ]' )) |> 
 		mutate(code = glue( 
-			"{SrcTag2}{SrcPort2} -> {DstTag2}{DstPort2} {label} "
+			'"{SrcTag2}"{SrcPort2} -> "{DstTag2}"{DstPort2} {label} '
 		))
 	
 	return( paste(cable_code$code , collapse = "\n")	)	
@@ -99,18 +101,18 @@ get_connectivity_cable_code <- function(target_cables) {
 connectivity_get_extension_node <- function(tcables) {
 	set1 <- tcables |>
 		filter(  DstIsCable) |> 
-		mutate(code = glue('{Tag2}{DstTag2} [label="" shape=point]\n'))
+		mutate(code = glue('"{Tag2}{DstTag2}" [label="", shape=point]\n'))
 	return( paste(set1$code , collapse = "\n")	)	
 }
 
 connectivity_get_extension_edge <- function(tcables) {
 	edge1 <- tcables |>
 		filter(  DstIsCable) |> 
-		mutate(code = glue('{SrcTag2}{SrcPort2} -> {Tag2}{DstTag2} [label="{Tag}\n{Usage2}"]\n'))
+		mutate(code = glue('"{SrcTag2}"{SrcPort2} -> "{Tag2}{DstTag2}" [label="{Tag}\n{Usage2}"]\n'))
 	
 	edge2 <- tcables |>
 		filter(  SrcIsCable) |> 
-		mutate(code = glue('{SrcTag2}{Tag2} -> {DstTag2}{DstPort2} [label="{Tag}\n{Usage2}"]\n'))
+		mutate(code = glue('"{SrcTag2}{Tag2}" -> "{DstTag2}"{DstPort2} [label="{Tag}\n{Usage2}"]\n'))
 	
 	edges <- c(edge1$code, edge2$code)
 	return( paste(edges , collapse = "\n")	)	
@@ -135,7 +137,9 @@ connectivity_get_extension_edge <- function(tcables) {
 # @param label An optional custom label for the diagram. If NA, a default is created.
 # @param rankdir The direction for the graph layout (e.g., "LR" for left-to-right).
 # @return A string containing the 'dot' code for the diagram, ready for rendering.
-get_connectivity_diagram <- function(target_device, direction, inventory, cables, types = NULL, label = NA, rankdir = "LR") {
+get_connectivity_diagram <- function(target_device, direction, inventory, cables, 
+										 types = NULL, label = NA, rankdir = "LR",
+										 partners = NULL, exclude = NULL) {
 	
 	# --- 1. Filter cables based on direction and type ---
 	
@@ -155,30 +159,46 @@ get_connectivity_diagram <- function(target_device, direction, inventory, cables
 		target_cables <- target_cables |> filter(Type %in% types)
 	}
 	
-	# --- 2. Identify all devices and prepare cable data for diagramming ---
+	# --- 2. Filter devices based on partners and exclude lists ---
 	
-	# Get a unique list of all devices that need to be drawn in the diagram
+	# Get a unique list of all devices connected to the target
 	all_target_devices <- unique(c(target_cables$SrcTag, target_cables$DstTag))
 	
+	# If 'partners' list is provided, filter down to only those devices
+	if (!is.null(partners) && length(partners) > 0) {
+		all_target_devices <- intersect(all_target_devices, c(target_device, partners))
+	}
+	
+	# If 'exclude' list is provided, remove those devices. This takes precedence.
+	if (!is.null(exclude)) {
+		all_target_devices <- setdiff(all_target_devices, exclude)
+	}
+	
+	# Filter the cables to only include connections between the final set of devices
+	final_cables <- target_cables |>
+		filter(SrcTag %in% all_target_devices & DstTag %in% all_target_devices)
+	
+	# --- 3. Prepare cable data for diagramming ---
+	
 	# Add helper columns to the cable data for generating the 'dot' code
-	target_cables_prepped <- target_cables |>
+	target_cables_prepped <- final_cables |>
 		mutate(SrcIsCable = SrcTag %in% cables$Tag) |>
 		mutate(DstIsCable = DstTag %in% cables$Tag) |>
 		mutate(SrcTag2 = tolower(str_replace(SrcTag, "-", ""))) |>
 		mutate(DstTag2 = tolower(str_replace(DstTag, "-", ""))) |>
-		mutate(SrcPort2 = str_replace(SrcPort, ' ', '')) |>
-		mutate(DstPort2 = str_replace(DstPort, ' ', '')) |>
-		mutate(SrcPort2 = ifelse(is.na(SrcPort), "", glue(": {SrcPort2}"))) |>
-		mutate(DstPort2 = ifelse(is.na(DstPort), "", glue(": {DstPort2}"))) |>
+		mutate(SrcPort2 = str_replace_all(SrcPort, "[^A-Za-z0-9_]", "")) |>
+		mutate(DstPort2 = str_replace_all(DstPort, "[^A-Za-z0-9_]", "")) |>
+		mutate(SrcPort2 = ifelse(is.na(SrcPort), "", glue(":p{SrcPort2}"))) |>
+		mutate(DstPort2 = ifelse(is.na(DstPort), "", glue(":p{DstPort2}"))) |>
 		mutate(Tag2 = tolower(str_replace(Tag, "-", "")))  |>
 		mutate(Usage2 = ifelse(is.na(Usage), "",  glue("{Usage} ")) )
 	
-	# --- 3. Generate the diagram components ---
+	# --- 4. Generate the diagram components ---
 	
 	# Generate a default label for the diagram if a custom one isn't provided
 	my_label <- ifelse(is.na(label),
-			   glue("\"Connectivity for {target_device} ({direction})\nAs of {Sys.Date()}\""),
-			   label)
+					   glue("\"Connectivity for {target_device} ({direction})\nAs of {Sys.Date()}\""),
+					   label)
 	
 	# Generate the 'dot' code for all devices, cables, and extensions
 	device_code <- get_connectivity_device_code(all_target_devices, inventory, target_cables_prepped)
@@ -187,10 +207,10 @@ get_connectivity_diagram <- function(target_device, direction, inventory, cables
 	extension_edges <- connectivity_get_extension_edge(target_cables_prepped)
 	
 	
-	# --- 4. Assemble the final 'dot' code string ---
-
-diag <- paste(
-		"digraph outputs {",
+	# --- 5. Assemble the final 'dot' code string ---
+	
+	diag <- paste(
+		"digraph G {",
 		paste0("graph [overlap = true, fontsize = 20, rankdir=", rankdir, ", fontname = arial, label=", my_label, "]"),
 		"node [shape=Mrecord, tooltip=\"\", fontsize = 10, fontname = arial, fillcolor=\"white:beige\", style=filled, gradientangle=270]",
 		"edge [fontsize=8]",
@@ -205,11 +225,64 @@ diag <- paste(
 	return(diag)
 }
 
-test_get_connectivity_diagram <- function() { 
+test_gcd_1 <- function() { 
 
 a <- get_connectivity_diagram ( "2507-0700", "in", db.inventory
 						   , db.cables, types = NULL
-						   , label = NA, rankdir = "LR") 
+						   , label = '"Connectivity from Decklink into VideoHub"' 
+								, rankdir = "LR",
+								partners = c("ZVIU-E004")) 
 DiagrammeR::grViz(a)
 }
 
+test_gcd_2 <- function() { 
+	
+	a <- get_connectivity_diagram ( "2507-0700", "in", db.inventory
+									, db.cables, types = NULL
+									, label = '"Connectivity from Decklink into VideoHub"' 
+									, rankdir = "LR",
+									partners = c("Constellation")) 
+	DiagrammeR::grViz(a)
+}
+
+test_gcd_3 <- function() { 
+	
+	a <- get_connectivity_diagram ( "Constellation", "in", db.inventory
+									, db.cables, types = NULL
+									, label = '"Connectivity from Decklink into VideoHub"' 
+									, rankdir = "LR",
+									partners = c("2507-0700")) 
+	DiagrammeR::grViz(a)
+}
+
+test_gcd_4 <- function() { 
+	
+	a <- get_connectivity_diagram ( "Constellation", "out", db.inventory
+									, db.cables, types = NULL
+									, label = '"Connectivity from Decklink into VideoHub"' 
+									, rankdir = "LR",
+									partners = c("2507-0700")) 
+	DiagrammeR::grViz(a)
+}
+
+
+test_gcd_5 <- function() { 
+	
+	ps <- c("ZVCU-A001"
+			,"ZVCU-A002"
+			,"ZVCU-A003"
+			,"ZVVU-C001")
+	
+	a <- get_connectivity_diagram ( "2507-0700", "in", db.inventory
+									, db.cables, types = NULL
+									, label = '"Connectivity from Decklink into VideoHub"' 
+									, rankdir = "LR",
+									partners = ps) 
+	DiagrammeR::grViz(a)
+}
+
+# test_gcd_1()
+# test_gcd_2()
+# test_gcd_3()
+# test_gcd_4()
+# test_gcd_5()

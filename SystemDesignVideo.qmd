@@ -22,10 +22,15 @@ source('./commonPackages.R')
 
 ```{r functions}
 source("./commonFunctions.R")
+source("./commonDiagram.R")
+source("./commonDiagramConnectivity.R")
 ```
 
 ```{r getdata}
-Tech_Inventory <- get.inventory()
+db.inventory <- get.inventory()
+ 
+db.cables <- get.cables()
+ 
 network.data   <- get.network()
 further        <- get.further()
 ```
@@ -48,93 +53,212 @@ Every significant inventory item is to have an asset tag - an actual label attac
 
 The main job of a video matrix is to take multiple video sources, such as cameras or computers, and direct their video signals to different destinations, like TVs, projectors, or recording devices.
 
+We currently have two video matrix devices. The older one is based on HDBaseT, and the newer one based on SDI. 
+
+```{r, results="asis"}
+
+targets_v <- c( "2507-0700" 
+			 ) 
+
+xd <- c(   "CDWU-A001" # FH Computer
+		 , "NAHU-B008" #FH WAP
+		) 
+
+label <- NA
+
+dot_code <- get_diagram(targets_v
+						, db.inventory, db.cables
+						, label=label , exc_dev=xd )
+out_str <- get_diagram_aux(dot_code)
+cat(out_str)
+# write_clip(dot_code)
+```
+
+
+```{r}
+target <- "2507-0700"
+```
+
+```{r}
+tt <- glue("Inbound to {target}")
+
+db.cables |>
+	filter(DstTag == target) |>
+	select(Tag, SrcTag, SrcPort, Type, Usage) |>
+	gt() |>
+	tab_header(tt) |>
+	cols_label(Tag = "Cable Label"
+			   , SrcTag = "Source Device"
+			   , SrcPort = "Source Port") |>
+	opt_stylize(style = 5)
+```
+
+```{r}
+tt <- glue("Outbound from {target}")
+
+db.cables |>
+	filter(SrcTag == target) |>
+	select(Tag, DstTag, DstPort, Type, Usage) |>
+	gt() |>
+	tab_header(tt) |>
+	cols_label(Tag = "Cable Label"
+			   , DstTag = "Target Device"
+			   , DstPort = "Target Port") |>
+	opt_stylize(style = 5)
+```
 Our video matrix is a Kramer VS-88DT which is an 8x8 matrix and can handle HDMI inputs and outputs which are either HDMI or [HDBaseT](https://en.wikipedia.org/wiki/HDBaseT) formats. Any of the 8 inputs can be routed to any of the 8 outputs (or several outputs).
 
 The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats.
 
 It has 8 inputs and 8 outputs. It can be controlled via the buttons on the front panel or from it’s built in web page.
 
-```{r}
-psi <- tribble(
-  ~Input, ~Usage,       ~Comment,
+## BMD VideoHub Matrix
 
-1, "TW Left",       "Triple wide input Left (from PP via decklink)" ,
-2, "TW Centre",     "Triple wide input Centre (from PP via decklink)", 
-3, "TW Right",      "Triple wide input Right (from PP via decklink)",
-4, "Confidence",    "Stage display from PP for the rear projector via decklink.",
-5, "CDWU-0009",     "Video Output from Windows machine. Usually used for OBS.",
-6, "VMixer Program", "Program output from Video Mixer",
-7, "VMixer Aux",     "Aux output from Video Mixer",
-8, "PP HDMI Output", "Used for times when programs other than PP need to be displayed, for example a DVD player." 
-)
+### Inputs VideoHub
 
-pso <- tribble(
-    ~Output, ~Usage,       ~Comment,
-1,
-"FoH Prj Left", 
-"Front of House projector - East wall",
-2, 
-"FoH Prj Centre",
-"Front of House projector - South wall",
-3, 
-"FoH Prj Right",
-"Front of House projector - West wall",
-4,
-"Confidence",
-"Rear Balcony Projector (stage display from PP). Lyrics for singers, etc.",
-5,
-"Video Mix 1",
-"Video mixer input 1 (typically input 1: Propresenter Screen A)",
-6,
-"Video Mix 2",
-"Video mixer input 2 (typically input 7: cdwu-0009)",
-7,
-"Lobby",
-"Feed to the Lobby TV",
-8,
-"Nursery",
-"Feed to the Nursery TV"   
-)
+All inputs to the matrix are SDI. An input can be routed to a one or more outputs at once. 
+
+```{r dl2vh, results="asis"}
+dot_code <- get_connectivity_diagram ( "2507-0700", "in"
+								, db.inventory
+					   , db.cables, types = NULL
+					   , label = '"Connectivity from Decklink into VideoHub"' 
+								, rankdir = "LR",
+								partners = c("ZVIU-E004"))
+cat(get_diagram_aux(dot_code))
 ```
 
-## Inputs
+```{r cons2vh, results="asis"}
+a <- get_connectivity_diagram ( "2507-0700", "in"
+								, db.inventory
+					   , db.cables, types = NULL
+					   , label = '"Connectivity from Constellation into VideoHub"' 
+								, rankdir = "LR",
+								partners = c("Constellation")) 
+cat(get_diagram_aux(a))
+```
+
+```{r cameras2vh, results="asis"}
+	ps <- c("ZVCU-A001"
+			,"ZVCU-A002"
+			,"ZVCU-A003"
+			,"ZVVU-C001")
+	
+	a <- get_connectivity_diagram ( "2507-0700", "in", db.inventory
+									, db.cables, types = NULL
+									, label = '"Connectivity from Cameras into VideoHub"' 
+									, rankdir = "LR",
+									partners = ps) 
+	cat(get_diagram_aux(a))
+```
+
+
+```{r vh_matrix_in, results='asis'}
+#| tbl-cap: "VideoHub Matrix Inputs"
+#| tbl-cap-location: bottom
+
+dev <- "2507-0700"
+tt <- glue("Input Ports for {dev}")
+st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
+
+tab <- db.cables |>
+	filter(DstTag == dev) |>
+ 	select(Tag,SrcTag,SrcPort,DstTag,DstPort,Type,Usage ) |>
+   gt() |>  
+		opt_stylize(style = 5) |>
+	tab_header(tt, subtitle=st)
+print_gt_table(tab) |> cat()
+```
+
+### Outputs VideoHub
+
+All outputs are SDI.
+
+```{r vh_matrix_out, results='asis'}
+#| tbl-cap: "VideoHub Matrix Outputs"
+#| tbl-cap-location: bottom
+
+dev <- "2507-0700"
+tt <- glue("Output Ports for {dev}")
+st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
+
+tab <- db.cables |>
+	filter(SrcTag == dev) |> 
+		select(Tag,SrcTag,SrcPort,DstTag,DstPort,Type,Usage ) |>
+    gt() |>  
+	opt_stylize(style = 5) |>
+	tab_header(tt, subtitle=st)
+	 
+print_gt_table(tab) |> cat()
+```
+
+## VS-88DT Matrix
+
+### Inputs
 
 All inputs to the matrix are HDMI. An input can be routed to a one or more outputs at once.
 
 ```{r matrix_in, results='asis'}
 #| tbl-cap: "Video Matrix Inputs"
 #| tbl-cap-location: bottom
-tab <- psi |>  
-   gt() |>  
-		opt_stylize(style = 3) |>
-		tab_style(
-			style = cell_text(
-				weight = "bold", 
-				),
-			locations = cells_body(
-				columns = "Input")
-		) 
+
+dev <- "ZVKU-A001"
+tt <- glue("Input Ports for {dev}")
+st <- db.inventory |> filter(AssetTag == dev) |> 
+	mutate(txt = paste(Manufacturer, Model, Usage)) |> 
+	pull(txt)
+
+tab <- db.cables |>
+	filter(DstTag == dev) |>
+	select(Tag,SrcTag,SrcPort,DstTag,DstPort,Type,Usage ) |>
+	gt() |>  
+	opt_stylize(style = 5) |>
+	tab_header(tt, subtitle=st)
+
 print_gt_table(tab) |> cat()
 ```
 
-## Outputs
+### Outputs
 
 Each matrix output can be either HDMI or HDBaseT. Several typical configurations are discussed on the Operations document.   
 
 ```{r matrix_out, results='asis'}
 #| tbl-cap: "Video Matrix Outputs"
 #| tbl-cap-location: bottom
-tab <- pso |> 
- gt() |>  
-		opt_stylize(style = 3) |>
-		tab_style(
-			style = cell_text(
-				weight = "bold", 
-				),
-			locations = cells_body(
-				columns = "Output")
-		) 
+
+dev <- "ZVKU-A001"
+tt <- glue("Output Ports for {dev}")
+st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
+
+tab <- db.cables |>
+	filter(SrcTag == dev) |>
+	select(Tag,SrcTag,SrcPort,DstTag,DstPort,Type,Usage ) |>
+	arrange(SrcPort) |>
+    gt() |>  
+	opt_stylize(style = 5) |>
+	tab_header(tt, subtitle=st)
+	 
 print_gt_table(tab) |> cat()
+```
+
+```{r vh-connections, results='asis'}
+# TODO: fix the code below.
+#| label: tab-topology1-computer
+#| fig-cap: "VideoHub Connected Devices"
+
+dev <- "2507-0700" #videohub
+
+l1 <- db.cables |> 
+	filter(SrcTag == dev | DstTag == dev)
+
+cdev <- c(l1$SrcTag, l1$DstTag) |> unique()
+
+items <-cdev
+inventory <- db.inventory
+
+print_inv(cdev, db.inventory) |>
+	print_gt_table() |>
+    cat()
 ```
 
 # Topologies
@@ -172,7 +296,7 @@ CUMU-G001 MacOS / ATEM Control / OBS / ProPresenter
 #| fig-cap: "Computer Topology"
 
 print_inv(c("CUMU-G001","CDMU-A001" , "ZVIU-E004"  
-		     ), Tech_Inventory) |>
+		     ), db.inventory) |>
 	print_gt_table() |>
     cat()
 ```
@@ -191,7 +315,7 @@ There are four projectors in the auditorium, three FoH and one at the rear for c
 ```{r top2}
 print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003"
 			, "ZVVU-0001", "2310-1700"),
-          Tech_Inventory)
+          db.inventory)
 ```
 
 ## Lobby Topology
@@ -208,7 +332,7 @@ There is a network cable that also runs to the lobby TV, and is for future use.
 ```
 
 ```{r l132}
-print_inv(c("ZVIU-A001", "ZVKU-A001"  ), Tech_Inventory)
+print_inv(c("ZVIU-A001", "ZVKU-A001"  ), db.inventory)
 ```
 
 >TODO: the above list is missing the lobby tv
@@ -229,10 +353,38 @@ The TV in the nursery gets its content from the video matrix. For the main servi
 ```
 
 ```{r top3_inv}
-print_inv(c("ZVIU-A002", "ZVKU-A001","ZVVU-0002", "ZVVU-0003"), Tech_Inventory)
+print_inv(c("ZVIU-A002", "ZVKU-A001","ZVVU-0002", "ZVVU-0003"), db.inventory)
 ```
 
 The TV has a remote control which is found on top of the coatrack near the TV, power on/off can be controlled directly using the button on the bottom centre of the screen.
+
+## Library Topology
+
+The TV in the library gets its content from the VideoHub, typical source is the VideoMixer output. 
+ 
+```{r libtop, results="asis"}
+
+targets_v <- c(  "2507-0700" , "2512-1001" , "librarytv"
+			 ) 
+
+xd <- c(   "cam1" , "cam2", "cam3", "cam4", "bidi118"
+		   , "decklink"
+		   , "recorder"
+		 , "Constellation"  
+		) 
+
+label <- NA
+
+dot_code <- get_diagram(targets_v
+						, db.inventory, db.cables
+						, label=label , exc_dev=xd )
+out_str <- get_diagram_aux(dot_code)
+cat(out_str)
+```
+
+```{r toplib_inv}
+print_inv( targets_v, db.inventory)
+```
 
 ## Recording / Livestream Topology
 The recording topology is quite complex and so it is broken up into peices.
@@ -275,7 +427,7 @@ The WebPresenter (see @fig-topology-webpres) converts its input (SDI or HDMI) to
 print_inv(c("ZVKU-A004", "ZVKU-A001", "CUMU-G001",
            "ZVCU-A001", "ZVIU-C001",
            "ZVCU-A002", "ZVCU-A003", "ZVKU-A003",
-           "ZVRU-A001", "ZVRU-A002", "ZVIU-A004"), Tech_Inventory)
+           "ZVRU-A001", "ZVRU-A002", "ZVIU-A004"), db.inventory)
 ```
 
 # Network Details
@@ -302,15 +454,41 @@ select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
 
 ```{r inventory, echo=FALSE, asis=TRUE}
 
-items <- Tech_Inventory %>%  
+items <- db.inventory %>%  
           filter( Category=="Video" ,
                   InService== "Y", !is.na(AssetTag)) %>%  
           select(AssetTag) %>%
           pull()
   
-print_inv(items, Tech_Inventory)
+#print_inv(items, db.inventory)
 ```
 
 >TODO need to add CUMU-G001 to the list
 
 {{< include common_trailer.qmd >}}
+
+
+```{r integrity1}
+dev <- "2507-0700" #videohub
+
+db.cables |>
+	filter( !( DstTag %in% db.inventory$AssetTag) ) |>
+	filter(DstTag %in% cdev) |>
+	select(Tag, DstTag) |>
+	gt() |>
+	tab_header("Cables with DstTag not in inventory")
+
+#db.inventory |> filter(AssetTag == dev)
+```
+
+```{r integrity2}
+dev <- "2507-0700" #videohub
+
+db.cables |>
+	filter(!( SrcTag  %in% db.inventory$AssetTag) ) |>
+	filter(SrcTag %in% cdev) |>
+	select(Tag, SrcTag) |>
+	gt() |>
+	tab_header("Cables with SrcTag not in inventory")
+```
+
