@@ -137,52 +137,105 @@ connectivity_get_extension_edge <- function(tcables) {
 # @param label An optional custom label for the diagram. If NA, a default is created.
 # @param rankdir The direction for the graph layout (e.g., "LR" for left-to-right).
 # @return A string containing the 'dot' code for the diagram, ready for rendering.
-get_connectivity_diagram <- function(target_device, direction, inventory, cables, 
-										 types = NULL, label = NA, rankdir = "LR",
-										 partners = NULL, exclude = NULL) {
+get_connectivity_diagram <- function(target_device, direction, inventory, cables, 						types = NULL, label = NA, rankdir = "LR",
+						 partners = NULL, exclude = NULL) {
 	
-	# --- 1. Filter cables based on direction and type ---
-	
-	# Filter for connections involving the target device based on the specified direction
-	if (direction == 'in') {
-		target_cables <- cables |> filter(DstTag == target_device)
-	} else if (direction == 'out') {
-		target_cables <- cables |> filter(SrcTag == target_device)
-	} else if (direction == 'both') {
-		target_cables <- cables |> filter(SrcTag == target_device | DstTag == target_device)
-	} else {
-		stop("Direction must be one of 'in', 'out', or 'both'.")
-	}
-	
-	# If the 'types' parameter is provided, further filter the cables.
+	# Filter initial cables by type (if specified)
+	filtered_cables_by_type <- cables
 	if (!is.null(types)) {
-		target_cables <- target_cables |> filter(Type %in% types)
+		filtered_cables_by_type <- cables |> filter(Type %in% types)
 	}
 	
-	# --- 2. Filter devices based on partners and exclude lists ---
-	
-	# Get a unique list of all devices connected to the target
-	all_target_devices <- unique(c(target_cables$SrcTag, target_cables$DstTag))
-	
-	# If 'partners' list is provided, filter down to only those devices
+	# Define the universe of nodes for exploration
+	# If partners is provided, restrict to target_device + partners
+	# Otherwise, consider all nodes present in the cables dataframe
 	if (!is.null(partners) && length(partners) > 0) {
-		all_target_devices <- intersect(all_target_devices, c(target_device, partners))
+		allowed_nodes_for_traversal <- unique(c(target_device, partners))
+	} else {
+		allowed_nodes_for_traversal <- unique(c(filtered_cables_by_type$SrcTag, filtered_cables_by_type$DstTag))
 	}
 	
-	# If 'exclude' list is provided, remove those devices. This takes precedence.
-	if (!is.null(exclude)) {
-		all_target_devices <- setdiff(all_target_devices, exclude)
+	# Initialize BFS: queue for nodes to visit, set for visited nodes, list for collected cables
+	queue <- c(target_device)
+	visited_nodes_for_diagram <- c(target_device)
+	collected_cables <- data.frame()
+	
+	# Perform BFS traversal
+	head_ptr <- 1
+	while(head_ptr <= length(queue)) {
+		current_node <- queue[head_ptr]
+		
+		# Find all direct connections from current_node using the type-filtered cables
+		current_node_connections <- filtered_cables_by_type |>
+			filter((SrcTag == current_node & DstTag %in% allowed_nodes_for_traversal) |
+				   (DstTag == current_node & SrcTag %in% allowed_nodes_for_traversal))
+		
+		# Add these connections to our collection
+		if(nrow(current_node_connections) > 0) {
+			collected_cables <- bind_rows(collected_cables, current_node_connections)
+		}
+		
+		# Identify new nodes to visit that are within the allowed_nodes_for_traversal
+		new_dst_nodes <- current_node_connections$DstTag[current_node_connections$SrcTag == current_node]
+		new_src_nodes <- current_node_connections$SrcTag[current_node_connections$DstTag == current_node]
+		
+		new_nodes_to_add <- unique(c(new_dst_nodes, new_src_nodes))
+		new_nodes_to_add <- new_nodes_to_add[new_nodes_to_add %in% allowed_nodes_for_traversal]
+		
+		for (node in new_nodes_to_add) {
+			if (!(node %in% visited_nodes_for_diagram)) {
+				queue <- c(queue, node)
+				visited_nodes_for_diagram <- c(visited_nodes_for_diagram, node)
+			}
+		}
+		
+		head_ptr <- head_ptr + 1
 	}
 	
-	# Filter the cables to only include connections between the final set of devices
-	final_cables <- target_cables |>
-		filter(SrcTag %in% all_target_devices & DstTag %in% all_target_devices)
+	# Remove duplicates from collected_cables (can happen due to bind_rows and cycles)
+	collected_cables <- collected_cables |> distinct()
+	
+	# Apply 'exclude' filter to nodes and cables (takes precedence)
+	if (!is.null(exclude) && length(exclude) > 0) {
+		visited_nodes_for_diagram <- setdiff(visited_nodes_for_diagram, exclude)
+		collected_cables <- collected_cables |>
+			filter(SrcTag %in% visited_nodes_for_diagram & DstTag %in% visited_nodes_for_diagram)
+	}
+	
+	# Filter 'collected_cables' by 'direction' relative to 'target_device'
+	# This filter is applied *after* the subgraph generation to ensure only relevant direction is shown.
+	# If partners are used for multi-hop, this filter is skipped for the subgraph edges
+	# as 'direction' is assumed to have influenced the traversal, not the final edge set.
+	if (is.null(partners) || length(partners) == 0) {
+		if (direction == 'in') {
+			collected_cables <- collected_cables |> filter(DstTag == target_device)
+		} else if (direction == 'out') {
+			collected_cables <- collected_cables |> filter(SrcTag == target_device)
+		}
+	}
+	
+	# Ensure the target_device is always in the final list of devices, unless it was excluded
+	final_nodes_to_draw <- unique(c(collected_cables$SrcTag, collected_cables$DstTag))
+	
+	# Add any nodes from 'visited_nodes_for_diagram' that might be isolated (no cables in collected_cables
+	# after filtering by direction/exclude), but were part of the valid traversal.
+	if (length(final_nodes_to_draw) == 0 && (target_device %in% visited_nodes_for_diagram) && !(target_device %in% exclude)) {
+		final_nodes_to_draw <- c(target_device)
+	} else {
+		final_nodes_to_draw <- unique(c(final_nodes_to_draw, visited_nodes_for_diagram[!(visited_nodes_for_diagram %in% final_nodes_to_draw)]))
+	}
+	
+	# After traversal, 'final_nodes_to_draw' holds all nodes that should appear in the diagram.
+	# 'collected_cables' holds the set of edges that should be drawn.
 	
 	# --- 3. Prepare cable data for diagramming ---
 	
-	# Add helper columns to the cable data for generating the 'dot' code
-	target_cables_prepped <- final_cables |>
-		mutate(SrcIsCable = SrcTag %in% cables$Tag) |>
+	# Define cables for populating ports (all connections between final_nodes_to_draw, respecting type filter)
+	cables_for_port_listing <- filtered_cables_by_type |>
+		filter(SrcTag %in% final_nodes_to_draw & DstTag %in% final_nodes_to_draw)
+	
+	target_cables_prepped <- collected_cables |>
+		mutate(SrcIsCable = SrcTag %in% cables$Tag) |> # Use original 'cables' for SrcIsCable/DstIsCable check
 		mutate(DstIsCable = DstTag %in% cables$Tag) |>
 		mutate(SrcTag2 = tolower(str_replace(SrcTag, "-", ""))) |>
 		mutate(DstTag2 = tolower(str_replace(DstTag, "-", ""))) |>
@@ -193,21 +246,14 @@ get_connectivity_diagram <- function(target_device, direction, inventory, cables
 		mutate(Tag2 = tolower(str_replace(Tag, "-", "")))  |>
 		mutate(Usage2 = ifelse(is.na(Usage), "",  glue("{Usage} ")) )
 	
-	# --- 4. Generate the diagram components ---
-	
-	# Generate a default label for the diagram if a custom one isn't provided
 	my_label <- ifelse(is.na(label),
 					   glue("\"Connectivity for {target_device} ({direction})\nAs of {Sys.Date()}\""),
 					   label)
 	
-	# Generate the 'dot' code for all devices, cables, and extensions
-	device_code <- get_connectivity_device_code(all_target_devices, inventory, target_cables_prepped)
+	device_code <- get_connectivity_device_code(final_nodes_to_draw, inventory, cables_for_port_listing)
 	cable_code  <- get_connectivity_cable_code(target_cables_prepped)
 	extension_nodes <- connectivity_get_extension_node(target_cables_prepped)
 	extension_edges <- connectivity_get_extension_edge(target_cables_prepped)
-	
-	
-	# --- 5. Assemble the final 'dot' code string ---
 	
 	diag <- paste(
 		"digraph G {",
@@ -281,8 +327,25 @@ test_gcd_5 <- function() {
 	DiagrammeR::grViz(a)
 }
 
+
+test_gcd_6 <- function() { 
+	target <- "ZVIU-E004"
+	ps <- c("2507-0700", "2601-1304", "2601-1305",  "2601-1306"
+		, "ZVVU-A001", "ZVVU-A002" , "ZVVU-A003"
+	)
+
+	dot_code <- get_connectivity_diagram ( target, "out"
+									   , db.inventory
+									   , db.cables, types = NULL
+									   , label = '"Connectivity Diagram Test "' 
+									   , rankdir = "LR",
+									   partners = ps)
+	DiagrammeR::grViz(a)
+	}
+
 # test_gcd_1()
 # test_gcd_2()
 # test_gcd_3()
 # test_gcd_4()
 # test_gcd_5()
+# test_gcd_6()
