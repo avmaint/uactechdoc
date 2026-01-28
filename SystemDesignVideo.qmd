@@ -125,7 +125,7 @@ dot_code <- get_connectivity_diagram ( "2507-0700", "in"
 					   , label = '"Connectivity from Decklink into VideoHub"' 
 								, rankdir = "LR",
 								partners = c("ZVIU-E004"))
-cat(get_diagram_aux(dot_code))
+cat(get_diagram_aux(dot_code ))
 ```
 
 ```{r cons2vh, results="asis"}
