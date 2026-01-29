@@ -41,7 +41,7 @@ further        <- get.further()
 # Introduction
 This document provides key technical documentation for the video recording and broadcasting subsystems at UAC. This diagram (@fig-video-overview) provides an overview of the major components and and in doing so leaves out some details.
 
-```{dot overview}
+```{dot  fig-video-overview}
 //| fig-width: 4
 //| label: fig-video-overview
 //| fig-cap: "Video system overview."
@@ -160,9 +160,12 @@ We have four cameras that are connected to the VideoHub which are then normally 
 	cat(get_diagram_aux(a))
 ```
 
-```{r vh_matrix_in, results='asis' }
+```{r vh_in_table, results='asis' }
 #| tbl-cap: "VideoHub Matrix Inputs"
 #| tbl-cap-location: bottom
+#| out-width: 50%       # Scales the image to 100% of the text width
+#| fig-width: 4          # Sets the figure width in inches (useful for LaTeX)
+#| fig-height: 4         # Sets the figure height in inches
 
 dev <- "2507-0700"
 tt <- glue("Inputs for {dev}")
@@ -186,14 +189,12 @@ tab <- db.cables |>
   				 , Type.x ="Type"
   				 , Usage.x = "Usage")   
 
-print_gt_table(tab) |> cat()
+print_gt_table(tab ) |> cat()
 ```
 
 ### Outputs VideoHub
 
 All outputs are SDI.
-
-If a target_device has a connection to a partner A, and A has a connection to B, and B is listed in the partners parameter, then show that as well. Likewise If B is connected to C and C is listed in the partners parameter show that too. Do this for all connected and listed partner systems.
 
 ```{r vh2projs, results="asis"}
 	ps <- c("2601-1304", "2601-1305" , "2601-1306"
@@ -209,23 +210,7 @@ If a target_device has a connection to a partner A, and A has a connection to B,
 ```
 
 
-```{r vs882projs, results="asis"}
-	ps <- c( 
-			 "ZVVU-A001", "ZVVU-A002" , "ZVVU-A003"
-	)
-	
-	a <- get_connectivity_diagram ( "ZVKU-A001", "out", db.inventory
-									, db.cables, types = NULL
-									, label = '"Connectivity from VS88 into Projectors"' 
-									, rankdir = "LR",
-									partners = ps) 
-	#cat(get_diagram_aux(a))
-	grViz(a)
-```
-
-
-
-```{r vh_matrix_out, results='asis'}
+```{r vh_out_tab, results='asis',eval=TRUE}
 #| tbl-cap: "VideoHub Matrix Outputs"
 #| tbl-cap-location: bottom
 
@@ -235,10 +220,23 @@ st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer
 
 tab <- db.cables |>
 	filter(SrcTag == dev) |> 
-		select(Tag,SrcTag,SrcPort,DstTag,DstPort,Type,Usage ) |>
+	full_join(db.inventory, by=join_by(DstTag == AssetTag)
+			  , na_matches = "never") |>
+	filter( ! is.na(Tag )  ) |>
+	arrange(SrcPort) |>
+    select(Tag, SrcPort, DstTag
+			   , Manufacturer, Model
+			   ,DstPort,Type.x,Usage.x ) |>
     gt() |>  
 	opt_stylize(style = 5) |>
-	tab_header(tt, subtitle=st)
+	tab_header(tt, subtitle=st) |>
+	cols_merge(
+	    columns = c(Manufacturer, Model),
+    	pattern = "{1}\n{2}"
+  ) |> cols_label( Tag = "Cable"
+  				 , Manufacturer ="Dst Device"
+  				 , Type.x ="Type"
+  				 , Usage.x = "Usage")   
 	 
 print_gt_table(tab) |> cat()
 ```
@@ -253,7 +251,7 @@ It can be controlled via the buttons on the front panel or from it’s built in 
 
 All inputs to the matrix are HDMI. An input can be routed to a one or more outputs at once.
 
-```{r matrix_in, results='asis'}
+```{r vs_in_tab, results='asis'}
 #| tbl-cap: "Video Matrix Inputs"
 #| tbl-cap-location: bottom
 
@@ -277,9 +275,28 @@ print_gt_table(tab) |> cat()
 
 Each matrix output can be either HDMI or HDBaseT. Several typical configurations are discussed on the Operations document.   
 
-```{r matrix_out, results='asis'}
+
+```{r vs882projs, results="asis"}
+	ps <- c( 
+			 "ZVVU-A001", "ZVVU-A002" , "ZVVU-A003"
+	)
+	
+	a <- get_connectivity_diagram ( "ZVKU-A001", "out", db.inventory
+									, db.cables, types = NULL
+									, label = '"Connectivity from VS88 into Projectors"' 
+									, rankdir = "LR",
+									partners = ps) 
+	#cat(get_diagram_aux(a))
+	grViz(a)
+```
+
+
+```{r vs_out_table, results='asis', eval=TRUE}
 #| tbl-cap: "Video Matrix Outputs"
 #| tbl-cap-location: bottom
+#| out-width: 40%       # Scales the image to 100% of the text width
+#| fig-width: 4          # Sets the figure width in inches (useful for LaTeX)
+#| fig-height: 4         # Sets the figure height in inches
 
 dev <- "ZVKU-A001"
 tt <- glue("Output Ports for {dev}")
@@ -287,13 +304,26 @@ st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer
 
 tab <- db.cables |>
 	filter(SrcTag == dev) |>
-	select(Tag,SrcTag,SrcPort,DstTag,DstPort,Type,Usage ) |>
+	full_join(db.inventory, by=join_by(DstTag == AssetTag)
+			  , na_matches = "never") |>
+	filter( ! is.na(Tag )  ) |>
+	select(Tag ,SrcPort,DstTag
+		   ,Manufacturer, Model
+		   , DstPort,Type.x,Usage.x ) |>
 	arrange(SrcPort) |>
     gt() |>  
 	opt_stylize(style = 5) |>
-	tab_header(tt, subtitle=st)
+	tab_header(tt, subtitle=st) |>
+	cols_merge(
+	    columns = c(Manufacturer, Model),
+    	pattern = "{1}\n{2}"
+  ) |> cols_label( Tag = "Cable"
+  				 , Manufacturer ="Dst Device"
+  				 , Type.x ="Type"
+  				 , Usage.x = "Usage")  
 	 
 print_gt_table(tab) |> cat()
+   
 ```
 
 ```{r vh-connections, results='asis'}
