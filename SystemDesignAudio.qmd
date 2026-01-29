@@ -74,70 +74,111 @@ Purpose:
 
 # Configuration
 
-The descriptions of the configurations will generally start at the input side of the system and work towards the outputs.
+The descriptions of the configurations will generally start at the input side of the system and work towards the outputs. The connecting lines are illustrative not specifc. Some of those lines are implemented as analog connections, some are GigaAce, and some as Dante.
 
-```{dot overview}
-//| label: fig-audio-overview
+```{dot overview.foh}
+//| label: fig-audio-foh-overview
 //| fig-cap: "Audio system overview."
 //| file: gv/sda-overview.gv
 ``` 
- 
-The connecting lines are illustrative not specifc. Some of those lines are implemented as analog connections, some are GigaAce, and some as Dante.
+
+```{dot overview.video}
+//| label: fig-audio-video-overview
+//| fig-cap: "Audio Video overview."
+//| file: gv/sda-audio-video-overview.gv
+``` 
  
 ## Inputs
 
-There are a variety of microphone inputs that come from the stage. 48 from the floor pockets, and an additional 16 via a stagebox.
+There are a variety of microphone inputs that come from the stage. 52 from the floor pockets, and an additional 16 via a stagebox.
 
 In the balcony, there are analog inputs for the talkback mic, reference mic, the CD player, as well as a *guest* input for a laptop or media player (1/8").
 
-There is also 128 dante inputs availalble. Those are used for the Shure Wireless Mics, the feed from ProPresenter and from the Livestream DAW.
+There is also 128 dante inputs available. Those are used for the Shure Wireless Mics, the feed from ProPresenter and from the Livestream DAW.
 
 The mixer consists three components: The mix surface in the balcony, a 16-input stagebox on the drum riser, and the main mix engine (called a MixRack) located in the amp rack. These three components are linked together via and STP cable.
 
+The console system has preamp inputs via the stage box, the mixrack and the surface itself. It also accepts inputs via a Dante card installed in the mixrack.
 
-```{dot sda-inputs-dlive}
+```{dot sda-inputs-dlive-a}
 //| label: fig-sda-inputs-dlive-analog
 //| fig-cap: "dLive Analog Inputs"
 //| file: gv/sda-inputs-dlive-analog.gv
 ``` 
 
-### M7CL Input Assignments
+```{dot sda-inputs-dlive-d}
+//| label: fig-sda-inputs-dlive-dante
+//| fig-cap: "dLive Dante Inputs"
+//| file: gv/sda-inputs-dlive-dante.gv
+``` 
 
-Having a consistent wiring plan helps make system more predictable and easier for all audio engineers to use. The consistent wiring plan is also essentail to leveage the power of console's scene recall feature. It minimizes the amount of rewiring required. See @fig-sda-inputs-m7-map-a and @fig-sda-inputs-m7-map-d
+### dLive Input Assignments
 
-The chart which follows is the standard input map if using *Scene 014*. 
+A consistent wiring plan helps make system more predictable and easier for all audio engineers to use. The consistent wiring plan is also essential to leveage the power of console's show and scene recall feature. It minimizes the amount of rewiring required. 
 
-```{r m7ina}
-#| label: fig-sda-inputs-m7-map-a
-#| fig-cap: "M7CL Inputs"
-get_inputs("M7CL", "002") |>
-	filter(is.na(NetworkDevice)) |>
-	select(-NetworkDevice , -NetworkDeviceChannel) |>
+The dLive system is capable of mixing 128 inputs at a time. We are configured with considerably more input capacity which gives a lot of flexibility. See @fig-sda-inputs-dlive for the socket details.
+
+```{r in-count}
+#I am writing  code to display a table. I want a summary row which has a total #for the input count. please correct the code
+ic <- tribble(~Device, ~`Input Count`,
+  'DM 64 Mixrack', 64
+, 'Surface',       8
+, 'DX168',         16
+, 'Dante',         128
+			  )
+
+ic |>
+	arrange(desc(`Input Count`)) |>
 	gt() |>
-	opt_stylize(style=3) |>
-	tab_header("M7CL Input Map - Analog") 
+	opt_stylize(style=5) |>
+	grand_summary_rows(
+    	columns = `Input Count`,
+    	fns = list(fn = "sum"  
+    			    	, label =   "Total" 
+    			   ),
+    formatter = fmt_number,
+    	decimals = 0
+  ) |>
+  tab_options(
+    grand_summary_row.background.color = "lightgrey",
+    stub.background.color = "white" 
+  ) |>
+	tab_header("Input Count per Device")
 ```
 
-```{r m7ind}
-#| label: fig-sda-inputs-m7-map-d
-#| fig-cap: "M7CL Inputs"
-get_inputs("M7CL", "002") |>
-	filter(!is.na(NetworkDevice)) |>
+```{r input.overview}
+tribble(~Device, ~InputRange, ~Notes
+, "MixRack", "01-64", "Floor Boxes 03, 04, 12, 13, 01"
+, "DX168", "65-80 Intended", "Actual 1-12 & 17 (NEED To FIX)"
+, "Dante ULXD", "81-96", "Dante 1-16"
+, "Dante Other", "97-120", "Dante 17-40. Dante Inputs 41-128 not avaiable"
+, "S5000", "121-128" ,"Rear of Surface"
+		) |>
 	gt() |>
-	opt_stylize(style=3) |>
-	tab_header("M7CL Input Map") 
+	opt_stylize(style=5) |>
+	tab_header("Input Overview")
+
 ```
  
  
  
- 
+```{r input.list}
+#| label: fig-sda-inputs-dlive 
+#| fig-cap: "dLive Socket Inputs"
+get_inputs("dLive","") |>
+	arrange(Interface, Socket) |>
+	select(Interface,Socket,Source,Detail) |>
+	gt() |>
+	opt_stylize(style=5) |>
+	tab_header("Sockets for each Device") |>
+	gt_split(row_every_n = 25)
+```
  
 
 ```{r top1}
-print_inv(c( "CDMU-A001", "ZAKU-0002",
-             "ZAKU-0001", "ZAPU-0001",
+print_inv(c( "2407-3000", "2407-3001", "2407-3002",
+			 "CUMU-G002", "ZAPU-0001",
              "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003",
-             "ZAIU-B001", "ZAIU-B002",
              "ZAHU-0005", "ZAHU-0006"
              ), assets)
 ```
@@ -146,47 +187,47 @@ print_inv(c( "CDMU-A001", "ZAKU-0002",
 
 ### Consoles
 
-As introduced in the earlier section there are two primary mix consoles in the auditorium System. Both of these consoles are digital with full scene store and recall. Recalling *scene 014* on the M7CL will cause both consoles to reset to our standard starting point which is an excellent foundation for 95% of the services we run in a year. 
-
-The DM1000 (sometimes referred to as DM1K) is the secondary console which collects the inputs for most of the FOH located gear: players, computers, and some of the wireless receivers. It in turn supplies audio to the main console via bus level links (via IO cards on each console). 
-
-The M7CL is the primary mixing consol for vocal and instrumentals. The outputs from this console drive the house, lobby and monitor speakers.
-
-There are some additional outboard components which complete the signal path. The main house output flows through a TC Electronics Finalizer, which provides multi-band compression. The output of that then goes two directions. one channel feeds the audio recording subsystem and the other feeds into the FOH DSP - a  BSS soundweb (ZAXU-0001).
-
-The monitor amps are feed directly from the M7CL. The house amps are feed from the soundweb.
-
+Recalling
+Show "Master"
+Scene "Master"
+     is an excellent foundation for 95% of the services we run in a year. 
  
-```{dot fig-sda-foh}
-//| label: fig-sda-foh
-//| fig-cap: "Front of House"
-//| file: gv/sda-foh.gv
+After the console, some audio processing is handled by the Q-sys core, and some directly by the amplifiers.
+
+### Ouputs
+ 
+```{dot fig-sda-mains}
+//| label: fig-sda-mains
+//| fig-cap: "Outputs - Mains"
+//| file: gv/sda-outputs-mains.gv
+```
+
+```{dot fig-sda-monitor}
+//| label: fig-sda-monitor
+//| fig-cap: "Outputs- Monitors"
+//| file: gv/sda-outputs-monitors.gv
+```
+
+```{dot fig-sda-video}
+//| label: fig-sda-video
+//| fig-cap: "Outputs- Video"
+//| file: gv/sda-outputs-video.gv
 ```
 
 ```{r foh-inv}
 #| label: fig-foh-inv
 #| fig-cap: FoH Inventory
 cs <- c( 
-"ZAKU-0001",
-"ZAXU-0002",
-"ZAXU-0001",
-"ZAXU-0003",
-"ZAXU-0004",
+"2407-3001",
 "ZAHU-0001", "ZAHU-0005", "ZAHU-0002", "ZAHU-0001", "ZAHU-0006",
 "ZVKU-A003", "ZAIU-E001")
 
-print_inv(cs , assets)
+print_inv(cs , assets) |> tab_header("Front of House Inventory")
 ```
 
 ### Other FoH gear
 
 These can all be found in the diagram above, @fig-foh-inv.
-
- 
-
-#### Rane DA
-
-This is an audio distribution amplifer. 
  
 #### Lobby Speakers
 
@@ -194,54 +235,13 @@ The lobby speakers are driven from an AVIO adapter which normally has audio rout
 
 The lobby distribution is handled via a Stuart Audio Hub. It drives four 10W amplifiers which are mounted on the speakers in the lobby ceiling. Signal and power distribution is via Cat5 cable (which is __not__ ethernet). 
 
-```{dot lobby}
-graph bfs { 
-  
-graph [overlap = true, fontsize = 20, 
-      label="Lobby Audio Topology\n(as of 2024-10-09)",
-      fontname = Helvetica, bgcolor=white, rankdir=LR
-      ]
- 
-node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
-      gradientangle=270 fontname = Helvetica ]
-  
-  subgraph cluster_rack { label="ZVHU-0005 rack"  
-                              tooltip="Front desk Rack"
-                               
-        ZAAU0009 [label="{{Audio Hub|ZAAU-009}}", 
-                      tooltip="Stuart"]
-        24100800 [label="{{Dante Interface|2410-0800}}"]
-        24100802 [label="{{DirectBox|2410-0802}}"]
-        24100803 [label="{{GenderBender|2410-0803}}"]
-  }
-  
- subgraph cluster_mixrack {
- label="dLive MixRack"
- 24073002 [label="{{dante interface|2407-3002|{<o67>67|<o68>68}}}"]
- } 
 
-subgraph cluster_lobby { 
-label="Lobby Ceiling"
-ZAAU0010A  [label="Speaker with Amp|ZAAU-0010 A", tooltip="Speaker"]
-ZAAU0010B  [label="Speaker with Amp|ZAAU-0010 B", tooltip="Speaker"]
-ZAAU0010C  [label="Speaker with Amp|ZAAU-0010 C", tooltip="Speaker"]
-ZAAU0010D  [label="Speaker with Amp|ZAAU-0010 D", tooltip="Speaker"]
-}
-
-24073002:o67 -- 24100800
-24073002:o68 -- 24100800
- 
-24100800 -- 24100803
-24100803 -- 24100802
-24100802 -- ZAAU0009  [label="2410-0801"]
-
-ZAAU0009 -- ZAAU0010A [label="cat5"]
-ZAAU0009 -- ZAAU0010B [label="cat5"]
-ZAAU0009 -- ZAAU0010C [label="cat5"]
-ZAAU0009 -- ZAAU0010D [label="cat5"]
-} 
+```{dot fig-sda-lobby}
+//| label: fig-sda-lobby
+//| fig-cap: "Lobby Audio"
+//| file: gv/sda-lobby.gv
 ```
-
+ 
 #### Inventory details for this section
 
 ```{r lobby.inv}
@@ -249,8 +249,6 @@ cs <- c("2410-0800", "2410-0803", "ZAAU-0009", "ZAAU-0010")
 
 print_inv(cs , assets)
 ```
-
- 
 
 ### M7 Mix Bus Usage
 
@@ -330,6 +328,50 @@ cs <- c("ZASU-0001-0002",
 
 print_inv(cs , assets)
 ```
+
+
+# Stage Plot
+
+```{r, fbs}
+fbs <- tribble(~Size, ~Width, ~Height,
+  "Small",  18, 27
+, "Medium", 27, 27
+, "Large",  47, 27
+			   )
+
+fbs |> 
+	gt() |>
+	opt_stylize(style=5) |>
+	tab_header("Floor Pocket Sizes", subtitle="Centimeters")
+```
+
+![Stage Plot](./images/room115-pockets.png)
+
+```{r stageplot}
+pockets <- tribble(~PocketNum, ~Size, ~Usage
+, 01, "S", "Inputs 49-54"
+, 02, "S", "Power Breaker 20B"
+, 03, "L", "Inputs 1-24"
+, 04, "L", "Inputs 25-40"
+, 05, "M", "Monitors 1-6"
+, 06, "S", "Power Breaker 14B"
+, 07, "S", "Power Breaker 13B"
+, 08, "M", "Monitor 1-6 & DMX"
+, 09, "S", "Empty"
+, 10, "S", "Power Breaker 19B"
+, 11, "S", "Power Breaker 13A"
+, 12, "M", "Inputs 45-48"
+, 13, "M", "Inputs 41-44"
+, 14, "S", "Power Breaker 14A"
+				   )
+
+pockets |> 
+	gt() |>
+	opt_stylize(style=5) |>
+	tab_header("Floor Pocket" )
+```
+
+
 
 # Dante Configuration
 
@@ -650,7 +692,23 @@ cs <- c(  "ZAIU-B001", "ZAIU-B002"
 print_inv(cs , assets)
 ```
 
-# Livestream Configuration 
+# LiveStream Configuration PROPOSED
+
+__As of October 26 2024 this is Proposed and not yet implemented.__
+
+The Livestream audio can be fed from three different sources:
+
+#. Front of House Main outputs. This is best used for simple events like most funerals and weddings. The Livestream audio is a direct copy of the main house audio.
+#. Matrix Output from console. This would be used for more complex audio events but when we don't have a broadcast engineer at the DAW. The Front of House engineer can do a mix from the surface. 
+#. DAW output. This option is used for most sundays when the DAW is manned.
+
+```{dot livestream}
+//| label: fig-sda-livestream-overview
+//| fig-cap: "Livestream Overview"
+//| file: gv/sda-livestream-overview.gv
+```
+
+
 
 ## Primary Dante Configuration
 
@@ -908,15 +966,19 @@ cat(print_gt_table(tab))
 # Input Map for Printing
 {{< pagebreak >}} 
 ```{r ToPrint}
-include <- c(seq(1,32), seq(41,46))
+include <- c(seq(1,24), seq(25,40))
 
-g0 <- get_inputs("M7CL", "002") |>
-	  select( Channel, Usage ,Type , Notes ) |>
-  filter(Channel %in% include) 
+g0 <- get_inputs("dLive", "") |>
+	  select( Interface,  Socket, Source, Detail  ) |>
+  filter(Interface == "DM64") 
 
-g1 <- g0[1:19, ]
-g2 <- g0[20:38,]
-g3 <- cbind(g1, g2)
+fill <- data.frame(Interface="", Socket=seq(1:8), Source="", Detail="")
+fill$Socket = NA
+
+
+g1 <- g0 |> filter(Socket %in% seq(1:24))
+g2 <- g0 |> filter(Socket %in% seq(25:40))
+g3 <- cbind(g1, rbind(g2,fill))
 
 # g3 %>% # only pprint what is relevant to the stage box
 #   kable(caption="M7CL Input Map") %>%
@@ -930,7 +992,7 @@ g3 <- cbind(g1, g2)
 #     kable_styling("striped", full_width = TRUE)
 ```
 
-```{r m7cl_inputs_printable}
+```{r m7cl_inputs_printable, eval=FALSE}
 # gt version
 g1a <- g1
 g2a <- g2
