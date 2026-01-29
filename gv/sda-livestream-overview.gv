@@ -1,0 +1,38 @@
+digraph bfs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Proposed Livestream Overview\n(as of 2024-10-24)",
+      fontname = Helvetica, bgcolor=white, rankdir=TB
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+  
+avio [label="{<i1_2>In 1&2|{video avio}}"]  
+ 
+core  [label="{
+	{<ts>net|{{<i1_2>1&2|<i3>3|<i4_5>4&5|<i6_7>6&7}|Dante}}
+| The actual input numbers TBD based\non what is available on the core	
+| {UAC-Core}
+| {{Dante|{1&2|3&4|5|<o6_7>6&7}}}}
+", tooltip="Core"]
+
+touch [label="{Touch Screen|<net>net}"]
+
+daw  [label="{DAW|<o1_2>Mix Out\n1&2}", tooltip="Reaper"]
+
+dlive [label="{dLive MixRack|{<o_lr>LR\n127&128|<o_mtx>MTX\n?&?}}", tooltip="FOH L_R"]
+
+vidmix [label="{<i_lr>XLR\nL&R|Video Mixer}"]
+  
+daw:o1_2    -> core:i6_7 [label="dante", color="green"]
+dlive:o_lr  -> core:i1_2 [label="dante", color="green"]
+dlive:o_mtx -> core:i4_5 [label="dante", color="green"]
+
+core:o6_7 -> avio:i1_2 [label="dante", color="green"]
+ 
+touch:net -> core:ts [label="network", color="blue", dir="both"]
+
+avio -> vidmix:i_lr [label="audio", color="red" ]
+
+}

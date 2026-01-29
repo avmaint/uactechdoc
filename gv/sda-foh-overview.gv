@@ -1,0 +1,54 @@
+digraph overview { 
+
+graph [overlap = true, fontsize = 20, rankdir=LR 
+      label="Audio FOH Overview\nAs of 2024-10-27", 
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" , fontsize = 10, 
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+
+mics        -> mixrack
+ppcomputer  -> mixrack  
+otherinputs -> mixrack
+drums -> dx168
+
+mixrack	 [label="Audio MixRack"]
+uac_core [label="Main\nProcessor"]
+s5000    [label="Mixer Control\nSurface"]
+ 
+
+s5000 -> mixrack
+mixrack -> uac_core  
+ 
+subgraph cluster_inputs {label="Inputs" fontsize = 20
+	mics [label="Wireless\nMicrophones"]
+	ppcomputer [label="ProPresenter\nComputer"]
+	otherinputs [label="Floor\nInputs"]
+	drums  [label="Drum\nInputs"]
+	dx168  [label="Stagebox"]
+}
+
+dx168       -> mixrack
+
+subgraph cluster_amps { label="Amplifiers" fontsize = 20
+  houseamp		[label="FoH\nAmplifiers"]
+  monitoramp	[label="Monitor\nAmplifiers"]  
+  lobbyamp		[label="Lobby\nAmplifier"]
+}
+
+subgraph cluster_spkrs {label="Speakers"
+  monitorspeakers	[label="Monitor\nSpeakers"] 
+  lobbyspeakers 	[label="Lobby\nSpeakers"]
+  housespeakers 	[label="FoH\nSpeakers"]
+}
+
+uac_core -> houseamp 
+houseamp -> housespeakers  
+
+mixrack    -> lobbyamp
+lobbyamp    -> lobbyspeakers
+
+mixrack    -> monitoramp 
+monitoramp  -> monitorspeakers 
+} 

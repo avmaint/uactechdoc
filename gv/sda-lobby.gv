@@ -1,0 +1,45 @@
+graph bfs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Lobby Audio Topology\n(as of 2024-10-12)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+  
+  subgraph cluster_rack { label="ZVHU-0005 rack"  
+                              tooltip="Front desk Rack"
+                               
+        ZAAU0009 [label="{{Audio Hub|ZAAU-009}}", 
+                      tooltip="Stuart"]
+        24100800 [label="{{Dante Interface|2410-0800}}"]
+        24100802 [label="{{DirectBox|2410-0802}}"]
+        24100803 [label="{{GenderBender|2410-0803}}"]
+  }
+  
+ subgraph cluster_mixrack {
+ label="dLive MixRack"
+ 24073002 [label="{{dante interface|2407-3002|{<o67>67|<o68>68}}}"]
+ } 
+
+subgraph cluster_lobby { 
+label="Lobby Ceiling"
+ZAAU0010A  [label="Speaker with Amp|ZAAU-0010 A", tooltip="Speaker"]
+ZAAU0010B  [label="Speaker with Amp|ZAAU-0010 B", tooltip="Speaker"]
+ZAAU0010C  [label="Speaker with Amp|ZAAU-0010 C", tooltip="Speaker"]
+ZAAU0010D  [label="Speaker with Amp|ZAAU-0010 D", tooltip="Speaker"]
+}
+
+24073002:o67 -- 24100800
+24073002:o68 -- 24100800
+ 
+24100800 -- 24100803
+24100803 -- 24100802
+24100802 -- ZAAU0009  [label="2410-0801"]
+
+ZAAU0009 -- ZAAU0010A [label="cat5"]
+ZAAU0009 -- ZAAU0010B [label="cat5"]
+ZAAU0009 -- ZAAU0010C [label="cat5"]
+ZAAU0009 -- ZAAU0010D [label="cat5"]
+} 

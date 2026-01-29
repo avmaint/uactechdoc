@@ -1,0 +1,52 @@
+digraph overview { 
+
+graph [overlap = true, fontsize = 20, rankdir=LR 
+      label="Audio Video Overview\nAs of 2024-10-27", 
+      fontname = Helvetica]
+
+node [shape=Mrecord, tooltip="" , fontsize = 10, 
+      fillcolor="white:beige" , style=filled  
+      gradientangle=270]
+
+
+
+mixrack	 [label="Audio MixRack"]
+uac_core [label="Core\nProcessor"]
+ 
+subgraph cluster_fohrear {label="FoH Rear Desk"   fontsize = 20
+  videomixer		[label="Video\nMixer"]
+  videodestinations [label="Video Matrix"]
+  resi [label="Resi Encoder"]
+}
+
+videomixer -> videodestinations
+videomixer -> resi
+
+subgraph cluster_livestream  {label="LiveStream Audio"   fontsize = 20
+  daw			[label="Reaper\nDAW"]
+  refmon		[label="Reference\nMonitors "]
+ }
+
+mixrack -> uac_core  [label="Main LR"]
+mixrack -> uac_core  [label="Matrix"]
+daw -> uac_core
+uac_core -> videomixer
+
+mixrack	-> daw
+daw -> refmon
+ppcomputer	-> daw
+
+subgraph cluster_inputs {label="Inputs" fontsize = 20
+	mics [label="Wireless\nMicrophones"]
+	ppcomputer [label="ProPresenter\nComputer"]
+	otherinputs [label="Floor\nInputs"]
+	drums  [label="Drums\nBass\nInputs"]
+	dx168  [label="Stagebox"]
+	mics        -> mixrack
+	ppcomputer  -> mixrack  
+	otherinputs -> mixrack
+	drums -> dx168
+}
+
+dx168       -> mixrack
+} 
