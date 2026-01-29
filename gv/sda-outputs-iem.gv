@@ -26,9 +26,9 @@ konductor [ label="{  Konductor\nKNA18012
                |<m8>Mix 8\n\n\nAG 1
                |<m9>Mix 9\n\n\nEG 1
                |<m10>Mix 10\n\n\nBass
-               |<m11>Mix 11\n\n\n
-               |<m12>Mix 12\n\n\n
-               |<m13>Mix 13\n\n\nDrums
+               |<m11>Mix 11\n\n\nDrums
+               |<m12>Mix 12
+               |<m13>Mix 13
                |<m14>Mix 14
                |<m15>Mix 15
                |<m16>Mix 16
@@ -44,7 +44,7 @@ quelle [  label="{ {<i1>In1
                			|<i7>In7
                			|<i8>In8
                } |
-               Quelle\nK..c08
+               Quelle\nKQ1470c8
                |{<o1>Out 1 
                |<o2>Out 2 
                |<o3>Out 3 
@@ -56,22 +56,19 @@ quelle [  label="{ {<i1>In1
                } }"
                  ]       
                
-kmix1 [label="{Vox 1\nKontroller|<o1>Mix 1 }"]
-kmix2 [label="{Vox 2\nKontroller|<o1>Mix 2 }"]
-kmix3 [label="{Vox 3\nKontroller|<o1>Mix 3 }"]
-kmix4 [label="{Vox 4\nKontroller|<o1>Mix 4 }"]
+kmix1 [label="{M01\nKontroller\nKRB14510|<o1>Vx 1}"]
+kmix2 [label="{M02\nKontroller\nKRB14513|<o1>Vx 2}"]
+kmix3 [label="{M03\nKontroller\nKRB14512|<o1>Vx 3}"]
+kmix4 [label="{M04\nKontroller\nFuture|<o1>Vx 4 }"]
         
-kmix5 [label="{??? 4\nKontroller|<o1>Mix 5 }"]
-kmix6 [label="{??? 4\nKontroller|<o1>Mix 6 }"]
-kmix7 [label="{?? 4\nKontroller|<o1>Mix 7 }"]
-kmix8 [label="{?? 4\nKontroller|<o1>Mix 8 }"]
+kmix5 [label="{M05\nKontroller\nKRB14507|<o1>Piano}"]
+kmix6 [label="{M06\nKontroller\nKRB14415|<o1>Sz}"]
+kmix7 [label="{M07\nKontroller\nKRB14506|<o1>B3}"]
+kmix8 [label="{M08\nKontroller\nKRB14070|<o1>AG1}"]
         
-kmix9 [label="{? 4\nKontroller|<o1>Mix 9 }"]
-kmix10 [label="{? 4\nKontroller|<o1>Mix 10 }"]
-kmix11 [label="{? 4\nKontroller|<o1>Mix 11 }"]
-kmix12 [label="{? 4\nKontroller|<o1>Mix 12 }"]
-
-kmix13 [ label="{Drums\nKontroller|Mix 13 }" ]
+kmix9 [label="{M09\nKontroller\nKRB14072|<o1>EG1}"]
+kmix10 [label="{M10\nKontroller\nKRB14514|<o1>Bass}"]
+kmix11 [label="{M11\nKontroller\nKRB14486|<o1>Drums}"]
                
 psm10000_1 [label="{{<lr1>LR1|<lr2>LR2 }|Shure PSM1000\nunit 1 |{<m1>Mix 1|<m2>Mix 2} }" ]
 
@@ -118,10 +115,8 @@ konductor:m8 ->kmix8 ->buds8
 konductor:m9 ->kmix9 ->buds9
 konductor:m10 ->kmix10 ->buds10
 konductor:m11 ->kmix11 ->buds11
-konductor:m12 ->kmix12 ->buds12
-    
-konductor:m13 -> kmix13 ->buds13
-
+     
+ 
 konductor:m1 -> quelle:i1
 konductor:m1 -> quelle:i2
 konductor:m2 -> quelle:i3
