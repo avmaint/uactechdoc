@@ -1,0 +1,87 @@
+digraph overall { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Overall Switch Topology\n(as of 2024-11-07)",
+      fontname = raleway
+      bgcolor=white
+      rankdir=LR
+      ]
+ 
+node [shape = Mrecord 
+		style=filled 
+		fillcolor="white:beige" 
+		fontsize = 10,
+    	gradientangle=270 ]
+ 
+nscua001 [label="NSCU-A001|Switch|IT Room122" tooltip="Cisco SG250-26P"]
+nscua002 [label="NSCU-A002|Switch|Electrical Room005" tooltip="Cisco SG250-26P"]
+nscua005 [label="NSCU-A005|Switch|AMP Room130" tooltip="Cisco SG250-26P"]
+                 
+subgraph cluster_youth { label="Youth Building"
+     
+    NCPUH002 [label="NCPU-H002|Media Converter|Electrical Room101", tooltip="ScreenBeam MoCA"]
+    NSTUH001  [label="NSTU-0001|Switch|Electrical Room101", tooltip="TP-Link ???"]
+    NAHUH001 [label="NAHU-H001|AP|Youth Room100" tooltip="HP IAP-315"]
+
+}
+
+  balconyfront [label="NSCU-A003|Switch|Balcony Room205" tooltip="Cisco SG250-26P"]
+  balconyrear  [label="NSCU-A004|Switch|Balcony Room206" tooltip="Cisco SG250-26P"]
+
+  ap23 [label="NAHU-B007", tooltip="HP IAP-315"]
+  ap24 [label="NAHU-B009", tooltip="HP IAP-315"]
+  ap11 [label="NAHU-B002|AP|Basement Room0xx" tooltip="HP IAP-315"]
+  ap12 [label="NAHU-B003|AP|Basement Room0xx" tooltip="HP IAP-315"]
+  ap13 [label="NAHU-B004|AP|Basement Room0xx" tooltip="HP IAP-315"]
+  ap14 [label="NAHU-B006|AP|Basement Room0xx" tooltip="HP IAP-315"]
+  ap15 [label="NAHU-B008|AP|Basement Room0xx" tooltip="HP IAP-315"]
+
+
+ap21 [label="NAHU-B001|AP|Office Room124"  tooltip="HP IAP-315"]
+ 
+NAHUB005 [label="NAHU-B005|AP|Lobby Room103", tooltip="HP IAP-315"]
+
+NCPUH001 [label="NCPUH-0001|Media Converter|Electrical Room005", tooltip="ScreenBeam MoCA"]
+
+nscua001 -> ap21
+nscua005 -> NAHUB005 [label="front or rear??", color=red, fontcolor=red]
+nscua005 -> ap23
+nscua005 -> ap24
+nscua005 -> avrouter
+ 
+nscua002 -> ap11
+nscua002 -> ap12
+nscua002 -> ap13
+nscua002 -> ap14
+nscua002 -> ap15
+ 
+nscua001 -> nscua002
+nscua001 -> balconyfront  [label="front or rear??", fontcolor=red] 
+balconyfront -> nscua005
+balconyfront -> balconyrear
+ 
+nscua002 -> NCPUH001
+NCPUH001 -> NCPUH002 [label="coax"]
+NCPUH002 ->  NSTUH001 [label="coax"]
+
+NSTUH001 -> NAHUH001 
+
+avrouter  [label="AV Router|TP-Link ER605|Room130"]
+avswitch1 [label="AV Switch1|TP-Link xxx|Room130"]
+avswitch2 [label="AV Switch2|TP-Link xxx|Room205"]
+
+avrouter -> avswitch1
+avswitch1 -> avswitch2
+
+} 
+
+#
+# NAHU-B001	Network	Office	na	Wireless Access Point
+# NAHU-B002	Network	bsmt Hallway West	na	Wireless Access Point
+# NAHU-B006	Network	bsmt Hallway East	na	Wireless Access Point
+# NAHU-B008	Network	Fellowship Hall	na	Wireless Access Point
+# NAHU-B003	Network	Room 10 (South West)	na	Wireless Access Point
+# NAHU-B004	Network	Room 1 (South East)	na	Wireless Access Point
+# NAHU-B009	Network	Balcony East	na	Wireless Access Point
+# NAHU-B007	Network	Balcony West	na	Wireless Access Point
+# NAHU-B005	Network	Lobby	na	Wireless Access Point

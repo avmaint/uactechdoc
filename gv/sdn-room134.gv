@@ -1,0 +1,70 @@
+
+graph bfs { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="Broadcast Room Topology\n(as of 2024-11-18)",
+      fontname = Helvetica, bgcolor=white, rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige" , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+      
+subgraph cluster_office_rack {       
+      label ="IT Room 122"
+nscua001 [label="{{Office Switch|NSCU-A004}}", tooltip="Main Office Switch"]
+pp1 [label="{patch panel 1}|<px>px|<py>py"]
+pp2 [label="{patch panel 2}|<p17>p17|<p18>p18|<p19>p19|<p20>p20|<p21>p21|<p22>p22|<p23>p23|<p24>p24"]
+
+pp2:p17 -- pp2:p21
+pp2:p18 -- pp2:p22
+pp2:p19 -- pp2:p23
+pp2:p20 -- pp2:p24
+}
+
+subgraph cluster_room134 { 
+	label="Broadcast Room 134"
+	
+	externalether	[label="External Hub|2410-1501"]
+ 
+	subgraph cluster_cumue001 { 
+ 		label="Mac Mini\nCUMU-E001"
+ 		reaper
+ 		obs
+ 		internalether
+ 		internalether -- obs
+ }
+	zaiue002 [label="{{Dante Avio Adapter|ZAIU-E002} }"]
+	pp3 [label="{patch panel 3}|<p01>p01|<p02>p02|<p03>p03|<p04>p04|<p05>p05|<p06>p06"]
+	refmon [label="Reference\nMonitors"]
+	
+	externalether -- reaper [label="usbc"]
+	pp3:p01 -- internalether
+	pp3:p03 -- externalether
+	pp3:p04 -- zaiue002 	
+	zaiue002 -- refmon
+}
+
+subgraph cluster_room130 {
+	label="Amp Room 130"
+	pp4 [label="{patch panel 4}|<pi>pi|<pj>pj|<pk>pk|<pl>pl"]
+	nscua005
+	tplin1
+}
+
+tplin1 -- pp4
+pp4:pi -- pp2:p17
+pp4:pj -- pp2:p18
+pp4:pk -- pp2:p19
+pp4:pl -- pp2:p20
+
+pp1:px -- pp3:p01
+pp1:py -- pp3:p02
+
+pp2:p21 -- pp3:p03
+pp2:p22 -- pp3:p04
+pp2:p23 -- pp3:p05
+pp2:p24 -- pp3:p06
+nscua001 -- pp1:px
+nscua001 -- pp1:py
+
+} 

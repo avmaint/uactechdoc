@@ -1,0 +1,41 @@
+digraph overall { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="ISP Service Entrance\n(as of 2024-10-26)",
+      fontname = raleway
+      bgcolor=white
+      rankdir=LR
+      ]
+ 
+node [shape = Mrecord 
+		style=filled 
+		fillcolor="white:beige" 
+		fontsize = 10,
+    	gradientangle=270 ]
+
+subgraph cluster_internet { label="Internet"
+ isp [label="Rogers ISP"] 
+}
+
+subgraph cluster_room005 { label="Electrical (Room 005)"
+	dir = TB
+ split [label="Splitter"] 
+ phone [label="Phone Interface"]
+ split -> phone [label="coax"]
+}
+
+subgraph cluster_room122 { label="Server Room (Room 122)"
+      modem    [label="Cable Modem|???"]
+      lte      [label="LTE Box|Cradle Point E100"] 
+      router   [label="router"]
+      nscua001 [label="NSCU-A001", tooltip="Cisco SG250-26P"]
+}
+
+isp    -> split    [label="coax"]
+isp    -> lte      [label="LTE (Backup)"]
+split  -> modem    [label="coax"]
+modem  -> lte      [label="cat"]
+lte -> router      [label="cat"]
+router -> nscua001 [label="cat"]
+
+} 

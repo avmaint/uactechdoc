@@ -1,0 +1,27 @@
+digraph overall { 
+  
+graph [overlap = true, fontsize = 20, 
+      label="AV Rack Room Topology\n(as of 2017-08-25)",
+      fontname = Helvetica, bgcolor=white,
+      rankdir=LR
+      ]
+ 
+node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
+      gradientangle=270 fontname = Helvetica ]
+
+   subgraph cluster_zahu0001 { label="ZAHU-0001"  tooltip="Amp Rack"
+      
+      nscua005    [label="Switch|NSCU-A005" 
+                           tooltip="Cisco SG250-26P"]
+    }
+    
+fohproje     [label="East Wall Projector|ZVVU-A001" tooltip=""]
+fohprojs     [label="South Wall Projector|ZVVU-A002" tooltip=""]
+fohprojw     [label="West Wall Projector|ZVVU-A003" tooltip=""]
+
+nscua005 -> fohproje
+nscua005 -> fohprojs
+nscua005 -> fohprojw
+
+outdated [label="Incomplete and outdated", fontcolor=red]
+} 
