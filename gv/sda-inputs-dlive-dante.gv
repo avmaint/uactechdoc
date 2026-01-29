@@ -1,6 +1,6 @@
 digraph ddi { 
 graph [overlap = true, fontsize = 24, rankdir=TB 
-      label="dLive Dante Inputs\nAs of 2024-10-09", 
+      label="dLive Dante Inputs\nAs of 2024-10-27", 
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
@@ -16,23 +16,23 @@ subgraph cluster_amproom {
 }
 
 subgraph cluster_fr {
-	label="Front Rack"
-	zamua001 [label="ZAMU-A001\nShure\nULX-D Quad", fillcolor="white:cyan" ]
-	zamub001 [label="ZAMU-B001\nShure\nULX-D Quad", fillcolor="white:cyan"]
-	zamub002 [label="ZAMU-B002\nShure\nULX-D Quad", fillcolor="white:cyan"]
-	zamub003 [label="ZAMU-B003\nShure\nULX-D Quad", fillcolor="white:cyan"]
+	label="Front Rack ZAHU-0005"
+	zamua001 [label="{Shure\nULX-D Quad|ZAMU-A001}", fillcolor="white:cyan" ]
+	zamub001 [label="{Shure\nULX-D Quad|ZAMU-B001}", fillcolor="white:cyan"]
+	zamub002 [label="{Shure\nULX-D Quad|ZAMU-B002}", fillcolor="white:cyan"]
+	zamub003 [label="{Shure\nULX-D Quad|ZAMU-B003}", fillcolor="white:cyan"]
 }
 
 subgraph cluster_reardesk {
 	label="Rear Desk"
-	cdwu0009 [label="CDWU-0009\nWin7\nDante VSC", fillcolor="white:pink"]
-	cumug002 [label="CDMU-A001\niMac\nFuture\nDante VSC", fillcolor="white:pink"]
-	cumug001 [label="CDMU-A002\niMac\nDante Controller\nDante VSC", fillcolor="white:pink"]
+	cdwu0009 [label="{Win7\nDante VSC|CDWU-0009}", fillcolor="white:pink"]
+	cumug002 [label="{MacMini\nVideo\nDante VSC|CUMU-G001}", fillcolor="white:pink"]
+	cumug001 [label="{Mac Studio\nProPresenter\nDante VSC|CUMU-G002}", fillcolor="white:pink"]
 }
 
 subgraph cluster_broadcast {
 	label="Broadcast"
-	cumue001 [label="CUMU-E001\nMacMini\nDante Controller\nDante VSC\nReaper", fillcolor="white:pink"]
+	cumue001 [label="{MacMini\nDante VSC\nReaper|CUMU-E001}", fillcolor="white:pink"]
 }
 
 zamua001 -> "2407-3002"
@@ -42,5 +42,4 @@ zamub003 -> "2407-3002"
 cumue001 -> "2407-3002"
 cumug001 -> "2407-3002"
 cumug002 -> "2407-3002"
-
-} 
+}

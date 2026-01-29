@@ -1,6 +1,6 @@
 digraph topology1 { 
 graph [overlap = true, fontsize = 20, rankdir=LR 
-      label="dLive Analog Inputs\nAs of 2024-10-09",
+      label="dLive Analog Inputs\nAs of 2024-10-27",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10,
@@ -30,20 +30,13 @@ subgraph cluster_stage {
 		label="Drum Riser"
 		dx168 [label="A&H DX168|2410-????"]   
 	}
-	pocket0124 [label="Floor Pocket Inputs|#1 - #24"]
-	pocket2540 [label="Floor Pocket Inputs|#25 - #44"]
-	pocket4144 [label="Floor Pocket Inputs|#41 - #44"]
-	pocket4548 [label="Floor Pocket Inputs|#45 - #48"]
+	floorbox [label="Floor Box Inputs|#1 - #24|#25 - #44|#41 - #44 |#45 - #48 |#49 - #52"]
 }
 
 dx168       -> "2407-3000" [label="GigaAce"]
 "2407-3000" -> "2407-3001" [label="GigaAce"]
 
-pocket0124 -> "2407-3000" 
-pocket2540 -> "2407-3000"
-pocket4144 -> "2407-3000"
-pocket4548 -> "2407-3000" 
-
+floorbox -> "2407-3000"  [label="Analog"]
 cd01u -> "2407-3001" 
 
 talkback -> "2407-3001" 
