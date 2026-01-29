@@ -181,31 +181,24 @@ edge [fontsize=8]
 	return( diag )
 }
 
-get_diagram_aux <- function (dot_code, res = 600) {
+get_diagram_aux <- function (dot_code, width = 1200, height = NULL) {
 	
-	temp_png <- tempfile(fileext=".png", tmpdir="_work")
+temp_png <- tempfile(fileext=".png", tmpdir="_work")
 	
-	# Create a raw SVG object
-	svg_raw <- grViz(dot_code) |> 
+	grViz(dot_code) |> 
 		export_svg() |> 
-		charToRaw()
-	
-	# Check if the installed rsvg_png function supports the 'res' argument
-	if ("res" %in% names(formals(rsvg::rsvg_png))) {
-		# If yes, use it for high-resolution output
-		rsvg::rsvg_png(svg_raw, temp_png, res = res)
-	} else {
-		# Otherwise, use the older call without 'res' to avoid an error
-		rsvg::rsvg_png(svg_raw, temp_png)
-	}
+		charToRaw() |> 
+		rsvg_png(temp_png, width = width, height = height) 
 	
 	out_str <- case_when(
 		knitr::is_latex_output() 
-		~ sprintf("\\includegraphics {%s}", temp_png) , 
+			~ sprintf("\\includegraphics[width=\\linewidth]{%s}", temp_png) ,
 		knitr::is_html_output() 
-		~ sprintf("![](%s)", temp_png),
-		knitr::pandoc_to("docx") ~  "word is unsupported for dynamic diagrams.",
-		TRUE ~ "unsupported output type for diagram"
+			~ sprintf("![](%s)", temp_png),
+		knitr::pandoc_to("docx") 
+			~  "word is unsupported for dynamic diagrams.",
+		TRUE 
+			~ "unsupported output type for diagram"
 	)	
 	return(out_str)
 }

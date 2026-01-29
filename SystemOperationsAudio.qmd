@@ -145,71 +145,137 @@ There is also an extensive library of videos on MxU.
 
 There are four interfaces which facilitate inputs to the dLive system. In total all possible inputs map to the system maximum of 128 inputs.
 
-__1. DM64 Inputs__
- The analog input jacks on the DM64 mounted in the amp rack. There are 64 inputs. The first 52 of those are wired to the jacks in the floor pockets on stage.
+Part of what is included in the scene definition is the channel layout. 
 
-__2. DX168 Inputs__
+__1. DM64 Inputs:__
+ The analog input jacks on the DM64 mounted in the amp rack. There are 64 inputs. The first 52 of those are wired to the jacks in the floor pockets on stage.
+ 
+The inputs "Inst10" through Inst14" are meant for guest instruments such as a violin, flute, or Sax. They are setup this way so they are also readily available to broadcast and IEM mixes.
+ 
+```{r mixrack-inputs-analog, eval=TRUE}
+#| label: fig-mixrack-inputs-analog
+#| fig-cap: MixRack Analog Inputs
+get_inputs("MixRack") |>
+   select(Name, Port, `dLive Inputs (normal)`) |>	
+  gt() |>
+  tab_header("dLive MixRack Analog Input Map") |>
+  opt_stylize(style=3) |>
+	sub_missing(  missing_text = "-")  
+``` 
+
+__2. DX168 Inputs:__
 There are 16 analog inputs in the small stage rack located next to the drum riser. There are used for the drum inputs, and the bass. 
 
-__3. Dante Inputs__
+```{r mixrack-dx168-analog, eval=TRUE}
+#| label: fig-mixrack-inputs-dx168
+#| fig-cap: DX168 Drum rack Analog Inputs
+get_inputs("DX1-DX168") |>
+   select(Name, Port, `dLive Inputs (normal)`) |>	
+  gt() |>
+  tab_header("dLive DX168 Drum Rack Analog Inputs") |>
+  opt_stylize(style=3) |>
+	sub_missing(  missing_text = "-")  
+``` 
+
+__3. Dante Inputs:__
 I/O expansion port #1 on the DM64 is fitted with a 128x128 port Dante card. This is used for 16 inputs from the Shure ULXD receivers, two inputs from the ProPresenter computer, and 64 inputs from the Propresenter computer used for Virtual Soundcheck. The other computers can also provide Dante inputs.
 
-__4. Surface Inputs__ The console surface has 8 analog inputs on the back which are used for the talkback mic, the reference mic, the guest computer and the CD Player.
+```{r mixrack-dante-inputs, eval=TRUE}
+#| label: fig-mixrack-dante-inputs
+#| fig-cap: MixRack Dante Inputs
+get_inputs("IO1-Dante") |>
+	filter(Port < 20) |>
+   select(Name, Device, Port, `dLive Inputs (normal)`) |>	
+  gt() |>
+  tab_header("MixRack Dante Inputs") |>
+  opt_stylize(style=3) |>
+	sub_missing(  missing_text = "-")  
+``` 
+
+
+```{r}
+o1 <- get_outputs("ZAMU-A001")
+o2 <- get_outputs("ZAMU-B001") 
+o3 <- get_outputs("ZAMU-B002") 
+o4 <- get_outputs("ZAMU-B003")
+
+rbind(o1,o2,o3,o4) |>
+	select(-Usage) |>
+	pivot_wider(names_from = "Device", values_from = "Name") |>
+	gt() |>
+    tab_header("Shure Sources via Dante") |>
+    opt_stylize(style=3) |>
+	sub_missing(  missing_text = "-") 
+ 
+```
+
+Virtual Sound Check is enabled by going into the IO settings and the "Virtual SoundCheck" tab. When enabled, the normal inputs are overridden with the VSC configuration. These inputs are applicable:
+
+```{r mixrack-dante-inputs-vsc }
+#| label: fig-mixrack-dante-inputs-vsc
+#| fig-cap: Dante Inputs for Virtual Sound Check
+get_inputs("IO1-Dante") |>
+	filter(Port > "64" ) |>
+   select(Name, Device, Port,   `dLive Input (VSC)`) |>	
+  gt() |>
+  tab_header("MixRack Dante Inputs for Virtual Sound Check") |>
+  opt_stylize(style=3) |>
+	sub_missing(  missing_text = "-")  
+``` 
+
+__4. Surface Inputs:__ The console surface has 8 analog inputs on the back which are used for the talkback mic, the reference mic, the guest computer and the CD Player.
 
 Part of what is included in the scene definition is the channel layout. 
 
-See @fig-m7cl-inputs-analog, @fig-m7cl-inputs-dante and @fig-dm1k-inputs.
-
-```{r m7-inputs-analog, eval=FALSE}
-#| label: fig-m7cl-inputs-analog
-#| fig-cap: M7CL Inputs (Analog)
-get_inputs("M7CL", "002") |>
-  filter(is.na(NetworkDevice)) |>	
-  select(-NetworkDevice, -NetworkDeviceChannel) |>	
+```{r s5000-analog-inputs }
+#| label: fig-s5000-analog-inputs
+#| fig-cap: S5000 surface Analog Inputs  
+get_inputs("S5000") |> 
+  select(Name, Device, Port, `dLive Inputs (normal)`) |>	
   gt() |>
-  tab_header("M7CL-48 Input Map - Analog") |>
+  tab_header("S5000 Surface Analog Inputs") |>
   opt_stylize(style=3) |>
 	sub_missing(  missing_text = "-")  
 ```
 
-```{r m7-inputs-dante, eval=FALSE}
-#| label: fig-m7cl-inputs-dante
-#| fig-cap: M7CL Inputs (Dante)
-get_inputs("M7CL", "002") |>
-  filter(!is.na(NetworkDevice)) |>	
-  gt() |>
-  tab_header("M7CL-48 Input Map - Dante") |>
-  opt_stylize(style=3) |>
-	sub_missing(  missing_text = "-") |>
-	cols_label( NetworkDevice ="Net Device"
-			  , NetworkDeviceChannel = "Net Channel")
-```
-
-```{r, eval=FALSE}
-#| label: fig-dm1k-inputs
-#| fig-cap: DM1K Inputs
-get_inputs("DM1K", "002") |>
-  gt() |>
-  tab_header("DM1000 Input Map") |>
-  opt_stylize(style=3) |>
-	sub_missing(  missing_text = "-") |>
-	cols_label( NetworkDevice ="Net Device"
-			  , NetworkDeviceChannel = "Net Channel")
-```
-
+![Surface Rear Inputs](./images/sda-s5000-rear.jpg){#fig-sda-s5000-rear.jpg width=125mm}
 
 # Console Outputs
 
 Similar to the system inputs, there are outputs in four separate interfaces. 
 
-__1. DM64 Outputs__
+__1. DM64 Outputs:__
 There are 32 analog outputs on the front face of the DM64 mounted in the amp rack. Two of those are used as analog backup 
+
+__2. DX168 Outputs:__
+Not used.
+
+__3. Dante Outputs:__ 
+There are 128 Dante outputs: 
+The Dante outputs are in two categories: 
+
+1. Most of the inputs are send out via Dante as Direct Outs. These are picked up by Reaper as the broadcast DAW and by Klang:Konductor for IEM inputs. 
+
+2. Many of the Mix busses are sent out via Dante as well, including all monitor mixes (8), the sub out matrix (1), the video matrix (2) and the FoH LR main mix (1). For a total of 12 such outputs. 
+
+Because there are upto 128 active inputs and an addtional 12 outputs, some of the 128 Dante outputs cannot be linked to the Direct Outs. 
+
+:::{.callout-note}
+TODO  - update to dLive config.
+:::
+
+ 
+
+__4. Surface Outputs:__ 
+There are no surface outputs in regular use. If there was a need for an output to send to a videogapher or such, these outputs could be used for that, but they are not currently pre-configured for that. (I would likley route the mains in parallel for that scenario)
+
+![Surface Rear Outputs](./images/sda-s5000-rear.jpg){#fig-sda-s5000-rear.jpg width=125mm}
 
 ## Monitors
 
-We have six monitor amplifier channels, each which can handle a load of two of our monitor wedges. 
+We have eight monitor amplifier channels, each which can handle a load of two of our monitor wedges. 
 
-Our standard monitor configuration is (@fig-monitors)
+Our standard monitor configuration is (@fig-monitors), however with our usage of the IEMs, these are not all that often used.
 
 ```{r gt.monitors}
 #| label: fig-monitors
@@ -220,50 +286,61 @@ get_monitors() |>
 	opt_stylize(style=3) 
 ```
 
-## Effects
+## Lobby
 
-Busses 7, 8, 9 and 10 are used for routing a mix to the internal effects processor which then appears as inputs on the return faders. 
+The lobby mix is a matrix driven off of a matrix mix for the lobby.
 
-Bus 7
-: The Post-fade mix is sent to a **plate reverb** processor which then appears on return channel 1.
+## Subs
 
-Bus 8
-: The Post-fade mix is sent to a **hall reverb** processor which then appears on return channel 2.
+The standard mode of operation drives the subs from the main LR mix. However, if the engineer so desires, the subs can be driven from the subs Aux buss. This routing choice is made via the touch panel. 
 
-Bus 9
-: The Post-fade mix is sent to a **delay** processor which then appears on return channel 3.
+The button under the "Sub Send" title selects whether to feed the subs from the **Mains** or the **Aux**. The button is a toggle.
 
-Bus 10
-: The Post-fade mix is sent to a **chorus** processor which then appears on return channel 4.
+![Sub Send](./images/soa_qsys_touch.png){#fig-soa-scene-recall width=65mm}
 
-## Dante Outputs
+## Video Mix
 
-```{r dante_outputs}
-#| label: fig-dante-outputs
-#| fig-cap: Dante Ouputs
-get_dante_outputs() |>
-	filter(Device == 'ZAKU-0001') |>
-	select(-Device) |>
-	gt() |>
-	tab_header("M7CL Dante Outputs") |>
-	opt_stylize(style=3)
+We have three ways of sending audio to the video mixer. The choice is made using the touchscreen panel. There are three choices underneath "Video Send": **Mains**, **Matrix** and **DAW**. The light blue item is the active item.
+
+![Video Mix](./images/soa_qsys_touch.png){#fig-soa-scene-recall width=65mm}
+
+Mains
+: The **Mains** option routes the main FoH audio mix to the video mixer. It tends to be too quiet so needs the audio controls in the ATEM video mixer to be boosted.
+
+Matrix
+: The **Matrix** option routes the "2Video" matrix bus to the video mixer. By default this mix consists of the Main LR bus but with elevated levels. One has the option of doing a full custom mix using this matrix.
+
+DAW
+: The **DAW** option routes the output of Reaper to the video mixer. This *mostly* bypasses the FoH mixer - All inputs still come into the FoH mixer preamps but are then routed via the Direct Outs (after gain, before trim) to Reaper (via Dante).
+
+# Effects
+
+Four Stereo busses have been allocated for Effects. The master scene configures those as **Plate**, **Hall**, **Chorus**, and **Delay**. There are softkeys that will pull up the effects sends on faders (keys 20-23). 
+
+Bank 3, Layer F has the effect Send master. Bank 3, Layer B has the Effect returns.
+
+:::{.callout-note}
+TODO: I should reorganize those so that sends and returns are both on the same layer. (F for Fx?) .
+:::
+
+There is a DCA that is tied to the Fx returns for all Fx so you can quickly kill them.
+
+# In-Ear Monitors (IEM)
+
+The IEM system is managed by the Klang Hardware. All of the console's 128 Dante outputs are routed 1:1 to the Klang Konductor inputs. Konductor sends outputs via Dante to each of the Kontrollers and, in addition The first four Klang mixes (stereo pairs) are routed to the Quelle Interface device which converts to Analog and to Shure wireless transmitters for the IEM packs.
+
+```{dot fig-sda-outputs-iem }
+//| label: fig-sda-outputs-iem
+//| fig-cap: IEM Topology
+//| cap-location: bottom
+//| file: gv/sda-outputs-iem.gv
 ```
-
-
-## Other Busses
-Bus 14 is used for recording. 
-The Mono bus is used for lobby.
-
- 
- 
-
-
-
+  
 # Basic Operations
 
 ## The Console
 
-The main audio console is located in the balcony. It can also be operated remotely via dLive Director installed on the Mac in the broadcast room or a tablet running the dLive Mix App.
+The main audio console is located in the balcony. It can also be operated remotely via dLive Director installed on the Mac in the broadcast room or a tablet running the dLive Mix App. To use director or the tablet/phone app, you must be connected to the correct network.
 
 ## Scene Recall 
 
@@ -279,13 +356,13 @@ To recall Scene 001, press the scene button on the right hand side, and then usi
 
 ## dLive Softkeys 
 
-The softkeys allow the operator to quickly access common features. They are located on the very right hand side of the console, see figure @fig-soa-dlive-softkeys
+The softkeys allow the operator to quickly access common features. They are located on the very right hand side of the console, see figure @fig-soa-s5000-softkeys for the location and  @fig-soa-dlive-softkeys for the standard usage.
 
 ```{r}
-#| label: fig-user-defined-keys-table
-#| fig-cap: M7CL User Defined Keys
+#| label: fig-soa-dlive-softkeys
+#| fig-cap: dLive Sof Keys
 softkeys <- tribble(
-~Key , ~Function 
+~SoftKey , ~Function 
 ,"1","Monitor 1 to faders"  
 ,"2","Monitor 2 to faders"  
 ,"3","Monitor 3 to faders"  
@@ -294,19 +371,19 @@ softkeys <- tribble(
 ,"6","Monitor 6 to faders"  
 ,"7","Monitor 7 to faders" 
 ,"8","Monitor 8 to faders"
-,"x","Delay Tap-effect timing"
-,"x","Plate effect to faders"
-,"x","Hall effect to faders"
-,"x","Delay effect to faders"
-,"x","Chorus effect to faders"
-	)
+,"20","Delay Tap-effect timing"
+,"21","Plate effect to faders"
+,"22","Hall effect to faders"
+,"23","Delay effect to faders"
+)
 
 gt(softkeys) |>
 	opt_stylize(style=3) |>
 	tab_header("Softkeys Keys")
 ```
 
-![M7CL Centre Controls](./images/soa-m7cl-centre-controls.jpg){#fig-soa-m7cl-centre-controls width=50mm}
+![Surface Softkey Location](./images/soa-s5000-softkeys.jpg){#fig-soa-s5000-softkeys width=50mm}
+
  
 # Operating a Channel
 
