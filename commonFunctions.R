@@ -50,21 +50,33 @@ print_inv_kable <- function(items, inventory) {
 
 print_inv <- function(items, inventory) {
 	
-	selected <- items %>% 
-		data.frame(AssetTag=.)
+	selected <- as.data.frame(items) |> 
+		rename(AssetTag=items) |>
+		filter( ! is.na(AssetTag)) |>
+		arrange( AssetTag )
 	
-	merged <- merge( inventory, selected) 
+	merged <- inner_join( inventory, selected
+						  , by=join_by( AssetTag == AssetTag) 
+						  , na_matches="never") |>
+			filter( ! is.na(AssetTag)) |>
+		arrange( AssetTag )
 	
-	if(length(items) != nrow(merged) ) {
-		diff <- setdiff(selected$AssetTag, inventory$AssetTag)
-		# ToDO: the next line of code has issues. 
-		#1) if it is executed it will likley fail as the error msg is not a file name
-		#2) It doesn't handle duplicate asset tags.
-		#fundamentlly I don't know how to expose the error condition 
-		system2("cat",  paste('"Undefined in Inventory ', diff,  '"') )
-	}
+	diff <- setdiff(selected$AssetTag, merged$AssetTag)
 	
-	stopifnot(length(items) == nrow(merged) )
+	emsg <- glue("Undefined in Inventory: 
+	length of items: {nrow(selected)};
+	nrow(merged): {nrow(merged)};
+	diff = {paste(diff, collapse=', ')}")
+	
+	# merged |> select(AssetTag) |> gt()
+	# selected
+
+	
+	if ( nrow(selected) != nrow(merged) ) {
+		#rstudioapi::showDialog(title = emsg, message = emsg)
+		stop( paste("error:",  emsg) )}
+	
+	#stopifnot(length(items) == nrow(merged) )
 	
 	merged |>
 		select(AssetTag, Manufacturer, Model, Location, Desc ) |>
@@ -120,8 +132,6 @@ commit.log.html <- function(file.name) {
 
 # Functions to get data used by most of the reports.
 
-
-
 fname.cf <- file.path(path, "TechInventory.xlsx" )
 fname.people <- file.path(path, "db-people.xlsx" )
 
@@ -169,6 +179,15 @@ get.playbacks <- function () {
 #' @return a data frame containing the inventory database
 get.assets <- function() {
   return( cache_assets )
+}
+
+get_device_ports <- function() {
+	
+	fname <- here("data", "uac_device_ports.xlsx")
+	#fname <- "/Users/donert/Documents/UACTech/SystemDocumentation/github/uactechdoc/data/uac_device_ports.xlsx"
+	
+	db <- read_excel(fname,  sheet = "device_ports" )
+	return(db)
 }
 
 get.inventory <- get.assets

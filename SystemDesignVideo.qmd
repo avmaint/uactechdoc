@@ -12,6 +12,9 @@ format:
      toc: true
   titlepage-pdf:
     toc: true
+    include-in-header: 
+      text: |
+        \usepackage{graphicx}
    
 always_allow_html: yes
 ---
@@ -53,9 +56,9 @@ Every significant inventory item is to have an asset tag - an actual label attac
 
 The main job of a video matrix is to take multiple video sources, such as cameras or computers, and direct their video signals to different destinations, like TVs, projectors, or recording devices.
 
-We currently have two video matrix devices. The older one is based on HDBaseT, and the newer one based on SDI. 
+We currently have two video matrix devices. The older one ("ZVKU-A001") is based on HDBaseT, and the newer one ("2507-0700") based on SDI. Over time 
 
-```{r, results="asis"}
+```{r vhdiag, results="asis",eval=FALSE}
 
 targets_v <- c( "2507-0700" 
 			 ) 
@@ -75,11 +78,11 @@ cat(out_str)
 ```
 
 
-```{r}
+```{r,eval=FALSE}
 target <- "2507-0700"
 ```
 
-```{r}
+```{r,eval=FALSE}
 tt <- glue("Inbound to {target}")
 
 db.cables |>
@@ -93,7 +96,7 @@ db.cables |>
 	opt_stylize(style = 5)
 ```
 
-```{r}
+```{r,eval=FALSE}
 tt <- glue("Outbound from {target}")
 
 db.cables |>
@@ -106,17 +109,18 @@ db.cables |>
 			   , DstPort = "Target Port") |>
 	opt_stylize(style = 5)
 ```
-Our video matrix is a Kramer VS-88DT which is an 8x8 matrix and can handle HDMI inputs and outputs which are either HDMI or [HDBaseT](https://en.wikipedia.org/wiki/HDBaseT) formats. Any of the 8 inputs can be routed to any of the 8 outputs (or several outputs).
 
-The unit is a Kramer VS-88DT which is an 8x8 matrix and can handle both HDMI and HDBaseT formats.
-
-It has 8 inputs and 8 outputs. It can be controlled via the buttons on the front panel or from it’s built in web page.
 
 ## BMD VideoHub Matrix
 
+The Black Magic Design 40x40 Video Hub is a video matrix that has 40 SDI inputs and 40 SDI outputs. An Input can be routed to any number of outputs. 
+The routing can be managed via the front panel on the device or via the "VideoHub Control" that is installed on several computers. There are also some presets that have be created for the Stream Deck device located at the video Desk. 
+
 ### Inputs VideoHub
 
-All inputs to the matrix are SDI. An input can be routed to a one or more outputs at once. 
+All inputs to the matrix are SDI. An input can be routed to a one or more outputs at once. Since there are 40 inputs and outputs, a single diagram to show everything at once is unreadable. A few diagrams show key connections with the full details are in the table.
+
+The Decklink is an 8-port PCIe Card located in the expansion chassis next to the Mac Studio (CUMU-G002). These ports can be configured for either input or output. Six of them feed into the VideoHub.
 
 ```{r dl2vh, results="asis"}
 dot_code <- get_connectivity_diagram ( "2507-0700", "in"
@@ -128,15 +132,19 @@ dot_code <- get_connectivity_diagram ( "2507-0700", "in"
 cat(get_diagram_aux(dot_code ))
 ```
 
+The Constellation is a video switching device that has 12 inputs and 20 outputs, plus two multi-view outputs. All of its inputs and outputs go to the video hub. The diagram is rather messy as a result.
+
 ```{r cons2vh, results="asis"}
 a <- get_connectivity_diagram ( "2507-0700", "in"
 								, db.inventory
 					   , db.cables, types = NULL
 					   , label = '"Connectivity from Constellation into VideoHub"' 
 								, rankdir = "LR",
-								partners = c("Constellation")) 
+								partners = c("2601-2800")) 
 cat(get_diagram_aux(a))
 ```
+
+We have four cameras that are connected to the VideoHub which are then normally routed to the Constellation.
 
 ```{r cameras2vh, results="asis"}
 	ps <- c("ZVCU-A001"
@@ -152,27 +160,70 @@ cat(get_diagram_aux(a))
 	cat(get_diagram_aux(a))
 ```
 
-
-```{r vh_matrix_in, results='asis'}
+```{r vh_matrix_in, results='asis' }
 #| tbl-cap: "VideoHub Matrix Inputs"
 #| tbl-cap-location: bottom
 
 dev <- "2507-0700"
-tt <- glue("Input Ports for {dev}")
+tt <- glue("Inputs for {dev}")
 st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
 
 tab <- db.cables |>
+	full_join(db.inventory, by=join_by(SrcTag == AssetTag)
+			  , na_matches = "never") |>
 	filter(DstTag == dev) |>
- 	select(Tag,SrcTag,SrcPort,DstTag,DstPort,Type,Usage ) |>
+ 	select(Tag , SrcTag
+ 		   , Manufacturer, Model
+ 		   , SrcPort,  DstPort,Type.x, Usage.x ) |>
    gt() |>  
 		opt_stylize(style = 5) |>
-	tab_header(tt, subtitle=st)
+	tab_header(tt, subtitle=st) |>
+	cols_merge(
+	    columns = c(Manufacturer, Model),
+    	pattern = "{1}\n{2}"
+  ) |> cols_label( Tag = "Cable"
+  				 , Manufacturer ="Src Device"
+  				 , Type.x ="Type"
+  				 , Usage.x = "Usage")   
+
 print_gt_table(tab) |> cat()
 ```
 
 ### Outputs VideoHub
 
 All outputs are SDI.
+
+If a target_device has a connection to a partner A, and A has a connection to B, and B is listed in the partners parameter, then show that as well. Likewise If B is connected to C and C is listed in the partners parameter show that too. Do this for all connected and listed partner systems.
+
+```{r vh2projs, results="asis"}
+	ps <- c("2601-1304", "2601-1305" , "2601-1306"
+			, "ZVVU-A001", "ZVVU-A002" , "ZVVU-A003"
+	)
+	
+	a <- get_connectivity_diagram ( "2507-0700", "out", db.inventory
+									, db.cables, types = NULL
+									, label = '"Connectivity from VideoHub into Projectors"' 
+									, rankdir = "LR",
+									partners = ps) 
+	cat(get_diagram_aux(a))
+```
+
+
+```{r vs882projs, results="asis"}
+	ps <- c( 
+			 "ZVVU-A001", "ZVVU-A002" , "ZVVU-A003"
+	)
+	
+	a <- get_connectivity_diagram ( "ZVKU-A001", "out", db.inventory
+									, db.cables, types = NULL
+									, label = '"Connectivity from VS88 into Projectors"' 
+									, rankdir = "LR",
+									partners = ps) 
+	#cat(get_diagram_aux(a))
+	grViz(a)
+```
+
+
 
 ```{r vh_matrix_out, results='asis'}
 #| tbl-cap: "VideoHub Matrix Outputs"
@@ -193,6 +244,10 @@ print_gt_table(tab) |> cat()
 ```
 
 ## VS-88DT Matrix
+
+The Kramer VS-88DT video matrix which is an 8x8 matrix and can handle HDMI inputs and outputs which are either HDMI or [HDBaseT](https://en.wikipedia.org/wiki/HDBaseT) formats. Any of the 8 inputs can be routed to any of the 8 outputs (or several outputs).
+
+It can be controlled via the buttons on the front panel or from it’s built in web page.
 
 ### Inputs
 
@@ -370,7 +425,7 @@ targets_v <- c(  "2507-0700" , "2512-1001" , "librarytv"
 xd <- c(   "cam1" , "cam2", "cam3", "cam4", "bidi118"
 		   , "decklink"
 		   , "recorder"
-		 , "Constellation"  
+		 , "2601-2800"  
 		) 
 
 label <- NA
