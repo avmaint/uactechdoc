@@ -48,17 +48,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const cableTypeFilter = document.getElementById("cableTypeFilter");
     const viewDiagramBtn = document.getElementById("viewDiagramBtn");
     const cableTableContainer = document.getElementById("cableTableContainer");
-    // const diagramDotOutput = document.getElementById("diagramDotOutput"); // Removed
+    
+    const diagramRenderArea = document.getElementById("diagramRenderArea");
+    let graphviz = null; // Initialize graphviz to null
 
-    const diagramRenderArea = document.getElementById("diagramRenderArea"); // New
-    let graphviz = d3.select("#diagramRenderArea").graphviz()
+    // Initialize hpcc-js/wasm Graphviz once and assign to global graphviz variable
+    window["@hpcc-js/wasm"].Graphviz.load().then(hpccGraphviz => { // Corrected line
+        graphviz = d3.select("#diagramRenderArea").graphviz({
+            use  : hpccGraphviz // Use the loaded hpcc-js/wasm instance
+        })
         .zoom(true) // Enable zooming
         .on("end", () => console.log("Graphviz rendering finished.")); // Optional callback
+        console.log("Graphviz initialized with hpcc-js/wasm.");
+    }).catch(error => {
+        console.error("Error initializing Graphviz with hpcc-js/wasm:", error);
+        diagramRenderArea.innerHTML = `<p style="color: red;">Error initializing diagram renderer: ${error.message}</p>`;
+    });
 
     viewDiagramBtn.addEventListener("click", async () => {
         const targetTag = targetTagFilter.value;
         if (!targetTag) {
             alert("Please enter a Target Asset Tag.");
+            return;
+        }
+
+        // Ensure graphviz is initialized before rendering
+        if (!graphviz) {
+            console.error("Graphviz not initialized yet. Please wait a moment for the renderer to load.");
+            diagramRenderArea.innerHTML = `<p style="color: orange;">Diagram renderer is still loading. Please try again in a moment.</p>`;
             return;
         }
 
