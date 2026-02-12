@@ -1,6 +1,7 @@
 const API_BASE_URL = "http://localhost:9000"; // Assuming backend runs on port 9000
 
 document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOMContentLoaded event fired."); // Added log
     // --- Tab Switching Logic ---
     const tabButtons = document.querySelectorAll(".tab-button");
     const tabContents = document.querySelectorAll(".tab-content");
@@ -52,26 +53,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const diagramRenderArea = document.getElementById("diagramRenderArea");
     let graphviz = null; // Initialize graphviz to null
 
-    // Initialize hpcc-js/wasm Graphviz once and assign to global graphviz variable
-    window["@hpcc-js/wasm"].Graphviz.load().then(hpccGraphviz => { // Corrected line
+    // Initialize d3-graphviz once, using the global Viz object
+    // Wait for DOM to be ready, and ensure Viz is loaded
+    if (typeof Viz !== 'undefined') {
         graphviz = d3.select("#diagramRenderArea").graphviz({
-            use  : hpccGraphviz // Use the loaded hpcc-js/wasm instance
+            Viz: Viz // Pass the global Viz object to d3-graphviz
         })
         .zoom(true) // Enable zooming
-        .on("end", () => console.log("Graphviz rendering finished.")); // Optional callback
-        console.log("Graphviz initialized with hpcc-js/wasm.");
-    }).catch(error => {
-        console.error("Error initializing Graphviz with hpcc-js/wasm:", error);
-        diagramRenderArea.innerHTML = `<p style="color: red;">Error initializing diagram renderer: ${error.message}</p>`;
-    });
+        .on("end", () => console.log("Graphviz rendering finished."));
+        console.log("Graphviz initialized successfully.");
+    } else {
+        console.error("Viz.js (UMD version) not loaded. Cannot initialize Graphviz renderer.");
+        diagramRenderArea.innerHTML = `<p style="color: red;">Error: Diagram renderer (Viz.js) not loaded. Please check browser console.</p>`;
+    }
+
 
     viewDiagramBtn.addEventListener("click", async () => {
+        console.log("View Diagram & Cables button clicked."); // Added log
         const targetTag = targetTagFilter.value;
+        console.log("Target Tag value:", targetTag); // Added log
         if (!targetTag) {
             alert("Please enter a Target Asset Tag.");
             return;
         }
 
+        console.log("Graphviz initialization state:", graphviz); // Added log
         // Ensure graphviz is initialized before rendering
         if (!graphviz) {
             console.error("Graphviz not initialized yet. Please wait a moment for the renderer to load.");
