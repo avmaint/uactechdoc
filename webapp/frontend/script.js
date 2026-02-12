@@ -51,22 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const cableTableContainer = document.getElementById("cableTableContainer");
     
     const diagramRenderArea = document.getElementById("diagramRenderArea");
-    let graphviz = null; // Initialize graphviz to null
-
-    // Initialize d3-graphviz once, using the global Viz object
-    // Wait for DOM to be ready, and ensure Viz is loaded
-    if (typeof Viz !== 'undefined') {
-        graphviz = d3.select("#diagramRenderArea").graphviz({
-            Viz: Viz // Pass the global Viz object to d3-graphviz
-        })
-        .zoom(true) // Enable zooming
-        .on("end", () => console.log("Graphviz rendering finished."));
-        console.log("Graphviz initialized successfully.");
-    } else {
-        console.error("Viz.js (UMD version) not loaded. Cannot initialize Graphviz renderer.");
-        diagramRenderArea.innerHTML = `<p style="color: red;">Error: Diagram renderer (Viz.js) not loaded. Please check browser console.</p>`;
-    }
-
 
     viewDiagramBtn.addEventListener("click", async () => {
         console.log("View Diagram & Cables button clicked."); // Added log
@@ -77,11 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        console.log("Graphviz initialization state:", graphviz); // Added log
-        // Ensure graphviz is initialized before rendering
-        if (!graphviz) {
-            console.error("Graphviz not initialized yet. Please wait a moment for the renderer to load.");
-            diagramRenderArea.innerHTML = `<p style="color: orange;">Diagram renderer is still loading. Please try again in a moment.</p>`;
+        // Check if Viz is loaded
+        if (typeof Viz === 'undefined') {
+            console.error("Viz.js not loaded. Cannot render diagram.");
+            diagramRenderArea.innerHTML = `<p style="color: red;">Error: Diagram renderer (Viz.js) not loaded. Please check browser console.</p>`;
             return;
         }
 
@@ -117,9 +100,18 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const dotJson = await dotResponse.json();
             
-            // Render the DOT string using d3-graphviz
-            graphviz.renderDot(dotJson.dot_string);
-            document.querySelector('.tab-button[data-tab="diagramViewer"]').click(); // Switch to diagram tab
+            // Render the DOT string using Viz.js directly
+            // Instantiate Viz and then call renderString
+            const viz = new Viz();
+            viz.renderString(dotJson.dot_string, { format: "svg" })
+                .then(svg => {
+                    diagramRenderArea.innerHTML = svg;
+                    document.querySelector('.tab-button[data-tab="diagramViewer"]').click(); // Switch to diagram tab
+                })
+                .catch(error => {
+                    console.error("Error rendering SVG with Viz.js:", error);
+                    diagramRenderArea.innerHTML = `<p style="color: red;">Error rendering diagram with Viz.js: ${error.message}</p>`;
+                });
             
         } catch (error) {
             console.error("Error fetching or rendering Graphviz DOT string:", error);
