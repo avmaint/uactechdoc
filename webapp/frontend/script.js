@@ -61,13 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Check if Viz is loaded
-        if (typeof Viz === 'undefined') {
-            console.error("Viz.js not loaded. Cannot render diagram.");
-            diagramRenderArea.innerHTML = `<p style="color: red;">Error: Diagram renderer (Viz.js) not loaded. Please check browser console.</p>`;
-            return;
-        }
-
         // Fetch Cable Data
         const cableParams = new URLSearchParams();
         cableParams.append("target_tag", targetTag);
@@ -87,34 +80,26 @@ document.addEventListener("DOMContentLoaded", () => {
             cableTableContainer.innerHTML = `<p style="color: red;">Error loading cable data: ${error.message}</p>`;
         }
 
-        // Fetch Graphviz DOT String
+        // Fetch Graphviz DOT String (now expects SVG directly)
         const dotParams = new URLSearchParams();
         dotParams.append("target_tag", targetTag);
         dotParams.append("direction", directionFilter.value);
         if (cableTypeFilter.value) dotParams.append("cable_type", cableTypeFilter.value);
 
         try {
-            const dotResponse = await fetch(`${API_BASE_URL}/graphviz/dot?${dotParams.toString()}`);
-            if (!dotResponse.ok) {
-                throw new Error(`HTTP error! status: ${dotResponse.status}`);
+            // Expect SVG text directly from the backend
+            const svgResponse = await fetch(`${API_BASE_URL}/graphviz/dot?${dotParams.toString()}`);
+            if (!svgResponse.ok) {
+                throw new Error(`HTTP error! status: ${svgResponse.status}`);
             }
-            const dotJson = await dotResponse.json();
-            
-            // Render the DOT string using Viz.js directly
-            // Instantiate Viz and then call renderString
-            const viz = new Viz();
-            viz.renderString(dotJson.dot_string, { format: "svg" })
-                .then(svg => {
-                    diagramRenderArea.innerHTML = svg;
-                    document.querySelector('.tab-button[data-tab="diagramViewer"]').click(); // Switch to diagram tab
-                })
-                .catch(error => {
-                    console.error("Error rendering SVG with Viz.js:", error);
-                    diagramRenderArea.innerHTML = `<p style="color: red;">Error rendering diagram with Viz.js: ${error.message}</p>`;
-                });
+            const svgText = await svgResponse.text(); // Get response as text
+
+            // Inject the SVG text directly into the div
+            diagramRenderArea.innerHTML = svgText;
+            document.querySelector('.tab-button[data-tab="diagramViewer"]').click(); // Switch to diagram tab
             
         } catch (error) {
-            console.error("Error fetching or rendering Graphviz DOT string:", error);
+            console.error("Error fetching or rendering Graphviz SVG:", error);
             diagramRenderArea.innerHTML = `<p style="color: red;">Error loading or rendering diagram: ${error.message}</p>`;
         }
     });

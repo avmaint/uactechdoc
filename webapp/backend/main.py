@@ -1,7 +1,10 @@
 import pandas as pd
 import numpy as np
+import html # Import html module
+import graphviz # Import graphviz
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response # Import Response for SVG output
 from typing import Optional, List
 
 app = FastAPI()
@@ -67,68 +70,119 @@ async def read_root():
     return {"message": "Welcome to the UAC Tech Documentation API"}
 
 # --- Graphviz DOT Generation Function ---
-def generate_graphviz_dot(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame) -> str:
+def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame) -> str: # Renamed function
     """
-    Generates a Graphviz DOT string from filtered cable and asset data.
+    Generates a Graphviz DOT string from filtered cable and asset data,
+    with custom node shapes and port displays.
     """
     dot_nodes = set()
-    dot_edges = []
+    node_ports = {} # To store unique src/dst ports for each node
 
-    # Add nodes for source and destination tags
+    # Collect all nodes and their associated ports
     for _, row in filtered_cables.iterrows():
-        for tag_col in ["SrcTag", "DstTag"]:
-            tag = row[tag_col]
-            if pd.notna(tag) and tag != "":
-                dot_nodes.add(tag)
+        src_tag = str(row["SrcTag"]) # Ensure string
+        dst_tag = str(row["DstTag"]) # Ensure string
+        src_port = str(row["SrcPort"]) # Ensure string
+        dst_port = str(row["DstPort"]) # Ensure string
 
-    # Define nodes with additional information
+        if src_tag != "": # Cleaned data should have "" instead of None
+            dot_nodes.add(src_tag)
+            if src_tag not in node_ports:
+                node_ports[src_tag] = {'src': set(), 'dst': set()}
+            if src_port != "":
+                node_ports[src_tag]['src'].add(src_port)
+
+        if dst_tag != "": # Cleaned data should have "" instead of None
+            dot_nodes.add(dst_tag)
+            if dst_tag not in node_ports:
+                node_ports[dst_tag] = {'src': set(), 'dst': set()}
+            if dst_port != "":
+                node_ports[dst_tag]['dst'].add(dst_port)
+
     node_definitions = []
-    for node_tag in sorted(list(dot_nodes)):
-        asset_info = assets_df[assets_df["AssetTag"] == node_tag]
-        label = node_tag
+    # Define nodes with HTML-like labels for ports and asset info
+    for node_tag_val in sorted([str(n) for n in list(dot_nodes)]): # Ensure node_tag_val is string for sorting
+        asset_info = assets_df[assets_df["AssetTag"] == node_tag_val]
+        
+        # Default labels (empty strings for easier HTML-like label generation)
+        display_manufacturer = ""
+        display_model = ""
+        
         if not asset_info.empty:
-            manufacturer = asset_info["Manufacturer"].iloc[0]
-            model = asset_info["Model"].iloc[0]
-            usage = asset_info["Usage"].iloc[0] # Assuming 'Usage' is a column
+            display_manufacturer = asset_info["Manufacturer"].iloc[0]
+            display_model = asset_info["Model"].iloc[0]
             
-            label_parts = [node_tag]
-            if pd.notna(manufacturer) and manufacturer != "":
-                label_parts.append(manufacturer)
-            if pd.notna(model) and model != "":
-                label_parts.append(model)
-            # if pd.notna(usage) and usage != "":
-            #     label_parts.append(f"({usage})") # Add usage if exists
-            
-            label = "\\n".join(label_parts)
-            
-        node_definitions.append(f'  "{node_tag}" [label="{label}"];')
+        # Ensure manufacturer and model are properly formatted for HTML-like label
+        manufacturer_line = f"<BR/>{html.escape(display_manufacturer)}" if display_manufacturer else ""
+        model_line = f"<BR/>{html.escape(display_model)}" if display_model else ""
 
+        # Build DstPorts column
+        dst_ports_content = ""
+        sorted_dst_ports = sorted([str(p) for p in list(node_ports.get(node_tag_val, {}).get('dst', set()))])
+        if sorted_dst_ports:
+            # Added CELLBORDER="1" to inner table
+            dst_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">'
+            for port in sorted_dst_ports:
+                dst_ports_content += f'<TR><TD PORT="{html.escape(port)}" ALIGN="LEFT">{html.escape(port)}</TD></TR>' # HTML escape port
+            dst_ports_content += '</TABLE>'
+        
+        # Build SrcPorts column
+        src_ports_content = ""
+        sorted_src_ports = sorted([str(p) for p in list(node_ports.get(node_tag_val, {}).get('src', set()))])
+        if sorted_src_ports:
+            # Added CELLBORDER="1" to inner table
+            src_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">'
+            for port in sorted_src_ports:
+                src_ports_content += f'<TR><TD PORT="{html.escape(port)}" ALIGN="RIGHT">{html.escape(port)}</TD></TR>' # HTML escape port
+            src_ports_content += '</TABLE>'
 
-    # Define edges
+        # Main node label table
+        node_label_html = f'''<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="white">
+          <TR>
+            <TD BORDER="1" WIDTH="40">{dst_ports_content}</TD>
+            <TD BGCOLOR="lightblue" ALIGN="CENTER"> <!-- Added ALIGN="CENTER" -->
+              <B>{html.escape(node_tag_val)}</B>{manufacturer_line}{model_line}
+            </TD>
+            <TD BORDER="1" WIDTH="40">{src_ports_content}</TD>
+          </TR>
+        </TABLE>
+        >'''
+        
+        # Node attributes: shape=plain is key for HTML-like labels to work as rectangles
+        node_definitions.append(f'  "{node_tag_val}" [label={node_label_html}, shape=plain];')
+
+    dot_edges = []
+    # Define edges with simplified labels
     for _, row in filtered_cables.iterrows():
-        src_tag = row["SrcTag"]
-        dst_tag = row["DstTag"]
-        cable_tag = row["Tag"]
-        cable_type = row["Type"]
-        src_port = row["SrcPort"]
-        dst_port = row["DstPort"]
+        src_tag = str(row["SrcTag"])
+        dst_tag = str(row["DstTag"])
+        cable_tag = str(row["Tag"])
+        cable_type = str(row["Type"])
+        src_port = str(row["SrcPort"])
+        dst_port = str(row["DstPort"])
 
-        if pd.notna(src_tag) and pd.notna(dst_tag):
+        if src_tag != "" and dst_tag != "": # Cleaned data should have "" instead of None
             label_parts = []
-            if pd.notna(cable_tag) and cable_tag != "":
-                label_parts.append(f"Cable: {cable_tag}")
-            if pd.notna(cable_type) and cable_type != "":
-                label_parts.append(f"Type: {cable_type}")
-            if pd.notna(src_port) and src_port != "":
-                label_parts.append(f"SrcPort: {src_port}")
-            if pd.notna(dst_port) and dst_port != "":
-                label_parts.append(f"DstPort: {dst_port}")
+            if cable_tag != "":
+                label_parts.append(html.escape(cable_tag))
+            if cable_type != "":
+                label_parts.append(html.escape(cable_type))
             
+            # Add src_port>dest_port to the label
+            if src_port != "" and dst_port != "":
+                label_parts.append(f"{html.escape(src_port)} > {html.escape(dst_port)}")
+
             edge_label = "\\n".join(label_parts) if label_parts else ""
             
-            dot_edges.append(f'  "{src_tag}" -> "{dst_tag}" [label="{edge_label}"];')
+            # Use port names in the edge definition
+            # Node:port syntax is used for connecting to specific ports within HTML-like labels
+            from_port = f'"{src_tag}":"{html.escape(src_port)}"' if src_port != "" else f'"{src_tag}"'
+            to_port = f'"{dst_tag}":"{html.escape(dst_port)}"' if dst_port != "" else f'"{dst_tag}"'
+            
+            dot_edges.append(f'  {from_port} -> {to_port} [label="{edge_label}"];')
 
-    dot_string = "digraph G {\n  rankdir=LR;\n"
+    dot_string = "digraph G {\n  rankdir=LR;\n  node [fontsize=10];\n  edge [fontsize=8];\n" # Added rankdir and default font sizes
     dot_string += "\n".join(node_definitions)
     dot_string += "\n"
     dot_string += "\n".join(dot_edges)
@@ -237,4 +291,14 @@ async def get_graphviz_dot(
     # Filter df_assets to only include assets that are part of the graph
     graph_assets = df_assets[df_assets["AssetTag"].isin(involved_tags)]
     
-    return {"dot_string": generate_graphviz_dot(filtered_cables, graph_assets)}
+    dot_string = generate_dot_string(filtered_cables, graph_assets) # Renamed function
+    
+    # Try rendering the DOT string to SVG
+    try:
+        dot_source = graphviz.Source(dot_string) # Create a Graphviz Source object
+        svg_output = dot_source.pipe(format='svg').decode('utf-8') # Render to SVG and decode
+        return Response(content=svg_output, media_type="image/svg+xml") # Return as SVG
+    except Exception as e:
+        print(f"Error rendering Graphviz DOT to SVG: {e}")
+        # If rendering fails, return the DOT string so the user can debug it
+        raise HTTPException(status_code=500, detail=f"Error rendering Graphviz SVG: {e}")
