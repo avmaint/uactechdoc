@@ -1,5 +1,18 @@
 const API_BASE_URL = "http://localhost:9000"; // Assuming backend runs on port 9000
 
+// Store sort state for tables
+const tableSortStates = {
+    assetResults: {
+        column: null,
+        direction: 'asc' // 'asc' or 'desc'
+    },
+    cableResults: {
+        column: null,
+        direction: 'asc'
+    }
+};
+
+
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOMContentLoaded event fired."); // Added log
     // --- Tab Switching Logic ---
@@ -35,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            renderTable(data, assetTableContainer);
+            renderTable(data, assetTableContainer, 'assetResults'); // Pass table ID
             document.querySelector('.tab-button[data-tab="assetResults"]').click(); // Switch to asset results tab
         } catch (error) {
             console.error("Error fetching assets:", error);
@@ -72,8 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!cableResponse.ok) {
                 throw new Error(`HTTP error! status: ${cableResponse.status}`);
             }
-            const cableData = await cableResponse.json();
-            renderTable(cableData, cableTableContainer);
+            const data = await cableResponse.json();
+            renderTable(data, cableTableContainer, 'cableResults'); // Pass table ID
             // document.querySelector('.tab-button[data-tab="cableResults"]').click(); // Switch to cable results tab
         } catch (error) {
             console.error("Error fetching cable data:", error);
@@ -105,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // --- Utility: Render Table ---
-    function renderTable(data, container) {
+    function renderTable(data, container, tableId) { // Added tableId parameter
         if (!data || data.length === 0) {
             container.innerHTML = "<p>No results found.</p>";
             return;
@@ -121,12 +134,27 @@ document.addEventListener("DOMContentLoaded", () => {
         headers.forEach(headerText => {
             const th = document.createElement("th");
             th.textContent = headerText;
+            th.dataset.column = headerText; // Store column name in dataset
+            th.classList.add('sortable'); // Add class for styling
             headerRow.appendChild(th);
         });
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
-        // Create table rows
+        // Sort data based on current state
+        const currentSortState = tableSortStates[tableId];
+        if (currentSortState.column) {
+            data.sort((a, b) => {
+                const valA = a[currentSortState.column];
+                const valB = b[currentSortState.column];
+                let comparison = 0;
+                if (valA > valB) comparison = 1;
+                else if (valA < valB) comparison = -1;
+                return currentSortState.direction === 'desc' ? comparison * -1 : comparison;
+            });
+        }
+
+        // Create table rows (same as before)
         data.forEach(rowData => {
             const row = document.createElement("tr");
             headers.forEach(headerText => {
@@ -140,5 +168,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         container.innerHTML = ""; // Clear previous content
         container.appendChild(table);
+
+        // Add event listeners to headers for sorting
+        thead.querySelectorAll('th').forEach(header => {
+            header.addEventListener('click', () => {
+                const column = header.dataset.column;
+                let direction = 'asc';
+
+                if (tableSortStates[tableId].column === column && tableSortStates[tableId].direction === 'asc') {
+                    direction = 'desc';
+                }
+
+                tableSortStates[tableId] = { column, direction };
+                renderTable(data, container, tableId); // Re-render with sorted data
+            });
+        });
     }
 });
