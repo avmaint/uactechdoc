@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import html # Import html module
 import graphviz # Import graphviz
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query # Import Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response # Import Response for SVG output
 from typing import Optional, List
@@ -120,8 +120,7 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame) 
         dst_ports_content = ""
         sorted_dst_ports = sorted([str(p) for p in list(node_ports.get(node_tag_val, {}).get('dst', set()))])
         if sorted_dst_ports:
-            # Added CELLBORDER="1" to inner table
-            dst_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">'
+            dst_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">' # Changed CELLBORDER to 1
             for port in sorted_dst_ports:
                 dst_ports_content += f'<TR><TD PORT="{html.escape(port)}" ALIGN="LEFT">{html.escape(port)}</TD></TR>' # HTML escape port
             dst_ports_content += '</TABLE>'
@@ -130,8 +129,7 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame) 
         src_ports_content = ""
         sorted_src_ports = sorted([str(p) for p in list(node_ports.get(node_tag_val, {}).get('src', set()))])
         if sorted_src_ports:
-            # Added CELLBORDER="1" to inner table
-            src_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">'
+            src_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">' # Changed CELLBORDER to 1
             for port in sorted_src_ports:
                 src_ports_content += f'<TR><TD PORT="{html.escape(port)}" ALIGN="RIGHT">{html.escape(port)}</TD></TR>' # HTML escape port
             src_ports_content += '</TABLE>'
@@ -141,7 +139,7 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame) 
         <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="white">
           <TR>
             <TD BORDER="1" WIDTH="40">{dst_ports_content}</TD>
-            <TD BGCOLOR="lightblue" ALIGN="CENTER"> <!-- Added ALIGN="CENTER" -->
+            <TD BGCOLOR="lightblue" ALIGN="CENTER">
               <B>{html.escape(node_tag_val)}</B>{manufacturer_line}{model_line}
             </TD>
             <TD BORDER="1" WIDTH="40">{src_ports_content}</TD>
@@ -223,15 +221,18 @@ async def filter_cables(
     target_tag: str,
     direction: str = "both",  # "in", "out", "both"
     cable_type: Optional[str] = None,
+    visible_asset_tags: Optional[str] = Query(None), # Comma-separated string
 ):
     """
-    Filter cables based on a target asset tag, direction, and optional cable type.
+    Filter cables based on a target asset tag, direction, optional cable type,
+    and an optional list of visible asset tags.
     """
     if direction not in ["in", "out", "both"]:
         raise HTTPException(status_code=400, detail="Direction must be 'in', 'out', or 'both'.")
 
     filtered_cables = df_cables.copy()
 
+    # Apply initial direction filtering
     if direction == "in":
         filtered_cables = filtered_cables[filtered_cables["DstTag"] == target_tag]
     elif direction == "out":
@@ -241,11 +242,26 @@ async def filter_cables(
             (filtered_cables["DstTag"] == target_tag) | (filtered_cables["SrcTag"] == target_tag)
         ]
 
+    # Apply cable type filtering
     if cable_type:
         filtered_cables = filtered_cables[
             filtered_cables["Type"].str.contains(cable_type, case=False, na=False)
         ]
             
+    # Apply visible_asset_tags filtering (if provided)
+    if visible_asset_tags:
+        visible_tags_list = [tag.strip() for tag in visible_asset_tags.split(',') if tag.strip()]
+        
+        # Ensure the target_tag is always included
+        if target_tag not in visible_tags_list:
+            visible_tags_list.append(target_tag)
+
+        # Filter cables where both source and destination tags are in the visible_tags_list
+        filtered_cables = filtered_cables[
+            (filtered_cables["SrcTag"].isin(visible_tags_list)) &
+            (filtered_cables["DstTag"].isin(visible_tags_list))
+        ]
+
     processed_cables = clean_dataframe_for_json(filtered_cables)
     return processed_cables.to_dict(orient="records")
 
@@ -255,43 +271,51 @@ async def get_graphviz_dot(
     target_tag: str,
     direction: str = "both",
     cable_type: Optional[str] = None,
+    visible_asset_tags: Optional[str] = Query(None), # Comma-separated string
 ):
     """
     Generates a Graphviz DOT string for filtered cables.
     """
-    # Use the existing cable filtering logic
-    if direction not in ["in", "out", "both"]:
-        raise HTTPException(status_code=400, detail="Direction must be 'in', 'out', or 'both'.")
+    # Use the existing cable filtering logic (which now accepts visible_asset_tags)
+    # We call filter_cables with the same parameters to get the filtered_cables for the graph
+    # Need to convert the dicts back to DataFrame for generate_dot_string
+    filtered_cables_data = await filter_cables(target_tag, direction, cable_type, visible_asset_tags)
+    filtered_cables = pd.DataFrame(filtered_cables_data)
 
-    filtered_cables = df_cables.copy()
+    # If no cables match the filter criteria, return an empty graph
+    if filtered_cables.empty:
+        # Generate an empty graph with a message
+        empty_dot_string = "digraph G { label='No matching cables found.'; labelloc=\"t\"; }"
+        try:
+            dot_source = graphviz.Source(empty_dot_string)
+            svg_output = dot_source.pipe(format='svg').decode('utf-8')
+            return Response(content=svg_output, media_type="image/svg+xml")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error rendering empty graph SVG: {e}")
 
-    if direction == "in":
-        filtered_cables = filtered_cables[filtered_cables["DstTag"] == target_tag]
-    elif direction == "out":
-        filtered_cables = filtered_cables[filtered_cables["SrcTag"] == target_tag]
-    else:  # "both"
-        filtered_cables = filtered_cables[
-            (filtered_cables["DstTag"] == target_tag) | (filtered_cables["SrcTag"] == target_tag)
-        ]
 
-    if cable_type:
-        filtered_cables = filtered_cables[
-            filtered_cables["Type"].str.contains(cable_type, case=False, na=False)
-        ]
-            
-    # Include the target_tag itself even if it's not a src/dst in the filtered cables
-    # (e.g., if it's an isolated node due to filtering)
+    # Determine all involved tags for the graph, including the target_tag and visible tags
     involved_tags = set(filtered_cables["SrcTag"].dropna().unique()).union(
         set(filtered_cables["DstTag"].dropna().unique())
     )
-    if target_tag in df_assets["AssetTag"].values:
-        involved_tags.add(target_tag)
+    # Ensure the target_tag is always included in the graph, even if it has no connections after filtering
+    involved_tags.add(target_tag)
 
+    if visible_asset_tags: # If visible_asset_tags were provided, further refine involved_tags
+        visible_tags_list = [tag.strip() for tag in visible_asset_tags.split(',') if tag.strip()]
+        # Add target_tag to visible_tags_list if not already present, to ensure it's always included
+        if target_tag not in visible_tags_list:
+            visible_tags_list.append(target_tag)
+        
+        # Filter involved_tags to only include those that are explicitly visible
+        # This is needed because filtered_cables might still contain nodes that are not in visible_tags_list
+        # due to the way initial filtering was done based on src/dst.
+        involved_tags = involved_tags.intersection(set(visible_tags_list))
 
     # Filter df_assets to only include assets that are part of the graph
     graph_assets = df_assets[df_assets["AssetTag"].isin(involved_tags)]
     
-    dot_string = generate_dot_string(filtered_cables, graph_assets) # Renamed function
+    dot_string = generate_dot_string(filtered_cables, graph_assets) 
     
     # Try rendering the DOT string to SVG
     try:
@@ -300,5 +324,5 @@ async def get_graphviz_dot(
         return Response(content=svg_output, media_type="image/svg+xml") # Return as SVG
     except Exception as e:
         print(f"Error rendering Graphviz DOT to SVG: {e}")
-        # If rendering fails, return the DOT string so the user can debug it
+        # If rendering fails, return a 500 error
         raise HTTPException(status_code=500, detail=f"Error rendering Graphviz SVG: {e}")
