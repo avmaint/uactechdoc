@@ -102,6 +102,14 @@ def denormalize_tags(normalized_tags: Set[str]) -> Set[str]:
     return display_values
 
 
+def canonical_display_tag(tag_value: Optional[str]) -> str:
+    """Returns a consistent, display-friendly representation of a tag value."""
+    norm = normalize_tag_value(tag_value)
+    if not norm:
+        return ""
+    return ASSET_TAG_LOOKUP.get(norm, norm)
+
+
 def reload_dataframes() -> None:
     """Reloads the global asset and cable DataFrames and associated lookup sets."""
     global df_assets, df_cables, ASSET_TAG_LOOKUP, VALID_ASSET_TAGS_NORMALIZED
@@ -306,11 +314,11 @@ async def filter_cables(
     if not target_norm:
         raise HTTPException(status_code=400, detail="Target asset tag is required.")
 
-    broadly_involved_asset_tags: Set[str] = {target_norm}
+    broadly_involved_asset_tags_norm: Set[str] = {target_norm}
 
     if visible_asset_tags:
         visible_norm_list = normalize_tag_list(visible_asset_tags)
-        broadly_involved_asset_tags.update(visible_norm_list)
+        broadly_involved_asset_tags_norm.update(visible_norm_list)
     
     if additional_asset_tags:
         additional_norm_list = normalize_tag_list(additional_asset_tags)
@@ -321,13 +329,13 @@ async def filter_cables(
                 status_code=400,
                 detail=f"Invalid additional asset tags: {', '.join(display_invalid)}. Please check your input.",
             )
-        broadly_involved_asset_tags.update(additional_norm_list)
+        broadly_involved_asset_tags_norm.update(additional_norm_list)
 
     # Discover cables that touch any of the broadly involved assets so we do not
     # prematurely drop legitimate rows.
     candidate_mask = (
-        df_cables["SrcTagNorm"].isin(broadly_involved_asset_tags) |
-        df_cables["DstTagNorm"].isin(broadly_involved_asset_tags)
+        df_cables["SrcTagNorm"].isin(broadly_involved_asset_tags_norm) |
+        df_cables["DstTagNorm"].isin(broadly_involved_asset_tags_norm)
     )
     candidate_cables = df_cables[candidate_mask].copy()
 
@@ -355,24 +363,32 @@ async def filter_cables(
             (candidate_cables["DstTagNorm"].isin(visible_tags_set))
         ]
 
-    # Gather asset tags involved in the current response, even if they do not exist in df_assets.
-    discovered_asset_tags: Set[str] = set(candidate_cables["SrcTag"].astype(str).str.strip())
-    discovered_asset_tags.update(candidate_cables["DstTag"].astype(str).str.strip())
-    discovered_asset_tags.update(denormalize_tags(broadly_involved_asset_tags))
-    cleaned_asset_tags = []
-    for tag in discovered_asset_tags:
-        if tag is None:
-            continue
-        tag_str = str(tag).strip()
-        if tag_str:
-            cleaned_asset_tags.append(tag_str)
+    discovered_asset_tags: Set[str] = set()
+    for raw_tag in candidate_cables["SrcTag"].tolist():
+        canonical = canonical_display_tag(raw_tag)
+        if canonical:
+            discovered_asset_tags.add(canonical)
+    for raw_tag in candidate_cables["DstTag"].tolist():
+        canonical = canonical_display_tag(raw_tag)
+        if canonical:
+            discovered_asset_tags.add(canonical)
+    discovered_asset_tags.update(denormalize_tags(broadly_involved_asset_tags_norm))
+
+    # Canonicalize Src/Dst tags for downstream consumers (tables, diagram parsing).
+    candidate_cables["SrcTag"] = candidate_cables["SrcTag"].apply(canonical_display_tag)
+    candidate_cables["DstTag"] = candidate_cables["DstTag"].apply(canonical_display_tag)
+
+    cleaned_asset_tags = sorted(
+        [tag for tag in (str(t).strip() for t in discovered_asset_tags) if tag],
+        key=lambda x: x.lower()
+    )
 
     candidate_cables = candidate_cables.drop(columns=["SrcTagNorm", "DstTagNorm"], errors="ignore")
     processed_cables = clean_dataframe_for_json(candidate_cables)
     return {
         "cables": processed_cables.to_dict(orient="records"),
-        "asset_tags": sorted(cleaned_asset_tags, key=lambda x: x.lower()),
-        "primary_target": ASSET_TAG_LOOKUP.get(target_norm, target_tag),
+        "asset_tags": cleaned_asset_tags,
+        "primary_target": canonical_display_tag(target_tag),
     }
 
 
@@ -404,8 +420,6 @@ async def get_graphviz_dot(
             raise HTTPException(status_code=400, detail=f"Invalid additional asset tags: {', '.join(display_invalid)}. Please check your input.")
         broadly_involved_asset_tags_norm.update(additional_tags_list)
 
-    broadly_involved_asset_tags = denormalize_tags(broadly_involved_asset_tags_norm)
-
     # Step 2: Discover all cables connected to the `broadly_involved_asset_tags`
     # This was the initial_filtered_cables logic before my over-correction.
     discovered_cables = df_cables[
@@ -429,34 +443,31 @@ async def get_graphviz_dot(
             candidate_cables["Type"].str.contains(cable_type, case=False, na=False)
         ]
     
-    # Step 4: Determine the *final* set of nodes to render based on `visible_asset_tags`
-    # This is the strict display filter.
-    final_nodes_to_render = set()
+    # Step 4: Determine the *final* set of nodes to render (normalized to avoid case duplicates)
+    candidate_src_norm = set(candidate_cables["SrcTagNorm"]) if "SrcTagNorm" in candidate_cables else set()
+    candidate_dst_norm = set(candidate_cables["DstTagNorm"]) if "DstTagNorm" in candidate_cables else set()
+    all_candidate_nodes_norm = {tag for tag in candidate_src_norm.union(candidate_dst_norm) if tag}
+    all_candidate_nodes_norm.update(broadly_involved_asset_tags_norm) # Include isolated additional assets
+
     if visible_asset_tags:
         user_visible_norm = set(normalize_tag_list(visible_asset_tags))
-
-        # Intersect with all nodes that were broadly discovered or explicitly added
-        all_candidate_nodes_actual = set(candidate_cables["SrcTag"].unique()).union(set(candidate_cables["DstTag"].unique()))
-        all_candidate_nodes_actual.update(broadly_involved_asset_tags) # Ensure even isolated additional assets are considered
-        all_candidate_nodes_norm = {normalize_tag_value(tag) for tag in all_candidate_nodes_actual if tag}
-
-        allowed_norm = all_candidate_nodes_norm.intersection(user_visible_norm)
-        final_nodes_to_render = denormalize_tags(allowed_norm)
+        final_nodes_norm = all_candidate_nodes_norm.intersection(user_visible_norm)
     else:
-        # If no visible_asset_tags are provided, all candidate nodes are visible
-        final_nodes_to_render = set(candidate_cables["SrcTag"].unique()).union(set(candidate_cables["DstTag"].unique()))
-        final_nodes_to_render.update(broadly_involved_asset_tags) # Ensure even isolated additional assets are considered
+        final_nodes_norm = set(all_candidate_nodes_norm)
 
-    # Ensure target_tag is always in final_nodes_to_render if it was broadly involved
-    if target_norm in broadly_involved_asset_tags_norm:
-        final_nodes_to_render.update(denormalize_tags({target_norm}))
+    final_nodes_norm.add(target_norm)
+    final_nodes_norm = {tag for tag in final_nodes_norm if tag}
+    final_nodes_to_render = denormalize_tags(final_nodes_norm)
 
     # Build the final set of cables to render by looking at every cable between the selected nodes.
-    final_nodes_normalized = {normalize_tag_value(tag) for tag in final_nodes_to_render if tag}
     filtered_cables = df_cables[
-        (df_cables["SrcTagNorm"].isin(final_nodes_normalized)) &
-        (df_cables["DstTagNorm"].isin(final_nodes_normalized))
+        (df_cables["SrcTagNorm"].isin(final_nodes_norm)) &
+        (df_cables["DstTagNorm"].isin(final_nodes_norm))
     ].copy()
+
+    # Canonicalize tag casing for all rendered edges/nodes.
+    filtered_cables["SrcTag"] = filtered_cables["SrcTag"].apply(canonical_display_tag)
+    filtered_cables["DstTag"] = filtered_cables["DstTag"].apply(canonical_display_tag)
 
     # Respect cable_type filtering on the rendered edges as well.
     if cable_type:

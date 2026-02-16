@@ -65,6 +65,13 @@ button:hover {
     color: #555;
 }
 
+.top-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
 .tabs {
     display: flex;
     margin-bottom: 20px;
