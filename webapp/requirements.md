@@ -54,4 +54,9 @@ This document outlines the requirements for the interactive web application.
 ## 6. Current Known Issues / TODOs
 
 *   Resolve `ValueError: Out of range float values are not JSON compliant: nan` when loading asset and cable data.
-*   Implement client-side rendering for Graphviz DOT diagrams using a JavaScript library like `Viz.js`.
+*   Implement client-client rendering for Graphviz DOT diagrams using a JavaScript library like `Viz.js`.
+
+## 7. Enhancements
+*   **Sortable Tables:** Column headers on the asset and cable tables must be sortable.
+*   **Interactive Diagram Checkboxes:** The cable diagram page must include an array of checkboxes. Unchecking a checkbox should make the corresponding asset disappear from the diagram, and rechecking it should make the asset reappear.
+*   **Additional Assets Input:** An input field should be provided to allow for the inclusion of additional assets in the diagram beyond those initially filtered.

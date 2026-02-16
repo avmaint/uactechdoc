@@ -5,7 +5,7 @@ import graphviz # Import graphviz
 from fastapi import FastAPI, HTTPException, Query # Import Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response # Import Response for SVG output
-from typing import Optional, List
+from typing import Optional, List, Set, Dict
 
 app = FastAPI()
 
@@ -38,6 +38,13 @@ def clean_dataframe_for_json(df: pd.DataFrame) -> pd.DataFrame:
     return df_cleaned
 
 # --- Data Loading ---
+def normalize_tag_value(value: Optional[str]) -> str:
+    """Returns a canonical representation for asset/cable tags."""
+    if value is None:
+        return ""
+    return str(value).strip().upper()
+
+
 def load_assets_data():
     """Loads asset data from uac_assets.xlsx."""
     try:
@@ -46,6 +53,8 @@ def load_assets_data():
         df_assets = df_assets.dropna(subset=["AssetTag"])
         # Force all columns to object dtype to prevent NaN re-introduction issues
         df_assets = df_assets.astype(object)
+        df_assets["AssetTag"] = df_assets["AssetTag"].astype(str).str.strip()
+        df_assets["AssetTagNorm"] = df_assets["AssetTag"].str.upper()
         return df_assets
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading asset data: {e}")
@@ -56,6 +65,10 @@ def load_cables_data():
         df_cables = pd.read_excel("../data/uac_cables.xlsx", sheet_name="Cables")
         # Force all columns to object dtype to prevent NaN re-introduction issues
         df_cables = df_cables.astype(object)
+        df_cables["SrcTag"] = df_cables["SrcTag"].astype(str).str.strip()
+        df_cables["DstTag"] = df_cables["DstTag"].astype(str).str.strip()
+        df_cables["SrcTagNorm"] = df_cables["SrcTag"].str.upper()
+        df_cables["DstTagNorm"] = df_cables["DstTag"].str.upper()
         return df_cables
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading cable data: {e}")
@@ -63,45 +76,95 @@ def load_cables_data():
 # Load data globally for the application to avoid reloading on each request
 df_assets = load_assets_data()
 df_cables = load_cables_data()
+ASSET_TAG_LOOKUP: Dict[str, str] = dict(zip(df_assets["AssetTagNorm"], df_assets["AssetTag"]))
+VALID_ASSET_TAGS_NORMALIZED: Set[str] = set(ASSET_TAG_LOOKUP.keys())
+
+
+def normalize_tag_list(tags_value: Optional[str]) -> List[str]:
+    """Splits a comma-separated tag string and normalizes each entry."""
+    if not tags_value:
+        return []
+    normalized = []
+    for raw_tag in tags_value.split(','):
+        norm = normalize_tag_value(raw_tag)
+        if norm:
+            normalized.append(norm)
+    return normalized
+
+
+def denormalize_tags(normalized_tags: Set[str]) -> Set[str]:
+    """Converts normalized tags back to their display form if possible."""
+    display_values: Set[str] = set()
+    for tag in normalized_tags:
+        if not tag:
+            continue
+        display_values.add(ASSET_TAG_LOOKUP.get(tag, tag))
+    return display_values
+
+
+def reload_dataframes() -> None:
+    """Reloads the global asset and cable DataFrames and associated lookup sets."""
+    global df_assets, df_cables, ASSET_TAG_LOOKUP, VALID_ASSET_TAGS_NORMALIZED
+    df_assets = load_assets_data()
+    df_cables = load_cables_data()
+    ASSET_TAG_LOOKUP = dict(zip(df_assets["AssetTagNorm"], df_assets["AssetTag"]))
+    VALID_ASSET_TAGS_NORMALIZED = set(ASSET_TAG_LOOKUP.keys())
 
 
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the UAC Tech Documentation API"}
 
+
+@app.post("/data/reload")
+async def reload_data():
+    """Forces the backend to reload the asset and cable spreadsheets."""
+    try:
+        reload_dataframes()
+        return {
+            "status": "ok",
+            "assets": len(df_assets),
+            "cables": len(df_cables),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to reload data: {exc}")
+
 # --- Graphviz DOT Generation Function ---
-def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame) -> str: # Renamed function
+def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame, all_nodes_to_render: Set[str]) -> str:
     """
     Generates a Graphviz DOT string from filtered cable and asset data,
     with custom node shapes and port displays.
+    Ensures all specified nodes in `all_nodes_to_render` are included, even if isolated.
     """
-    dot_nodes = set()
-    node_ports = {} # To store unique src/dst ports for each node
-
-    # Collect all nodes and their associated ports
+    dot_nodes = set(all_nodes_to_render) # Initialize with all nodes that need to be rendered
+    node_ports = {node_tag: {'src': set(), 'dst': set()} for node_tag in all_nodes_to_render} # Pre-fill node_ports
+    
+    # Collect all ports for nodes that have connecting cables
     for _, row in filtered_cables.iterrows():
         src_tag = str(row["SrcTag"]) # Ensure string
         dst_tag = str(row["DstTag"]) # Ensure string
         src_port = str(row["SrcPort"]) # Ensure string
         dst_port = str(row["DstPort"]) # Ensure string
 
-        if src_tag != "": # Cleaned data should have "" instead of None
-            dot_nodes.add(src_tag)
-            if src_tag not in node_ports:
-                node_ports[src_tag] = {'src': set(), 'dst': set()}
-            if src_port != "":
-                node_ports[src_tag]['src'].add(src_port)
+        # Ensure these nodes exist in dot_nodes (they should if logic is correct, but safe check)
+        dot_nodes.add(src_tag)
+        dot_nodes.add(dst_tag)
 
-        if dst_tag != "": # Cleaned data should have "" instead of None
-            dot_nodes.add(dst_tag)
-            if dst_tag not in node_ports:
-                node_ports[dst_tag] = {'src': set(), 'dst': set()}
-            if dst_port != "":
-                node_ports[dst_tag]['dst'].add(dst_port)
+        # Ensure node_ports entries exist for src/dst tags
+        if src_tag not in node_ports:
+            node_ports[src_tag] = {'src': set(), 'dst': set()}
+        if dst_tag not in node_ports:
+            node_ports[dst_tag] = {'src': set(), 'dst': set()}
+
+        if src_port != "":
+            node_ports[src_tag]['src'].add(src_port)
+
+        if dst_port != "":
+            node_ports[dst_tag]['dst'].add(dst_port)
 
     node_definitions = []
     # Define nodes with HTML-like labels for ports and asset info
-    for node_tag_val in sorted([str(n) for n in list(dot_nodes)]): # Ensure node_tag_val is string for sorting
+    for node_tag_val in sorted([str(n) for n in list(dot_nodes)]): # Iterate over all collected nodes
         asset_info = assets_df[assets_df["AssetTag"] == node_tag_val]
         
         # Default labels (empty strings for easier HTML-like label generation)
@@ -113,6 +176,10 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame) 
             display_model = asset_info["Model"].iloc[0]
             
         # Ensure manufacturer and model are properly formatted for HTML-like label
+        # Convert to string and handle potential NaN or None values
+        display_manufacturer = str(display_manufacturer) if pd.notna(display_manufacturer) else ""
+        display_model = str(display_model) if pd.notna(display_model) else ""
+        
         manufacturer_line = f"<BR/>{html.escape(display_manufacturer)}" if display_manufacturer else ""
         model_line = f"<BR/>{html.escape(display_model)}" if display_model else ""
 
@@ -148,6 +215,7 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame) 
         >'''
         
         # Node attributes: shape=plain is key for HTML-like labels to work as rectangles
+        # Temporarily simplify label for debugging
         node_definitions.append(f'  "{node_tag_val}" [label={node_label_html}, shape=plain];')
 
     dot_edges = []
@@ -185,6 +253,7 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame) 
     dot_string += "\n"
     dot_string += "\n".join(dot_edges)
     dot_string += "\n}"
+    print(f"DEBUG: Generated DOT string:\n{dot_string}") # Debug print to see the full DOT
     return dot_string
 
 
@@ -212,6 +281,7 @@ async def search_assets(
             filtered_assets["Model"].str.contains(model, case=False, na=False)
         ]
 
+    filtered_assets = filtered_assets.drop(columns=["AssetTagNorm"], errors="ignore")
     processed_assets = clean_dataframe_for_json(filtered_assets)
     return processed_assets.to_dict(orient="records")
 
@@ -222,48 +292,88 @@ async def filter_cables(
     direction: str = "both",  # "in", "out", "both"
     cable_type: Optional[str] = None,
     visible_asset_tags: Optional[str] = Query(None), # Comma-separated string
+    additional_asset_tags: Optional[str] = Query(None), # New: Comma-separated string
 ):
     """
     Filter cables based on a target asset tag, direction, optional cable type,
-    and an optional list of visible asset tags.
+    an optional list of visible asset tags, and an optional list of additional asset tags.
     """
+
     if direction not in ["in", "out", "both"]:
         raise HTTPException(status_code=400, detail="Direction must be 'in', 'out', or 'both'.")
 
-    filtered_cables = df_cables.copy()
+    target_norm = normalize_tag_value(target_tag)
+    if not target_norm:
+        raise HTTPException(status_code=400, detail="Target asset tag is required.")
 
-    # Apply initial direction filtering
+    broadly_involved_asset_tags: Set[str] = {target_norm}
+
+    if visible_asset_tags:
+        visible_norm_list = normalize_tag_list(visible_asset_tags)
+        broadly_involved_asset_tags.update(visible_norm_list)
+    
+    if additional_asset_tags:
+        additional_norm_list = normalize_tag_list(additional_asset_tags)
+        invalid_tags = [tag for tag in additional_norm_list if tag not in VALID_ASSET_TAGS_NORMALIZED]
+        if invalid_tags:
+            display_invalid = [ASSET_TAG_LOOKUP.get(tag, tag) for tag in invalid_tags]
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid additional asset tags: {', '.join(display_invalid)}. Please check your input.",
+            )
+        broadly_involved_asset_tags.update(additional_norm_list)
+
+    # Discover cables that touch any of the broadly involved assets so we do not
+    # prematurely drop legitimate rows.
+    candidate_mask = (
+        df_cables["SrcTagNorm"].isin(broadly_involved_asset_tags) |
+        df_cables["DstTagNorm"].isin(broadly_involved_asset_tags)
+    )
+    candidate_cables = df_cables[candidate_mask].copy()
+
+    # Apply direction relative to the primary target asset.
     if direction == "in":
-        filtered_cables = filtered_cables[filtered_cables["DstTag"] == target_tag]
+        candidate_cables = candidate_cables[candidate_cables["DstTagNorm"] == target_norm]
     elif direction == "out":
-        filtered_cables = filtered_cables[filtered_cables["SrcTag"] == target_tag]
+        candidate_cables = candidate_cables[candidate_cables["SrcTagNorm"] == target_norm]
     else:  # "both"
-        filtered_cables = filtered_cables[
-            (filtered_cables["DstTag"] == target_tag) | (filtered_cables["SrcTag"] == target_tag)
+        candidate_cables = candidate_cables[
+            (candidate_cables["DstTagNorm"] == target_norm) | (candidate_cables["SrcTagNorm"] == target_norm)
         ]
 
     # Apply cable type filtering
     if cable_type:
-        filtered_cables = filtered_cables[
-            filtered_cables["Type"].str.contains(cable_type, case=False, na=False)
+        candidate_cables = candidate_cables[
+            candidate_cables["Type"].str.contains(cable_type, case=False, na=False)
         ]
-            
-    # Apply visible_asset_tags filtering (if provided)
+
+    # If we were given an explicit visible set, only include cables whose endpoints are visible.
     if visible_asset_tags:
-        visible_tags_list = [tag.strip() for tag in visible_asset_tags.split(',') if tag.strip()]
-        
-        # Ensure the target_tag is always included
-        if target_tag not in visible_tags_list:
-            visible_tags_list.append(target_tag)
-
-        # Filter cables where both source and destination tags are in the visible_tags_list
-        filtered_cables = filtered_cables[
-            (filtered_cables["SrcTag"].isin(visible_tags_list)) &
-            (filtered_cables["DstTag"].isin(visible_tags_list))
+        visible_tags_set = set(normalize_tag_list(visible_asset_tags))
+        candidate_cables = candidate_cables[
+            (candidate_cables["SrcTagNorm"].isin(visible_tags_set)) &
+            (candidate_cables["DstTagNorm"].isin(visible_tags_set))
         ]
 
-    processed_cables = clean_dataframe_for_json(filtered_cables)
-    return processed_cables.to_dict(orient="records")
+    # Gather asset tags involved in the current response, even if they do not exist in df_assets.
+    discovered_asset_tags: Set[str] = set(candidate_cables["SrcTag"].astype(str).str.strip())
+    discovered_asset_tags.update(candidate_cables["DstTag"].astype(str).str.strip())
+    discovered_asset_tags.update(denormalize_tags(broadly_involved_asset_tags))
+    cleaned_asset_tags = []
+    for tag in discovered_asset_tags:
+        if tag is None:
+            continue
+        tag_str = str(tag).strip()
+        if tag_str:
+            cleaned_asset_tags.append(tag_str)
+
+    candidate_cables = candidate_cables.drop(columns=["SrcTagNorm", "DstTagNorm"], errors="ignore")
+    processed_cables = clean_dataframe_for_json(candidate_cables)
+    return {
+        "cables": processed_cables.to_dict(orient="records"),
+        "asset_tags": sorted(cleaned_asset_tags, key=lambda x: x.lower()),
+        "primary_target": ASSET_TAG_LOOKUP.get(target_norm, target_tag),
+    }
 
 
 @app.get("/graphviz/dot")
@@ -272,51 +382,104 @@ async def get_graphviz_dot(
     direction: str = "both",
     cable_type: Optional[str] = None,
     visible_asset_tags: Optional[str] = Query(None), # Comma-separated string
+    additional_asset_tags: Optional[str] = Query(None), # New: Comma-separated string
 ):
     """
-    Generates a Graphviz DOT string for filtered cables.
+    Generates a Graphviz DOT string for filtered cables and assets.
     """
-    # Use the existing cable filtering logic (which now accepts visible_asset_tags)
-    # We call filter_cables with the same parameters to get the filtered_cables for the graph
-    # Need to convert the dicts back to DataFrame for generate_dot_string
-    filtered_cables_data = await filter_cables(target_tag, direction, cable_type, visible_asset_tags)
-    filtered_cables = pd.DataFrame(filtered_cables_data)
+    # TEMPORARY: Return hardcoded SVG for debugging
+    # return Response(content='<svg width="100" height="100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" /></svg>', media_type="image/svg+xml")
 
-    # If no cables match the filter criteria, return an empty graph
-    if filtered_cables.empty:
-        # Generate an empty graph with a message
-        empty_dot_string = "digraph G { label='No matching cables found.'; labelloc=\"t\"; }"
+    target_norm = normalize_tag_value(target_tag)
+    if not target_norm:
+        raise HTTPException(status_code=400, detail="Target asset tag is required.")
+
+    # Step 1: Broadly identify all assets that *could* be part of the graph based on target and additional assets
+    broadly_involved_asset_tags_norm = {target_norm}
+    if additional_asset_tags:
+        additional_tags_list = normalize_tag_list(additional_asset_tags)
+        invalid_tags = [tag for tag in additional_tags_list if tag not in VALID_ASSET_TAGS_NORMALIZED]
+        if invalid_tags:
+            display_invalid = [ASSET_TAG_LOOKUP.get(tag, tag) for tag in invalid_tags]
+            raise HTTPException(status_code=400, detail=f"Invalid additional asset tags: {', '.join(display_invalid)}. Please check your input.")
+        broadly_involved_asset_tags_norm.update(additional_tags_list)
+
+    broadly_involved_asset_tags = denormalize_tags(broadly_involved_asset_tags_norm)
+
+    # Step 2: Discover all cables connected to the `broadly_involved_asset_tags`
+    # This was the initial_filtered_cables logic before my over-correction.
+    discovered_cables = df_cables[
+        (df_cables["SrcTagNorm"].isin(broadly_involved_asset_tags_norm)) |
+        (df_cables["DstTagNorm"].isin(broadly_involved_asset_tags_norm))
+    ].copy()
+
+    # Step 3: Apply direction and cable_type filters to these discovered cables
+    # This will give us `candidate_cables`
+    if direction == "in":
+        candidate_cables = discovered_cables[discovered_cables["DstTagNorm"] == target_norm]
+    elif direction == "out":
+        candidate_cables = discovered_cables[discovered_cables["SrcTagNorm"] == target_norm]
+    else:  # "both"
+        candidate_cables = discovered_cables[
+            (discovered_cables["DstTagNorm"] == target_norm) | (discovered_cables["SrcTagNorm"] == target_norm)
+        ]
+
+    if cable_type:
+        candidate_cables = candidate_cables[
+            candidate_cables["Type"].str.contains(cable_type, case=False, na=False)
+        ]
+    
+    # Step 4: Determine the *final* set of nodes to render based on `visible_asset_tags`
+    # This is the strict display filter.
+    final_nodes_to_render = set()
+    if visible_asset_tags:
+        user_visible_norm = set(normalize_tag_list(visible_asset_tags))
+
+        # Intersect with all nodes that were broadly discovered or explicitly added
+        all_candidate_nodes_actual = set(candidate_cables["SrcTag"].unique()).union(set(candidate_cables["DstTag"].unique()))
+        all_candidate_nodes_actual.update(broadly_involved_asset_tags) # Ensure even isolated additional assets are considered
+        all_candidate_nodes_norm = {normalize_tag_value(tag) for tag in all_candidate_nodes_actual if tag}
+
+        allowed_norm = all_candidate_nodes_norm.intersection(user_visible_norm)
+        final_nodes_to_render = denormalize_tags(allowed_norm)
+    else:
+        # If no visible_asset_tags are provided, all candidate nodes are visible
+        final_nodes_to_render = set(candidate_cables["SrcTag"].unique()).union(set(candidate_cables["DstTag"].unique()))
+        final_nodes_to_render.update(broadly_involved_asset_tags) # Ensure even isolated additional assets are considered
+
+    # Ensure target_tag is always in final_nodes_to_render if it was broadly involved
+    if target_norm in broadly_involved_asset_tags_norm:
+        final_nodes_to_render.update(denormalize_tags({target_norm}))
+
+    # Build the final set of cables to render by looking at every cable between the selected nodes.
+    final_nodes_normalized = {normalize_tag_value(tag) for tag in final_nodes_to_render if tag}
+    filtered_cables = df_cables[
+        (df_cables["SrcTagNorm"].isin(final_nodes_normalized)) &
+        (df_cables["DstTagNorm"].isin(final_nodes_normalized))
+    ].copy()
+
+    # Respect cable_type filtering on the rendered edges as well.
+    if cable_type:
+        filtered_cables = filtered_cables[
+            filtered_cables["Type"].str.contains(cable_type, case=False, na=False)
+        ]
+
+    # Handle truly empty graph (no nodes to render)
+    if not final_nodes_to_render:
+        empty_dot_string = "digraph G { label=\"No assets found to display.\"; labelloc=\"t\"; }"
         try:
             dot_source = graphviz.Source(empty_dot_string)
             svg_output = dot_source.pipe(format='svg').decode('utf-8')
             return Response(content=svg_output, media_type="image/svg+xml")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error rendering empty graph SVG: {e}")
-
-
-    # Determine all involved tags for the graph, including the target_tag and visible tags
-    involved_tags = set(filtered_cables["SrcTag"].dropna().unique()).union(
-        set(filtered_cables["DstTag"].dropna().unique())
-    )
-    # Ensure the target_tag is always included in the graph, even if it has no connections after filtering
-    involved_tags.add(target_tag)
-
-    if visible_asset_tags: # If visible_asset_tags were provided, further refine involved_tags
-        visible_tags_list = [tag.strip() for tag in visible_asset_tags.split(',') if tag.strip()]
-        # Add target_tag to visible_tags_list if not already present, to ensure it's always included
-        if target_tag not in visible_tags_list:
-            visible_tags_list.append(target_tag)
-        
-        # Filter involved_tags to only include those that are explicitly visible
-        # This is needed because filtered_cables might still contain nodes that are not in visible_tags_list
-        # due to the way initial filtering was done based on src/dst.
-        involved_tags = involved_tags.intersection(set(visible_tags_list))
-
-    # Filter df_assets to only include assets that are part of the graph
-    graph_assets = df_assets[df_assets["AssetTag"].isin(involved_tags)]
     
-    dot_string = generate_dot_string(filtered_cables, graph_assets) 
+    # graph_assets will contain full details for all `final_nodes_to_render`
+    graph_assets = df_assets[df_assets["AssetTag"].isin(final_nodes_to_render)]
     
+    # Call generate_dot_string with the *explicitly requested* nodes to render and their filtered cables
+    dot_string = generate_dot_string(filtered_cables, graph_assets, final_nodes_to_render) 
+
     # Try rendering the DOT string to SVG
     try:
         dot_source = graphviz.Source(dot_string) # Create a Graphviz Source object

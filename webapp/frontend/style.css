@@ -50,6 +50,21 @@ button:hover {
     background-color: #0056b3;
 }
 
+.secondary-btn {
+    background-color: #6c757d;
+    margin-left: 10px;
+}
+
+.secondary-btn:hover {
+    background-color: #545b62;
+}
+
+.status-message {
+    margin-left: 10px;
+    font-size: 0.9rem;
+    color: #555;
+}
+
 .tabs {
     display: flex;
     margin-bottom: 20px;

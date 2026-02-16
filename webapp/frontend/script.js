@@ -14,7 +14,7 @@ const tableSortStates = {
 
 // Store active asset tags for diagram filtering
 let activeDiagramAssetTags = [];
-let initialDiagramTargetTag = null; // Store the initial target tag for diagram
+let availableDiagramAssetTags = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOMContentLoaded event fired."); // Added log
@@ -64,110 +64,218 @@ document.addEventListener("DOMContentLoaded", () => {
     const directionFilter = document.getElementById("directionFilter");
     const cableTypeFilter = document.getElementById("cableTypeFilter");
     const viewDiagramBtn = document.getElementById("viewDiagramBtn");
+    const reloadDataBtn = document.getElementById("reloadDataBtn");
+    const reloadStatus = document.getElementById("reloadStatus");
     const cableTableContainer = document.getElementById("cableTableContainer");
     const diagramRenderArea = document.getElementById("diagramRenderArea");
     const assetFilterCheckboxesDiv = document.getElementById("assetFilterCheckboxes");
+    const additionalAssetsInput = document.getElementById("additionalAssetsInput"); // New
+    const additionalAssetsErrorDiv = document.getElementById("additionalAssetsError"); // New
 
 
     viewDiagramBtn.addEventListener("click", async () => {
         console.log("View Diagram & Cables button clicked."); // Added log
-        const targetTag = targetTagFilter.value;
-        initialDiagramTargetTag = targetTag; // Store the initial target tag
+        const targetTag = targetTagFilter.value.trim();
+        targetTagFilter.value = targetTag;
         console.log("Target Tag value:", targetTag); // Added log
         if (!targetTag) {
             alert("Please enter a Target Asset Tag.");
             return;
         }
 
-        // Always start with all assets visible for a new diagram request
-        activeDiagramAssetTags = []; 
-        await fetchAndRenderDiagramAndCables(targetTag, directionFilter.value, cableTypeFilter.value);
+        additionalAssetsErrorDiv.textContent = ''; // Clear previous errors
+        const additionalAssetsValue = additionalAssetsInput.value;
+        await fetchAndRenderDiagramAndCables(
+            targetTag,
+            directionFilter.value,
+            cableTypeFilter.value,
+            additionalAssetsValue,
+            true // reset active assets on a fresh request
+        );
     });
 
+    // Event listener for additionalAssetsInput
+    additionalAssetsInput.addEventListener('change', async () => {
+        additionalAssetsErrorDiv.textContent = ''; // Clear previous errors
+        const targetTag = targetTagFilter.value.trim(); // Use current target tag
+        const additionalAssetsValue = additionalAssetsInput.value;
+
+        if (targetTag) {
+            await fetchAndRenderDiagramAndCables(
+                targetTag,
+                directionFilter.value,
+                cableTypeFilter.value,
+                additionalAssetsValue,
+                true // additional asset change should reset the visible set
+            );
+        }
+    });
+
+    // --- Reload Data Button Logic ---
+    reloadDataBtn.addEventListener('click', async () => {
+        reloadDataBtn.disabled = true;
+        reloadStatus.textContent = 'Reloading data...';
+        try {
+            const response = await fetch(`${API_BASE_URL}/data/reload`, { method: 'POST' });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            reloadStatus.textContent = `Reloaded ${payload.assets || 0} assets / ${payload.cables || 0} cables`;
+        } catch (error) {
+            console.error('Error reloading data:', error);
+            reloadStatus.textContent = `Reload failed: ${error.message}`;
+        } finally {
+            reloadDataBtn.disabled = false;
+        }
+    });
+
+
     // Function to fetch and render diagram and cables based on filters and active assets
-    async function fetchAndRenderDiagramAndCables(targetTag, direction, cableType) {
-        // --- Fetch Cable Data ---
+    async function fetchAndRenderDiagramAndCables(targetTag, direction, cableType, additionalAssets, resetActiveAssets = false) {
+        // --- Fetch Cable Data (also used to derive node list) ---
         const cableParams = new URLSearchParams();
         cableParams.append("target_tag", targetTag);
         cableParams.append("direction", direction);
         if (cableType) cableParams.append("cable_type", cableType);
-        if (activeDiagramAssetTags.length > 0) {
-            cableParams.append("visible_asset_tags", activeDiagramAssetTags.join(','));
-        }
 
+        if (additionalAssets) {
+            cableParams.append("additional_asset_tags", additionalAssets);
+        }
+        let cableData = [];
+        let backendAssetTags = [];
         try {
             const cableResponse = await fetch(`${API_BASE_URL}/cables/filter?${cableParams.toString()}`);
             if (!cableResponse.ok) {
+                // Check if it's a 400 error from backend validation
+                if (cableResponse.status === 400) {
+                    const errorData = await cableResponse.json();
+                    additionalAssetsErrorDiv.textContent = `Error: ${errorData.detail}`;
+                    diagramRenderArea.innerHTML = `<p style="color: red;">${errorData.detail}</p>`;
+                    cableTableContainer.innerHTML = `<p style="color: red;">${errorData.detail}</p>`;
+                    return; // Stop further processing
+                }
                 throw new Error(`HTTP error! status: ${cableResponse.status}`);
             }
-            const cableData = await cableResponse.json();
+            const responsePayload = await cableResponse.json();
+            if (Array.isArray(responsePayload)) {
+                cableData = responsePayload;
+            } else if (responsePayload && typeof responsePayload === 'object') {
+                cableData = responsePayload.cables || [];
+                backendAssetTags = responsePayload.asset_tags || [];
+            } else {
+                cableData = [];
+            }
             renderTable(cableData, cableTableContainer, 'cableResults'); // Pass table ID
-            // document.querySelector('.tab-button[data-tab="cableResults"]').click(); // Switch to cable results tab
         } catch (error) {
             console.error("Error fetching cable data:", error);
             cableTableContainer.innerHTML = `<p style="color: red;">Error loading cable data: ${error.message}</p>`;
+            diagramRenderArea.innerHTML = `<p style="color: red;">Error loading cable data for diagram: ${error.message}</p>`;
+            return; // Exit if cable data fetch fails
         }
+
+        // Build the available and active asset tag lists based on backend response/cable results.
+        const discoveredAssetTags = new Set(backendAssetTags);
+        cableData.forEach(cable => {
+            if (cable.SrcTag) discoveredAssetTags.add(cable.SrcTag.trim());
+            if (cable.DstTag) discoveredAssetTags.add(cable.DstTag.trim());
+        });
+        if (targetTag) {
+            discoveredAssetTags.add(targetTag);
+        }
+        if (additionalAssets) {
+            additionalAssets.split(',').forEach(tag => {
+                const trimmed = tag.trim();
+                if (trimmed) {
+                    discoveredAssetTags.add(trimmed);
+                }
+            });
+        }
+
+        const sortedDiscoveredTags = Array.from(discoveredAssetTags).filter(Boolean).sort();
+        availableDiagramAssetTags = [...sortedDiscoveredTags];
+
+        if (resetActiveAssets || activeDiagramAssetTags.length === 0) {
+            activeDiagramAssetTags = [...sortedDiscoveredTags];
+        } else {
+            const discoveredSet = new Set(sortedDiscoveredTags);
+            activeDiagramAssetTags = activeDiagramAssetTags.filter(tag => discoveredSet.has(tag));
+            if (activeDiagramAssetTags.length === 0) {
+                activeDiagramAssetTags = [...sortedDiscoveredTags];
+            }
+        }
+
+        if (!activeDiagramAssetTags.includes(targetTag)) {
+            activeDiagramAssetTags.push(targetTag);
+        }
+        activeDiagramAssetTags = Array.from(new Set(activeDiagramAssetTags));
 
         // --- Fetch Graphviz SVG ---
         const dotParams = new URLSearchParams();
         dotParams.append("target_tag", targetTag);
         dotParams.append("direction", direction);
         if (cableType) dotParams.append("cable_type", cableType);
+        // Always send visible_asset_tags, it's the source of truth for the graph
         if (activeDiagramAssetTags.length > 0) {
             dotParams.append("visible_asset_tags", activeDiagramAssetTags.join(','));
         }
+        if (additionalAssets) {
+            dotParams.append("additional_asset_tags", additionalAssets);
+        }
 
+        let svgText = "";
         try {
             // Expect SVG text directly from the backend
             const svgResponse = await fetch(`${API_BASE_URL}/graphviz/dot?${dotParams.toString()}`);
             if (!svgResponse.ok) {
+                // Check if it's a 400 error from backend validation
+                if (svgResponse.status === 400) {
+                    const errorData = await svgResponse.json();
+                    additionalAssetsErrorDiv.textContent = `Error: ${errorData.detail}`;
+                    diagramRenderArea.innerHTML = `<p style="color: red;">${errorData.detail}</p>`;
+                    return; // Stop further processing
+                }
                 throw new Error(`HTTP error! status: ${svgResponse.status}`);
             }
-            const svgText = await svgResponse.text(); // Get response as text
+            svgText = await svgResponse.text(); // Get response as text
 
             // Inject the SVG text directly into the div
             diagramRenderArea.innerHTML = svgText;
             document.querySelector('.tab-button[data-tab="diagramViewer"]').click(); // Switch to diagram tab
-
-            // After initial render, get all asset tags from the SVG to create checkboxes
-            // (This is a simplified way; a better way would be to get asset tags from the backend)
-            if (activeDiagramAssetTags.length === 0 && initialDiagramTargetTag === targetTag) { // Only generate checkboxes once for initial load
-                const parser = new DOMParser();
-                const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-                const nodeTitles = svgDoc.querySelectorAll('g.node title'); // Graphviz nodes usually have titles
-                
-                const allTagsInDiagram = new Set();
-                nodeTitles.forEach(title => {
-                    const tag = title.textContent.trim();
-                    if (tag && tag !== targetTag) { // Exclude the root target tag
-                        allTagsInDiagram.add(tag);
-                    }
-                });
-                activeDiagramAssetTags = Array.from(allTagsInDiagram); // Initialize active tags
-                generateAssetCheckboxes(activeDiagramAssetTags, targetTag);
-            }
             
         } catch (error) {
             console.error("Error fetching or rendering Graphviz SVG:", error);
             diagramRenderArea.innerHTML = `<p style="color: red;">Error loading or rendering diagram: ${error.message}</p>`;
+            return; // Exit if SVG fetch fails
         }
+
+        generateAssetCheckboxes(availableDiagramAssetTags, targetTag);
     }
 
     // Function to generate and manage asset checkboxes
-    function generateAssetCheckboxes(assetTags, targetTag) {
+    function generateAssetCheckboxes(allAssetTagsInDiagram, currentTargetTag) {
         assetFilterCheckboxesDiv.innerHTML = '<h4>Filter Assets:</h4>';
         assetFilterCheckboxesDiv.style.display = 'grid'; // Display as grid
         assetFilterCheckboxesDiv.style.gridTemplateColumns = 'repeat(auto-fill, minmax(150px, 1fr))'; // Responsive columns
         assetFilterCheckboxesDiv.style.gap = '10px';
 
-        assetTags.sort().forEach(tag => {
+        allAssetTagsInDiagram.forEach(tag => {
             const div = document.createElement('div');
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.id = `asset-${tag}`;
             checkbox.value = tag;
-            checkbox.checked = true; // All checked by default
             checkbox.dataset.assetTag = tag;
+            
+            // If the tag is in the current activeDiagramAssetTags, it should be checked
+            checkbox.checked = activeDiagramAssetTags.includes(tag);
+
+            // The target tag should always be visible and its checkbox disabled
+            if (tag === currentTargetTag) {
+                checkbox.checked = true;
+                checkbox.disabled = true;
+            }
 
             const label = document.createElement('label');
             label.htmlFor = `asset-${tag}`;
@@ -183,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     activeDiagramAssetTags = activeDiagramAssetTags.filter(item => item !== tag);
                 }
                 // Re-fetch and render diagram
-                await fetchAndRenderDiagramAndCables(targetTag, directionFilter.value, cableTypeFilter.value);
+                await fetchAndRenderDiagramAndCables(targetTagFilter.value, directionFilter.value, cableTypeFilter.value, additionalAssetsInput.value);
             });
 
             div.appendChild(checkbox);
@@ -191,6 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
             assetFilterCheckboxesDiv.appendChild(div);
         });
     }
+
 
 
     // --- Utility: Render Table ---
