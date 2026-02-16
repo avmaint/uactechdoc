@@ -185,11 +185,16 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame, 
             
         # Ensure manufacturer and model are properly formatted for HTML-like label
         # Convert to string and handle potential NaN or None values
-        display_manufacturer = str(display_manufacturer) if pd.notna(display_manufacturer) else ""
-        display_model = str(display_model) if pd.notna(display_model) else ""
-        
-        manufacturer_line = f"<BR/>{html.escape(display_manufacturer)}" if display_manufacturer else ""
-        model_line = f"<BR/>{html.escape(display_model)}" if display_model else ""
+        display_manufacturer = str(display_manufacturer).strip() if pd.notna(display_manufacturer) else ""
+        display_model = str(display_model).strip() if pd.notna(display_model) else ""
+        display_tag = str(node_tag_val).strip()
+
+        center_rows = [f'<TR><TD ALIGN="CENTER"><B>{html.escape(display_tag)}</B></TD></TR>']
+        if display_manufacturer:
+            center_rows.append(f'<TR><TD ALIGN="CENTER">{html.escape(display_manufacturer)}</TD></TR>')
+        if display_model:
+            center_rows.append(f'<TR><TD ALIGN="CENTER">{html.escape(display_model)}</TD></TR>')
+        center_content = '<TABLE BORDER="0" CELLBORDER="0" CELLPADDING="1">' + "".join(center_rows) + '</TABLE>'
 
         # Build DstPorts column
         dst_ports_content = ""
@@ -215,7 +220,7 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame, 
           <TR>
             <TD BORDER="1" WIDTH="40">{dst_ports_content}</TD>
             <TD BGCOLOR="lightblue" ALIGN="CENTER">
-              <B>{html.escape(node_tag_val)}</B>{manufacturer_line}{model_line}
+              {center_content}
             </TD>
             <TD BORDER="1" WIDTH="40">{src_ports_content}</TD>
           </TR>

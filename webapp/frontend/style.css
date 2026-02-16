@@ -72,6 +72,33 @@ button:hover {
     margin-bottom: 15px;
 }
 
+@media print {
+    body {
+        background: #fff;
+        color: #000;
+    }
+    .top-actions,
+    .search-section,
+    .filter-section,
+    .tabs,
+    #assetResults,
+    #cableResults,
+    #diagramViewer > h3,
+    #diagramViewer .input-group,
+    #assetFilterCheckboxes {
+        display: none !important;
+    }
+    #diagramViewer {
+        display: block !important;
+        border: none;
+        padding: 0;
+    }
+    #diagramRenderArea {
+        border: none;
+        height: auto;
+    }
+}
+
 .tabs {
     display: flex;
     margin-bottom: 20px;

@@ -35,6 +35,7 @@ This document outlines the requirements for the interactive web application.
 *   **Output Display:**
     *   Results for asset search and cable filtering will be displayed in clear, readable tables.
     *   Connectivity diagrams will be rendered interactively or as images within the UI.
+    *   When printing from the browser, only the connectivity diagram should appear to produce clean hard copies.
 
 ## 3. Technology Stack
 
