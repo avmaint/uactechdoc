@@ -18,6 +18,7 @@ This document outlines the requirements for the interactive web application.
     *   Diagrams should visually represent connections between assets.
     *   The diagramming technique should render the actual diagram, not just DOT code.
     *   Asset tags must be handled case-insensitively to avoid duplicate nodes when casing differs between data sources.
+    *   Each node label must include the asset tag, manufacturer, model, and usage fields centered in the body.
 
 ## 2. User Interface (UI)
 
@@ -32,6 +33,7 @@ This document outlines the requirements for the interactive web application.
     *   Dropdown/selection for connection direction (in-bound, out-bound, both).
     *   Text input field for cable type filtering.
     *   A globally accessible "Reload Data" button so users can refresh the asset and cable sources without restarting services.
+    *   Diagram nodes must expose a context menu for hiding nodes or expanding them in-bound/out-bound; no separate checkbox/additional-assets UI should be required.
 *   **Output Display:**
     *   Results for asset search and cable filtering will be displayed in clear, readable tables.
     *   Connectivity diagrams will be rendered interactively or as images within the UI.
@@ -64,3 +66,4 @@ This document outlines the requirements for the interactive web application.
 *   **Interactive Diagram Checkboxes:** The cable diagram page must include an array of checkboxes. Unchecking a checkbox should make the corresponding asset disappear from the diagram, and rechecking it should make the asset reappear.
 *   **Additional Assets Input:** An input field should be provided to allow for the inclusion of additional assets in the diagram beyond those initially filtered.
 *   **Data Reload Control:** Provide a UI button that triggers the backend to reload the Excel data sources on demand.
+*   **Diagram Context Menu:** Right-clicking a node must expose options to hide the node or expand its in-bound/out-bound connections; these expansions should be reflected immediately in both the cable table and the rendered diagram.

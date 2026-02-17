@@ -5,7 +5,7 @@ import graphviz # Import graphviz
 from fastapi import FastAPI, HTTPException, Query # Import Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response # Import Response for SVG output
-from typing import Optional, List, Set, Dict
+from typing import Optional, List, Set, Dict, Tuple
 
 app = FastAPI()
 
@@ -76,8 +76,28 @@ def load_cables_data():
 # Load data globally for the application to avoid reloading on each request
 df_assets = load_assets_data()
 df_cables = load_cables_data()
-ASSET_TAG_LOOKUP: Dict[str, str] = dict(zip(df_assets["AssetTagNorm"], df_assets["AssetTag"]))
-VALID_ASSET_TAGS_NORMALIZED: Set[str] = set(ASSET_TAG_LOOKUP.keys())
+ASSET_TAG_LOOKUP: Dict[str, str] = {}
+VALID_ASSET_TAGS_NORMALIZED: Set[str] = set()
+CABLE_TAG_LOOKUP: Dict[str, str] = {}
+ALL_KNOWN_TAGS_NORMALIZED: Set[str] = set()
+
+
+def rebuild_lookup_sets() -> None:
+    """Rebuilds lookup dictionaries for asset and cable tags."""
+    global ASSET_TAG_LOOKUP, VALID_ASSET_TAGS_NORMALIZED, CABLE_TAG_LOOKUP, ALL_KNOWN_TAGS_NORMALIZED
+    ASSET_TAG_LOOKUP = dict(zip(df_assets["AssetTagNorm"], df_assets["AssetTag"]))
+    VALID_ASSET_TAGS_NORMALIZED = set(ASSET_TAG_LOOKUP.keys())
+
+    CABLE_TAG_LOOKUP = {}
+    for tag in pd.concat([df_cables["SrcTag"], df_cables["DstTag"]]).dropna():
+        norm = normalize_tag_value(tag)
+        if norm and norm not in CABLE_TAG_LOOKUP:
+            CABLE_TAG_LOOKUP[norm] = str(tag).strip()
+
+    ALL_KNOWN_TAGS_NORMALIZED = VALID_ASSET_TAGS_NORMALIZED.union(CABLE_TAG_LOOKUP.keys())
+
+
+rebuild_lookup_sets()
 
 
 def normalize_tag_list(tags_value: Optional[str]) -> List[str]:
@@ -98,7 +118,7 @@ def denormalize_tags(normalized_tags: Set[str]) -> Set[str]:
     for tag in normalized_tags:
         if not tag:
             continue
-        display_values.add(ASSET_TAG_LOOKUP.get(tag, tag))
+        display_values.add(ASSET_TAG_LOOKUP.get(tag) or CABLE_TAG_LOOKUP.get(tag) or tag)
     return display_values
 
 
@@ -107,7 +127,7 @@ def canonical_display_tag(tag_value: Optional[str]) -> str:
     norm = normalize_tag_value(tag_value)
     if not norm:
         return ""
-    return ASSET_TAG_LOOKUP.get(norm, norm)
+    return ASSET_TAG_LOOKUP.get(norm) or CABLE_TAG_LOOKUP.get(norm) or norm
 
 
 def reload_dataframes() -> None:
@@ -115,8 +135,48 @@ def reload_dataframes() -> None:
     global df_assets, df_cables, ASSET_TAG_LOOKUP, VALID_ASSET_TAGS_NORMALIZED
     df_assets = load_assets_data()
     df_cables = load_cables_data()
-    ASSET_TAG_LOOKUP = dict(zip(df_assets["AssetTagNorm"], df_assets["AssetTag"]))
-    VALID_ASSET_TAGS_NORMALIZED = set(ASSET_TAG_LOOKUP.keys())
+    rebuild_lookup_sets()
+
+
+def parse_expansion_param(
+    expansions: Optional[str],
+    default_direction: str,
+    target_norm: str,
+) -> Dict[str, Set[str]]:
+    """
+    Parses the expansions query parameter into a mapping of node -> direction set.
+    Always ensures the target node has at least the default direction applied.
+    """
+    direction_map: Dict[str, Set[str]] = {}
+
+    def direction_to_set(direction_value: str) -> Set[str]:
+        if direction_value == "in":
+            return {"in"}
+        if direction_value == "out":
+            return {"out"}
+        return {"in", "out"}
+
+    direction_map[target_norm] = direction_to_set(default_direction)
+
+    if not expansions:
+        return direction_map
+
+    parts = [chunk.strip() for chunk in expansions.split(";") if chunk.strip()]
+    for part in parts:
+        if ":" in part:
+            tag_part, dir_part = part.split(":", 1)
+        else:
+            tag_part, dir_part = part, "both"
+
+        norm_tag = normalize_tag_value(tag_part)
+        if not norm_tag:
+            continue
+        direction_set = direction_to_set(dir_part.strip().lower())
+        if norm_tag not in direction_map:
+            direction_map[norm_tag] = set()
+        direction_map[norm_tag].update(direction_set)
+
+    return direction_map
 
 
 @app.get("/")
@@ -178,15 +238,19 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame, 
         # Default labels (empty strings for easier HTML-like label generation)
         display_manufacturer = ""
         display_model = ""
+        display_usage = ""
         
         if not asset_info.empty:
             display_manufacturer = asset_info["Manufacturer"].iloc[0]
             display_model = asset_info["Model"].iloc[0]
+            if "Usage" in asset_info.columns:
+                display_usage = asset_info["Usage"].iloc[0]
             
         # Ensure manufacturer and model are properly formatted for HTML-like label
         # Convert to string and handle potential NaN or None values
         display_manufacturer = str(display_manufacturer).strip() if pd.notna(display_manufacturer) else ""
         display_model = str(display_model).strip() if pd.notna(display_model) else ""
+        display_usage = str(display_usage).strip() if pd.notna(display_usage) else ""
         display_tag = str(node_tag_val).strip()
 
         center_rows = [f'<TR><TD ALIGN="CENTER"><B>{html.escape(display_tag)}</B></TD></TR>']
@@ -194,6 +258,8 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame, 
             center_rows.append(f'<TR><TD ALIGN="CENTER">{html.escape(display_manufacturer)}</TD></TR>')
         if display_model:
             center_rows.append(f'<TR><TD ALIGN="CENTER">{html.escape(display_model)}</TD></TR>')
+        if display_usage:
+            center_rows.append(f'<TR><TD ALIGN="CENTER">{html.escape(display_usage)}</TD></TR>')
         center_content = '<TABLE BORDER="0" CELLBORDER="0" CELLPADDING="1">' + "".join(center_rows) + '</TABLE>'
 
         # Build DstPorts column
@@ -306,6 +372,7 @@ async def filter_cables(
     cable_type: Optional[str] = None,
     visible_asset_tags: Optional[str] = Query(None), # Comma-separated string
     additional_asset_tags: Optional[str] = Query(None), # New: Comma-separated string
+    expansions: Optional[str] = Query(None), # Node expansion directives
 ):
     """
     Filter cables based on a target asset tag, direction, optional cable type,
@@ -319,7 +386,9 @@ async def filter_cables(
     if not target_norm:
         raise HTTPException(status_code=400, detail="Target asset tag is required.")
 
-    broadly_involved_asset_tags_norm: Set[str] = {target_norm}
+    expansion_value = expansions if isinstance(expansions, str) else (expansions or "")
+    expansion_map = parse_expansion_param(expansion_value, direction, target_norm)
+    broadly_involved_asset_tags_norm: Set[str] = set(expansion_map.keys())
 
     if visible_asset_tags:
         visible_norm_list = normalize_tag_list(visible_asset_tags)
@@ -327,9 +396,9 @@ async def filter_cables(
     
     if additional_asset_tags:
         additional_norm_list = normalize_tag_list(additional_asset_tags)
-        invalid_tags = [tag for tag in additional_norm_list if tag not in VALID_ASSET_TAGS_NORMALIZED]
+        invalid_tags = [tag for tag in additional_norm_list if tag not in ALL_KNOWN_TAGS_NORMALIZED]
         if invalid_tags:
-            display_invalid = [ASSET_TAG_LOOKUP.get(tag, tag) for tag in invalid_tags]
+            display_invalid = [canonical_display_tag(tag) for tag in invalid_tags]
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid additional asset tags: {', '.join(display_invalid)}. Please check your input.",
@@ -342,17 +411,23 @@ async def filter_cables(
         df_cables["SrcTagNorm"].isin(broadly_involved_asset_tags_norm) |
         df_cables["DstTagNorm"].isin(broadly_involved_asset_tags_norm)
     )
-    candidate_cables = df_cables[candidate_mask].copy()
+    discovered_cables = df_cables[candidate_mask].copy()
 
-    # Apply direction relative to the primary target asset.
-    if direction == "in":
-        candidate_cables = candidate_cables[candidate_cables["DstTagNorm"] == target_norm]
-    elif direction == "out":
-        candidate_cables = candidate_cables[candidate_cables["SrcTagNorm"] == target_norm]
-    else:  # "both"
-        candidate_cables = candidate_cables[
-            (candidate_cables["DstTagNorm"] == target_norm) | (candidate_cables["SrcTagNorm"] == target_norm)
-        ]
+    # Apply expansion directives relative to each specified node.
+    expansion_frames = []
+    for node_norm, dirs in expansion_map.items():
+        subset_frames = []
+        if "in" in dirs:
+            subset_frames.append(discovered_cables[discovered_cables["DstTagNorm"] == node_norm])
+        if "out" in dirs:
+            subset_frames.append(discovered_cables[discovered_cables["SrcTagNorm"] == node_norm])
+        if subset_frames:
+            expansion_frames.append(pd.concat(subset_frames))
+
+    if expansion_frames:
+        candidate_cables = pd.concat(expansion_frames).drop_duplicates()
+    else:
+        candidate_cables = discovered_cables.iloc[0:0].copy()
 
     # Apply cable type filtering
     if cable_type:
@@ -404,6 +479,7 @@ async def get_graphviz_dot(
     cable_type: Optional[str] = None,
     visible_asset_tags: Optional[str] = Query(None), # Comma-separated string
     additional_asset_tags: Optional[str] = Query(None), # New: Comma-separated string
+    expansions: Optional[str] = Query(None), # Node expansion directives
 ):
     """
     Generates a Graphviz DOT string for filtered cables and assets.
@@ -415,33 +491,38 @@ async def get_graphviz_dot(
     if not target_norm:
         raise HTTPException(status_code=400, detail="Target asset tag is required.")
 
-    # Step 1: Broadly identify all assets that *could* be part of the graph based on target and additional assets
-    broadly_involved_asset_tags_norm = {target_norm}
+    expansion_value = expansions if isinstance(expansions, str) else (expansions or "")
+    expansion_map = parse_expansion_param(expansion_value, direction, target_norm)
+    broadly_involved_asset_tags_norm = set(expansion_map.keys())
     if additional_asset_tags:
-        additional_tags_list = normalize_tag_list(additional_asset_tags)
-        invalid_tags = [tag for tag in additional_tags_list if tag not in VALID_ASSET_TAGS_NORMALIZED]
+        additional_tags_list = normalize_tag_list(additional_asset_tags if isinstance(additional_asset_tags, str) else str(additional_asset_tags))
+        invalid_tags = [tag for tag in additional_tags_list if tag not in ALL_KNOWN_TAGS_NORMALIZED]
         if invalid_tags:
-            display_invalid = [ASSET_TAG_LOOKUP.get(tag, tag) for tag in invalid_tags]
+            display_invalid = [canonical_display_tag(tag) for tag in invalid_tags]
             raise HTTPException(status_code=400, detail=f"Invalid additional asset tags: {', '.join(display_invalid)}. Please check your input.")
         broadly_involved_asset_tags_norm.update(additional_tags_list)
 
     # Step 2: Discover all cables connected to the `broadly_involved_asset_tags`
-    # This was the initial_filtered_cables logic before my over-correction.
     discovered_cables = df_cables[
         (df_cables["SrcTagNorm"].isin(broadly_involved_asset_tags_norm)) |
         (df_cables["DstTagNorm"].isin(broadly_involved_asset_tags_norm))
     ].copy()
 
-    # Step 3: Apply direction and cable_type filters to these discovered cables
-    # This will give us `candidate_cables`
-    if direction == "in":
-        candidate_cables = discovered_cables[discovered_cables["DstTagNorm"] == target_norm]
-    elif direction == "out":
-        candidate_cables = discovered_cables[discovered_cables["SrcTagNorm"] == target_norm]
-    else:  # "both"
-        candidate_cables = discovered_cables[
-            (discovered_cables["DstTagNorm"] == target_norm) | (discovered_cables["SrcTagNorm"] == target_norm)
-        ]
+    # Step 3: Apply direction and cable_type filters based on expansion directives
+    expansion_frames = []
+    for node_norm, dirs in expansion_map.items():
+        subset_frames = []
+        if "in" in dirs:
+            subset_frames.append(discovered_cables[discovered_cables["DstTagNorm"] == node_norm])
+        if "out" in dirs:
+            subset_frames.append(discovered_cables[discovered_cables["SrcTagNorm"] == node_norm])
+        if subset_frames:
+            expansion_frames.append(pd.concat(subset_frames))
+
+    if expansion_frames:
+        candidate_cables = pd.concat(expansion_frames).drop_duplicates()
+    else:
+        candidate_cables = discovered_cables.iloc[0:0].copy()
 
     if cable_type:
         candidate_cables = candidate_cables[
@@ -460,7 +541,7 @@ async def get_graphviz_dot(
     else:
         final_nodes_norm = set(all_candidate_nodes_norm)
 
-    final_nodes_norm.add(target_norm)
+    final_nodes_norm.update(expansion_map.keys())
     final_nodes_norm = {tag for tag in final_nodes_norm if tag}
     final_nodes_to_render = denormalize_tags(final_nodes_norm)
 
