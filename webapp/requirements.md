@@ -67,3 +67,4 @@ This document outlines the requirements for the interactive web application.
 *   **Additional Assets Input:** An input field should be provided to allow for the inclusion of additional assets in the diagram beyond those initially filtered.
 *   **Data Reload Control:** Provide a UI button that triggers the backend to reload the Excel data sources on demand.
 *   **Diagram Context Menu:** Right-clicking a node must expose options to hide the node or expand its in-bound/out-bound connections; these expansions should be reflected immediately in both the cable table and the rendered diagram.
+*   **Manual Test Suite:** Provide a terminal-driven test harness (e.g., `python3 tests/run_tests.py`) that exercises key backend endpoints and reports clearly logged PASS/FAIL results so developers can diagnose regressions quickly.
