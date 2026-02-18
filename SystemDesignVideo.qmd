@@ -209,7 +209,6 @@ All outputs are SDI.
 	cat(get_diagram_aux(a))
 ```
 
-
 ```{r vh_out_tab, results='asis',eval=TRUE}
 #| tbl-cap: "VideoHub Matrix Outputs"
 #| tbl-cap-location: bottom
@@ -345,6 +344,166 @@ print_inv(cdev, db.inventory) |>
 	print_gt_table() |>
     cat()
 ```
+
+# ATEM Constellation 2ME Video Mixer
+
+The ATEM Constellation 2ME is a professional video switcher that allows for seamless switching between multiple video sources during live productions. It offers advanced features such as picture-in-picture, transitions, supersource and keying effects.
+
+## Inputs
+
+```{r atem_in_table, results='asis' }
+#| tbl-cap: "ATEM Inputs"
+#| tbl-cap-location: bottom
+#| out-width: 50%       # Scales the image to 100% of the text width
+#| fig-width: 4          # Sets the figure width in inches (useful for LaTeX)
+#| fig-height: 4         # Sets the figure height in inches
+
+dev <- "2601-2800"
+tt <- glue("Inputs for {dev}")
+st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
+
+tab <- db.cables |>
+	full_join(db.inventory, by=join_by(SrcTag == AssetTag)
+			  , na_matches = "never") |>
+	filter(DstTag == dev) |>
+ 	select(Tag , SrcTag
+ 		   , Manufacturer, Model
+ 		   , SrcPort,  DstPort,Type.x, Usage.x ) |>
+   gt() |>  
+		opt_stylize(style = 5) |>
+	tab_header(tt, subtitle=st) |>
+	cols_merge(
+	    columns = c(Manufacturer, Model),
+    	pattern = "{1}\n{2}"
+  ) |> cols_label( Tag = "Cable"
+  				 , Manufacturer ="Src Device"
+  				 , Type.x ="Type"
+  				 , Usage.x = "Usage")   
+
+print_gt_table(tab ) |> cat()
+```
+
+## Outputs
+
+```{r atem_out_table, results='asis' }
+#| tbl-cap: "ATEM Inputs"
+#| tbl-cap-location: bottom
+#| out-width: 50%       # Scales the image to 100% of the text width
+#| fig-width: 4          # Sets the figure width in inches (useful for LaTeX)
+#| fig-height: 4         # Sets the figure height in inches
+
+dev <- "2601-2800"
+tt <- glue("Inputs for {dev}")
+st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
+
+tab <- db.cables |>
+	full_join(db.inventory, by=join_by(SrcTag == AssetTag)
+			  , na_matches = "never") |>
+	filter(SrcTag == dev) |>
+    select(Tag, SrcPort, DstTag
+			   , Manufacturer, Model
+			   ,DstPort,Type.x,Usage.x ) |>
+    gt() |>  
+	opt_stylize(style = 5) |>
+	tab_header(tt, subtitle=st) |>
+	cols_merge(
+	    columns = c(Manufacturer, Model),
+    	pattern = "{1}\n{2}"
+  ) |> cols_label( Tag = "Cable"
+  				 , Manufacturer ="Dst Device"
+  				 , Type.x ="Type"
+  				 , Usage.x = "Usage")    
+
+print_gt_table(tab ) |> cat()
+```
+
+# Recording Devices and Broadcasting
+
+There are two main recording devices in the system. The Blackmagic Design HyperDeck Studio Mini and a Resi Encoder.
+
+```{r RDnB, results="asis"}
+    targets <- c( "ZVRU-A001", "ZVRU-A002", "ZVIU-D002"
+			 ) 
+	ps <- c(   "2507-0700"  
+	)
+	
+	a <- get_connectivity_diagram ( targets, "both", db.inventory
+									, db.cables, types = NULL
+									, label = '"Connectivity from VS88 into Projectors"' 
+									, rankdir = "LR",
+									partners = ps) 
+	#cat(get_diagram_aux(a))
+	grViz(a)
+```
+
+
+```{r RDnB_in_table, results='asis' }
+#| tbl-cap: "Recording Devices and Broadcasting"
+#| tbl-cap-location: bottom
+#| out-width: 50%       # Scales the image to 100% of the text width
+#| fig-width: 4          # Sets the figure width in inches (useful for LaTeX)
+#| fig-height: 4         # Sets the figure height in inches
+
+dev <- c("ZVRU-A001", "ZVRU-A002")
+devlist <- paste(dev, collapse=", ")
+tt <- glue("Inputs for {devlist}")
+st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
+
+tab <- db.cables |>
+	full_join(db.inventory, by=join_by(SrcTag == AssetTag)
+			  , na_matches = "never") |>
+	filter(SrcTag %in% dev) |>
+    select(Tag, SrcPort, DstTag
+			   , Manufacturer, Model
+			   ,DstPort,Type.x,Usage.x ) |>
+    gt() |>  
+	opt_stylize(style = 5) |>
+	tab_header(tt, subtitle=st) |>
+	cols_merge(
+	    columns = c(Manufacturer, Model),
+    	pattern = "{1}\n{2}"
+  ) |> cols_label( Tag = "Cable"
+  				 , Manufacturer ="Dst Device"
+  				 , Type.x ="Type"
+  				 , Usage.x = "Usage")    
+
+print_gt_table(tab ) |> cat()
+```
+
+
+```{r RDnB_ot_table, results='asis' }
+#| tbl-cap: "Recording Devices and Broadcasting"
+#| tbl-cap-location: bottom
+#| out-width: 50%       # Scales the image to 100% of the text width
+#| fig-width: 4          # Sets the figure width in inches (useful for LaTeX)
+#| fig-height: 4         # Sets the figure height in inches
+
+dev <- c("ZVRU-A001", "ZVRU-A002")
+devlist <- paste(dev, collapse=", ")
+tt <- glue("Outputs for {devlist}")
+st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
+
+tab <- db.cables |>
+	full_join(db.inventory, by=join_by(DstTag == AssetTag)
+			  , na_matches = "never") |>
+	filter(DstTag %in% dev) |>
+    select(Tag, DstPort, SrcTag
+			   , Manufacturer, Model
+			   ,SrcPort,Type.x,Usage.x ) |>
+    gt() |>  
+	opt_stylize(style = 5) |>
+	tab_header(tt, subtitle=st) |>
+	cols_merge(
+	    columns = c(Manufacturer, Model),
+    	pattern = "{1}\n{2}"
+  ) |> cols_label( Tag = "Cable"
+  				 , Manufacturer ="Src Device"
+  				 , Type.x ="Type"
+  				 , Usage.x = "Usage")    
+
+print_gt_table(tab ) |> cat()
+```
+
 
 # Topologies
 There are a lot of components to the system. One big diagram is daunting. The system description has been broken down into smaller portions to be more consumable. 
