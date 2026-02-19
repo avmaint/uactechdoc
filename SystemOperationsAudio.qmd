@@ -27,7 +27,8 @@ source("commonFunctionsAudio.R")
 ```
 
 ```{r data}
-inventoryfile <- get.inventory()
+db.inventory <- get.inventory()
+db.cables     <- get.cables()
 ```
 
 # Introduction
@@ -163,6 +164,24 @@ get_inputs("MixRack") |>
 	sub_missing(  missing_text = "-")  
 ``` 
 
+
+```{r ins_mixrack}
+# "2407-3000" is the DM64 in the amp rack
+
+db.cables |>
+	filter(DstTag == "2407-3000") |> 
+	filter(SrcPort != "DX1") |>
+	filter(str_detect(SrcTag , "FB")) |> # from a floor box
+	select(SrcTag, SrcPort, DstPort, Usage, Notes) |> 
+	gt() |>
+	opt_stylize(style=5) |>
+	tab_header("dLive Analog Inputs Via Floor Boxes") |>
+	cols_label(SrcPort = "Jack",
+			   SrcTag = "Floor Box",  
+			   DstPort = "MixRack Input") 
+```
+
+
 __2. DX168 Inputs:__
 There are 16 analog inputs in the small stage rack located next to the drum riser. There are used for the drum inputs, and the bass. 
 
@@ -176,6 +195,22 @@ get_inputs("DX1-DX168") |>
   opt_stylize(style=3) |>
 	sub_missing(  missing_text = "-")  
 ``` 
+
+I am in the midst of changing the way I document the system config. The next table should be similar to the above but generated from the cabling database.
+
+```{r ins_dx168}
+# "2410-1902" is the DX168 in the on-stage rack
+
+db.cables |>
+	filter(SrcTag == "2410-1902") |> 
+	filter(SrcPort != "DX") |>
+	select(SrcPort, DstPort, Usage, Notes) |> 
+	gt() |>
+	opt_stylize(style=5) |>
+	tab_header("dLive Analog Inputs Via DX168") |>
+	cols_label(SrcPort = "DX168 Port",
+			   DstPort = "MixRack Input") 
+```
 
 __3. Dante Inputs:__
 I/O expansion port #1 on the DM64 is fitted with a 128x128 port Dante card. This is used for 16 inputs from the Shure ULXD receivers, two inputs from the ProPresenter computer, and 64 inputs from the Propresenter computer used for Virtual Soundcheck. The other computers can also provide Dante inputs.
@@ -192,7 +227,6 @@ get_inputs("IO1-Dante") |>
 	sub_missing(  missing_text = "-")  
 ``` 
 
-
 ```{r}
 o1 <- get_outputs("ZAMU-A001")
 o2 <- get_outputs("ZAMU-B001") 
@@ -206,7 +240,6 @@ rbind(o1,o2,o3,o4) |>
     tab_header("Shure Sources via Dante") |>
     opt_stylize(style=3) |>
 	sub_missing(  missing_text = "-") 
- 
 ```
 
 Virtual Sound Check is enabled by going into the IO settings and the "Virtual SoundCheck" tab. When enabled, the normal inputs are overridden with the VSC configuration. These inputs are applicable:
@@ -463,20 +496,52 @@ To control/eliminate feedback, several approaches can be taken. In approximate p
 
 * Using the phase invesion switch can help when desperate but can cause other weird effects, especially of multiple microphones are in use.
 
+# IEM Operations
+
+The Klang:app is used to manage the IEM system. It is installed on the Mac in the broadcast room and can also be installed on a tablet or phone. To use the app, you must be connected to the correct network, "uac-media-iem". There is a sheet with the QR code to connect to the network in the broadcast room taped to the cabinet.
+
+## Fixing Common IEM Problems
+
+1) Somebody has really messed up their mix and cant hear anything (likely because they inadvertently ran everything to zero)?
+
+Using the Klang:app, go into their mix. Take all the relevant group levels to zero and then bring up the individual channels to about -10 dB, with some discretion about what they might actually want to hear. A general guideline is to put the background channels (for them) at about -10 dB and what ever is needed for pitch and timing reference at zero, with their own channel at +5 db.  
+ 
+2) A particular channel is on and it is causing problems for people - for example, say the peacher has turned their mic on at the beginning of the service and is singing along, and it is also turned up in the IEMs.
+
+Using the Klang:app, find the channel in question and mute it in every IEM mix. At the moment that means you'd have to do it 11 times.   
+
+:::{.callout-note}
+There are other ways this can be done: 
+
+Shure Wireless Workbench to mute the channel at the receiver - but that would also mute the channel for the FoH and live stream mixes, which means you'd have to remember to turn it back on when needed. 
+
+At the console, you could also adjust the direct output level for that channel to zero and you would have to remember to bring it back up when needed.
+
+Using Dante Controller, you could unpatch the mic. This method is not recommended. 
+::: 
+ 
+3) A musician finds a channel to be harsh. Make an EQ adjustment. 
+
+Harshness is often in the 2-4 kHz range, but it could be elsewhere. You can use the custom EQ adjustment in the KLANG:app for that mix-channel combination to apply cut that frequency range.
+ 
+4) A particular channel is not showing up on the Kontrollers. Make it visible?
+
+Using the Klang:app, find the channel in question and make it visible on the Kontroller. This is done by selecting the mix (along the top), and then the "Channels" (along the left), find the needed channel and slide its 'switch' from 'off' to 'on'. 
+
 
 # Operating the Wireless Microphones
 
-We have 18 wireless transmitters and 12 receivers. A receiver can only be paried with on transmitter at a time, which means we can have, at most 12 active transmitters.
+We have 18 wireless transmitters and 16 receivers. A receiver can only be paired with on transmitter at a time, which means we can have, at most 16 active transmitters.
 
 Of the 18 transmitters, 12 are handheld microphones, and 6 are beltpack units that can be fitted with either a headset or lavalier microphone.
 
-The six beltpack trasnmitters are all routed to the DM1K mixer, with BP06 also being routed to the M7CL as it is used by Ken for his vocal mic.
+The six beltpack transmitters are all routed to the A&H Mixrack via Dante. 
 
-The 12 handheld transmitters are all routed to the M7CL to be used as for talking or singing.
+Handheld transmitters 1-10 are typically used for vocalists, and 11 and 12 are used for talkers. 
 
 __Battery Management__
 
-Each trasnmitter takes two AA batteries. The battery level is visible on both the trasnmitter and the reciever displays. When using Duracell Coppertop batteries each 'segment' on the display indicates about 30 minutes of runtime, but never count on the last segment. In figure @fig-soa-battery1, channel 3 has about 1.5 hours of runtime and channel 4 has about 2 hours (5 segments minus one). 
+Each transmitter takes two AA batteries. The battery level is visible on both the transmitter and the reciever displays. When using Duracell Coppertop batteries each 'segment' on the display indicates about 30 minutes of runtime, but never count on the last segment. In figure @fig-soa-battery1, channel 3 has about 1.5 hours of runtime and channel 4 has about 2 hours (5 segments minus one). 
 
 The display on the microphone is similar, but for one channel only.
 
@@ -486,7 +551,9 @@ Old batteries are to be discarded in the collection bin to the left of the conso
 
 __Head Amp Gain__
 
-The preamplifier gain cannot be controlled from the console. It is set via the buttons on the front panel of the receivers. This also means that the gain setting is not recalled with a scene recall.
+The pre-amplifier gain can be controlled from the console via the RF section of the preamp settings or directly on the Receiver front panels. 
+
+The gain setting on the console does affect the signal level sent to both the livestream mixer and the IEM system. So it is important to get your preamp settings correct very early in rehearsal. If you need to make adjustments after that it is best to use the trim setting on the console rather than the preamp gain, because the trim setting does not affect the signal sent to the livestream mixer and IEM system.
  
 
 # Appendix
