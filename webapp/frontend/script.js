@@ -1,4 +1,15 @@
-const API_BASE_URL = "http://localhost:9000"; // Assuming backend runs on port 9000
+const API_BASE_URL = (() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const paramValue = searchParams.get("apiBase") || searchParams.get("api");
+    if (paramValue) return paramValue.replace(/\/$/, "");
+    const meta = document.querySelector('meta[name="api-base-url"]');
+    if (meta && meta.content) return meta.content.replace(/\/$/, "");
+    if (window.API_BASE_URL) return String(window.API_BASE_URL).replace(/\/$/, "");
+    if (window.location.origin && window.location.origin.startsWith("http")) {
+        return window.location.origin.replace(/\/$/, "");
+    }
+    return "http://localhost:9000";
+})();
 
 // Store sort state for tables
 const tableSortStates = {
@@ -69,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cableTableContainer = document.getElementById("cableTableContainer");
     const diagramRenderArea = document.getElementById("diagramRenderArea");
     const nodeContextMenu = document.getElementById("nodeContextMenu");
+    const diagramStatus = document.getElementById("diagramStatus");
 
     let baseTargetTag = "";
     let contextMenuTargetTag = null;
@@ -146,6 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to fetch and render diagram and cables based on filters and active assets
     async function fetchAndRenderDiagramAndCables(targetTag, direction, cableType, resetActiveAssets = false) {
+        setDiagramStatus("Loading diagram...", "info");
         const prevAvailableSnapshot = [...availableDiagramAssetTags];
         const expansionEntries = Array.from(nodeExpansionMap.entries());
         const additionalAssetsList = expansionEntries
@@ -184,7 +197,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const message = errorData.detail || `HTTP error! status: ${cableResponse.status}`;
                 diagramRenderArea.innerHTML = `<p style="color: red;">${message}</p>`;
                 cableTableContainer.innerHTML = `<p style="color: red;">${message}</p>`;
-                return { availableChanged: false }; // Stop further processing
+            setDiagramStatus(`Error loading cables: ${message}`, "error");
+            return { availableChanged: false }; // Stop further processing
             }
             const responsePayload = await cableResponse.json();
             if (Array.isArray(responsePayload)) {
@@ -198,8 +212,10 @@ document.addEventListener("DOMContentLoaded", () => {
             renderTable(cableData, cableTableContainer, 'cableResults'); // Pass table ID
         } catch (error) {
             console.error("Error fetching cable data:", error);
-            cableTableContainer.innerHTML = `<p style="color: red;">Error loading cable data: ${error.message}</p>`;
-            diagramRenderArea.innerHTML = `<p style="color: red;">Error loading cable data for diagram: ${error.message}</p>`;
+            const errMsg = `Error loading cable data: ${error.message}`;
+            cableTableContainer.innerHTML = `<p style="color: red;">${errMsg}</p>`;
+            diagramRenderArea.innerHTML = `<p style="color: red;">${errMsg}</p>`;
+            setDiagramStatus(errMsg, "error");
             return { availableChanged: false }; // Exit if cable data fetch fails
         }
 
@@ -258,6 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const errorData = await svgResponse.json().catch(() => ({}));
                 const message = errorData.detail || `HTTP error! status: ${svgResponse.status}`;
                 diagramRenderArea.innerHTML = `<p style="color: red;">${message}</p>`;
+                setDiagramStatus(message, "error");
                 return { availableChanged: false };
             }
             svgText = await svgResponse.text(); // Get response as text
@@ -269,13 +286,16 @@ document.addEventListener("DOMContentLoaded", () => {
             
         } catch (error) {
             console.error("Error fetching or rendering Graphviz SVG:", error);
-            diagramRenderArea.innerHTML = `<p style="color: red;">Error loading or rendering diagram: ${error.message}</p>`;
+            const errMsg = `Error loading or rendering diagram: ${error.message}`;
+            diagramRenderArea.innerHTML = `<p style="color: red;">${errMsg}</p>`;
+            setDiagramStatus(errMsg, "error");
             return { availableChanged: false }; // Exit if SVG fetch fails
         }
 
         attachNodeContextMenuHandlers();
         const availableChanged = prevAvailableSnapshot.length !== availableDiagramAssetTags.length ||
             prevAvailableSnapshot.some((tag, idx) => tag !== availableDiagramAssetTags[idx]);
+        setDiagramStatus("Diagram updated.", "success");
         return { availableChanged };
     }
     function attachNodeContextMenuHandlers() {
@@ -326,6 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         hiddenNodes.add(normalizedTag);
         nodeExpansionMap.delete(normalizedTag);
+        setDiagramStatus(`Hiding ${normalizedTag}...`, "info");
         await fetchAndRenderDiagramAndCables(
             currentFilters.targetTag,
             currentFilters.direction,
@@ -341,13 +362,14 @@ document.addEventListener("DOMContentLoaded", () => {
         hiddenNodes.delete(normalizedTag);
         const updated = addExpansionDirection(normalizedTag, direction);
         if (updated) {
+            setDiagramStatus(`Adding ${direction === 'in' ? 'in-bound' : 'out-bound'} connections for ${normalizedTag}...`, "info");
             const result = await fetchAndRenderDiagramAndCables(
                 currentFilters.targetTag,
                 currentFilters.direction,
                 currentFilters.cableType
             );
             if (!result.availableChanged) {
-                alert(`No additional ${direction === 'in' ? 'in-bound' : direction === 'out' ? 'out-bound' : ''} connections were found for ${normalizedTag}.`);
+                setDiagramStatus(`No additional ${direction === 'in' ? 'in-bound' : 'out-bound'} connections were found for ${normalizedTag}.`, "warn");
             }
         }
     }
@@ -377,6 +399,18 @@ document.addEventListener("DOMContentLoaded", () => {
             dirSet.add('out');
         }
         return dirSet.size !== prevSize;
+    }
+
+    function setDiagramStatus(message, level = "info") {
+        if (!diagramStatus) return;
+        const levelClass = {
+            info: "status-info",
+            success: "status-success",
+            warn: "status-warn",
+            error: "status-error"
+        }[level] || "status-info";
+        diagramStatus.className = `status-message ${levelClass}`;
+        diagramStatus.textContent = message;
     }
 
     // --- Utility: Render Table ---

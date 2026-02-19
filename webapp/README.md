@@ -27,15 +27,11 @@ To set up and run the web application, follow these steps:
 
 ## Running the Application
 
-1.  **Start the Backend API:** Open your terminal, navigate to the main project directory (`uactechdoc`), then run: \`\`\`bash cd webapp/backend ../.venv/bin/uvicorn main:app --host 0.0.0.0 --port 9000 \`\`\` The backend API will start running on `http://0.0.0.0:9000`. Keep this terminal window open as long as you want the backend to be accessible.
+1.  **Serve both sides (recommended):** From the `webapp` directory run `./run.sh serve`. This launches `python3 -m http.server 8000` for the frontend and `uvicorn` for the backend. Use `Ctrl+C` to stop both processes.
 
-2.  **Open the Frontend Application:** Open your web browser and navigate to the `index.html` file located in the `webapp/frontend` directory. You can do this by:
+    *Manual alternative:* start the backend with `../.venv/bin/uvicorn main:app --host 0.0.0.0 --port 9000`, then open `frontend/index.html` directly (or run `python3 -m http.server 8000` inside `frontend`).
 
-    -   Directly entering the file path in your browser's address bar: \`\`\` file:///path/to/your/uactechdoc/webapp/frontend/index.html \`\`\` (Replace `/path/to/your/uactechdoc` with the actual path to your cloned repository.)
-
-    -   Dragging and dropping the `webapp/frontend/index.html` file directly into your web browser.
-
-    -   Alternately, start a front end app server from the front end directory using python3 -m http.server 8000
+2.  **Open the Frontend Application:** Visit `http://localhost:8000` when using `run.sh serve`, or open `frontend/index.html` directly in your browser.
 
 ## User Instructions
 
@@ -46,10 +42,17 @@ Once the frontend is open:
     -   Enter a `Target Asset Tag` (e.g., `2507-0700` from `SystemDesignVideo.qmd`).
     -   Select the `Direction` (`Both`, `In-bound`, or `Out-bound`).
     -   Optionally, enter a `Cable Type` (e.g., `SDI`).
-    -   Optionally, use the "Additional Assets" input field to include other assets in the diagram.
     -   Click "View Diagram & Cables".
     -   The "Cable Results" tab will display a table of filtered cables. The column headers in the cable table are sortable.
-    -   The "Diagram" tab will show the rendered connectivity diagram directly. Below the diagram, there will be an array of checkboxes, one for each asset. Unchecking a checkbox will hide the corresponding asset from the diagram, and rechecking it will make the asset reappear.
+    -   The "Diagram" tab renders the connectivity diagram. Right-click any node to hide it or to expand additional in-bound/out-bound connections; both the diagram and cable table update automatically.
+
+### API Base Configuration
+
+By default the frontend calls the backend at the same origin/port. To override this (e.g., when loading `index.html` from disk), append `?apiBase=http://backend-host:9000` to the page URL or edit the `<meta name="api-base-url" ...>` tag in `frontend/index.html`.
+
+### Manual Tests
+
+Run `./run.sh test` (or `.venv/bin/python tests/run_tests.py`) to execute the backend regression suite. The script prints `[PASS]/[FAIL]` for each case and exits non-zero if any test fails.
 
 ## Contributing
 

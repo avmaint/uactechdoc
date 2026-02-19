@@ -5,6 +5,7 @@ import graphviz # Import graphviz
 from fastapi import FastAPI, HTTPException, Query # Import Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response # Import Response for SVG output
+from pydantic import BaseModel
 from typing import Optional, List, Set, Dict, Tuple
 
 app = FastAPI()
@@ -100,10 +101,18 @@ def rebuild_lookup_sets() -> None:
 rebuild_lookup_sets()
 
 
+class CableFilterResponse(BaseModel):
+    cables: List[Dict[str, str]]
+    asset_tags: List[str]
+    primary_target: str
+
+
 def normalize_tag_list(tags_value: Optional[str]) -> List[str]:
     """Splits a comma-separated tag string and normalizes each entry."""
     if not tags_value:
         return []
+    if not isinstance(tags_value, str):
+        tags_value = str(tags_value)
     normalized = []
     for raw_tag in tags_value.split(','):
         norm = normalize_tag_value(raw_tag)
@@ -332,11 +341,10 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame, 
     dot_string += "\n"
     dot_string += "\n".join(dot_edges)
     dot_string += "\n}"
-    print(f"DEBUG: Generated DOT string:\n{dot_string}") # Debug print to see the full DOT
     return dot_string
 
 
-@app.get("/assets/search")
+@app.get("/assets/search", response_model=List[Dict[str, str]])
 async def search_assets(
     asset_tag: Optional[str] = None,
     manufacturer: Optional[str] = None,
@@ -365,7 +373,7 @@ async def search_assets(
     return processed_assets.to_dict(orient="records")
 
 
-@app.get("/cables/filter")
+@app.get("/cables/filter", response_model=CableFilterResponse)
 async def filter_cables(
     target_tag: str,
     direction: str = "both",  # "in", "out", "both"

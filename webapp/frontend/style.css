@@ -64,6 +64,10 @@ button:hover {
     font-size: 0.9rem;
     color: #555;
 }
+.status-message.status-info { color: #0d6efd; }
+.status-message.status-success { color: #198754; }
+.status-message.status-warn { color: #d97706; }
+.status-message.status-error { color: #dc3545; }
 
 .top-actions {
     display: flex;
