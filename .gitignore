@@ -23,3 +23,13 @@ QTDublinIrish.otf
 _extensions/*
 InventoryManagement_files/
 **/*.quarto_ipynb
+*_files/
+webapp/backend/__pycache__/*
+webapp/backend/*
+VideoHubMatrix*.*
+dante map_2025-10-08.xlsx
+create_graph.R
+demo.gv
+gsc.sh
+klang_iem_docs/*
+klang_network.xlsx
