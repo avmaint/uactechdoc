@@ -26,6 +26,11 @@ const tableSortStates = {
 // Store active asset tags for diagram filtering
 let activeDiagramAssetTags = [];
 let availableDiagramAssetTags = [];
+const hiddenNodes = new Set();
+const allKnownDiagramAssetTags = new Set();
+const adjacencyOutMap = new Map();
+const adjacencyInMap = new Map();
+const expansionResultLog = new Map(); // node+direction -> includesNewNodes boolean
 
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOMContentLoaded event fired."); // Added log
@@ -86,7 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let contextMenuTargetTag = null;
     let currentFilters = { targetTag: "", direction: "both", cableType: "" };
     const nodeExpansionMap = new Map(); // tag -> Set('in','out')
-    const hiddenNodes = new Set();
 
 
     viewDiagramBtn.addEventListener("click", async () => {
@@ -101,6 +105,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         baseTargetTag = targetTag;
         hiddenNodes.clear();
+        allKnownDiagramAssetTags.clear();
+        expansionResultLog.clear();
+        allKnownDiagramAssetTags.clear();
         currentFilters = {
             targetTag,
             direction: directionFilter.value,
@@ -158,7 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to fetch and render diagram and cables based on filters and active assets
     async function fetchAndRenderDiagramAndCables(targetTag, direction, cableType, resetActiveAssets = false) {
-        setDiagramStatus("Loading diagram...", "info");
         const prevAvailableSnapshot = [...availableDiagramAssetTags];
         const expansionEntries = Array.from(nodeExpansionMap.entries());
         const additionalAssetsList = expansionEntries
@@ -197,8 +203,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const message = errorData.detail || `HTTP error! status: ${cableResponse.status}`;
                 diagramRenderArea.innerHTML = `<p style="color: red;">${message}</p>`;
                 cableTableContainer.innerHTML = `<p style="color: red;">${message}</p>`;
-            setDiagramStatus(`Error loading cables: ${message}`, "error");
-            return { availableChanged: false }; // Stop further processing
+                setDiagramStatus(`Error loading cables: ${message}`, "error");
+                return { availableChanged: false }; // Stop further processing
             }
             const responsePayload = await cableResponse.json();
             if (Array.isArray(responsePayload)) {
@@ -219,6 +225,19 @@ document.addEventListener("DOMContentLoaded", () => {
             return { availableChanged: false }; // Exit if cable data fetch fails
         }
 
+        // Rebuild adjacency maps for neighbor lookups.
+        adjacencyOutMap.clear();
+        adjacencyInMap.clear();
+        cableData.forEach(cable => {
+            const src = cable.SrcTag ? cable.SrcTag.trim() : "";
+            const dst = cable.DstTag ? cable.DstTag.trim() : "";
+            if (!src || !dst) return;
+            if (!adjacencyOutMap.has(src)) adjacencyOutMap.set(src, new Set());
+            if (!adjacencyInMap.has(dst)) adjacencyInMap.set(dst, new Set());
+            adjacencyOutMap.get(src).add(dst);
+            adjacencyInMap.get(dst).add(src);
+        });
+
         // Build the available and active asset tag lists based on backend response/cable results.
         const discoveredAssetTags = new Set(backendAssetTags);
         cableData.forEach(cable => {
@@ -235,13 +254,23 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const sortedDiscoveredTags = Array.from(discoveredAssetTags).filter(Boolean).sort();
+        const newlyDiscovered = [];
+        sortedDiscoveredTags.forEach(tag => {
+            if (!allKnownDiagramAssetTags.has(tag)) {
+                allKnownDiagramAssetTags.add(tag);
+                newlyDiscovered.push(tag);
+            }
+        });
         availableDiagramAssetTags = [...sortedDiscoveredTags];
 
         if (resetActiveAssets) {
             hiddenNodes.clear();
+            allKnownDiagramAssetTags.clear();
+            expansionResultLog.clear();
         }
         hiddenNodes.delete(baseTargetTag);
 
+        newlyDiscovered.forEach(tag => hiddenNodes.delete(tag));
         activeDiagramAssetTags = sortedDiscoveredTags.filter(tag => !hiddenNodes.has(tag));
         if (!activeDiagramAssetTags.includes(baseTargetTag) && sortedDiscoveredTags.includes(baseTargetTag)) {
             activeDiagramAssetTags.push(baseTargetTag);
@@ -295,8 +324,10 @@ document.addEventListener("DOMContentLoaded", () => {
         attachNodeContextMenuHandlers();
         const availableChanged = prevAvailableSnapshot.length !== availableDiagramAssetTags.length ||
             prevAvailableSnapshot.some((tag, idx) => tag !== availableDiagramAssetTags[idx]);
-        setDiagramStatus("Diagram updated.", "success");
-        return { availableChanged };
+        if (availableChanged || newlyDiscovered.length > 0) {
+            clearDiagramStatus();
+        }
+        return { availableChanged, newlyDiscoveredCount: newlyDiscovered.length };
     }
     function attachNodeContextMenuHandlers() {
         const svgNodes = diagramRenderArea.querySelectorAll('g.node');
@@ -345,13 +376,13 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         hiddenNodes.add(normalizedTag);
-        nodeExpansionMap.delete(normalizedTag);
-        setDiagramStatus(`Hiding ${normalizedTag}...`, "info");
+
         await fetchAndRenderDiagramAndCables(
             currentFilters.targetTag,
             currentFilters.direction,
             currentFilters.cableType
         );
+        clearDiagramStatus();
     }
 
     async function handleAddConnections(tag, direction) {
@@ -359,17 +390,41 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!tag) return;
         const normalizedTag = tag.trim();
         if (!normalizedTag) return;
-        hiddenNodes.delete(normalizedTag);
+        const wasHidden = hiddenNodes.delete(normalizedTag);
+        const neighborsToUnhide = new Set();
+        if (direction === 'both' || direction === 'in') {
+            const inboundNeighbors = adjacencyInMap.get(normalizedTag);
+            if (inboundNeighbors) inboundNeighbors.forEach(n => neighborsToUnhide.add(n));
+        }
+        if (direction === 'both' || direction === 'out') {
+            const outboundNeighbors = adjacencyOutMap.get(normalizedTag);
+            if (outboundNeighbors) outboundNeighbors.forEach(n => neighborsToUnhide.add(n));
+        }
+        neighborsToUnhide.forEach(n => hiddenNodes.delete(n));
+        const nodesToReactivate = new Set([normalizedTag, ...neighborsToUnhide]);
+        nodesToReactivate.add(baseTargetTag);
+        nodesToReactivate.forEach(tagValue => {
+            if (!tagValue) return;
+            if (!activeDiagramAssetTags.includes(tagValue)) {
+                activeDiagramAssetTags.push(tagValue);
+            }
+        });
+
         const updated = addExpansionDirection(normalizedTag, direction);
-        if (updated) {
-            setDiagramStatus(`Adding ${direction === 'in' ? 'in-bound' : 'out-bound'} connections for ${normalizedTag}...`, "info");
-            const result = await fetchAndRenderDiagramAndCables(
-                currentFilters.targetTag,
-                currentFilters.direction,
-                currentFilters.cableType
-            );
-            if (!result.availableChanged) {
-                setDiagramStatus(`No additional ${direction === 'in' ? 'in-bound' : 'out-bound'} connections were found for ${normalizedTag}.`, "warn");
+        const result = await fetchAndRenderDiagramAndCables(
+            currentFilters.targetTag,
+            currentFilters.direction,
+            currentFilters.cableType
+        );
+        const discovered = result?.newlyDiscoveredCount || 0;
+        const key = `${normalizedTag}::${direction}`;
+        const hasNewBefore = expansionResultLog.get(key) || false;
+        if (!updated && !wasHidden && discovered === 0 && !hasNewBefore) {
+            setDiagramStatus(`No additional ${direction === 'in' ? 'in-bound' : 'out-bound'} connections were found for ${normalizedTag}.`, "warn");
+        } else {
+            clearDiagramStatus();
+            if (discovered > 0) {
+                expansionResultLog.set(key, true);
             }
         }
     }
@@ -403,6 +458,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function setDiagramStatus(message, level = "info") {
         if (!diagramStatus) return;
+        if (!message) {
+            diagramStatus.textContent = "";
+            diagramStatus.className = "status-message hidden";
+            return;
+        }
         const levelClass = {
             info: "status-info",
             success: "status-success",
@@ -411,6 +471,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }[level] || "status-info";
         diagramStatus.className = `status-message ${levelClass}`;
         diagramStatus.textContent = message;
+    }
+
+    function clearDiagramStatus() {
+        setDiagramStatus("");
     }
 
     // --- Utility: Render Table ---

@@ -64,10 +64,22 @@ button:hover {
     font-size: 0.9rem;
     color: #555;
 }
+.status-message.hidden { display: none; }
 .status-message.status-info { color: #0d6efd; }
 .status-message.status-success { color: #198754; }
 .status-message.status-warn { color: #d97706; }
 .status-message.status-error { color: #dc3545; }
+.diagram-canvas {
+    width: 100%;
+    min-height: 600px;
+    border: 1px solid #ccc;
+    padding: 0;
+    overflow: visible;
+}
+#diagramRenderArea svg {
+    width: 100%;
+    height: auto;
+}
 
 .top-actions {
     display: flex;
