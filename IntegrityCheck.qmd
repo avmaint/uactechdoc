@@ -1,0 +1,107 @@
+---
+title: "Integrity Check"
+execute: 
+  eval: true
+  echo: false
+  warning: false
+  message: false
+format:
+  html:
+    toc: true
+   
+always_allow_html: yes
+---
+
+```{r packages }
+source('./commonPackages.R')
+```
+
+```{r functions}
+source("./commonFunctions.R")
+```
+
+```{r getdata}
+db.inventory <- get.inventory()
+db.cables <- get.cables()
+```
+# Asset Checks
+
+## Asset Uniqueness
+ 
+```{r au, results="asis" }
+
+dup_assets <- db.inventory |> 
+  filter(!is.na(AssetTag)) |>	
+  group_by(AssetTag) |>
+  summarise(n = n()) |>
+  filter(n > 1) 
+
+st <- glue("Total Duplicate Asset Tags: {nrow(dup_assets)}")
+
+dup_assets |>
+  gt() |>
+  tab_header("Duplicate Asset Tags in Inventory",
+  		   subtitle=st) |>
+  opt_stylize()  
+```
+
+# Cable Checks
+
+## Cable Uniqueness  
+
+```{r cu}
+dup_cables <- db.cables |> 
+  group_by(Tag ) |>
+  summarise(n = n()) |>
+  filter(n > 1) 
+
+st <- glue("Total Duplicate Cables: {nrow(dup_cables)}")
+	
+dup_cables |>	
+  gt() |>
+  tab_header("Duplicate Cables in Cable List",
+  		   subtitle = st) |>
+  opt_stylize(style = 5)
+```
+
+ 
+## Cable Endpoint Validity
+
+```{r}
+invalid_cables <- db.cables |>
+	select(Tag, SrcTag, DstTag) |>
+	unique() |>
+	filter(!(SrcTag %in% db.inventory$AssetTag)
+		   | !(DstTag %in% db.inventory$AssetTag)
+		   ) |>
+	filter(SrcTag != "not used") |>
+	filter(SrcTag != "unused")
+
+st <- glue("Total Invalid Cables: {nrow(invalid_cables)}")
+
+invalid_cables |> 
+  gt() |>
+  tab_header("Cables with Invalid Endpoints", 
+  		   subtitle = st) |>
+	opt_stylize(style = 5)
+```
+
+## Ports with more than one incoming cable
+
+```{r mcp}
+multi_cabled_ports <- db.cables |>
+	select(Tag, SrcTag, SrcPort, DstTag, DstPort) |>
+	unique() |>
+	group_by(DstTag, DstPort) |>
+	summarise(n = n()) |>
+	filter(n > 1) |>
+	ungroup()
+
+st <- glue("Total Multi-Cabled Ports: {nrow(multi_cabled_ports)}")
+
+multi_cabled_ports |>
+  gt() |>
+  tab_header("Ports with more than one incoming cable", 
+  		   subtitle = st) |>
+	opt_stylize(style = 5)
+```
