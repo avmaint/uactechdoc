@@ -34,6 +34,8 @@ This document outlines the requirements for the interactive web application.
     -   Text input field for cable type filtering.
     -   A globally accessible "Reload Data" button so users can refresh the asset and cable sources without restarting services.
     -   Diagram nodes must expose a context menu for hiding nodes or expanding them in-bound/out-bound. Right-clicking a node must expose options to hide the node or expand its in-bound/out-bound connections; these expansions should be reflected immediately in both the cable table and the rendered diagram.
+    -   Multi-select controls must allow users to choose which asset fields (Tag, Manufacturer, Model, Usage) appear on node labels and which cable fields (Tag, Type, In-Port→Out-Port, Usage) appear on cable labels. Each list must include every available field from the underlying dataset with the default values pinned to the top (Tag/Manufacturer/Model/Usage for nodes; Tag/Type/In-Port→Out-Port/Usage for cables) and the remaining fields sorted alphabetically.
+    -   Changing any diagram option must immediately refresh both the cable table and the rendered diagram so the selected labels are reflected without extra button clicks.
 -   **Output Display:**
     -   Results for asset search and cable filtering will be displayed in clear, readable tables. Column headers must be sort-able.
     -   Connectivity diagrams will be rendered interactively or as images within the UI.
@@ -63,7 +65,6 @@ This document outlines the requirements for the interactive web application.
 
 ## 7. Current Known Issues / Bugs / TODOs
 
--   Once a node in the diagram is hidden via the context menu, there is no way to restore it without reloading the page. A future enhancement could be to track hidden nodes and allow users to toggle their visibility back on.
 -   Some nodes support an in-bound and out-bound connection on the same port (for example Floor Boxes). The diagram currently only renders such ports twice but makes all connections to only one side. Put the inbound connection on the left side, and the out-bound on the right. (Or top and Bottom depnding on diagram orientation)
 
 ## 8. Pending Enhancements
@@ -75,8 +76,6 @@ This document outlines the requirements for the interactive web application.
 -   Some nodes have a large number of connections (e.g., the 2507-0700 has 20+ cables). The diagram can become cluttered and difficult to read. Implementing a more sophisticated layout algorithm or allowing users to selectively collapse/expand groups of connections would improve readability, collapsing should be done be grouping cables of the same type or protocol (to be implemented). When showing a collapsed group, replace the port labels with the grouping value. For example if the collapsed line represented the dante connections, show the labels as dante. Be sure to keep the inbound and outbound labels distinct.
 -   Provide a diagram option to export as jpg or png for easy sharing and documentation purposes. This would allow users to save and share connectivity diagrams without needing to share the entire web application or access to the backend data.
 -   Provide a diagram option to layout the diagram top-to-bottom or left-to-right. This would allow users to choose the layout that best suits their needs and improves readability, especially for diagrams with many connections.
--   Provide a diagram options to allow the user to select which fields from the asset data to include in the node labels. This would allow users to customize the level of detail shown in the diagram and focus on the most relevant information for their use case. Make this a multi-select dropdown with Tag, Manufacturer, Model, and Usage as pre-selected options.
--   Provide a diagram options to allow the user to select which fields from the cable data to include in the line labels. This would allow users to customize the level of detail shown in the diagram and focus on the most relevant information for their use case. Make this a multi-select dropdown with Tag , Type and in-port-out-port , and Usage as pre-selected options.
 -   Add a new field to the cable data for "Protocol" (e.g., SDI, HDMI, Ethernet) and refactor the existing Type field to be specific about the cable type and not conflate it with the protocol. This would allow users to filter and label cables based on the protocol they carry, which is often more relevant for understanding connectivity than the physical cable type alone. For example, a cable could be labeled as "Type: Cat6, Protocol: Ethernet" to provide clearer information about its function in the system.
 -   Provide an option to colour-code the cables by protocol using industry conventions for colours.
 -   Provide an option to colour-code the nodes by Category.

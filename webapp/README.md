@@ -45,6 +45,10 @@ Once the frontend is open:
     -   Click "View Diagram & Cables".
     -   The "Cable Results" tab will display a table of filtered cables. The column headers in the cable table are sortable.
     -   The "Diagram" tab renders the connectivity diagram. Right-click any node to hide it or to expand additional in-bound/out-bound connections; both the diagram and cable table update automatically.
+-   **Diagram Options**:
+    -   Use the **Node Label Fields** multi-select to choose which asset fields appear inside each node. The list includes every available asset column with the defaults (Tag, Manufacturer, Model, Usage) pinned at the top and the rest sorted alphabetically.
+    -   Use the **Cable Label Fields** multi-select to pick which cable attributes (Tag, Type, In-Port → Out-Port, Usage, plus any additional columns) appear on each connection.
+    -   Changes to either multi-select immediately refresh the cable table and diagram so you can see the updated labels without re-clicking *View Diagram & Cables*.
 
 ### API Base Configuration
 

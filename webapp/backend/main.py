@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import html # Import html module
 import graphviz # Import graphviz
+import re
 from fastapi import FastAPI, HTTPException, Query # Import Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response # Import Response for SVG output
@@ -82,6 +83,14 @@ VALID_ASSET_TAGS_NORMALIZED: Set[str] = set()
 CABLE_TAG_LOOKUP: Dict[str, str] = {}
 ALL_KNOWN_TAGS_NORMALIZED: Set[str] = set()
 
+ASSET_FIELD_MAP: Dict[str, str] = {}  # canonical -> column name
+ASSET_FIELD_LABELS: Dict[str, str] = {}
+CABLE_FIELD_MAP: Dict[str, str] = {}
+CABLE_FIELD_LABELS: Dict[str, str] = {}
+NODE_FIELD_OPTIONS: Set[str] = set()
+EDGE_FIELD_OPTIONS: Set[str] = set()
+DEFAULT_NODE_FIELDS = ["tag", "manufacturer", "model", "usage"]
+DEFAULT_EDGE_FIELDS = ["tag", "type", "ports", "usage"]
 
 def rebuild_lookup_sets() -> None:
     """Rebuilds lookup dictionaries for asset and cable tags."""
@@ -96,9 +105,6 @@ def rebuild_lookup_sets() -> None:
             CABLE_TAG_LOOKUP[norm] = str(tag).strip()
 
     ALL_KNOWN_TAGS_NORMALIZED = VALID_ASSET_TAGS_NORMALIZED.union(CABLE_TAG_LOOKUP.keys())
-
-
-rebuild_lookup_sets()
 
 
 class CableFilterResponse(BaseModel):
@@ -145,6 +151,63 @@ def reload_dataframes() -> None:
     df_assets = load_assets_data()
     df_cables = load_cables_data()
     rebuild_lookup_sets()
+    rebuild_field_option_maps()
+
+
+def canonicalize_field_key(label: str) -> str:
+    if not label:
+        return ""
+    sanitized = re.sub(r"[^0-9a-zA-Z]+", "_", str(label)).strip("_")
+    return sanitized.lower()
+
+
+def prettify_field_label(label: str) -> str:
+    if not label:
+        return ""
+    original = str(label).strip()
+    spaced = re.sub(r"(_)|(?<=[a-z0-9])(?=[A-Z])", " ", original)
+    cleaned = re.sub(r"\s+", " ", spaced).strip()
+    return cleaned
+
+
+def rebuild_field_option_maps() -> None:
+    """Builds lookup maps for node/edge field selections."""
+    global ASSET_FIELD_MAP, ASSET_FIELD_LABELS, CABLE_FIELD_MAP, CABLE_FIELD_LABELS
+    global NODE_FIELD_OPTIONS, EDGE_FIELD_OPTIONS
+
+    ASSET_FIELD_MAP = {}
+    ASSET_FIELD_LABELS = {"tag": "Tag"}
+    excluded_asset_columns = {"AssetTagNorm"}
+    for column in df_assets.columns:
+        if column in excluded_asset_columns:
+            continue
+        canonical = canonicalize_field_key(column)
+        if not canonical or canonical == "tag":
+            continue
+        ASSET_FIELD_MAP[canonical] = column
+        ASSET_FIELD_LABELS[canonical] = prettify_field_label(column)
+
+    CABLE_FIELD_MAP = {}
+    CABLE_FIELD_LABELS = {
+        "tag": "Tag",
+        "ports": "In-Port → Out-Port",
+    }
+    excluded_cable_columns = {"SrcTagNorm", "DstTagNorm"}
+    for column in df_cables.columns:
+        if column in excluded_cable_columns:
+            continue
+        canonical = canonicalize_field_key(column)
+        if not canonical or canonical in {"tag", "ports"}:
+            continue
+        CABLE_FIELD_MAP[canonical] = column
+        CABLE_FIELD_LABELS[canonical] = prettify_field_label(column)
+
+    NODE_FIELD_OPTIONS = set(ASSET_FIELD_LABELS.keys())
+    EDGE_FIELD_OPTIONS = set(CABLE_FIELD_LABELS.keys())
+
+
+rebuild_lookup_sets()
+rebuild_field_option_maps()
 
 
 def parse_expansion_param(
@@ -188,6 +251,81 @@ def parse_expansion_param(
     return direction_map
 
 
+def parse_field_selection(value: Optional[str], allowed: Set[str], default: List[str]) -> List[str]:
+    if not value:
+        return list(default)
+    if not isinstance(value, str):
+        value = str(value)
+    selections = [item.strip().lower() for item in value.split(',') if item.strip()]
+    cleaned = [item for item in selections if item in allowed]
+    return cleaned or list(default)
+
+
+def normalize_asset_field_value(value: object) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, float) and np.isnan(value):
+        return ""
+    if pd.isna(value):
+        return ""
+    text = str(value).strip()
+    return text if text.lower() != "nan" else ""
+
+
+def get_asset_field_value(asset_record: Dict[str, object], field_key: str, fallback_tag: str) -> str:
+    if field_key == "tag":
+        return fallback_tag
+    column = ASSET_FIELD_MAP.get(field_key)
+    if not column:
+        return ""
+    if not asset_record:
+        return ""
+    raw_value = asset_record.get(column, "")
+    return normalize_asset_field_value(raw_value)
+
+
+def get_edge_field_value(row: pd.Series, field_key: str) -> str:
+    if field_key == "tag":
+        raw = row.get("Tag", "")
+        return html.escape(normalize_asset_field_value(raw)) if raw else ""
+    if field_key == "ports":
+        src_port = normalize_asset_field_value(row.get("SrcPort", ""))
+        dst_port = normalize_asset_field_value(row.get("DstPort", ""))
+        if src_port and dst_port:
+            return f"{html.escape(src_port)} → {html.escape(dst_port)}"
+        if src_port:
+            return html.escape(src_port)
+        if dst_port:
+            return html.escape(dst_port)
+        return ""
+    column = CABLE_FIELD_MAP.get(field_key)
+    if not column:
+        return ""
+    raw = row.get(column, "")
+    value = normalize_asset_field_value(raw)
+    return html.escape(value) if value else ""
+
+
+def build_field_option_payload(labels: Dict[str, str], defaults: List[str]) -> Dict[str, object]:
+    default_values = [field for field in defaults if field in labels]
+    remaining = sorted(
+        [field for field in labels.keys() if field not in default_values],
+        key=lambda key: labels[key].lower(),
+    )
+    ordered = default_values + remaining
+    return {
+        "defaults": default_values,
+        "options": [
+            {
+                "value": field,
+                "label": labels[field],
+                "selected": field in default_values,
+            }
+            for field in ordered
+        ],
+    }
+
+
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the UAC Tech Documentation API"}
@@ -206,8 +344,23 @@ async def reload_data():
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to reload data: {exc}")
 
+
+@app.get("/diagram/options")
+async def get_diagram_field_options():
+    """Exposes available node/edge fields for the frontend multi-select controls."""
+    return {
+        "node": build_field_option_payload(ASSET_FIELD_LABELS, DEFAULT_NODE_FIELDS),
+        "edge": build_field_option_payload(CABLE_FIELD_LABELS, DEFAULT_EDGE_FIELDS),
+    }
+
 # --- Graphviz DOT Generation Function ---
-def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame, all_nodes_to_render: Set[str]) -> str:
+def generate_dot_string(
+    filtered_cables: pd.DataFrame,
+    assets_df: pd.DataFrame,
+    all_nodes_to_render: Set[str],
+    node_fields: List[str],
+    edge_fields: List[str],
+) -> str:
     """
     Generates a Graphviz DOT string from filtered cable and asset data,
     with custom node shapes and port displays.
@@ -243,32 +396,20 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame, 
     # Define nodes with HTML-like labels for ports and asset info
     for node_tag_val in sorted([str(n) for n in list(dot_nodes)]): # Iterate over all collected nodes
         asset_info = assets_df[assets_df["AssetTag"] == node_tag_val]
-        
-        # Default labels (empty strings for easier HTML-like label generation)
-        display_manufacturer = ""
-        display_model = ""
-        display_usage = ""
-        
-        if not asset_info.empty:
-            display_manufacturer = asset_info["Manufacturer"].iloc[0]
-            display_model = asset_info["Model"].iloc[0]
-            if "Usage" in asset_info.columns:
-                display_usage = asset_info["Usage"].iloc[0]
-            
-        # Ensure manufacturer and model are properly formatted for HTML-like label
-        # Convert to string and handle potential NaN or None values
-        display_manufacturer = str(display_manufacturer).strip() if pd.notna(display_manufacturer) else ""
-        display_model = str(display_model).strip() if pd.notna(display_model) else ""
-        display_usage = str(display_usage).strip() if pd.notna(display_usage) else ""
+        asset_record = asset_info.iloc[0].to_dict() if not asset_info.empty else {}
         display_tag = str(node_tag_val).strip()
 
-        center_rows = [f'<TR><TD ALIGN="CENTER"><B>{html.escape(display_tag)}</B></TD></TR>']
-        if display_manufacturer:
-            center_rows.append(f'<TR><TD ALIGN="CENTER">{html.escape(display_manufacturer)}</TD></TR>')
-        if display_model:
-            center_rows.append(f'<TR><TD ALIGN="CENTER">{html.escape(display_model)}</TD></TR>')
-        if display_usage:
-            center_rows.append(f'<TR><TD ALIGN="CENTER">{html.escape(display_usage)}</TD></TR>')
+        center_rows = []
+        for field_key in node_fields:
+            field_value = get_asset_field_value(asset_record, field_key, display_tag)
+            if field_key == "tag":
+                center_rows.append(f'<TR><TD ALIGN="CENTER"><B>{html.escape(field_value)}</B></TD></TR>')
+                continue
+            if not field_value:
+                continue
+            center_rows.append(f'<TR><TD ALIGN="CENTER">{html.escape(field_value)}</TD></TR>')
+        if not center_rows:
+            center_rows.append(f'<TR><TD ALIGN="CENTER"><B>{html.escape(display_tag)}</B></TD></TR>')
         center_content = '<TABLE BORDER="0" CELLBORDER="0" CELLPADDING="1">' + "".join(center_rows) + '</TABLE>'
 
         # Build DstPorts column
@@ -318,15 +459,10 @@ def generate_dot_string(filtered_cables: pd.DataFrame, assets_df: pd.DataFrame, 
 
         if src_tag != "" and dst_tag != "": # Cleaned data should have "" instead of None
             label_parts = []
-            if cable_tag != "":
-                label_parts.append(html.escape(cable_tag))
-            if cable_type != "":
-                label_parts.append(html.escape(cable_type))
-            
-            # Add src_port>dest_port to the label
-            if src_port != "" and dst_port != "":
-                label_parts.append(f"{html.escape(src_port)} > {html.escape(dst_port)}")
-
+            for field_key in edge_fields:
+                value = get_edge_field_value(row, field_key)
+                if value:
+                    label_parts.append(value)
             edge_label = "\\n".join(label_parts) if label_parts else ""
             
             # Use port names in the edge definition
@@ -381,6 +517,8 @@ async def filter_cables(
     visible_asset_tags: Optional[str] = Query(None), # Comma-separated string
     additional_asset_tags: Optional[str] = Query(None), # New: Comma-separated string
     expansions: Optional[str] = Query(None), # Node expansion directives
+    node_fields: Optional[str] = Query(None),
+    edge_fields: Optional[str] = Query(None),
 ):
     """
     Filter cables based on a target asset tag, direction, optional cable type,
@@ -488,6 +626,8 @@ async def get_graphviz_dot(
     visible_asset_tags: Optional[str] = Query(None), # Comma-separated string
     additional_asset_tags: Optional[str] = Query(None), # New: Comma-separated string
     expansions: Optional[str] = Query(None), # Node expansion directives
+    node_fields: Optional[str] = Query(None), # Comma-separated node label fields
+    edge_fields: Optional[str] = Query(None), # Comma-separated edge label fields
 ):
     """
     Generates a Graphviz DOT string for filtered cables and assets.
@@ -501,6 +641,8 @@ async def get_graphviz_dot(
 
     expansion_value = expansions if isinstance(expansions, str) else (expansions or "")
     expansion_map = parse_expansion_param(expansion_value, direction, target_norm)
+    selected_node_fields = parse_field_selection(node_fields, NODE_FIELD_OPTIONS, DEFAULT_NODE_FIELDS)
+    selected_edge_fields = parse_field_selection(edge_fields, EDGE_FIELD_OPTIONS, DEFAULT_EDGE_FIELDS)
     broadly_involved_asset_tags_norm = set(expansion_map.keys())
     if additional_asset_tags:
         additional_tags_list = normalize_tag_list(additional_asset_tags if isinstance(additional_asset_tags, str) else str(additional_asset_tags))
@@ -583,7 +725,7 @@ async def get_graphviz_dot(
     graph_assets = df_assets[df_assets["AssetTag"].isin(final_nodes_to_render)]
     
     # Call generate_dot_string with the *explicitly requested* nodes to render and their filtered cables
-    dot_string = generate_dot_string(filtered_cables, graph_assets, final_nodes_to_render) 
+    dot_string = generate_dot_string(filtered_cables, graph_assets, final_nodes_to_render, selected_node_fields, selected_edge_fields) 
 
     # Try rendering the DOT string to SVG
     try:
