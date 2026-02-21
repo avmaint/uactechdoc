@@ -143,6 +143,28 @@ def test_graph_renders_additional_fields():
         raise TestFailure("Protocol field missing when requested on edge labels")
 
 
+def test_graph_colors_edges_by_protocol():
+    params = urllib.parse.urlencode({
+        "target_tag": "ZVKU-A003",
+        "direction": "both",
+        "color_edges_by_protocol": "true"
+    })
+    svg_text = request_text(f"/graphviz/dot?{params}")
+    if "#00b050" not in svg_text.lower():
+        raise TestFailure("SDI protocol color not applied to edge when requested")
+
+
+def test_graph_colors_nodes_by_category():
+    params = urllib.parse.urlencode({
+        "target_tag": "ZVKU-A001",
+        "direction": "both",
+        "color_nodes_by_category": "true"
+    })
+    svg_text = request_text(f"/graphviz/dot?{params}")
+    if "#d2e5ff" not in svg_text.lower():
+        raise TestFailure("Category-based node background color missing when requested")
+
+
 TESTS: List[Tuple[str, Callable[[], None]]] = [
     ("GET /", test_backend_root),
     ("Asset search returns usage", test_asset_search_returns_usage),
@@ -151,6 +173,8 @@ TESTS: List[Tuple[str, Callable[[], None]]] = [
     ("Graph respects custom field selections", test_graph_respects_custom_fields),
     ("Diagram options list defaults and additional fields", test_diagram_options_lists_all_fields),
     ("Graph renders newly requested fields", test_graph_renders_additional_fields),
+    ("Graph colors edges by protocol", test_graph_colors_edges_by_protocol),
+    ("Graph colors nodes by category", test_graph_colors_nodes_by_category),
 ]
 
 

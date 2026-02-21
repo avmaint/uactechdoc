@@ -1,3 +1,4 @@
+import hashlib
 import pandas as pd
 import numpy as np
 import html # Import html module
@@ -91,6 +92,39 @@ NODE_FIELD_OPTIONS: Set[str] = set()
 EDGE_FIELD_OPTIONS: Set[str] = set()
 DEFAULT_NODE_FIELDS = ["tag", "manufacturer", "model", "usage"]
 DEFAULT_EDGE_FIELDS = ["tag", "type", "ports", "usage"]
+DEFAULT_NODE_BACKGROUND = "#D9E8FB"
+PROTOCOL_COLOR_MAP = {
+    "sdi": "#00B050",
+    "hdmi": "#ED7D31",
+    "ethernet": "#0070C0",
+    "hdbaset": "#1F77B4",
+    "dante": "#C00000",
+    "dmx": "#7030A0",
+    "rf": "#996633",
+    "gigaace": "#2E75B6",
+    "dx-link": "#4BACC6",
+    "aa-line": "#70AD47",
+    "aa-mic": "#548235",
+    "aa-amp": "#92D050",
+    "comp-video": "#FFC000",
+    "vga": "#FABF8F",
+    "viscaip": "#B8359F",
+    "unused": "#A6A6A6",
+}
+CATEGORY_COLOR_MAP = {
+    "video": "#BBD7FF",
+    "audio": "#F8C471",
+    "lighting": "#F7B7D2",
+    "network": "#C6E0B4",
+    "power": "#FAD7AC",
+    "security": "#D5A6BD",
+    "hardware": "#E2EFDA",
+    "misc": "#E4DFEC",
+    "music": "#FFE699",
+    "usb": "#FFD966",
+}
+DEFAULT_PROTOCOL_COLOR = "#6C757D"
+DEFAULT_CATEGORY_COLOR = "#DDEBF7"
 
 def rebuild_lookup_sets() -> None:
     """Rebuilds lookup dictionaries for asset and cable tags."""
@@ -208,6 +242,58 @@ def rebuild_field_option_maps() -> None:
 
 rebuild_lookup_sets()
 rebuild_field_option_maps()
+
+
+def clamp(value: float, min_value: float = 0.0, max_value: float = 255.0) -> int:
+    return int(max(min_value, min(max_value, value)))
+
+
+def hex_to_rgb(hex_color: str) -> Tuple[int, int, int]:
+    value = hex_color.lstrip("#")
+    if len(value) == 3:
+        value = "".join(ch * 2 for ch in value)
+    if len(value) != 6:
+        return (221, 235, 247)
+    return tuple(int(value[i:i+2], 16) for i in (0, 2, 4))
+
+
+def rgb_to_hex(rgb: Tuple[int, int, int]) -> str:
+    return "#%02X%02X%02X" % tuple(clamp(channel) for channel in rgb)
+
+
+def lighten_color(hex_color: str, factor: float = 0.65) -> str:
+    r, g, b = hex_to_rgb(hex_color)
+    r = r + (255 - r) * factor
+    g = g + (255 - g) * factor
+    b = b + (255 - b) * factor
+    return rgb_to_hex((r, g, b))
+
+
+def hash_color_from_text(value: str, pastel: bool = False) -> str:
+    if not value:
+        return DEFAULT_CATEGORY_COLOR if pastel else DEFAULT_PROTOCOL_COLOR
+    digest = hashlib.md5(value.encode("utf-8")).hexdigest()
+    # Use first 6 hex chars
+    base_color = f"#{digest[:6]}"
+    return lighten_color(base_color, 0.7) if pastel else base_color
+
+
+def get_protocol_color(protocol_value: Optional[str]) -> str:
+    if not protocol_value:
+        return DEFAULT_PROTOCOL_COLOR
+    key = str(protocol_value).strip().lower()
+    if not key:
+        return DEFAULT_PROTOCOL_COLOR
+    return PROTOCOL_COLOR_MAP.get(key) or hash_color_from_text(key, pastel=False)
+
+
+def get_category_color(category_value: Optional[str]) -> str:
+    if not category_value:
+        return DEFAULT_CATEGORY_COLOR
+    key = str(category_value).strip().lower()
+    if not key:
+        return DEFAULT_CATEGORY_COLOR
+    return lighten_color(CATEGORY_COLOR_MAP.get(key) or hash_color_from_text(key, pastel=True), 0.35)
 
 
 def parse_expansion_param(
@@ -360,6 +446,8 @@ def generate_dot_string(
     all_nodes_to_render: Set[str],
     node_fields: List[str],
     edge_fields: List[str],
+    color_nodes_by_category: bool,
+    color_edges_by_protocol: bool,
 ) -> str:
     """
     Generates a Graphviz DOT string from filtered cable and asset data,
@@ -398,6 +486,10 @@ def generate_dot_string(
         asset_info = assets_df[assets_df["AssetTag"] == node_tag_val]
         asset_record = asset_info.iloc[0].to_dict() if not asset_info.empty else {}
         display_tag = str(node_tag_val).strip()
+        category_value = asset_record.get("Category") if asset_record else ""
+        node_bg_color = DEFAULT_NODE_BACKGROUND
+        if color_nodes_by_category and category_value:
+            node_bg_color = get_category_color(category_value)
 
         center_rows = []
         for field_key in node_fields:
@@ -435,7 +527,7 @@ def generate_dot_string(
         <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="white">
           <TR>
             <TD BORDER="1" WIDTH="40">{dst_ports_content}</TD>
-            <TD BGCOLOR="lightblue" ALIGN="CENTER">
+            <TD BGCOLOR="{node_bg_color}" ALIGN="CENTER">
               {center_content}
             </TD>
             <TD BORDER="1" WIDTH="40">{src_ports_content}</TD>
@@ -464,13 +556,24 @@ def generate_dot_string(
                 if value:
                     label_parts.append(value)
             edge_label = "\\n".join(label_parts) if label_parts else ""
-            
+            edge_color_value = ""
+            if color_edges_by_protocol:
+                edge_color_value = get_protocol_color(row.get("Protocol"))
+            edge_attributes = []
+            if edge_label:
+                edge_attributes.append(f'label="{edge_label}"')
+            if edge_color_value:
+                edge_attributes.append(f'color="{edge_color_value}"')
+                edge_attributes.append(f'fontcolor="{edge_color_value}"')
+                
             # Use port names in the edge definition
             # Node:port syntax is used for connecting to specific ports within HTML-like labels
             from_port = f'"{src_tag}":"{html.escape(src_port)}"' if src_port != "" else f'"{src_tag}"'
             to_port = f'"{dst_tag}":"{html.escape(dst_port)}"' if dst_port != "" else f'"{dst_tag}"'
-            
-            dot_edges.append(f'  {from_port} -> {to_port} [label="{edge_label}"];')
+            attr_text = ""
+            if edge_attributes:
+                attr_text = " [" + ", ".join(edge_attributes) + "]"
+            dot_edges.append(f'  {from_port} -> {to_port}{attr_text};')
 
     dot_string = "digraph G {\n  rankdir=LR;\n  node [fontsize=10];\n  edge [fontsize=8];\n" # Added rankdir and default font sizes
     dot_string += "\n".join(node_definitions)
@@ -628,6 +731,8 @@ async def get_graphviz_dot(
     expansions: Optional[str] = Query(None), # Node expansion directives
     node_fields: Optional[str] = Query(None), # Comma-separated node label fields
     edge_fields: Optional[str] = Query(None), # Comma-separated edge label fields
+    color_nodes_by_category: bool = Query(False),
+    color_edges_by_protocol: bool = Query(False),
 ):
     """
     Generates a Graphviz DOT string for filtered cables and assets.
@@ -725,7 +830,15 @@ async def get_graphviz_dot(
     graph_assets = df_assets[df_assets["AssetTag"].isin(final_nodes_to_render)]
     
     # Call generate_dot_string with the *explicitly requested* nodes to render and their filtered cables
-    dot_string = generate_dot_string(filtered_cables, graph_assets, final_nodes_to_render, selected_node_fields, selected_edge_fields) 
+    dot_string = generate_dot_string(
+        filtered_cables,
+        graph_assets,
+        final_nodes_to_render,
+        selected_node_fields,
+        selected_edge_fields,
+        color_nodes_by_category,
+        color_edges_by_protocol,
+    ) 
 
     # Try rendering the DOT string to SVG
     try:

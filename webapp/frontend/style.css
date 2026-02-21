@@ -255,3 +255,16 @@ a:hover {
 .option-group select {
     min-height: 90px;
 }
+.option-group.checkbox-group {
+    min-width: 250px;
+}
+.option-group.checkbox-group label {
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.option-group.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}

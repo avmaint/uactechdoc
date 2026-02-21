@@ -35,6 +35,7 @@ This document outlines the requirements for the interactive web application.
     -   A globally accessible "Reload Data" button so users can refresh the asset and cable sources without restarting services.
     -   Diagram nodes must expose a context menu for hiding nodes or expanding them in-bound/out-bound. Right-clicking a node must expose options to hide the node or expand its in-bound/out-bound connections; these expansions should be reflected immediately in both the cable table and the rendered diagram.
     -   Multi-select controls must allow users to choose which asset fields (Tag, Manufacturer, Model, Usage) appear on node labels and which cable fields (Tag, Type, In-Port→Out-Port, Usage) appear on cable labels. Each list must include every available field from the underlying dataset with the default values pinned to the top (Tag/Manufacturer/Model/Usage for nodes; Tag/Type/In-Port→Out-Port/Usage for cables) and the remaining fields sorted alphabetically.
+    -   Checkboxes must allow users to toggle color-coded treatment of node backgrounds (based on asset Category) and cable link colors (based on Protocol) using industry-appropriate palettes.
     -   Changing any diagram option must immediately refresh both the cable table and the rendered diagram so the selected labels are reflected without extra button clicks.
 -   **Output Display:**
     -   Results for asset search and cable filtering will be displayed in clear, readable tables. Column headers must be sort-able.
@@ -77,5 +78,3 @@ This document outlines the requirements for the interactive web application.
 -   Provide a diagram option to export as jpg or png for easy sharing and documentation purposes. This would allow users to save and share connectivity diagrams without needing to share the entire web application or access to the backend data.
 -   Provide a diagram option to layout the diagram top-to-bottom or left-to-right. This would allow users to choose the layout that best suits their needs and improves readability, especially for diagrams with many connections.
 -   Add a new field to the cable data for "Protocol" (e.g., SDI, HDMI, Ethernet) and refactor the existing Type field to be specific about the cable type and not conflate it with the protocol. This would allow users to filter and label cables based on the protocol they carry, which is often more relevant for understanding connectivity than the physical cable type alone. For example, a cable could be labeled as "Type: Cat6, Protocol: Ethernet" to provide clearer information about its function in the system.
--   Provide an option to colour-code the cables by protocol using industry conventions for colours.
--   Provide an option to colour-code the nodes by Category.

@@ -49,6 +49,7 @@ Once the frontend is open:
     -   Use the **Node Label Fields** multi-select to choose which asset fields appear inside each node. The list includes every available asset column with the defaults (Tag, Manufacturer, Model, Usage) pinned at the top and the rest sorted alphabetically.
     -   Use the **Cable Label Fields** multi-select to pick which cable attributes (Tag, Type, In-Port → Out-Port, Usage, plus any additional columns) appear on each connection.
     -   Changes to either multi-select immediately refresh the cable table and diagram so you can see the updated labels without re-clicking *View Diagram & Cables*.
+    -   Toggle the “Color-code nodes by Category” and “Color-code cables by Protocol” checkboxes to immediately re-render the diagram with pastel category backgrounds and industry-inspired protocol colors for the cable lines.
 
 ### API Base Configuration
 

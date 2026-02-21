@@ -106,10 +106,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const diagramStatus = document.getElementById("diagramStatus");
     const nodeFieldsSelect = document.getElementById("nodeFieldsSelect");
     const edgeFieldsSelect = document.getElementById("edgeFieldsSelect");
+    const colorNodesCheckbox = document.getElementById("colorNodesByCategory");
+    const colorEdgesCheckbox = document.getElementById("colorEdgesByProtocol");
 
     initializeDiagramFieldSelects();
 
-    const handleFieldSelectChange = () => {
+    const refreshDiagramAfterOptionChange = () => {
         if (!currentFilters.targetTag) {
             return;
         }
@@ -123,10 +125,16 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     if (nodeFieldsSelect) {
-        nodeFieldsSelect.addEventListener("change", handleFieldSelectChange);
+        nodeFieldsSelect.addEventListener("change", refreshDiagramAfterOptionChange);
     }
     if (edgeFieldsSelect) {
-        edgeFieldsSelect.addEventListener("change", handleFieldSelectChange);
+        edgeFieldsSelect.addEventListener("change", refreshDiagramAfterOptionChange);
+    }
+    if (colorNodesCheckbox) {
+        colorNodesCheckbox.addEventListener("change", refreshDiagramAfterOptionChange);
+    }
+    if (colorEdgesCheckbox) {
+        colorEdgesCheckbox.addEventListener("change", refreshDiagramAfterOptionChange);
     }
 
     let baseTargetTag = "";
@@ -225,6 +233,8 @@ document.addEventListener("DOMContentLoaded", () => {
             .join(';');
         const selectedNodeFields = getSelectedOptions(nodeFieldsSelect, nodeFieldDefaults);
         const selectedEdgeFields = getSelectedOptions(edgeFieldsSelect, edgeFieldDefaults);
+        const colorNodesEnabled = colorNodesCheckbox ? colorNodesCheckbox.checked : false;
+        const colorEdgesEnabled = colorEdgesCheckbox ? colorEdgesCheckbox.checked : false;
 
         // --- Fetch Cable Data (also used to derive node list) ---
         const cableParams = new URLSearchParams();
@@ -336,6 +346,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cableType) dotParams.append("cable_type", cableType);
         dotParams.append("node_fields", selectedNodeFields.join(','));
         dotParams.append("edge_fields", selectedEdgeFields.join(','));
+        dotParams.append("color_nodes_by_category", colorNodesEnabled ? "true" : "false");
+        dotParams.append("color_edges_by_protocol", colorEdgesEnabled ? "true" : "false");
         // Always send visible_asset_tags, it's the source of truth for the graph
         if (activeDiagramAssetTags.length > 0) {
             dotParams.append("visible_asset_tags", activeDiagramAssetTags.join(','));
