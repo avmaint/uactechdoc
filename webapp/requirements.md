@@ -27,6 +27,7 @@ This document outlines the requirements for the interactive web application.
     -   Asset Search Results.
     -   Cable Filtering Results (table).
     -   Connectivity Diagram (visual rendering).
+    -   Cross-point matrix exploration.
 -   **Input Controls:**
     -   Text input fields for asset tag, manufacturer, model searches.
     -   Text input field for target asset tag for cable filtering.
@@ -36,10 +37,12 @@ This document outlines the requirements for the interactive web application.
     -   Diagram nodes must expose a context menu for hiding nodes or expanding them in-bound/out-bound. Right-clicking a node must expose options to hide the node or expand its in-bound/out-bound connections; these expansions should be reflected immediately in both the cable table and the rendered diagram.
     -   Multi-select controls must allow users to choose which asset fields (Tag, Manufacturer, Model, Usage) appear on node labels and which cable fields (Tag, Type, In-Port→Out-Port, Usage) appear on cable labels. Each list must include every available field from the underlying dataset with the default values pinned to the top (Tag/Manufacturer/Model/Usage for nodes; Tag/Type/In-Port→Out-Port/Usage for cables) and the remaining fields sorted alphabetically.
     -   Checkboxes must allow users to toggle color-coded treatment of node backgrounds (based on asset Category) and cable link colors (based on Protocol) using industry-appropriate palettes.
+    -   The Cross-point tab must provide Source and Target asset tag inputs, a multi-select that controls which cable fields appear in the row/column headers (default Port + Usage), and a protocol dropdown containing only the protocols observed between those two assets. Entering a valid asset tag into either Source or Target must automatically convert the opposite control into a single-select dropdown of only the directly connected assets (based on direction), and a reset button or clearing the text input must restore both controls to standard text entries when needed.
     -   Changing any diagram option must immediately refresh both the cable table and the rendered diagram so the selected labels are reflected without extra button clicks.
 -   **Output Display:**
     -   Results for asset search and cable filtering will be displayed in clear, readable tables. Column headers must be sort-able.
     -   Connectivity diagrams will be rendered interactively or as images within the UI.
+    -   The Cross-point tab must render a matrix with Source ports for rows and Target ports for columns, highlighting each intersecting cell in green when a connection exists for the selected protocol and white otherwise.
     -   When printing from the browser, only the connectivity diagram should appear to produce clean hard copies.
 
 ## 3. Technology Stack
@@ -78,3 +81,7 @@ This document outlines the requirements for the interactive web application.
 -   Provide a diagram option to export as jpg or png for easy sharing and documentation purposes. This would allow users to save and share connectivity diagrams without needing to share the entire web application or access to the backend data.
 -   Provide a diagram option to layout the diagram top-to-bottom or left-to-right. This would allow users to choose the layout that best suits their needs and improves readability, especially for diagrams with many connections.
 -   Add a new field to the cable data for "Protocol" (e.g., SDI, HDMI, Ethernet) and refactor the existing Type field to be specific about the cable type and not conflate it with the protocol. This would allow users to filter and label cables based on the protocol they carry, which is often more relevant for understanding connectivity than the physical cable type alone. For example, a cable could be labeled as "Type: Cat6, Protocol: Ethernet" to provide clearer information about its function in the system.
+-   On the "Cable and Diagram Viewer" pane , change the cable type filter to a protocol filter and ensure it is case in-sensitive.
+-   Add a hover text for the cables that displays the cableid.
+-   Add context menu options for the nodes for hide-inbound, and hide-outbound.
+-   Add a new tab called "Cross-point" This tab should have two entry fields, "Source" and "Target" which accept valid asset tags. The body of this tab should be a cross-point matrix with source ports as the rows, and target ports as the columns. There should be a drop-down multi-select list which determines which fields to show as the row and column headers, with the default being a concatenation of port and usage. There should be a selection box where the protocol type can be specified; the list should be populated with the subset of protocols that exists between Source and Target. Highlight the intersection cell in green if there is a connection, white otherwise.\

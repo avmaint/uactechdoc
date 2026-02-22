@@ -50,6 +50,12 @@ Once the frontend is open:
     -   Use the **Cable Label Fields** multi-select to pick which cable attributes (Tag, Type, In-Port → Out-Port, Usage, plus any additional columns) appear on each connection.
     -   Changes to either multi-select immediately refresh the cable table and diagram so you can see the updated labels without re-clicking *View Diagram & Cables*.
     -   Toggle the “Color-code nodes by Category” and “Color-code cables by Protocol” checkboxes to immediately re-render the diagram with pastel category backgrounds and industry-inspired protocol colors for the cable lines.
+-   **Cross-point Matrix**:
+    -   Switch to the **Cross-point** tab, enter a valid `Source` and `Target` asset tag pair, and click **View Cross-point**.
+    -   The `Port Header Fields` multi-select controls which cable fields (default Port + Usage) appear beside each row/column header.
+    -   As soon as either Source or Target contains a valid asset tag, the opposite control automatically becomes a dropdown of the assets that are directly connected to it (respecting direction), so you can pick a valid counterpart quickly; the **Reset Inputs** button (or clearing the text field) restores both controls to regular text inputs.
+    -   The Protocol dropdown is populated with only the protocols observed between the Source and Target assets; selecting a protocol highlights cells only where that protocol is present (green indicates a connection, white means none).
+    -   Changing the field multi-select or the protocol dropdown immediately refreshes the matrix so you can explore alternate views without re-entering the tags.
 
 ### API Base Configuration
 

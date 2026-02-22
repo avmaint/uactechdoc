@@ -93,6 +93,16 @@ EDGE_FIELD_OPTIONS: Set[str] = set()
 DEFAULT_NODE_FIELDS = ["tag", "manufacturer", "model", "usage"]
 DEFAULT_EDGE_FIELDS = ["tag", "type", "ports", "usage"]
 DEFAULT_NODE_BACKGROUND = "#D9E8FB"
+CROSSPOINT_HEADER_LABELS = {
+    "port": "Port",
+    "usage": "Usage",
+    "protocol": "Protocol",
+    "tag": "Cable Tag",
+    "type": "Cable Type",
+    "notes": "Notes",
+}
+CROSSPOINT_HEADER_FIELDS = set(CROSSPOINT_HEADER_LABELS.keys())
+CROSSPOINT_DEFAULT_FIELDS = ["port", "usage"]
 PROTOCOL_COLOR_MAP = {
     "sdi": "#00B050",
     "hdmi": "#ED7D31",
@@ -296,6 +306,58 @@ def get_category_color(category_value: Optional[str]) -> str:
     return lighten_color(CATEGORY_COLOR_MAP.get(key) or hash_color_from_text(key, pastel=True), 0.35)
 
 
+def format_display_value(value: Optional[str]) -> str:
+    if value is None:
+        return ""
+    text = str(value).strip()
+    if not text or text.lower() == "nan":
+        return ""
+    return text
+
+
+def normalize_port_value(value: object) -> str:
+    text = format_display_value(value)
+    return text
+
+
+def collect_unique_texts(series: pd.Series) -> List[str]:
+    uniques: List[str] = []
+    seen = set()
+    for raw in series.dropna():
+        text = format_display_value(raw)
+        if text and text not in seen:
+            seen.add(text)
+            uniques.append(text)
+    return uniques
+
+
+def build_crosspoint_label(port_value: str, subset: pd.DataFrame, fields: List[str]) -> str:
+    label_parts: List[str] = []
+    for field_key in fields:
+        text = ""
+        if field_key == "port":
+            text = format_display_value(port_value) or "(No Port)"
+        elif field_key == "usage":
+            text = ", ".join(collect_unique_texts(subset["Usage"]))
+        elif field_key == "protocol":
+            text = ", ".join(collect_unique_texts(subset["Protocol"]))
+        elif field_key == "tag":
+            text = ", ".join(collect_unique_texts(subset["Tag"]))
+        elif field_key == "type":
+            text = ", ".join(collect_unique_texts(subset["Type"]))
+        elif field_key == "notes" and "Notes" in subset.columns:
+            text = ", ".join(collect_unique_texts(subset["Notes"]))
+        text = text.strip()
+        if text:
+            label_parts.append(text)
+    if not label_parts:
+        if format_display_value(port_value):
+            label_parts.append(format_display_value(port_value))
+        else:
+            label_parts.append("(No Port)")
+    return " | ".join(label_parts)
+
+
 def parse_expansion_param(
     expansions: Optional[str],
     default_direction: str,
@@ -437,6 +499,7 @@ async def get_diagram_field_options():
     return {
         "node": build_field_option_payload(ASSET_FIELD_LABELS, DEFAULT_NODE_FIELDS),
         "edge": build_field_option_payload(CABLE_FIELD_LABELS, DEFAULT_EDGE_FIELDS),
+        "crosspoint": build_field_option_payload(CROSSPOINT_HEADER_LABELS, CROSSPOINT_DEFAULT_FIELDS),
     }
 
 # --- Graphviz DOT Generation Function ---
@@ -610,6 +673,51 @@ async def search_assets(
     filtered_assets = filtered_assets.drop(columns=["AssetTagNorm"], errors="ignore")
     processed_assets = clean_dataframe_for_json(filtered_assets)
     return processed_assets.to_dict(orient="records")
+
+
+@app.get("/assets/tags")
+async def list_asset_tags():
+    """Returns the list of known asset tags for dropdowns/selections."""
+    tags = sorted(
+        [canonical_display_tag(tag) for tag in VALID_ASSET_TAGS_NORMALIZED],
+        key=lambda value: value.lower(),
+    )
+    return {"tags": tags}
+
+
+@app.get("/assets/linked")
+async def get_linked_assets(tag: str, direction: str = "outbound"):
+    """Returns the list of directly connected assets for the given tag."""
+    norm = normalize_tag_value(tag)
+    if not norm:
+        raise HTTPException(status_code=400, detail="Asset tag is required.")
+    if norm not in ALL_KNOWN_TAGS_NORMALIZED:
+        raise HTTPException(status_code=404, detail=f"Unknown asset tag: {tag}")
+
+    direction_value = direction.lower()
+    if direction_value not in {"inbound", "outbound", "both"}:
+        raise HTTPException(status_code=400, detail="Direction must be inbound, outbound, or both.")
+
+    peers: Set[str] = set()
+    if direction_value in {"outbound", "both"}:
+        outbound_rows = df_cables[df_cables["SrcTagNorm"] == norm]
+        for raw in outbound_rows["DstTag"].tolist():
+            canonical = canonical_display_tag(raw)
+            if canonical:
+                peers.add(canonical)
+    if direction_value in {"inbound", "both"}:
+        inbound_rows = df_cables[df_cables["DstTagNorm"] == norm]
+        for raw in inbound_rows["SrcTag"].tolist():
+            canonical = canonical_display_tag(raw)
+            if canonical:
+                peers.add(canonical)
+
+    sorted_peers = sorted(peers, key=lambda value: value.lower())
+    return {
+        "tag": canonical_display_tag(tag),
+        "direction": direction_value,
+        "peers": sorted_peers,
+    }
 
 
 @app.get("/cables/filter", response_model=CableFilterResponse)
@@ -849,3 +957,112 @@ async def get_graphviz_dot(
         print(f"Error rendering Graphviz DOT to SVG: {e}")
         # If rendering fails, return a 500 error
         raise HTTPException(status_code=500, detail=f"Error rendering Graphviz SVG: {e}")
+
+
+@app.get("/crosspoint/matrix")
+async def get_crosspoint_matrix(
+    source_tag: str,
+    target_tag: str,
+    header_fields: Optional[str] = Query(None),
+    protocol: Optional[str] = Query(None),
+):
+    source_norm = normalize_tag_value(source_tag)
+    target_norm = normalize_tag_value(target_tag)
+    if not source_norm or not target_norm:
+        raise HTTPException(status_code=400, detail="Source and Target asset tags are required.")
+    if source_norm not in ALL_KNOWN_TAGS_NORMALIZED:
+        raise HTTPException(status_code=404, detail=f"Unknown source asset tag: {source_tag}")
+    if target_norm not in ALL_KNOWN_TAGS_NORMALIZED:
+        raise HTTPException(status_code=404, detail=f"Unknown target asset tag: {target_tag}")
+
+    selected_fields = parse_field_selection(header_fields, CROSSPOINT_HEADER_FIELDS, CROSSPOINT_DEFAULT_FIELDS)
+    base_pairs = df_cables[
+        (df_cables["SrcTagNorm"] == source_norm) &
+        (df_cables["DstTagNorm"] == target_norm)
+    ].copy()
+
+    protocol_display_map: Dict[str, str] = {}
+    for raw_value in base_pairs["Protocol"]:
+        text = format_display_value(raw_value)
+        if not text:
+            continue
+        canon = text.lower()
+        if canon not in protocol_display_map:
+            protocol_display_map[canon] = text
+
+    selected_protocol = format_display_value(protocol).lower()
+    if selected_protocol and selected_protocol not in protocol_display_map:
+        protocol_display_map[selected_protocol] = protocol.upper() if protocol else selected_protocol.upper()
+
+    # Prepare canonical port columns for consistent matching
+    base_pairs = base_pairs.assign(
+        SrcPortSafe=base_pairs["SrcPort"].apply(normalize_port_value),
+        DstPortSafe=base_pairs["DstPort"].apply(normalize_port_value),
+    )
+
+    row_ports = sorted({value for value in base_pairs["SrcPortSafe"]})
+    column_ports = sorted({value for value in base_pairs["DstPortSafe"]})
+
+    row_groups: Dict[str, pd.DataFrame] = {
+        str(port): group for port, group in base_pairs.groupby("SrcPortSafe")
+    }
+    col_groups: Dict[str, pd.DataFrame] = {
+        str(port): group for port, group in base_pairs.groupby("DstPortSafe")
+    }
+
+    connection_map: Dict[Tuple[str, str], Set[str]] = {}
+    for _, row in base_pairs.iterrows():
+        key = (row["SrcPortSafe"], row["DstPortSafe"])
+        proto = format_display_value(row.get("Protocol"))
+        canon_proto = proto.lower() if proto else ""
+        if key not in connection_map:
+            connection_map[key] = set()
+        connection_map[key].add(canon_proto)
+
+    empty_subset = base_pairs.iloc[0:0]
+    rows_payload = [
+        {
+            "port": port,
+            "label": build_crosspoint_label(port, row_groups.get(port, empty_subset), selected_fields),
+        }
+        for port in row_ports
+    ]
+    columns_payload = [
+        {
+            "port": port,
+            "label": build_crosspoint_label(port, col_groups.get(port, empty_subset), selected_fields),
+        }
+        for port in column_ports
+    ]
+
+    matrix: List[List[bool]] = []
+    if row_ports and column_ports:
+        for row_port in row_ports:
+            row_values: List[bool] = []
+            for col_port in column_ports:
+                proto_set = connection_map.get((row_port, col_port), set())
+                if not proto_set:
+                    row_values.append(False)
+                elif not selected_protocol:
+                    row_values.append(True)
+                else:
+                    row_values.append(selected_protocol in proto_set)
+            matrix.append(row_values)
+
+    protocol_options = [{"value": "", "label": "All Protocols"}]
+    for canon, display in sorted(protocol_display_map.items(), key=lambda item: item[1].lower()):
+        protocol_options.append({
+            "value": canon,
+            "label": display,
+        })
+
+    return {
+        "source_tag": canonical_display_tag(source_tag),
+        "target_tag": canonical_display_tag(target_tag),
+        "header_fields": selected_fields,
+        "protocol": selected_protocol,
+        "protocols": protocol_options,
+        "rows": rows_payload,
+        "columns": columns_payload,
+        "matrix": matrix,
+    }

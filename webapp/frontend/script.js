@@ -13,16 +13,21 @@ const API_BASE_URL = (() => {
 
 const DEFAULT_NODE_FIELDS = ["tag", "manufacturer", "model", "usage"];
 const DEFAULT_EDGE_FIELDS = ["tag", "type", "ports", "usage"];
+const DEFAULT_CROSSPOINT_FIELDS = ["port", "usage"];
 const FALLBACK_FIELD_LABELS = {
     tag: "Tag",
     manufacturer: "Manufacturer",
     model: "Model",
     usage: "Usage",
     type: "Type",
-    ports: "In-Port → Out-Port"
+    ports: "In-Port → Out-Port",
+    port: "Port",
+    protocol: "Protocol",
+    notes: "Notes"
 };
 let nodeFieldDefaults = [...DEFAULT_NODE_FIELDS];
 let edgeFieldDefaults = [...DEFAULT_EDGE_FIELDS];
+let crosspointHeaderDefaults = [...DEFAULT_CROSSPOINT_FIELDS];
 
 // Store sort state for tables
 const tableSortStates = {
@@ -106,10 +111,205 @@ document.addEventListener("DOMContentLoaded", () => {
     const diagramStatus = document.getElementById("diagramStatus");
     const nodeFieldsSelect = document.getElementById("nodeFieldsSelect");
     const edgeFieldsSelect = document.getElementById("edgeFieldsSelect");
+    const crosspointHeaderFields = document.getElementById("crosspointHeaderFields");
+    const crosspointProtocolSelect = document.getElementById("crosspointProtocolSelect");
+    const crosspointSourceInput = document.getElementById("crosspointSource");
+    const crosspointTargetInput = document.getElementById("crosspointTarget");
+    const crosspointSourceSelect = document.getElementById("crosspointSourceSelect");
+    const crosspointTargetSelect = document.getElementById("crosspointTargetSelect");
+    const viewCrosspointBtn = document.getElementById("viewCrosspointBtn");
+    const resetCrosspointBtn = document.getElementById("resetCrosspointBtn");
+    const crosspointMatrixContainer = document.getElementById("crosspointMatrixContainer");
+    const crosspointStatus = document.getElementById("crosspointStatus");
     const colorNodesCheckbox = document.getElementById("colorNodesByCategory");
     const colorEdgesCheckbox = document.getElementById("colorEdgesByProtocol");
 
+    function setCrosspointInputValue(side, value) {
+        const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
+        const select = side === "source" ? crosspointSourceSelect : crosspointTargetSelect;
+        if (input) {
+            input.value = value;
+        }
+        if (select && !select.classList.contains("hidden")) {
+            select.value = value;
+        }
+    }
+
+    function setCrosspointInputValue(side, value) {
+        const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
+        const select = side === "source" ? crosspointSourceSelect : crosspointTargetSelect;
+        if (input) {
+            input.value = value;
+        }
+        if (select && !select.classList.contains("hidden")) {
+            select.value = value;
+        }
+    }
+
+    function setCrosspointControlMode(side, mode, optionsList) {
+        const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
+        const select = side === "source" ? crosspointSourceSelect : crosspointTargetSelect;
+        if (!input || !select) return;
+        if (mode === "select" && (assetTagOptions.length || (optionsList && optionsList.length))) {
+            populateAssetSelect(select, side === "source" ? "Select Source Asset" : "Select Target Asset", optionsList);
+            const resolved = resolveAssetDisplay(input.value);
+            if (resolved) {
+                select.value = resolved;
+            } else {
+                select.value = "";
+            }
+            input.classList.add("hidden");
+            select.classList.remove("hidden");
+        } else {
+            input.classList.remove("hidden");
+            select.classList.add("hidden");
+        }
+    }
+
+    function resetCrosspointInputs(clearValues = false) {
+        setCrosspointControlMode("source", "text");
+        setCrosspointControlMode("target", "text");
+        if (crosspointSourceSelect) {
+            populateAssetSelect(crosspointSourceSelect, "Select Source Asset");
+            crosspointSourceSelect.value = "";
+        }
+        if (crosspointTargetSelect) {
+            populateAssetSelect(crosspointTargetSelect, "Select Target Asset");
+            crosspointTargetSelect.value = "";
+        }
+        if (clearValues) {
+            if (crosspointSourceInput) crosspointSourceInput.value = "";
+            if (crosspointTargetInput) crosspointTargetInput.value = "";
+            lastCrosspointQuery = null;
+        }
+    }
+
+    function getCrosspointValue(side) {
+        const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
+        const select = side === "source" ? crosspointSourceSelect : crosspointTargetSelect;
+        if (select && !select.classList.contains("hidden") && select.value) {
+            return select.value.trim();
+        }
+        return input ? input.value.trim() : "";
+    }
+
+    function setCrosspointStatus(message, level = "info") {
+        if (!crosspointStatus) return;
+        if (!message) {
+            crosspointStatus.textContent = "";
+            crosspointStatus.className = "status-message hidden";
+            return;
+        }
+        const levelClass = {
+            info: "status-info",
+            success: "status-success",
+            warn: "status-warn",
+            error: "status-error"
+        }[level] || "status-info";
+        crosspointStatus.className = `status-message ${levelClass}`;
+        crosspointStatus.textContent = message;
+    }
+
+    function populateCrosspointProtocolOptions(options, selectedValue) {
+        if (!crosspointProtocolSelect) {
+            return;
+        }
+        const fallbackOptions = options && options.length ? options : [{ value: "", label: "All Protocols" }];
+        crosspointProtocolSelect.innerHTML = "";
+        fallbackOptions.forEach(option => {
+            const opt = document.createElement("option");
+            opt.value = option.value ?? "";
+            opt.textContent = option.label || option.value || "All Protocols";
+            crosspointProtocolSelect.appendChild(opt);
+        });
+        if (selectedValue) {
+            crosspointProtocolSelect.value = selectedValue;
+        } else {
+            crosspointProtocolSelect.selectedIndex = 0;
+        }
+    }
+
+    function renderCrosspointMatrix(data) {
+        if (!crosspointMatrixContainer) {
+            return;
+        }
+        const rows = Array.isArray(data?.rows) ? data.rows : [];
+        const columns = Array.isArray(data?.columns) ? data.columns : [];
+        const matrix = Array.isArray(data?.matrix) ? data.matrix : [];
+        if (!rows.length || !columns.length) {
+            crosspointMatrixContainer.innerHTML = "<p>No connections found between the selected assets.</p>";
+            return;
+        }
+        const table = document.createElement("table");
+        table.className = "crosspoint-table";
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        const cornerCell = document.createElement("th");
+        cornerCell.className = "row-header";
+        cornerCell.textContent = `${data?.source_tag || "Source"} → ${data?.target_tag || "Target"}`;
+        headerRow.appendChild(cornerCell);
+        columns.forEach(col => {
+            const th = document.createElement("th");
+            th.textContent = col.label || col.port || "";
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        rows.forEach((row, rowIndex) => {
+            const tr = document.createElement("tr");
+            const rowHeader = document.createElement("td");
+            rowHeader.className = "row-header";
+            rowHeader.textContent = row.label || row.port || "";
+            tr.appendChild(rowHeader);
+            columns.forEach((col, colIndex) => {
+                const td = document.createElement("td");
+                const hasConnection = Boolean(matrix[rowIndex]?.[colIndex]);
+                td.className = `crosspoint-cell ${hasConnection ? "has-connection" : "no-connection"}`;
+                td.textContent = hasConnection ? "✔" : "";
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        crosspointMatrixContainer.innerHTML = "";
+        crosspointMatrixContainer.appendChild(table);
+    }
+
+    async function fetchConnectedAssetTags(tag, direction) {
+        const params = new URLSearchParams();
+        params.append("tag", tag);
+        params.append("direction", direction);
+        const response = await fetch(`${API_BASE_URL}/assets/linked?${params.toString()}`);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        const peers = Array.isArray(data?.peers) ? data.peers : [];
+        return {
+            peers,
+            canonicalTag: data?.tag || "",
+        };
+    }
+
+    async function updateOppositeOptions(side, tagValue) {
+        const otherSide = side === "source" ? "target" : "source";
+        const direction = side === "source" ? "outbound" : "inbound";
+        const result = await fetchConnectedAssetTags(tagValue, direction);
+        if (result.canonicalTag) {
+            setCrosspointInputValue(side, result.canonicalTag);
+        }
+        if (result.peers.length) {
+            setCrosspointControlMode(otherSide, "select", result.peers);
+        } else {
+            setCrosspointControlMode(otherSide, "text");
+        }
+    }
+
     initializeDiagramFieldSelects();
+    const assetTagsReadyPromise = initializeAssetTagSelects();
 
     const refreshDiagramAfterOptionChange = () => {
         if (!currentFilters.targetTag) {
@@ -141,6 +341,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let contextMenuTargetTag = null;
     let currentFilters = { targetTag: "", direction: "both", cableType: "" };
     const nodeExpansionMap = new Map(); // tag -> Set('in','out')
+    let lastCrosspointQuery = null;
+    let assetTagOptions = [];
+    const assetTagLookup = new Map();
 
 
     viewDiagramBtn.addEventListener("click", async () => {
@@ -171,6 +374,60 @@ document.addEventListener("DOMContentLoaded", () => {
             true // reset active assets on a fresh request
         );
     });
+
+    if (viewCrosspointBtn) {
+        viewCrosspointBtn.addEventListener("click", async () => {
+            const sourceTag = getCrosspointValue("source");
+            const targetTag = getCrosspointValue("target");
+            if (!sourceTag || !targetTag) {
+                alert("Please enter both Source and Target asset tags.");
+                return;
+            }
+            lastCrosspointQuery = { source: sourceTag, target: targetTag };
+            await fetchAndRenderCrosspointMatrix(sourceTag, targetTag);
+        });
+    }
+
+    if (resetCrosspointBtn) {
+        resetCrosspointBtn.addEventListener("click", () => {
+            resetCrosspointInputs(true);
+            if (crosspointMatrixContainer) {
+                crosspointMatrixContainer.innerHTML = "";
+            }
+            setCrosspointStatus("", "info");
+        });
+    }
+
+    if (crosspointSourceInput) {
+        crosspointSourceInput.addEventListener("input", () => {
+            handleAssetInputChange("source", crosspointSourceInput.value.trim());
+        });
+    }
+    if (crosspointTargetInput) {
+        crosspointTargetInput.addEventListener("input", () => {
+            handleAssetInputChange("target", crosspointTargetInput.value.trim());
+        });
+    }
+    if (crosspointSourceSelect) {
+        crosspointSourceSelect.addEventListener("change", () => handleAssetSelectChange("source"));
+    }
+    if (crosspointTargetSelect) {
+        crosspointTargetSelect.addEventListener("change", () => handleAssetSelectChange("target"));
+    }
+
+    const handleCrosspointOptionChange = async () => {
+        if (!lastCrosspointQuery) {
+            return;
+        }
+        await fetchAndRenderCrosspointMatrix(lastCrosspointQuery.source, lastCrosspointQuery.target, true);
+    };
+
+    if (crosspointHeaderFields) {
+        crosspointHeaderFields.addEventListener("change", handleCrosspointOptionChange);
+    }
+    if (crosspointProtocolSelect) {
+        crosspointProtocolSelect.addEventListener("change", handleCrosspointOptionChange);
+    }
 
     // --- Reload Data Button Logic ---
     reloadDataBtn.addEventListener('click', async () => {
@@ -393,6 +650,41 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         return { availableChanged, newlyDiscoveredCount: newlyDiscovered.length };
     }
+
+    async function fetchAndRenderCrosspointMatrix(sourceTag, targetTag) {
+        if (!crosspointMatrixContainer) {
+            return;
+        }
+        const headerFields = getSelectedOptions(crosspointHeaderFields, crosspointHeaderDefaults);
+        const params = new URLSearchParams();
+        params.append("source_tag", sourceTag);
+        params.append("target_tag", targetTag);
+        if (headerFields.length) {
+            params.append("header_fields", headerFields.join(','));
+        }
+        const selectedProtocol = crosspointProtocolSelect ? crosspointProtocolSelect.value : "";
+        if (selectedProtocol) {
+            params.append("protocol", selectedProtocol);
+        }
+        setCrosspointStatus("Loading cross-point matrix...", "info");
+        try {
+            const response = await fetch(`${API_BASE_URL}/crosspoint/matrix?${params.toString()}`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `HTTP ${response.status}`);
+            }
+            const data = await response.json();
+            populateCrosspointProtocolOptions(data.protocols, data.protocol || "");
+            renderCrosspointMatrix(data);
+            setCrosspointStatus("", "info");
+        } catch (error) {
+            console.error("Error loading cross-point matrix:", error);
+            if (crosspointMatrixContainer) {
+                crosspointMatrixContainer.innerHTML = `<p style="color: red;">${error.message}</p>`;
+            }
+            setCrosspointStatus(`Failed to load cross-point data: ${error.message}`, "error");
+        }
+    }
     function attachNodeContextMenuHandlers() {
         const svgNodes = diagramRenderArea.querySelectorAll('g.node');
         svgNodes.forEach(node => {
@@ -575,6 +867,90 @@ document.addEventListener("DOMContentLoaded", () => {
         setDiagramStatus("");
     }
 
+    function setCrosspointStatus(message, level = "info") {
+        if (!crosspointStatus) return;
+        if (!message) {
+            crosspointStatus.textContent = "";
+            crosspointStatus.className = "status-message hidden";
+            return;
+        }
+        const levelClass = {
+            info: "status-info",
+            success: "status-success",
+            warn: "status-warn",
+            error: "status-error"
+        }[level] || "status-info";
+        crosspointStatus.className = `status-message ${levelClass}`;
+        crosspointStatus.textContent = message;
+    }
+
+    function populateCrosspointProtocolOptions(options, selectedValue) {
+        if (!crosspointProtocolSelect) {
+            return;
+        }
+        const fallbackOptions = options && options.length ? options : [{ value: "", label: "All Protocols" }];
+        crosspointProtocolSelect.innerHTML = "";
+        fallbackOptions.forEach(option => {
+            const opt = document.createElement("option");
+            opt.value = option.value ?? "";
+            opt.textContent = option.label || option.value || "All Protocols";
+            crosspointProtocolSelect.appendChild(opt);
+        });
+        if (selectedValue) {
+            crosspointProtocolSelect.value = selectedValue;
+        } else {
+            crosspointProtocolSelect.selectedIndex = 0;
+        }
+    }
+
+    function renderCrosspointMatrix(data) {
+        if (!crosspointMatrixContainer) {
+            return;
+        }
+        const rows = Array.isArray(data?.rows) ? data.rows : [];
+        const columns = Array.isArray(data?.columns) ? data.columns : [];
+        const matrix = Array.isArray(data?.matrix) ? data.matrix : [];
+        if (!rows.length || !columns.length) {
+            crosspointMatrixContainer.innerHTML = "<p>No connections found between the selected assets.</p>";
+            return;
+        }
+        const table = document.createElement("table");
+        table.className = "crosspoint-table";
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        const cornerCell = document.createElement("th");
+        cornerCell.className = "row-header";
+        cornerCell.textContent = `${data?.source_tag || "Source"} → ${data?.target_tag || "Target"}`;
+        headerRow.appendChild(cornerCell);
+        columns.forEach(col => {
+            const th = document.createElement("th");
+            th.textContent = col.label || col.port || "";
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        rows.forEach((row, rowIndex) => {
+            const tr = document.createElement("tr");
+            const rowHeader = document.createElement("td");
+            rowHeader.className = "row-header";
+            rowHeader.textContent = row.label || row.port || "";
+            tr.appendChild(rowHeader);
+            columns.forEach((col, colIndex) => {
+                const td = document.createElement("td");
+                const hasConnection = Boolean(matrix[rowIndex]?.[colIndex]);
+                td.className = `crosspoint-cell ${hasConnection ? "has-connection" : "no-connection"}`;
+                td.textContent = hasConnection ? "✔" : "";
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        crosspointMatrixContainer.innerHTML = "";
+        crosspointMatrixContainer.appendChild(table);
+    }
+
     async function initializeDiagramFieldSelects() {
         if (!nodeFieldsSelect || !edgeFieldsSelect) {
             return;
@@ -587,6 +963,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const payload = await response.json();
             const nodePayload = payload?.node || {};
             const edgePayload = payload?.edge || {};
+            const crosspointPayload = payload?.crosspoint || {};
 
             nodeFieldDefaults = Array.isArray(nodePayload.defaults) && nodePayload.defaults.length
                 ? [...nodePayload.defaults]
@@ -594,6 +971,9 @@ document.addEventListener("DOMContentLoaded", () => {
             edgeFieldDefaults = Array.isArray(edgePayload.defaults) && edgePayload.defaults.length
                 ? [...edgePayload.defaults]
                 : [...DEFAULT_EDGE_FIELDS];
+            crosspointHeaderDefaults = Array.isArray(crosspointPayload.defaults) && crosspointPayload.defaults.length
+                ? [...crosspointPayload.defaults]
+                : [...DEFAULT_CROSSPOINT_FIELDS];
 
             const nodeOptions = Array.isArray(nodePayload.options) && nodePayload.options.length
                 ? nodePayload.options
@@ -601,13 +981,57 @@ document.addEventListener("DOMContentLoaded", () => {
             const edgeOptions = Array.isArray(edgePayload.options) && edgePayload.options.length
                 ? edgePayload.options
                 : buildFallbackOptions(edgeFieldDefaults);
+            const crosspointOptions = Array.isArray(crosspointPayload.options) && crosspointPayload.options.length
+                ? crosspointPayload.options
+                : buildFallbackOptions(crosspointHeaderDefaults);
 
             populateFieldSelect(nodeFieldsSelect, nodeOptions, nodeFieldDefaults);
             populateFieldSelect(edgeFieldsSelect, edgeOptions, edgeFieldDefaults);
+            if (crosspointHeaderFields) {
+                populateFieldSelect(crosspointHeaderFields, crosspointOptions, crosspointHeaderDefaults);
+            }
         } catch (error) {
             console.error("Error loading diagram field options:", error);
             populateFieldSelect(nodeFieldsSelect, buildFallbackOptions(nodeFieldDefaults), nodeFieldDefaults);
             populateFieldSelect(edgeFieldsSelect, buildFallbackOptions(edgeFieldDefaults), edgeFieldDefaults);
+            if (crosspointHeaderFields) {
+                populateFieldSelect(crosspointHeaderFields, buildFallbackOptions(crosspointHeaderDefaults), crosspointHeaderDefaults);
+            }
+        }
+    }
+
+    async function initializeAssetTagSelects() {
+        if (!crosspointSourceSelect || !crosspointTargetSelect) {
+            console.log("initializeAssetTagSelects: Crosspoint select elements not found.");
+            return;
+        }
+        try {
+            console.log("initializeAssetTagSelects: Fetching asset tags from API.");
+            const response = await fetch(`${API_BASE_URL}/assets/tags`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `HTTP ${response.status}`);
+            }
+            const data = await response.json();
+            assetTagOptions = Array.isArray(data.tags) ? data.tags : [];
+            console.log(`initializeAssetTagSelects: Fetched ${assetTagOptions.length} asset tags.`);
+        } catch (error) {
+            console.error("Error loading asset tags:", error);
+            assetTagOptions = [];
+        }
+        assetTagLookup.clear();
+        assetTagOptions.forEach(tag => {
+            if (!tag) return;
+            assetTagLookup.set(tag.trim().toUpperCase(), tag);
+        });
+        console.log(`initializeAssetTagSelects: Populated assetTagLookup with ${assetTagLookup.size} entries.`);
+        populateAssetSelect(crosspointSourceSelect, "Select Source Asset");
+        populateAssetSelect(crosspointTargetSelect, "Select Target Asset");
+        if (crosspointSourceInput && crosspointSourceInput.value.trim()) {
+            handleAssetInputChange("source", crosspointSourceInput.value.trim());
+        }
+        if (crosspointTargetInput && crosspointTargetInput.value.trim()) {
+            handleAssetInputChange("target", crosspointTargetInput.value.trim());
         }
     }
 
@@ -648,6 +1072,129 @@ document.addEventListener("DOMContentLoaded", () => {
             label: humanizeFieldLabel(value),
             selected: true
         }));
+    }
+
+    function populateAssetSelect(selectElement, placeholderText, optionsList) {
+        if (!selectElement) return;
+        const sourceList = Array.isArray(optionsList) && optionsList.length ? optionsList : assetTagOptions;
+        selectElement.innerHTML = "";
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = placeholderText || "Select Asset";
+        selectElement.appendChild(placeholder);
+        sourceList.forEach(tag => {
+            const opt = document.createElement("option");
+            opt.value = tag;
+            opt.textContent = tag;
+            selectElement.appendChild(opt);
+        });
+    }
+
+    function resolveAssetDisplay(value) {
+        console.log(`resolveAssetDisplay: value=${value}`);
+        if (!value) return null;
+        const normalized = value.trim().toUpperCase();
+        const resolved = assetTagLookup.get(normalized);
+        console.log(`resolveAssetDisplay: normalized=${normalized}, resolved=${resolved}`);
+        return resolved || null;
+    }
+
+    async function handleAssetInputChange(side, value) {
+        console.log(`handleAssetInputChange: side=${side}, value=${value}`);
+        if (!value) {
+            console.log("handleAssetInputChange: value is empty, resetting inputs.");
+            resetCrosspointInputs(false);
+            return;
+        }
+        await assetTagsReadyPromise;
+        const otherSide = side === "source" ? "target" : "source";
+        const display = resolveAssetDisplay(value);
+        console.log(`handleAssetInputChange: resolved display for ${value} is ${display}`);
+        if (!display) {
+            console.log(`handleAssetInputChange: ${value} is not a complete asset tag, setting other side to text mode.`);
+            setCrosspointControlMode(otherSide, "text");
+            return;
+        }
+        setCrosspointInputValue(side, display);
+        setCrosspointControlMode(otherSide, "select");
+        try {
+            await updateOppositeOptions(side, display);
+        } catch (error) {
+            console.error("Error updating cross-point dropdown:", error);
+            setCrosspointControlMode(otherSide, "text");
+        }
+    }
+
+    function handleAssetSelectChange(side) {
+        const select = side === "source" ? crosspointSourceSelect : crosspointTargetSelect;
+        if (!select) return;
+        const value = select.value;
+        if (!value) {
+            resetCrosspointInputs(false);
+            return;
+        }
+        setCrosspointInputValue(side, value);
+        updateOppositeOptions(side, value).catch(error => {
+            console.error("Error updating cross-point dropdown:", error);
+        });
+    }
+
+    function setCrosspointInputValue(side, value) {
+        const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
+        const select = side === "source" ? crosspointSourceSelect : crosspointTargetSelect;
+        if (input) {
+            input.value = value;
+        }
+        if (select && !select.classList.contains("hidden")) {
+            select.value = value;
+        }
+    }
+
+    function setCrosspointControlMode(side, mode, optionsList) {
+        const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
+        const select = side === "source" ? crosspointSourceSelect : crosspointTargetSelect;
+        if (!input || !select) return;
+        if (mode === "select" && (assetTagOptions.length || (optionsList && optionsList.length))) {
+            populateAssetSelect(select, side === "source" ? "Select Source Asset" : "Select Target Asset", optionsList);
+            const resolved = resolveAssetDisplay(input.value);
+            if (resolved) {
+                select.value = resolved;
+            } else {
+                select.value = "";
+            }
+            input.classList.add("hidden");
+            select.classList.remove("hidden");
+        } else {
+            input.classList.remove("hidden");
+            select.classList.add("hidden");
+        }
+    }
+
+    function resetCrosspointInputs(clearValues = false) {
+        setCrosspointControlMode("source", "text");
+        setCrosspointControlMode("target", "text");
+        if (crosspointSourceSelect) {
+            populateAssetSelect(crosspointSourceSelect, "Select Source Asset");
+            crosspointSourceSelect.value = "";
+        }
+        if (crosspointTargetSelect) {
+            populateAssetSelect(crosspointTargetSelect, "Select Target Asset");
+            crosspointTargetSelect.value = "";
+        }
+        if (clearValues) {
+            if (crosspointSourceInput) crosspointSourceInput.value = "";
+            if (crosspointTargetInput) crosspointTargetInput.value = "";
+            lastCrosspointQuery = null;
+        }
+    }
+
+    function getCrosspointValue(side) {
+        const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
+        const select = side === "source" ? crosspointSourceSelect : crosspointTargetSelect;
+        if (select && !select.classList.contains("hidden") && select.value) {
+            return select.value.trim();
+        }
+        return input ? input.value.trim() : "";
     }
 
     function humanizeFieldLabel(value) {
@@ -733,3 +1280,33 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+    async function updateOppositeOptions(side, tagValue) {
+        const otherSide = side === "source" ? "target" : "source";
+        const direction = side === "source" ? "outbound" : "inbound";
+        const result = await fetchConnectedAssetTags(tagValue, direction);
+        if (result.canonicalTag) {
+            setCrosspointInputValue(side, result.canonicalTag);
+        }
+        if (result.peers.length) {
+            setCrosspointControlMode(otherSide, "select", result.peers);
+        } else {
+            setCrosspointControlMode(otherSide, "text");
+        }
+    }
+
+    async function fetchConnectedAssetTags(tag, direction) {
+        const params = new URLSearchParams();
+        params.append("tag", tag);
+        params.append("direction", direction);
+        const response = await fetch(`${API_BASE_URL}/assets/linked?${params.toString()}`);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        const peers = Array.isArray(data?.peers) ? data.peers : [];
+        return {
+            peers,
+            canonicalTag: data?.tag || "",
+        };
+    }
