@@ -165,6 +165,72 @@ def test_graph_colors_nodes_by_category():
         raise TestFailure("Category-based node background color missing when requested")
 
 
+def test_asset_tags_endpoint():
+    data = request_json("/assets/tags")
+    tags = data.get("tags")
+    if not isinstance(tags, list) or not tags:
+        raise TestFailure("/assets/tags did not return a non-empty list")
+    normalized = [tag.strip().upper() for tag in tags]
+    if "ZVKU-A001" not in normalized:
+        raise TestFailure("Expected ZVKU-A001 in /assets/tags response")
+
+
+def test_crosspoint_matrix_returns_data():
+    params = urllib.parse.urlencode({
+        "source_tag": "ZVKU-A003",
+        "target_tag": "ZVIU-A005"
+    })
+    data = request_json(f"/crosspoint/matrix?{params}")
+    if "rows" not in data or "columns" not in data:
+        raise TestFailure("Crosspoint matrix response missing rows/columns")
+    if not isinstance(data.get("protocols"), list):
+        raise TestFailure("Crosspoint matrix missing protocol options")
+    if data.get("rows") and data.get("columns") and not data.get("matrix"):
+        raise TestFailure("Crosspoint matrix missing matrix payload")
+
+
+def test_crosspoint_protocol_filtering():
+    params = urllib.parse.urlencode({
+        "source_tag": "ZVKU-A003",
+        "target_tag": "ZVIU-A005",
+        "protocol": "sdi"
+    })
+    data = request_json(f"/crosspoint/matrix?{params}")
+    matrix = data.get("matrix") or []
+    any_connection = any(any(row) for row in matrix)
+    if not any_connection:
+        raise TestFailure("Expected SDI protocol connection between ZVKU-A003 -> ZVIU-A005")
+    params = urllib.parse.urlencode({
+        "source_tag": "ZVKU-A003",
+        "target_tag": "ZVIU-A005",
+        "protocol": "hdmi"
+    })
+    data = request_json(f"/crosspoint/matrix?{params}")
+    matrix = data.get("matrix") or []
+    any_connection = any(any(row) for row in matrix)
+    if any_connection:
+        raise TestFailure("Unexpected HDMI connection reported for ZVKU-A003 -> ZVIU-A005")
+
+
+def test_asset_linked_endpoint():
+    params = urllib.parse.urlencode({
+        "tag": "ZVKU-A003",
+        "direction": "outbound"
+    })
+    data = request_json(f"/assets/linked?{params}")
+    peers = data.get("peers") or []
+    if "ZVIU-A005" not in peers:
+        raise TestFailure("Expected linked peer ZVIU-A005 for outbound ZVKU-A003")
+    params = urllib.parse.urlencode({
+        "tag": "ZVIU-A005",
+        "direction": "inbound"
+    })
+    data = request_json(f"/assets/linked?{params}")
+    peers = data.get("peers") or []
+    if "ZVKU-A003" not in peers:
+        raise TestFailure("Expected inbound peer ZVKU-A003 for ZVIU-A005")
+
+
 TESTS: List[Tuple[str, Callable[[], None]]] = [
     ("GET /", test_backend_root),
     ("Asset search returns usage", test_asset_search_returns_usage),
@@ -175,6 +241,10 @@ TESTS: List[Tuple[str, Callable[[], None]]] = [
     ("Graph renders newly requested fields", test_graph_renders_additional_fields),
     ("Graph colors edges by protocol", test_graph_colors_edges_by_protocol),
     ("Graph colors nodes by category", test_graph_colors_nodes_by_category),
+    ("/assets/tags returns known values", test_asset_tags_endpoint),
+    ("/assets/linked returns neighboring assets", test_asset_linked_endpoint),
+    ("Crosspoint matrix returns data", test_crosspoint_matrix_returns_data),
+    ("Crosspoint protocol filtering", test_crosspoint_protocol_filtering),
 ]
 
 
