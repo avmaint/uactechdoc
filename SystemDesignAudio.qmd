@@ -306,16 +306,42 @@ selected <- c( "ZAAU-0005", "ZAAU-0006", "ZAAU-0011"
 print_inv(selected, assets)
 ```
 
+Amps 1 - 6 drive the front clusters. Clusters are numbers from East to west. Amps 8 - 9 drive the monitors. Amp 7 is the under balcony .
+
+```{r bose.amps}
+
+ba <- tribble(
+~AssetTag, ~Ch1Job, ~Ch2Job, ~Ch3Job, ~Ch4Job,
+"Amp1" , "1-Bot" ,"1-Top", "unsure", "unsure",
+"Amp2" , "" ,"", "", "",
+"Amp3" , "" ,"", "", "",
+"Amp4" , "" ,"", "", "",
+"Amp5" , "" ,"", "", "",
+"Amp6" , "Sub" ,"", "6-Bot", "6-Mid",
+"Amp7" , "UBal East" ,"UBal Centre", "UBal West", ""
+)
+
+```
+
+
+```{r gt.ba}
+ba |> 
+	gt() |>
+	opt_stylize(style=5) |>
+	tab_header("Bose Amp Channel Usage") |>
+	tab_footnote("The channel usage is not fully documented. This is a work in progress.")
+
+```
+
+
 ## Speakers
 
 We have speakers in several locations:
 
 * Main cluster for Front of House which is suspended in front of the stage.
 * Monitor speakers on the stage floor
-* FoH fill speakers above the balcony and underneath the balcony
+* FoH fill speakers underneath the balcony
 * in the lobby ceiling
-
-The FoH cluster is positioned to make the cross-over between the side and centre speaker fall down the centre two aisles. There is some high frequency fall off in the front two rows.
 
 The monitors speakers should be wired for __at most__ two speakers per channel (amp). 
 
@@ -371,6 +397,13 @@ pockets |>
 	tab_header("Floor Pocket" )
 ```
 
+```{r}
+assets |> filter(str_detect(AssetTag, "^FB")) |>
+	select(AssetTag, Model, Usage) |> 
+	gt() |>
+	opt_stylize(style=5) |>
+	tab_header("Floor Pocket" )
+```
 
 
 # Dante Configuration
