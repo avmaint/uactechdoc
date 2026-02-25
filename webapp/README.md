@@ -42,6 +42,7 @@ Once the frontend is open:
     -   Enter a `Target Asset Tag` (e.g., `2507-0700` from `SystemDesignVideo.qmd`).
     -   Select the `Direction` (`Both`, `In-bound`, or `Out-bound`).
     -   Optionally, enter a `Cable Type` (e.g., `SDI`).
+    -   Optionally, enter a `Protocol` (e.g., `Dante`) to focus on specific logical paths.
     -   Click "View Diagram & Cables".
     -   The "Cable Results" tab will display a table of filtered cables. The column headers in the cable table are sortable.
     -   The "Diagram" tab renders the connectivity diagram. Right-click any node to hide it or to expand additional in-bound/out-bound connections; both the diagram and cable table update automatically.
@@ -50,6 +51,7 @@ Once the frontend is open:
     -   Use the **Cable Label Fields** multi-select to pick which cable attributes (Tag, Type, In-Port → Out-Port, Usage, plus any additional columns) appear on each connection.
     -   Changes to either multi-select immediately refresh the cable table and diagram so you can see the updated labels without re-clicking *View Diagram & Cables*.
     -   Toggle the “Color-code nodes by Category” and “Color-code cables by Protocol” checkboxes to immediately re-render the diagram with pastel category backgrounds and industry-inspired protocol colors for the cable lines.
+    -   The **Connection Grouping** dropdown lets you collapse parallel connections by Protocol or Cable Type; collapsed edges display the grouping label (e.g., “dante”) instead of individual port names, with inbound/outbound columns showing separate grouped entries.
 -   **Cross-point Matrix**:
     -   Switch to the **Cross-point** tab, enter a valid `Source` and `Target` asset tag pair, and click **View Cross-point**.
     -   The `Port Header Fields` multi-select controls which cable fields (default Port + Usage) appear beside each row/column header.

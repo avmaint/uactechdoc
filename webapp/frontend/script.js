@@ -102,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const targetTagFilter = document.getElementById("targetTagFilter");
     const directionFilter = document.getElementById("directionFilter");
     const cableTypeFilter = document.getElementById("cableTypeFilter");
+    const protocolFilter = document.getElementById("protocolFilter");
     const viewDiagramBtn = document.getElementById("viewDiagramBtn");
     const reloadDataBtn = document.getElementById("reloadDataBtn");
     const reloadStatus = document.getElementById("reloadStatus");
@@ -123,6 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const crosspointStatus = document.getElementById("crosspointStatus");
     const colorNodesCheckbox = document.getElementById("colorNodesByCategory");
     const colorEdgesCheckbox = document.getElementById("colorEdgesByProtocol");
+    const collapseStrategySelect = document.getElementById("collapseStrategySelect");
 
     function setCrosspointInputValue(side, value) {
         const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
@@ -336,6 +338,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (colorEdgesCheckbox) {
         colorEdgesCheckbox.addEventListener("change", refreshDiagramAfterOptionChange);
     }
+    if (collapseStrategySelect) {
+        collapseStrategySelect.addEventListener("change", refreshDiagramAfterOptionChange);
+    }
 
     let baseTargetTag = "";
     let contextMenuTargetTag = null;
@@ -364,7 +369,8 @@ document.addEventListener("DOMContentLoaded", () => {
         currentFilters = {
             targetTag,
             direction: directionFilter.value,
-            cableType: cableTypeFilter.value
+            cableType: cableTypeFilter.value,
+            protocol: protocolFilter.value
         };
         initializeExpansionMap(baseTargetTag, currentFilters.direction);
         await fetchAndRenderDiagramAndCables(
@@ -492,12 +498,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const selectedEdgeFields = getSelectedOptions(edgeFieldsSelect, edgeFieldDefaults);
         const colorNodesEnabled = colorNodesCheckbox ? colorNodesCheckbox.checked : false;
         const colorEdgesEnabled = colorEdgesCheckbox ? colorEdgesCheckbox.checked : false;
+        const collapseStrategy = collapseStrategySelect ? collapseStrategySelect.value : "none";
 
         // --- Fetch Cable Data (also used to derive node list) ---
         const cableParams = new URLSearchParams();
         cableParams.append("target_tag", targetTag);
         cableParams.append("direction", direction);
         if (cableType) cableParams.append("cable_type", cableType);
+        if (protocolFilter && protocolFilter.value.trim()) {
+            cableParams.append("protocol", protocolFilter.value.trim());
+        }
         cableParams.append("node_fields", selectedNodeFields.join(','));
         cableParams.append("edge_fields", selectedEdgeFields.join(','));
 
@@ -601,10 +611,16 @@ document.addEventListener("DOMContentLoaded", () => {
         dotParams.append("target_tag", targetTag);
         dotParams.append("direction", direction);
         if (cableType) dotParams.append("cable_type", cableType);
+        if (protocolFilter && protocolFilter.value.trim()) {
+            dotParams.append("protocol", protocolFilter.value.trim());
+        }
         dotParams.append("node_fields", selectedNodeFields.join(','));
         dotParams.append("edge_fields", selectedEdgeFields.join(','));
         dotParams.append("color_nodes_by_category", colorNodesEnabled ? "true" : "false");
         dotParams.append("color_edges_by_protocol", colorEdgesEnabled ? "true" : "false");
+        if (collapseStrategy && collapseStrategy !== "none") {
+            dotParams.append("collapse_strategy", collapseStrategy);
+        }
         // Always send visible_asset_tags, it's the source of truth for the graph
         if (activeDiagramAssetTags.length > 0) {
             dotParams.append("visible_asset_tags", activeDiagramAssetTags.join(','));

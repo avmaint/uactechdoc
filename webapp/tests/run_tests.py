@@ -231,6 +231,19 @@ def test_asset_linked_endpoint():
         raise TestFailure("Expected inbound peer ZVKU-A003 for ZVIU-A005")
 
 
+def test_graph_collapse_by_protocol():
+    params = urllib.parse.urlencode({
+        "target_tag": "ZAMU-A001",
+        "direction": "both",
+        "collapse_strategy": "protocol"
+    })
+    svg_text = request_text(f"/graphviz/dot?{params}")
+    if "dante" not in svg_text.lower():
+        raise TestFailure("Collapsed diagram missing protocol label 'dante'")
+    if ':out_dante' not in svg_text.lower():
+        raise TestFailure("Collapsed protocol port identifier not present in SVG output")
+
+
 TESTS: List[Tuple[str, Callable[[], None]]] = [
     ("GET /", test_backend_root),
     ("Asset search returns usage", test_asset_search_returns_usage),
@@ -243,6 +256,7 @@ TESTS: List[Tuple[str, Callable[[], None]]] = [
     ("Graph colors nodes by category", test_graph_colors_nodes_by_category),
     ("/assets/tags returns known values", test_asset_tags_endpoint),
     ("/assets/linked returns neighboring assets", test_asset_linked_endpoint),
+    ("Diagram collapses connections by protocol", test_graph_collapse_by_protocol),
     ("Crosspoint matrix returns data", test_crosspoint_matrix_returns_data),
     ("Crosspoint protocol filtering", test_crosspoint_protocol_filtering),
 ]

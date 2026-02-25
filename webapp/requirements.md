@@ -33,15 +33,17 @@ This document outlines the requirements for the interactive web application.
     -   Text input field for target asset tag for cable filtering.
     -   Dropdown/selection for connection direction (in-bound, out-bound, both).
     -   Text input field for cable type filtering.
+    -   Text input field for protocol filtering so users can isolate specific logical paths (e.g., Dante, SDI).
     -   A globally accessible "Reload Data" button so users can refresh the asset and cable sources without restarting services.
     -   Diagram nodes must expose a context menu for hiding nodes or expanding them in-bound/out-bound. Right-clicking a node must expose options to hide the node or expand its in-bound/out-bound connections; these expansions should be reflected immediately in both the cable table and the rendered diagram.
     -   Multi-select controls must allow users to choose which asset fields (Tag, Manufacturer, Model, Usage) appear on node labels and which cable fields (Tag, Type, In-Port→Out-Port, Usage) appear on cable labels. Each list must include every available field from the underlying dataset with the default values pinned to the top (Tag/Manufacturer/Model/Usage for nodes; Tag/Type/In-Port→Out-Port/Usage for cables) and the remaining fields sorted alphabetically.
     -   Checkboxes must allow users to toggle color-coded treatment of node backgrounds (based on asset Category) and cable link colors (based on Protocol) using industry-appropriate palettes.
+    -   A grouping selector must allow users to collapse diagram connections by Protocol or Cable Type; when collapsed, the port labels must show the grouping value (e.g., “dante”) instead of individual port names so the diagram stays readable.
     -   The Cross-point tab must provide Source and Target asset tag inputs, a multi-select that controls which cable fields appear in the row/column headers (default Port + Usage), and a protocol dropdown containing only the protocols observed between those two assets. Entering a valid asset tag into either Source or Target must automatically convert the opposite control into a single-select dropdown of only the directly connected assets (based on direction), and a reset button or clearing the text input must restore both controls to standard text entries when needed.
     -   Changing any diagram option must immediately refresh both the cable table and the rendered diagram so the selected labels are reflected without extra button clicks.
 -   **Output Display:**
     -   Results for asset search and cable filtering will be displayed in clear, readable tables. Column headers must be sort-able.
-    -   Connectivity diagrams will be rendered interactively or as images within the UI.
+    -   Connectivity diagrams will be rendered interactively or as images within the UI. When grouping is enabled, multiple ports of the same Protocol/Type must collapse into a single connection that displays the grouping label and the number of collapsed cables, while keeping inbound/outbound sides distinct.
     -   The Cross-point tab must render a matrix with Source ports for rows and Target ports for columns, highlighting each intersecting cell in green when a connection exists for the selected protocol and white otherwise.
     -   When printing from the browser, only the connectivity diagram should appear to produce clean hard copies.
 

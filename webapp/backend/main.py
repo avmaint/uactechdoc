@@ -135,6 +135,7 @@ CATEGORY_COLOR_MAP = {
 }
 DEFAULT_PROTOCOL_COLOR = "#6C757D"
 DEFAULT_CATEGORY_COLOR = "#DDEBF7"
+COLLAPSE_OPTIONS = {"none", "protocol", "type"}
 
 def rebuild_lookup_sets() -> None:
     """Rebuilds lookup dictionaries for asset and cable tags."""
@@ -474,6 +475,23 @@ def build_field_option_payload(labels: Dict[str, str], defaults: List[str]) -> D
     }
 
 
+def collapse_label_for_row(row: pd.Series, strategy: str) -> str:
+    raw_value = ""
+    if strategy == "protocol":
+        raw_value = row.get("Protocol", "")
+    elif strategy == "type":
+        raw_value = row.get("Type", "")
+    label = format_display_value(raw_value)
+    return label or "Unknown"
+
+
+def sanitize_port_identifier(label: str, direction: str) -> str:
+    base = re.sub(r"[^a-zA-Z0-9]+", "_", label.strip().lower())
+    if not base:
+        base = "unknown"
+    return f"{direction}_{base}"
+
+
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the UAC Tech Documentation API"}
@@ -511,6 +529,7 @@ def generate_dot_string(
     edge_fields: List[str],
     color_nodes_by_category: bool,
     color_edges_by_protocol: bool,
+    collapse_strategy: str,
 ) -> str:
     """
     Generates a Graphviz DOT string from filtered cable and asset data,
@@ -518,30 +537,53 @@ def generate_dot_string(
     Ensures all specified nodes in `all_nodes_to_render` are included, even if isolated.
     """
     dot_nodes = set(all_nodes_to_render) # Initialize with all nodes that need to be rendered
-    node_ports = {node_tag: {'src': set(), 'dst': set()} for node_tag in all_nodes_to_render} # Pre-fill node_ports
+    node_ports = {node_tag: {'src': {}, 'dst': {}} for node_tag in all_nodes_to_render} # Pre-fill node_ports
     
     # Collect all ports for nodes that have connecting cables
-    for _, row in filtered_cables.iterrows():
-        src_tag = str(row["SrcTag"]) # Ensure string
-        dst_tag = str(row["DstTag"]) # Ensure string
-        src_port = str(row["SrcPort"]) # Ensure string
-        dst_port = str(row["DstPort"]) # Ensure string
+    collapse_mode = collapse_strategy in {"protocol", "type"}
 
-        # Ensure these nodes exist in dot_nodes (they should if logic is correct, but safe check)
-        dot_nodes.add(src_tag)
-        dot_nodes.add(dst_tag)
+    if collapse_mode:
+        grouped_entries: Dict[Tuple[str, str, str], List[pd.Series]] = {}
+        for _, row in filtered_cables.iterrows():
+            src_tag = str(row["SrcTag"])
+            dst_tag = str(row["DstTag"])
+            group_label = collapse_label_for_row(row, collapse_strategy)
+            key = (src_tag, dst_tag, group_label)
+            grouped_entries.setdefault(key, []).append(row)
+            dot_nodes.add(src_tag)
+            dot_nodes.add(dst_tag)
+        # Build node port labels per grouping value/direction
+        for (src_tag, dst_tag, group_label), rows in grouped_entries.items():
+            src_port_id = sanitize_port_identifier(group_label, "out")
+            dst_port_id = sanitize_port_identifier(group_label, "in")
+            if src_tag not in node_ports:
+                node_ports[src_tag] = {'src': {}, 'dst': {}}
+            if dst_tag not in node_ports:
+                node_ports[dst_tag] = {'src': {}, 'dst': {}}
+            node_ports[src_tag]['src'][src_port_id] = group_label
+            node_ports[dst_tag]['dst'][dst_port_id] = group_label
+    else:
+        for _, row in filtered_cables.iterrows():
+            src_tag = str(row["SrcTag"]) # Ensure string
+            dst_tag = str(row["DstTag"]) # Ensure string
+            src_port = str(row["SrcPort"]) # Ensure string
+            dst_port = str(row["DstPort"]) # Ensure string
 
-        # Ensure node_ports entries exist for src/dst tags
-        if src_tag not in node_ports:
-            node_ports[src_tag] = {'src': set(), 'dst': set()}
-        if dst_tag not in node_ports:
-            node_ports[dst_tag] = {'src': set(), 'dst': set()}
+            # Ensure these nodes exist in dot_nodes (they should if logic is correct, but safe check)
+            dot_nodes.add(src_tag)
+            dot_nodes.add(dst_tag)
 
-        if src_port != "":
-            node_ports[src_tag]['src'].add(src_port)
+            # Ensure node_ports entries exist for src/dst tags
+            if src_tag not in node_ports:
+                node_ports[src_tag] = {'src': {}, 'dst': {}}
+            if dst_tag not in node_ports:
+                node_ports[dst_tag] = {'src': {}, 'dst': {}}
 
-        if dst_port != "":
-            node_ports[dst_tag]['dst'].add(dst_port)
+            if src_port != "":
+                node_ports[src_tag]['src'][src_port] = src_port
+
+            if dst_port != "":
+                node_ports[dst_tag]['dst'][dst_port] = dst_port
 
     node_definitions = []
     # Define nodes with HTML-like labels for ports and asset info
@@ -569,20 +611,22 @@ def generate_dot_string(
 
         # Build DstPorts column
         dst_ports_content = ""
-        sorted_dst_ports = sorted([str(p) for p in list(node_ports.get(node_tag_val, {}).get('dst', set()))])
+        dst_port_items = node_ports.get(node_tag_val, {}).get('dst', {})
+        sorted_dst_ports = sorted(dst_port_items.items(), key=lambda item: item[1].lower())
         if sorted_dst_ports:
             dst_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">' # Changed CELLBORDER to 1
-            for port in sorted_dst_ports:
-                dst_ports_content += f'<TR><TD PORT="{html.escape(port)}" ALIGN="LEFT">{html.escape(port)}</TD></TR>' # HTML escape port
+            for port_id, label in sorted_dst_ports:
+                dst_ports_content += f'<TR><TD PORT="{html.escape(port_id)}" ALIGN="LEFT">{html.escape(label)}</TD></TR>'
             dst_ports_content += '</TABLE>'
         
         # Build SrcPorts column
         src_ports_content = ""
-        sorted_src_ports = sorted([str(p) for p in list(node_ports.get(node_tag_val, {}).get('src', set()))])
+        src_port_items = node_ports.get(node_tag_val, {}).get('src', {})
+        sorted_src_ports = sorted(src_port_items.items(), key=lambda item: item[1].lower())
         if sorted_src_ports:
             src_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">' # Changed CELLBORDER to 1
-            for port in sorted_src_ports:
-                src_ports_content += f'<TR><TD PORT="{html.escape(port)}" ALIGN="RIGHT">{html.escape(port)}</TD></TR>' # HTML escape port
+            for port_id, label in sorted_src_ports:
+                src_ports_content += f'<TR><TD PORT="{html.escape(port_id)}" ALIGN="RIGHT">{html.escape(label)}</TD></TR>'
             src_ports_content += '</TABLE>'
 
         # Main node label table
@@ -604,39 +648,57 @@ def generate_dot_string(
 
     dot_edges = []
     # Define edges with simplified labels
-    for _, row in filtered_cables.iterrows():
-        src_tag = str(row["SrcTag"])
-        dst_tag = str(row["DstTag"])
-        cable_tag = str(row["Tag"])
-        cable_type = str(row["Type"])
-        src_port = str(row["SrcPort"])
-        dst_port = str(row["DstPort"])
-
-        if src_tag != "" and dst_tag != "": # Cleaned data should have "" instead of None
-            label_parts = []
-            for field_key in edge_fields:
-                value = get_edge_field_value(row, field_key)
-                if value:
-                    label_parts.append(value)
-            edge_label = "\\n".join(label_parts) if label_parts else ""
+    if collapse_mode:
+        for (src_tag, dst_tag, group_label), rows in grouped_entries.items():
+            if not src_tag or not dst_tag:
+                continue
+            src_port_id = sanitize_port_identifier(group_label, "out")
+            dst_port_id = sanitize_port_identifier(group_label, "in")
+            count = len(rows)
+            edge_label = f"{html.escape(group_label)} ({count})"
             edge_color_value = ""
-            if color_edges_by_protocol:
-                edge_color_value = get_protocol_color(row.get("Protocol"))
-            edge_attributes = []
-            if edge_label:
-                edge_attributes.append(f'label="{edge_label}"')
+            if color_edges_by_protocol and collapse_strategy == "protocol":
+                edge_color_value = get_protocol_color(group_label)
+            edge_attributes = [f'label="{edge_label}"']
             if edge_color_value:
                 edge_attributes.append(f'color="{edge_color_value}"')
                 edge_attributes.append(f'fontcolor="{edge_color_value}"')
-                
-            # Use port names in the edge definition
-            # Node:port syntax is used for connecting to specific ports within HTML-like labels
-            from_port = f'"{src_tag}":"{html.escape(src_port)}"' if src_port != "" else f'"{src_tag}"'
-            to_port = f'"{dst_tag}":"{html.escape(dst_port)}"' if dst_port != "" else f'"{dst_tag}"'
-            attr_text = ""
-            if edge_attributes:
-                attr_text = " [" + ", ".join(edge_attributes) + "]"
+            attr_text = " [" + ", ".join(edge_attributes) + "]"
+            from_port = f'"{src_tag}":"{src_port_id}"'
+            to_port = f'"{dst_tag}":"{dst_port_id}"'
             dot_edges.append(f'  {from_port} -> {to_port}{attr_text};')
+    else:
+        for _, row in filtered_cables.iterrows():
+            src_tag = str(row["SrcTag"])
+            dst_tag = str(row["DstTag"])
+            cable_tag = str(row["Tag"])
+            cable_type = str(row["Type"])
+            src_port = str(row["SrcPort"])
+            dst_port = str(row["DstPort"])
+
+            if src_tag != "" and dst_tag != "":
+                label_parts = []
+                for field_key in edge_fields:
+                    value = get_edge_field_value(row, field_key)
+                    if value:
+                        label_parts.append(value)
+                edge_label = "\\n".join(label_parts) if label_parts else ""
+                edge_color_value = ""
+                if color_edges_by_protocol:
+                    edge_color_value = get_protocol_color(row.get("Protocol"))
+                edge_attributes = []
+                if edge_label:
+                    edge_attributes.append(f'label="{edge_label}"')
+                if edge_color_value:
+                    edge_attributes.append(f'color="{edge_color_value}"')
+                    edge_attributes.append(f'fontcolor="{edge_color_value}"')
+
+                from_port = f'"{src_tag}":"{html.escape(src_port)}"' if src_port != "" else f'"{src_tag}"'
+                to_port = f'"{dst_tag}":"{html.escape(dst_port)}"' if dst_port != "" else f'"{dst_tag}"'
+                attr_text = ""
+                if edge_attributes:
+                    attr_text = " [" + ", ".join(edge_attributes) + "]"
+                dot_edges.append(f'  {from_port} -> {to_port}{attr_text};')
 
     dot_string = "digraph G {\n  rankdir=LR;\n  node [fontsize=10];\n  edge [fontsize=8];\n" # Added rankdir and default font sizes
     dot_string += "\n".join(node_definitions)
@@ -725,6 +787,7 @@ async def filter_cables(
     target_tag: str,
     direction: str = "both",  # "in", "out", "both"
     cable_type: Optional[str] = None,
+    protocol: Optional[str] = None,
     visible_asset_tags: Optional[str] = Query(None), # Comma-separated string
     additional_asset_tags: Optional[str] = Query(None), # New: Comma-separated string
     expansions: Optional[str] = Query(None), # Node expansion directives
@@ -791,6 +854,10 @@ async def filter_cables(
         candidate_cables = candidate_cables[
             candidate_cables["Type"].str.contains(cable_type, case=False, na=False)
         ]
+    if protocol:
+        candidate_cables = candidate_cables[
+            candidate_cables["Protocol"].str.contains(protocol, case=False, na=False)
+        ]
 
     # If we were given an explicit visible set, only include cables whose endpoints are visible.
     if visible_asset_tags:
@@ -834,6 +901,7 @@ async def get_graphviz_dot(
     target_tag: str,
     direction: str = "both",
     cable_type: Optional[str] = None,
+    protocol: Optional[str] = None,
     visible_asset_tags: Optional[str] = Query(None), # Comma-separated string
     additional_asset_tags: Optional[str] = Query(None), # New: Comma-separated string
     expansions: Optional[str] = Query(None), # Node expansion directives
@@ -841,6 +909,7 @@ async def get_graphviz_dot(
     edge_fields: Optional[str] = Query(None), # Comma-separated edge label fields
     color_nodes_by_category: bool = Query(False),
     color_edges_by_protocol: bool = Query(False),
+    collapse_strategy: Optional[str] = Query("none"),
 ):
     """
     Generates a Graphviz DOT string for filtered cables and assets.
@@ -891,6 +960,10 @@ async def get_graphviz_dot(
         candidate_cables = candidate_cables[
             candidate_cables["Type"].str.contains(cable_type, case=False, na=False)
         ]
+    if protocol:
+        candidate_cables = candidate_cables[
+            candidate_cables["Protocol"].str.contains(protocol, case=False, na=False)
+        ]
     
     # Step 4: Determine the *final* set of nodes to render (normalized to avoid case duplicates)
     candidate_src_norm = set(candidate_cables["SrcTagNorm"]) if "SrcTagNorm" in candidate_cables else set()
@@ -923,6 +996,14 @@ async def get_graphviz_dot(
         filtered_cables = filtered_cables[
             filtered_cables["Type"].str.contains(cable_type, case=False, na=False)
         ]
+    if protocol:
+        filtered_cables = filtered_cables[
+            filtered_cables["Protocol"].str.contains(protocol, case=False, na=False)
+        ]
+    if protocol:
+        filtered_cables = filtered_cables[
+            filtered_cables["Protocol"].str.contains(protocol, case=False, na=False)
+        ]
 
     # Handle truly empty graph (no nodes to render)
     if not final_nodes_to_render:
@@ -938,6 +1019,10 @@ async def get_graphviz_dot(
     graph_assets = df_assets[df_assets["AssetTag"].isin(final_nodes_to_render)]
     
     # Call generate_dot_string with the *explicitly requested* nodes to render and their filtered cables
+    collapse_value = (collapse_strategy or "none").lower()
+    if collapse_value not in COLLAPSE_OPTIONS:
+        raise HTTPException(status_code=400, detail="Invalid collapse strategy. Choose none, protocol, or type.")
+
     dot_string = generate_dot_string(
         filtered_cables,
         graph_assets,
@@ -946,6 +1031,7 @@ async def get_graphviz_dot(
         selected_edge_fields,
         color_nodes_by_category,
         color_edges_by_protocol,
+        collapse_value,
     ) 
 
     # Try rendering the DOT string to SVG
