@@ -28,8 +28,6 @@ Notes for future updates.
 -   rear rack tag 0812 - or not
 -   front rack tag 0813 - or not
 -   I have a note that suggest 2308-0011 is a cable into the audio interface 2308-0008
--   Need to remove dead gear
--   Change EQ from Peavey to AART
 
 ```{r packages_functions }
 source('commonPackages.R')
@@ -67,7 +65,7 @@ Audio Inputs
 
 # Audio Outputs Diagram
 
-As of 2023-11-04 Amplifier '2308-0912' and speaker "2311-0206" were noit connected to anything.
+As of 2023-11-04 Amplifier '2308-0912' and speaker "2311-0206" were not  connected to anything.
 
 ::: {#fig-audio-outputs .cell-output-display}
 ```{r audio_out, results="asis" }
@@ -84,12 +82,14 @@ label <- "'Audio Outputs'"
 xd <- c('CDWU-A002')
 
 dot_code <- get_diagram(targets, inventory, cables, label=label, exc_dev=xd)
-out_str <- get_diagram_aux(dot_code)
+
+# lines were causing a problem with the diagram, so I am going to remove them for now.
+#out_str <- get_diagram_aux(dot_code)
 #dot_code |> clipr::write_clip()
-cat(out_str)
+#cat(out_str)
 #
 ```
-
+`r dot_code`
 Audio Outputs
 :::
 
@@ -97,7 +97,7 @@ Audio Outputs
 x <-'2310-2500'
 cables |> 
 	filter(SrcTag == x | DstTag== x | str_detect(Tag, x)) |> 
-	select(-Invoice, -GraphFormula, -`Labelled?`) |>
+	select(-Invoice,   -`Labelled?`) |>
 	arrange(SrcTag, DstTag) |>
 	gt() |> 
 	opt_stylize(style=3) |>
@@ -151,7 +151,7 @@ Network
 
 # Audio Inventory
 
-```{r audio_inventory}
+```{r }
 #| label: tbl-audio_inventory
 #| tbl-cap: Audio Inventory
 #| tbl-cap-location: bottom
@@ -206,7 +206,7 @@ cable_items |>
 
 # Video Inventory
 
-```{r video_inventory}
+```{r  }
 #| label: tbl-video_inventory
 #| tbl-cap: Video Inventory
 #| tbl-cap-location: bottom
@@ -252,11 +252,9 @@ cable_items |>
 	sub_missing(missing_text="")
 ```
 
-{{< pagebreak >}}
-
 # Network Inventory
 
-```{r net_inventory}
+```{r  }
 #| label: tbl-net_inventory
 #| tbl-cap: Network Inventory
 
