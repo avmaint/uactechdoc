@@ -28,8 +28,8 @@ source("commonFunctions.r")
 ```
 
 ```{r data}
-Tech_Inventory   <- get.inventory()
-NetworkInventory <- get.network()
+db.inventory   <- get.inventory()
+#db.network <- get.network()
 ```
 
 # Introduction
@@ -56,19 +56,19 @@ row2023$REF_DATE <- 2023
 
 cpi <- rbind(cpi, row2023)
 
-Tech_Inventory <- inner_join(Tech_Inventory, cpi
+db.inventory <- inner_join(db.inventory, cpi
 							 , by=join_by(AcqYear == REF_DATE) ) |>
 		mutate(AdjAcqValue = AcqValue/value2022)
 ```
 
 ```{r inventory }
-total_value <- Tech_Inventory |>  
+total_value <- db.inventory |>  
 	filter(Disposition == "N") |>
 	mutate(ext_cost = Qty*UnitValue) |>
 	pull(ext_cost) |>
 	sum(  na.rm=TRUE)
 
-Inventory_Overview <- Tech_Inventory |>  
+Inventory_Overview <- db.inventory |>  
   filter(Disposition == "N") |>
   mutate( TotalValue =  Qty*UnitValue  ) |>        
   group_by(Category) |>
@@ -97,7 +97,7 @@ Inventory_Overview |>
 ```
 
 ```{r gg_history}
-p <- Tech_Inventory |>  
+p <- db.inventory |>  
   filter(Disposition == "N") |>
   filter(!is.na(AcqYear)) |>	
   mutate( TotalValue =  Qty*UnitValue  ) |>  
@@ -116,7 +116,7 @@ p
 Or in a picture with a specfic focus on Audio, Lighting and Video.
 
 ```{r treemap}
-Tech_Inventory |> 
+db.inventory |> 
   filter(Disposition == "N") |>
   filter(Category %in% c("Audio", "Lighting", "Video")) |>
   treemap(index=c("Category","Type"), vSize="AcqValue")
@@ -125,8 +125,9 @@ Tech_Inventory |>
 # Top Investments
 
 The top 5 valued items in each category. If we have several of a thing then we base this on the value of the aggregate.
+
 ```{r top, echo=FALSE}
-top_5 <- Tech_Inventory |> 
+top_5 <- db.inventory |> 
     filter(InService != "N") |>
     #filter(!is.na(Manufacturer)  ) |>
     mutate( ExtendedValue = Qty*UnitValue ) |>
@@ -137,17 +138,18 @@ top_5 <- Tech_Inventory |>
     arrange(Category, desc(TotalValue)) |>
     select(Category, Manufacturer, Model, Qty, TotalValue)
 
-top_5$TotalValue <- printCurrency(top_5$TotalValue ) 
+#top_5$TotalValue <- printCurrency(top_5$TotalValue ) 
 
 top_5 |>
 	gt(groupname_col = "Category") |>
-	opt_stylize(style=3)
+	opt_stylize(style=3) |>
+	fmt_currency(columns = TotalValue,   decimals = 0  ) |>
+	tab_header("Top 5 Investments by Category") 
 ```
 
- 
 ## Investments by Room
 ```{r}
-byLocation <- Tech_Inventory |> 
+byLocation <- db.inventory |> 
     filter(InService != "N") |>
     mutate( ExtendedValue = Qty*UnitValue ) |>
     group_by(Building, Floor, Room ) |> 
@@ -172,7 +174,7 @@ window.size <- 5 #years
 window.first.year <- now+offset
 window.last.year <- window.first.year + window.size
 
-eol <- Tech_Inventory |> 
+eol <- db.inventory |> 
     filter(InService != "N", EolYear > 0) |>
     mutate( TotalValue=  trunc(Qty*UnitValue)  ) |>
   select(Category, Manufacturer,	Model, 
@@ -191,16 +193,16 @@ mkGroup <- function(y) {
   }
 }
 
-forecast <- Tech_Inventory |> 
+forecast <- db.inventory |> 
     filter(InService != "N", EolYear > 0) |>
-    mutate( TotalValue=  trunc(Qty*UnitValue)  ) |>
+    mutate( TotalValue = Qty*UnitValue  ) |>
     rowwise() |>
     mutate( EoL_Year = mkGroup( EolYear ) ) |>
     select(Category, Manufacturer,	Model, 
                      Desc, TotalValue, EoL_Year) |>
     group_by(EoL_Year, Category) |>
     summarise( Value=sum(TotalValue)) |>
-    spread(  key=Category, value=Value, fill="")
+	pivot_wider(  names_from = Category, values_from = Value, values_fill = 0 ) 
 
 pastdue <- eol |> 
   filter(EolYear < now) |>
@@ -212,7 +214,7 @@ totalpastdue.df <- data.frame(Category="Total",  Value=totalpastdue)
 
 pastdue <- rbind(pastdue, totalpastdue.df)
 
-eol.base  <- Tech_Inventory |> 
+eol.base  <- db.inventory |> 
     filter(InService != "N", EolYear > 0) |>
     mutate( TotalValue=  trunc(Qty*UnitValue)  ) |>
     select(Category, AssetTag, Manufacturer,	Model, 
@@ -220,7 +222,6 @@ eol.base  <- Tech_Inventory |>
     arrange(Category, Manufacturer,	Model)
 ```
 
- 
 # Equipment End-of-Life
 
 The purpose of the end-of-life discussion is to contribute to the fiscal planning process. What should we budget for next year needs to include the expenditure to 'keep the lights on'.
@@ -236,29 +237,36 @@ There are several ways to look at our inventory situation:
 The tables that follow will do just that.
 
 ## By Ministry
-The "by ministry" view is an approximation derirved from location. Some locations, Fellowship Hall specifically, are hard to classify in this manner. (It is part of children at this point). 
+The "By ministry" view is an approximation derived from room Some rooms, Fellowship Hall specifically, are hard to classify in this manner. (It is part of children at this point). 
 
 ```{r}
 # mapping Location to ministry
-Location_Ministry_map <- tribble(
-  ~Location, ~Ministry, 
-"EastStorage", "Adult",
-"Balcony",     "Adult",
-"WestStorage", "Adult",
-"Stage",       "Adult",
+Room_Ministry_map <- tribble(
+  ~Room,      ~Ministry, 
+"113",     "Adult",
+"114",     "Adult",
+"115",     "Adult",
+"130",     "Adult",
+"132",     "Adult",
+"134",     "Adult",
+
+"202",     "Adult",
+"204",     "Adult",
+"205",     "Adult",
+"206",     "Adult",
+"207",     "Adult",
+ 
 "Boardroom",   "Youth",
-"FellowshipHall", "Children",
-"BalconyCabinet", "Adult",
+"021", "Children", 
 "Electrical",     "Other",
-"Lobby" ,        "Adult",
+"103" ,        "Adult",
 "Nursery",        "Adult",       
-"BalconyCloset", "Adult",
-"Library",        "Adult",
+"105",            "Children",
 "Coliseum"  ,     "Children",
-"Server Room",    "Other"   
+"122",    "Other"   
 ) 
 
-ministry <- merge(Tech_Inventory, Location_Ministry_map) |> 
+ministry <- merge(db.inventory, Room_Ministry_map) |> 
     filter(InService != "N", EolYear > 0) |>
     mutate( TotalValue=  trunc(Qty*UnitValue)  ) |>
     rowwise() |>
@@ -274,7 +282,6 @@ ministry |>
 	gt()|>
 	tab_header("Obsolescence forecast by year and ministry") |>
 	opt_stylize(style=3)
- 
 ```
 
 ## By Category
@@ -283,7 +290,8 @@ ministry |>
 pastdue |>
 	gt()|>
 	tab_header("Overdue Investments Summary") |>
-	opt_stylize(style=3)
+	opt_stylize(style=3) |>
+    fmt_currency(columns = Value , decimals = 0)
 ```
 
 In the next table, a breakdown by category and year of obsolescence. Years prior to `r window.first.year ` and years following `r window.last.year ` have been consolidated.
@@ -293,10 +301,10 @@ forecast |>
 	ungroup()|>
 	gt()|>
 	tab_header("Obsolescence forecast by Year and Category") |>
-	opt_stylize(style=3)   
-	# fmt_currency(decimals=0
-	# 			 , columns = c("Audio", "Lighting", "Misc", "Music"
-	# 			 			  , "Network", "Power", "Video"))
+	opt_stylize(style=3)   |>
+	fmt_currency(decimals=0
+			 , columns = c("Audio", "Lighting", "Misc", "Music"
+			 			  , "Network", "Power", "Video"))
 ```
 
 ## Year-by-Year Breakdown
@@ -338,27 +346,30 @@ eol.base |>
   filter(EolYear == now+3) |> printEOL( window.first.year+3)
 ```
 
-# Serial Numbers for all items > $1000 value
+# Serial Numbers for Valuable Items
 
 This list maybe of interest when looking at insurance aspects, or if there is every a theft. Only "in service" items included.
 
 ```{r}
-Tech_Inventory |> 
-  filter(InService != "N", UnitValue*Qty >1000) |>
+limit.dollar <- 1000
+tt <- glue("Serial Numbers for all items > ${limit.dollar} value")
+st <- glue("Only items 'in service' included") 
+
+db.inventory |> 
+  filter(InService != "N", UnitValue*Qty > limit.dollar) |>
   arrange(Manufacturer, Model, SN) |>
   select(Manufacturer, Model, SN, Location) |>
 	gt() |>
 	opt_stylize(style=3) |>
-	tab_header("Serial Numbers for all items > $1000 value")
-
+	tab_header(tt, subtitle=st)
 ```
 
- 
 # Not In Service
+
 Equipment that is no longer in service. Much of this can be disposed, sold or donated.
 
 ```{r nis, echo=FALSE}
-not_in_service <- Tech_Inventory |> 
+not_in_service <- db.inventory |> 
     filter(InService == "N") |>
     select(Category, Manufacturer,	Model, Desc, Qty) |>
     arrange(Category ) 
@@ -368,45 +379,54 @@ not_in_service |>
 #  kable_styling("striped", full_width = TRUE)
 ```
 
- 
 # Vendor Spend by Year
 
 ```{r vsby}
-temp <-  Tech_Inventory  |> 
+window.detail <- 5
+collapse.before <- now - window.detail +1
+collapsed.hdr <- glue("-{collapse.before-1}")
+dollar.limit <- 1000
+
+temp <-  db.inventory  |>  
     filter(InService != "N" ) |>
-    mutate( TotalValue=  trunc(Qty*UnitValue)  ) |>
+    mutate( TotalValue = Qty*UnitValue ) |>
     mutate( PurcYear = format(PurcDate, format="%Y")) |>
     select(PurcFrom,   TotalValue, PurcYear) |>
-	mutate(PurcYear = ifelse(PurcYear < "2016", "2015-", PurcYear)) |>
+	mutate(PurcYear = ifelse(PurcYear < collapse.before, collapsed.hdr, PurcYear)) |>
     group_by(PurcYear, PurcFrom) |> 
-    summarise( Value=sum(TotalValue)) 
+    summarise( Value=sum(TotalValue, na.rm=TRUE )) 
     
 rowtotal <- temp |>
             group_by(PurcFrom) |>
             summarise(Total = sum( Value))
 
 vendor <- temp |> 
-  spread(  key=PurcYear, value=Value, fill="")
+  spread(  key=PurcYear, value=Value, fill=0)
 
 agg <- merge(vendor, rowtotal) |>
         arrange(desc(Total))
 
+tt <- glue("Vendor Spend by Year")
+st <- glue("Total spend < {dollar.limit} excluded")
+fn <- glue("Category includes all years prior to and including {collapse.before}")
+
 agg |>
 	ungroup() |>
-	filter(Total > 500) |>
+	filter(Total > dollar.limit) |>
 	gt() |>
 	opt_stylize(style=3) |>
-	tab_header("Vednor Spend by Year"
-			   , subtitle = "Total spend < $500 excluded")  |>
-	tab_footnote("Category includes all years prior to and including 2013.",
-				 locations = cells_column_labels(columns = "2015-"))
+	tab_header(tt,  subtitle=st)  |>
+	tab_footnote(fn ,
+				 locations = cells_column_labels(columns = collapsed.hdr)) |>
+    fmt_currency(decimals=0 )
+
 ```
 
  
 # Inventory that can be sold
 
 ```{r}
-Tech_Inventory |>
+db.inventory |>
   filter(InService == "N", Disposition == "Sell") |>
   select(AssetTag, Manufacturer, Model, SN, AcqValue, DisposedValue,
          DisposedComment) |>
@@ -422,7 +442,7 @@ Tech_Inventory |>
 This camp is in the middle of Manitoba farm land and won't likely encounter any interference problems.
 
 ```{r}
-Tech_Inventory |>
+db.inventory |>
   filter(InService == "N", Disposition %in% c("Donate", "Donated")) |>
   filter(DispositionDestination == "TMBC") |>
   select(AssetTag, Manufacturer, Model, SN,  Qty, Desc  ) |>
@@ -433,10 +453,8 @@ Tech_Inventory |>
 ## In2One - Stouffville
 Graham Clinton has always had a great creative vision and the new building they have acquired has wonderful architectural features which can really play well with light. Some items have already been shipped, others pendings
 
-
-
 ```{r}
-Tech_Inventory |>
+db.inventory |>
   filter(InService == "N", Disposition ==  "Donated" ) |>
   filter(DispositionDestination == "In2One") |>
   select(AssetTag, Manufacturer, Model, SN, Qty, Desc,
@@ -446,7 +464,7 @@ Tech_Inventory |>
 ```
 
 ```{r}
-Tech_Inventory |>
+db.inventory |>
   filter(InService == "N", Disposition == "Donate" ) |>
   filter(DispositionDestination == "In2One") |>
   select(AssetTag, Manufacturer, Model, SN,  Qty, Desc,
@@ -464,7 +482,7 @@ This section provides reporting on the Quality of the Technical Inventory. Each 
  
 Nothing should be listed.  
 ```{r} 
-Tech_Inventory |> 
+db.inventory |> 
       filter( is.na(AssetTag) ) |> 
       filter( UnitValue > limit ) |>
       kable(align="l") # |>
@@ -472,28 +490,29 @@ Tech_Inventory |>
 ```
 
 ```{r limits}
-dt <- 2015
+limit.dt <- 2015
 limit <- 100
-cap <- glue("Items acquired after {dt} and value over ${limit} without AssetTag")
 ```
 
  
-## New Assets (Newer than `r dt` ) without AssetTag
+## New Assets (Newer than `r limit.dt` ) without AssetTag
 
- 
 With a purchase price exceeding $`r limit`. Nothing should be listed. 
  
 ```{r} 
-Tech_Inventory |> 
-      filter( is.na(AssetTag) ) |> 
-      filter( AcqYear > dt ) |>
+tt <- glue("Assets without Tag")
+st <- glue("Newer than {limit.dt}, value over ${limit}, excluding cables") 
+
+db.inventory |> 
+      filter( str_detect(AssetTag, "notag"))   |> 
+      filter( AcqYear > limit.dt ) |>
       filter( UnitValue > limit ) |>
 	  filter( Type != "Cable" ) |>
 	  select(Category, Qty, UnitValue, Manufacturer, Model, Building
 	  	   , Floor,	Room,	Location,	Type,	Desc,	SN	 ) |>
 	  gt() |>
 	  opt_stylize(style=3) |>
-	  tab_header(cap, subtitle = "Cables excluded") |>
+	  tab_header(tt, subtitle = st) |>
 	  fmt_currency(decimals=0, columns=c("UnitValue"))
 ```
 
@@ -501,14 +520,14 @@ Tech_Inventory |>
 
 Nothing should be listed.
 ```{r}
-dups <- Tech_Inventory |> 
+dups <- db.inventory |> 
       filter( !is.na(AssetTag) ) |> 
       select(AssetTag) |>
       group_by(AssetTag) |>
       summarise(n=n()) |>
       filter(n>1) 
 
-inner_join(dups, Tech_Inventory, by=join_by( AssetTag == AssetTag  )) |>
+inner_join(dups, db.inventory, by=join_by( AssetTag == AssetTag  )) |>
 	  arrange(AssetTag, n, ) |>
 	  select(AssetTag, n, Category,Manufacturer , Model, Type, Desc ) |>
 	  gt( groupname_col = c("AssetTag", "n"))  |>
@@ -516,23 +535,27 @@ inner_join(dups, Tech_Inventory, by=join_by( AssetTag == AssetTag  )) |>
 	  opt_stylize(style=3)
 ```
 
-`r limit <- 1500`
-
-## High-Valued Assets without serial numbers (> $`r limit`).
+## High-Valued Assets without serial numbers
 Nothing should be listed.
 ```{r}
-Tech_Inventory |> 
+dollar.limit <- 1500
+
+tt <- glue("High-Valued Assets without serial numbers")
+st <- glue("Value over ${dollar.limit} ")
+
+db.inventory |> 
       filter( is.na(SN) ) |> 
-      filter( UnitValue > limit ) |>
+      filter( UnitValue > dollar.limit  ) |>
+	  filter(Disposition == "N")    |>
 	  mutate(InService = glue("InService={InService}")) |>
       select(AssetTag, Manufacturer, Model, Desc, UnitValue, InService) |>
 	  gt(groupname_col = "InService") |>
 	  opt_stylize(style=3) |>
-	  tab_header("High-Valued Assets without serial numbers")
+	  tab_header(tt, subtitle = st) 
 ```
 
 ```{r eval=FALSE}
-x <- Tech_Inventory |> 
+x <- db.inventory |> 
     filter(InService != "N") |>
     mutate( ExtendedValue = Qty*UnitValue ) |>
     filter(is.na(Location ) ) |> 
@@ -547,6 +570,22 @@ x <- Tech_Inventory |>
  #   kable_styling("striped", full_width = TRUE)
 ```
 
+```{r cost_by_manu}
+db.inventory |> 
+	filter(Disposition == "N") |>
+	group_by(Manufacturer) |> 
+	summarise(Value = sum(AcqValue, na.rm=TRUE) ) |>
+	arrange(desc(Value)) |> 
+	gt() |>
+	tab_header("Acquisition Cost by Manufacturer") |>
+	  fmt_currency(decimals=0, columns=c("Value"))
+```
+```{r listbyman, EVAL=FALSE}
+db.inventory |>
+	filter(str_detect(Manufacturer, "BMD") ) |>
+	select(AssetTag, Manufacturer, Model, Qty, UnitValue, AcqValue) |>
+	gt()
+```
  
 # Document Source
 This document is compiled by merging text and data together using rmarkdown. The source is found here `r file.path(getwd(), knitr::current_input())`.
