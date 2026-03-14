@@ -450,19 +450,6 @@ db.inventory |>
   #    kable_styling("striped", full_width = TRUE)
 ```
 
-## In2One - Stouffville
-Graham Clinton has always had a great creative vision and the new building they have acquired has wonderful architectural features which can really play well with light. Some items have already been shipped, others pendings
-
-```{r}
-db.inventory |>
-  filter(InService == "N", Disposition ==  "Donated" ) |>
-  filter(DispositionDestination == "In2One") |>
-  select(AssetTag, Manufacturer, Model, SN, Qty, Desc,
-           DisposedComment ) |>
-  kable(caption="Shipped") #|>
-   #   kable_styling("striped", full_width = TRUE)
-```
-
 ```{r}
 db.inventory |>
   filter(InService == "N", Disposition == "Donate" ) |>
@@ -477,29 +464,30 @@ db.inventory |>
 
 This section provides reporting on the Quality of the Technical Inventory. Each of these lists should (ideally) be empty.
  
-`r limit <- 2500` 
-## High Value Assets (>$ `r limit` ) without AssetTag
+## High Value Assets without AssetTag
  
 Nothing should be listed.  
 ```{r} 
+dollar.limit <- 2500
+
 db.inventory |> 
-      filter( is.na(AssetTag) ) |> 
-      filter( UnitValue > limit ) |>
-      kable(align="l") # |>
-    #  kable_styling("striped", full_width = TRUE)
+    filter( str_detect(AssetTag, "notag") ) |> 
+	filter(Disposition == "N")              |> 
+    filter( UnitValue > dollar.limit )      |>
+	select(AssetTag, Manufacturer, Model, Type, Desc, AcqValue, Usage) |>
+	gt() |> 
+	tab_header("High Value Assets without AssetTag", 
+			   subtitle = glue("Value over ${dollar.limit}")) |>
+	fmt_currency(decimals=0, columns=c(  "AcqValue"))
 ```
 
-```{r limits}
-limit.dt <- 2015
-limit <- 100
-```
-
+## New Assets without AssetTag
  
-## New Assets (Newer than `r limit.dt` ) without AssetTag
-
-With a purchase price exceeding $`r limit`. Nothing should be listed. 
+Nothing should be listed. 
  
 ```{r} 
+limit.dt <- 2015
+limit <- 100
 tt <- glue("Assets without Tag")
 st <- glue("Newer than {limit.dt}, value over ${limit}, excluding cables") 
 
@@ -536,6 +524,7 @@ inner_join(dups, db.inventory, by=join_by( AssetTag == AssetTag  )) |>
 ```
 
 ## High-Valued Assets without serial numbers
+
 Nothing should be listed.
 ```{r}
 dollar.limit <- 1500
@@ -571,14 +560,21 @@ x <- db.inventory |>
 ```
 
 ```{r cost_by_manu}
-db.inventory |> 
+before.pivot <- db.inventory |> 
 	filter(Disposition == "N") |>
-	group_by(Manufacturer) |> 
-	summarise(Value = sum(AcqValue, na.rm=TRUE) ) |>
-	arrange(desc(Value)) |> 
+	mutate(InService = str_to_upper(InService)) |>
+	  mutate(InService = ifelse(is.na(InService), "Unknown", InService)) |>
+	group_by(Manufacturer, InService) |> 
+	summarise(Value = sum(AcqValue, na.rm=TRUE  ) ) |>
+	ungroup() |>
+	arrange(desc(Value))
+
+before.pivot |>
+	pivot_wider(names_from = InService, values_from = Value, values_fill = 0) |>
 	gt() |>
 	tab_header("Acquisition Cost by Manufacturer") |>
-	  fmt_currency(decimals=0, columns=c("Value"))
+	fmt_currency(decimals=0 )
+ 
 ```
 ```{r listbyman, EVAL=FALSE}
 db.inventory |>
