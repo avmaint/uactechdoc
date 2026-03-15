@@ -136,6 +136,12 @@ CATEGORY_COLOR_MAP = {
 DEFAULT_PROTOCOL_COLOR = "#6C757D"
 DEFAULT_CATEGORY_COLOR = "#DDEBF7"
 COLLAPSE_OPTIONS = {"none", "protocol", "type"}
+ASSET_TABLE_DEFAULT_COLUMNS = ["AssetTag", "Model", "Manufacturer", "Desc", "Usage"]
+ASSET_TABLE_LABEL_OVERRIDES = {
+    "AssetTag": "Asset Tag",
+    "Desc": "Description",
+    "SN": "Serial Number",
+}
 
 def rebuild_lookup_sets() -> None:
     """Rebuilds lookup dictionaries for asset and cable tags."""
@@ -253,6 +259,27 @@ def rebuild_field_option_maps() -> None:
 
 rebuild_lookup_sets()
 rebuild_field_option_maps()
+
+
+@app.get("/assets/columns")
+async def get_asset_columns():
+    """Returns metadata for asset table column selection."""
+    options = []
+    for column in df_assets.columns:
+        label = ASSET_TABLE_LABEL_OVERRIDES.get(column, prettify_field_label(column))
+        options.append({
+            "value": column,
+            "label": label,
+        })
+    defaults: List[str] = []
+    for default in ASSET_TABLE_DEFAULT_COLUMNS:
+        if default in df_assets.columns:
+            defaults.append(default)
+        elif default.lower() == "make" and "Model" in df_assets.columns:
+            defaults.append("Model")
+    if not defaults:
+        defaults = ["AssetTag"]
+    return {"columns": options, "defaults": defaults}
 
 
 def clamp(value: float, min_value: float = 0.0, max_value: float = 255.0) -> int:

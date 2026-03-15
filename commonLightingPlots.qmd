@@ -165,7 +165,6 @@ g <- ggplot() +
 g
 ```
 
-
 This first diagram (@fig-clptchan) shows the auditorium and all theatrical fixtures, and so excludes the architectural fixtures (i.e. Excludes stage pots, sconces, house pendants, and the under balcony pots.)
 
 Also excluded are two (black) incandescent fixtures which are hanging from the balcony bars. 
@@ -174,7 +173,6 @@ Some items are quite moveable so may not match this diagram, specifically fixtur
 
 * 34-40 are sometimes free standing and washing the walls around the screens, backlight for the scrims or installed inside the white plastic pillars.
 * 67 (which is actually 6 bars) has been used for a ceiling wash, the large scrims,  etc.
-
 
 Zoom in on the stage (@fig-clpzoomstage). Some of the lighting is mounted on the ceiling and some sits on the stage. Some of them are portabe (CSPARs and AW Bars) and are used for lighting scrims, backdrops, etc.
 
@@ -223,12 +221,16 @@ ggplot() +
 
 __Pendants over the main floor sections__
 
-* Each main house pendant has two groups of lamps. An outer group of four lamps and an inner single lamp . The four outer lamps have a wide beam spread, the inner one is narrow. They are colour colour controllable (LED RGB).
+* Each main house pendant has two groups of lamps. An outer group of four lamps and an inner single lamp . The four outer lamps have a wide beam spread, the inner one is narrow. They are colour controllable (LED RGB).
 * The main floor lighting is divided into two groups so that the middle of the auditorium can be lit independently from the outer sections.
 
 __Pendants over the Balcony__
 
 * These pendants have only two lamps. The two inner pendants have two channels. The diagram exagerates the distance between them so the channel numbers can be read on the diagram. These are designed so that light can be kept on for the technical team while the rest of the baclony is dark. 
+
+:::{.callout-note}
+There are 20 pendants currently installed. There were originally 24. There were four pendants in the vacinity of the balcony bars that were removed to make room for the bars. Two over the balcony and two over the main floor.  
+:::
 
 ```{r clppendants}
 #| label: fig-clppendants

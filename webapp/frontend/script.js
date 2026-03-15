@@ -14,6 +14,7 @@ const API_BASE_URL = (() => {
 const DEFAULT_NODE_FIELDS = ["tag", "manufacturer", "model", "usage"];
 const DEFAULT_EDGE_FIELDS = ["tag", "type", "ports", "usage"];
 const DEFAULT_CROSSPOINT_FIELDS = ["port", "usage"];
+const ASSET_TABLE_DEFAULT_COLUMNS = ["AssetTag", "Model", "Manufacturer", "Desc", "Usage"];
 const FALLBACK_FIELD_LABELS = {
     tag: "Tag",
     manufacturer: "Manufacturer",
@@ -23,11 +24,15 @@ const FALLBACK_FIELD_LABELS = {
     ports: "In-Port → Out-Port",
     port: "Port",
     protocol: "Protocol",
-    notes: "Notes"
+    notes: "Notes",
+    AssetTag: "Asset Tag",
+    Desc: "Description"
 };
 let nodeFieldDefaults = [...DEFAULT_NODE_FIELDS];
 let edgeFieldDefaults = [...DEFAULT_EDGE_FIELDS];
 let crosspointHeaderDefaults = [...DEFAULT_CROSSPOINT_FIELDS];
+let assetColumnDefaults = [...ASSET_TABLE_DEFAULT_COLUMNS];
+let assetTableData = [];
 
 // Store sort state for tables
 const tableSortStates = {
@@ -54,6 +59,7 @@ const expansionResultLog = new Map(); // node+direction -> includesNewNodes bool
 // source for re-exposing hidden nodes, because subsequent fetches may drop a
 // hidden node's cables from the adjacency maps entirely.
 const hiddenNodeNeighbors = new Map(); // hiddenTag -> Set of neighbor tags
+const selectedAssetTags = new Set();
 
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOMContentLoaded event fired."); // Added log
@@ -75,6 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const assetTagSearch = document.getElementById("assetTagSearch");
     const manufacturerSearch = document.getElementById("manufacturerSearch");
     const modelSearch = document.getElementById("modelSearch");
+    const assetColumnSelect = document.getElementById("assetColumnSelect");
     const searchAssetsBtn = document.getElementById("searchAssetsBtn");
     const assetTableContainer = document.getElementById("assetTableContainer");
 
@@ -90,7 +97,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            renderTable(data, assetTableContainer, 'assetResults'); // Pass table ID
+            assetTableData = Array.isArray(data) ? data : [];
+            renderAssetTable();
             document.querySelector('.tab-button[data-tab="assetResults"]').click(); // Switch to asset results tab
         } catch (error) {
             console.error("Error fetching assets:", error);
@@ -279,6 +287,129 @@ document.addEventListener("DOMContentLoaded", () => {
         crosspointMatrixContainer.appendChild(table);
     }
 
+    function normalizeAssetTagValue(value) {
+        if (!value) return "";
+        return String(value).trim();
+    }
+
+    function getSelectedAssetColumns() {
+        const columns = getSelectedOptions(assetColumnSelect, assetColumnDefaults);
+        const baseColumns = columns.length ? columns : [...assetColumnDefaults];
+        const set = new Set(baseColumns);
+        set.add("AssetTag");
+        return Array.from(set);
+    }
+
+    function renderAssetTable() {
+        if (!assetTableContainer) return;
+        if (!assetTableData || assetTableData.length === 0) {
+            assetTableContainer.innerHTML = "<p>No results found.</p>";
+            return;
+        }
+
+        const columnsToShow = getSelectedAssetColumns();
+        const currentSortState = tableSortStates.assetResults;
+        const sortedData = [...assetTableData];
+        if (currentSortState.column) {
+            sortedData.sort((a, b) => {
+                const valA = a[currentSortState.column] ?? "";
+                const valB = b[currentSortState.column] ?? "";
+                let comparison = 0;
+                if (valA > valB) comparison = 1;
+                else if (valA < valB) comparison = -1;
+                return currentSortState.direction === 'desc' ? comparison * -1 : comparison;
+            });
+        }
+
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+
+        const selectHeader = document.createElement("th");
+        selectHeader.textContent = "Select";
+        const selectAllCheckbox = document.createElement("input");
+        selectAllCheckbox.type = "checkbox";
+        const selectableRows = sortedData.filter(row => normalizeAssetTagValue(row.AssetTag));
+        const allVisibleSelected = selectableRows.length > 0 && selectableRows.every(row => selectedAssetTags.has(normalizeAssetTagValue(row.AssetTag)));
+        const someVisibleSelected = selectableRows.some(row => selectedAssetTags.has(normalizeAssetTagValue(row.AssetTag)));
+        selectAllCheckbox.checked = allVisibleSelected;
+        selectAllCheckbox.indeterminate = !allVisibleSelected && someVisibleSelected;
+        selectAllCheckbox.addEventListener("change", () => handleSelectAllAssets(selectAllCheckbox.checked, selectableRows));
+        selectHeader.appendChild(selectAllCheckbox);
+        headerRow.appendChild(selectHeader);
+
+        columnsToShow.forEach(column => {
+            const th = document.createElement("th");
+            th.textContent = humanizeFieldLabel(column) || column;
+            th.dataset.column = column;
+            th.classList.add('sortable');
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        sortedData.forEach(rowData => {
+            const assetTagValue = normalizeAssetTagValue(rowData.AssetTag);
+            const tr = document.createElement("tr");
+            const checkboxCell = document.createElement("td");
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.disabled = !assetTagValue;
+            checkbox.checked = assetTagValue ? selectedAssetTags.has(assetTagValue) : false;
+            checkbox.addEventListener("change", () => handleAssetCheckboxChange(assetTagValue, checkbox.checked));
+            checkboxCell.appendChild(checkbox);
+            tr.appendChild(checkboxCell);
+
+            columnsToShow.forEach(column => {
+                const td = document.createElement("td");
+                td.textContent = rowData[column] ?? "";
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+
+        assetTableContainer.innerHTML = "";
+        assetTableContainer.appendChild(table);
+
+        headerRow.querySelectorAll("th.sortable").forEach(header => {
+            header.addEventListener("click", () => {
+                const column = header.dataset.column;
+                let direction = 'asc';
+                if (tableSortStates.assetResults.column === column && tableSortStates.assetResults.direction === 'asc') {
+                    direction = 'desc';
+                }
+                tableSortStates.assetResults = { column, direction };
+                renderAssetTable();
+            });
+        });
+    }
+
+    function handleAssetCheckboxChange(tag, checked) {
+        const normalized = normalizeAssetTagValue(tag);
+        if (!normalized) return;
+        if (checked) {
+            selectedAssetTags.add(normalized);
+        } else {
+            selectedAssetTags.delete(normalized);
+        }
+        renderAssetTable();
+    }
+
+    function handleSelectAllAssets(checked, rows) {
+        rows.forEach(row => {
+            const tag = normalizeAssetTagValue(row.AssetTag);
+            if (!tag) return;
+            if (checked) {
+                selectedAssetTags.add(tag);
+            } else {
+                selectedAssetTags.delete(tag);
+            }
+        });
+        renderAssetTable();
+    }
+
     async function fetchConnectedAssetTags(tag, direction) {
         const params = new URLSearchParams();
         params.append("tag", tag);
@@ -312,6 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     initializeDiagramFieldSelects();
     const assetTagsReadyPromise = initializeAssetTagSelects();
+    initializeAssetColumnSelect();
 
     const refreshDiagramAfterOptionChange = () => {
         if (!currentFilters.targetTag) {
@@ -320,7 +452,8 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchAndRenderDiagramAndCables(
             currentFilters.targetTag,
             currentFilters.direction,
-            currentFilters.cableType
+            currentFilters.cableType,
+            currentFilters.protocol
         ).catch(error => {
             console.error("Error refreshing diagram after field change:", error);
         });
@@ -341,10 +474,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (collapseStrategySelect) {
         collapseStrategySelect.addEventListener("change", refreshDiagramAfterOptionChange);
     }
+    if (assetColumnSelect) {
+        assetColumnSelect.addEventListener("change", () => renderAssetTable());
+    }
 
     let baseTargetTag = "";
     let contextMenuTargetTag = null;
-    let currentFilters = { targetTag: "", direction: "both", cableType: "" };
+    let currentFilters = { targetTag: "", direction: "both", cableType: "", protocol: "" };
     const nodeExpansionMap = new Map(); // tag -> Set('in','out')
     let lastCrosspointQuery = null;
     let assetTagOptions = [];
@@ -370,13 +506,14 @@ document.addEventListener("DOMContentLoaded", () => {
             targetTag,
             direction: directionFilter.value,
             cableType: cableTypeFilter.value,
-            protocol: protocolFilter.value
+            protocol: protocolFilter ? protocolFilter.value.trim() : ""
         };
         initializeExpansionMap(baseTargetTag, currentFilters.direction);
         await fetchAndRenderDiagramAndCables(
             currentFilters.targetTag,
             currentFilters.direction,
             currentFilters.cableType,
+            currentFilters.protocol,
             true // reset active assets on a fresh request
         );
     });
@@ -477,12 +614,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // Function to fetch and render diagram and cables based on filters and active assets
-    async function fetchAndRenderDiagramAndCables(targetTag, direction, cableType, resetActiveAssets = false, forceIncludeTags = new Set()) {
+    async function fetchAndRenderDiagramAndCables(targetTag, direction, cableType, protocol, resetActiveAssets = false, forceIncludeTags = new Set()) {
         const prevAvailableSnapshot = [...availableDiagramAssetTags];
         const expansionEntries = Array.from(nodeExpansionMap.entries());
-        const additionalAssetsList = expansionEntries
-            .map(([tag]) => tag)
-            .filter(tag => tag !== baseTargetTag);
+        const selectedAssetsList = Array.from(selectedAssetTags)
+            .map(tag => (tag || "").trim())
+            .filter(Boolean);
+        const additionalAssetsSet = new Set(
+            expansionEntries
+                .map(([tag]) => tag)
+                .filter(tag => tag && tag !== baseTargetTag)
+        );
+        selectedAssetsList.forEach(tag => {
+            if (tag !== baseTargetTag) {
+                additionalAssetsSet.add(tag);
+            }
+        });
+        const additionalAssetsList = Array.from(additionalAssetsSet);
         const additionalAssets = additionalAssetsList.join(',');
         const expansionParam = expansionEntries
             .map(([tag, dirSet]) => {
@@ -499,15 +647,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const colorNodesEnabled = colorNodesCheckbox ? colorNodesCheckbox.checked : false;
         const colorEdgesEnabled = colorEdgesCheckbox ? colorEdgesCheckbox.checked : false;
         const collapseStrategy = collapseStrategySelect ? collapseStrategySelect.value : "none";
+        const combinedForceInclude = forceIncludeTags instanceof Set ? new Set(forceIncludeTags) : new Set();
+        selectedAssetsList.forEach(tag => combinedForceInclude.add(tag));
 
         // --- Fetch Cable Data (also used to derive node list) ---
         const cableParams = new URLSearchParams();
         cableParams.append("target_tag", targetTag);
         cableParams.append("direction", direction);
         if (cableType) cableParams.append("cable_type", cableType);
-        if (protocolFilter && protocolFilter.value.trim()) {
-            cableParams.append("protocol", protocolFilter.value.trim());
-        }
+        if (protocol) cableParams.append("protocol", protocol);
         cableParams.append("node_fields", selectedNodeFields.join(','));
         cableParams.append("edge_fields", selectedEdgeFields.join(','));
 
@@ -575,10 +723,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 discoveredAssetTags.add(tag);
             }
         });
+        selectedAssetsList.forEach(tag => discoveredAssetTags.add(tag));
 
         // Ensure any explicitly-unhidden nodes are always discoverable,
         // even if the backend didn't return their cables this fetch.
-        forceIncludeTags.forEach(tag => { if (tag) discoveredAssetTags.add(tag); });
+        combinedForceInclude.forEach(tag => { if (tag) discoveredAssetTags.add(tag); });
 
         const sortedDiscoveredTags = Array.from(discoveredAssetTags).filter(Boolean).sort();
         const newlyDiscovered = [];
@@ -602,6 +751,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!activeDiagramAssetTags.includes(baseTargetTag) && sortedDiscoveredTags.includes(baseTargetTag)) {
             activeDiagramAssetTags.push(baseTargetTag);
         }
+        selectedAssetsList.forEach(tag => {
+            if (!tag) return;
+            hiddenNodes.delete(tag);
+            if (!activeDiagramAssetTags.includes(tag)) {
+                activeDiagramAssetTags.push(tag);
+            }
+        });
         if (activeDiagramAssetTags.length === 0 && sortedDiscoveredTags.length > 0) {
             activeDiagramAssetTags = [...sortedDiscoveredTags];
         }
@@ -611,9 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
         dotParams.append("target_tag", targetTag);
         dotParams.append("direction", direction);
         if (cableType) dotParams.append("cable_type", cableType);
-        if (protocolFilter && protocolFilter.value.trim()) {
-            dotParams.append("protocol", protocolFilter.value.trim());
-        }
+        if (protocol) dotParams.append("protocol", protocol);
         dotParams.append("node_fields", selectedNodeFields.join(','));
         dotParams.append("edge_fields", selectedEdgeFields.join(','));
         dotParams.append("color_nodes_by_category", colorNodesEnabled ? "true" : "false");
@@ -763,7 +917,8 @@ document.addEventListener("DOMContentLoaded", () => {
         await fetchAndRenderDiagramAndCables(
             currentFilters.targetTag,
             currentFilters.direction,
-            currentFilters.cableType
+            currentFilters.cableType,
+            currentFilters.protocol
         );
         clearDiagramStatus();
     }
@@ -819,6 +974,7 @@ document.addEventListener("DOMContentLoaded", () => {
             currentFilters.targetTag,
             currentFilters.direction,
             currentFilters.cableType,
+            currentFilters.protocol,
             false,
             forceInclude
         );
@@ -1048,6 +1204,30 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (crosspointTargetInput && crosspointTargetInput.value.trim()) {
             handleAssetInputChange("target", crosspointTargetInput.value.trim());
+        }
+    }
+
+    async function initializeAssetColumnSelect() {
+        if (!assetColumnSelect) {
+            return;
+        }
+        try {
+            const response = await fetch(`${API_BASE_URL}/assets/columns`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            const columnOptions = Array.isArray(payload?.columns) && payload.columns.length
+                ? payload.columns
+                : buildFallbackOptions(assetColumnDefaults);
+            assetColumnDefaults = Array.isArray(payload?.defaults) && payload.defaults.length
+                ? payload.defaults
+                : [...ASSET_TABLE_DEFAULT_COLUMNS];
+            populateFieldSelect(assetColumnSelect, columnOptions, assetColumnDefaults);
+        } catch (error) {
+            console.error("Error loading asset column metadata:", error);
+            populateFieldSelect(assetColumnSelect, buildFallbackOptions(assetColumnDefaults), assetColumnDefaults);
         }
     }
 

@@ -231,6 +231,36 @@ def test_asset_linked_endpoint():
         raise TestFailure("Expected inbound peer ZVKU-A003 for ZVIU-A005")
 
 
+def test_asset_columns_endpoint():
+    data = request_json("/assets/columns")
+    columns = data.get("columns")
+    defaults = data.get("defaults")
+    if not isinstance(columns, list) or not columns:
+        raise TestFailure("/assets/columns returned no metadata")
+    if not isinstance(defaults, list) or not defaults:
+        raise TestFailure("/assets/columns missing defaults")
+    column_values = [col.get("value") for col in columns if col.get("value")]
+    if "AssetTag" not in column_values:
+        raise TestFailure("/assets/columns missing AssetTag entry")
+    if "AssetTag" not in defaults:
+        raise TestFailure("AssetTag should be part of default asset columns")
+
+
+def test_protocol_filter_limits_results():
+    params = urllib.parse.urlencode({
+        "target_tag": "ZAMU-A001",
+        "direction": "both",
+        "protocol": "dante"
+    })
+    data = request_json(f"/cables/filter?{params}")
+    cables = data.get("cables") if isinstance(data, dict) else data
+    if not cables:
+        raise TestFailure("Protocol-filtered cable query returned no rows")
+    for cable in cables:
+        if (cable.get("Protocol") or "").strip().lower() != "dante":
+            raise TestFailure("Cable returned outside of requested protocol filter")
+
+
 def test_graph_collapse_by_protocol():
     params = urllib.parse.urlencode({
         "target_tag": "ZAMU-A001",
@@ -256,6 +286,8 @@ TESTS: List[Tuple[str, Callable[[], None]]] = [
     ("Graph colors nodes by category", test_graph_colors_nodes_by_category),
     ("/assets/tags returns known values", test_asset_tags_endpoint),
     ("/assets/linked returns neighboring assets", test_asset_linked_endpoint),
+    ("/assets/columns returns table metadata", test_asset_columns_endpoint),
+    ("Protocol filter limits cables", test_protocol_filter_limits_results),
     ("Diagram collapses connections by protocol", test_graph_collapse_by_protocol),
     ("Crosspoint matrix returns data", test_crosspoint_matrix_returns_data),
     ("Crosspoint protocol filtering", test_crosspoint_protocol_filtering),

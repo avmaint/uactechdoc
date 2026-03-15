@@ -38,6 +38,8 @@ To set up and run the web application, follow these steps:
 Once the frontend is open:
 
 -   **Asset Search**: Use the input fields under "Asset Search" to filter assets by `Asset Tag`, `Manufacturer`, or `Model`. Click "Search Assets" to view the results in the "Asset Results" tab. The column headers in the asset table are sortable.
+    -   Use the **Asset Table Columns** multi-select in the Asset Results tab to decide which asset fields are displayed (defaults: Tag, Model, Manufacturer, Description, Usage).
+    -   Each asset row has a **Select** checkbox; any selected assets are automatically included in the cable table and connectivity diagram—even if they don’t touch the target asset—the next time you load results.
 -   **Cable and Diagram Viewer**:
     -   Enter a `Target Asset Tag` (e.g., `2507-0700` from `SystemDesignVideo.qmd`).
     -   Select the `Direction` (`Both`, `In-bound`, or `Out-bound`).
@@ -45,6 +47,7 @@ Once the frontend is open:
     -   Optionally, enter a `Protocol` (e.g., `Dante`) to focus on specific logical paths.
     -   Click "View Diagram & Cables".
     -   The "Cable Results" tab will display a table of filtered cables. The column headers in the cable table are sortable.
+    -   Any assets selected in the results table are automatically added to the cable table and diagram for the next view request, even when they are not adjacent to the current diagram contents.
     -   The "Diagram" tab renders the connectivity diagram. Right-click any node to hide it or to expand additional in-bound/out-bound connections; both the diagram and cable table update automatically.
 -   **Diagram Options**:
     -   Use the **Node Label Fields** multi-select to choose which asset fields appear inside each node. The list includes every available asset column with the defaults (Tag, Manufacturer, Model, Usage) pinned at the top and the rest sorted alphabetically.

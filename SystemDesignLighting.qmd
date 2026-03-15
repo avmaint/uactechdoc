@@ -107,7 +107,7 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 #system(glue("open {tf}"))
 ```
 
-```{  fig-sdl-dmx_control }
+```{dot  fig-sdl-dmx_control }
 //| label: fig-sdl-dmx_control
 //| fig-cap: Control Topology (cables with an 'a' prefix are unlabeled)
 //| cap-location: bottom
@@ -682,6 +682,7 @@ The expected maximum transition time is `r T` seconds.
   "Corner to corner distance", 123, 2
 ) |> 
   mutate(Distance = Feet + Inches/12) |>
+	mutate(DistanceMeters = round(Distance * 0.3048, 2)) |> 
   gt() |>
 	tab_header("Room Measurements") |>
 	fmt_number( decimals =2)
@@ -693,8 +694,9 @@ Reference location "r1" is the "zero" point.
 
 ```{r fig-floor-plan  }
 #| label: fig-floor-plan
-#| fig-cap-location: Floor Plan
-
+#| fig-cap-location: bottom
+#| fig-cap: Floor Plan  
+ 
 key.refs <- all.refs |> filter(group != "post")
 ggplot() + 
    coord_equal() +  

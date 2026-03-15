@@ -34,6 +34,8 @@ This document outlines the requirements for the interactive web application.
     -   Dropdown/selection for connection direction (in-bound, out-bound, both).
     -   Text input field for cable type filtering.
     -   Text input field for protocol filtering so users can isolate specific logical paths (e.g., Dante, SDI).
+    -   Multi-select control (located on the Asset Results tab) for asset search results to choose which columns appear in the table (defaulting to Asset Tag, Model, Manufacturer, Description, Usage).
+    -   A persistent "Select" checkbox column in the asset table so users can add rows to the diagram/cable view regardless of which columns are displayed; selected assets must always be honored in downstream views even when they are not adjacent to the current target.
     -   A globally accessible "Reload Data" button so users can refresh the asset and cable sources without restarting services.
     -   Diagram nodes must expose a context menu for hiding nodes or expanding them in-bound/out-bound. Right-clicking a node must expose options to hide the node or expand its in-bound/out-bound connections; these expansions should be reflected immediately in both the cable table and the rendered diagram.
     -   Multi-select controls must allow users to choose which asset fields (Tag, Manufacturer, Model, Usage) appear on node labels and which cable fields (Tag, Type, In-Port→Out-Port, Usage) appear on cable labels. Each list must include every available field from the underlying dataset with the default values pinned to the top (Tag/Manufacturer/Model/Usage for nodes; Tag/Type/In-Port→Out-Port/Usage for cables) and the remaining fields sorted alphabetically.
@@ -44,6 +46,7 @@ This document outlines the requirements for the interactive web application.
 -   **Output Display:**
     -   Results for asset search and cable filtering will be displayed in clear, readable tables. Column headers must be sort-able.
     -   Connectivity diagrams will be rendered interactively or as images within the UI. When grouping is enabled, multiple ports of the same Protocol/Type must collapse into a single connection that displays the grouping label and the number of collapsed cables, while keeping inbound/outbound sides distinct.
+    -   The asset table must always expose a Select column; any checked assets must automatically be included alongside the typed target when loading the cable table and diagram, even if they have no current adjacency in the rendered graph.
     -   The Cross-point tab must render a matrix with Source ports for rows and Target ports for columns, highlighting each intersecting cell in green when a connection exists for the selected protocol and white otherwise.
     -   When printing from the browser, only the connectivity diagram should appear to produce clean hard copies.
 
