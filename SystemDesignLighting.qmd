@@ -43,15 +43,15 @@ fin <- function(f, i) {
 ```
 
 ```{r getdata, include=FALSE}
-NetworkInventory <- get.network()
-assets           <- get.assets()
-dmx.details      <- get.dmxdetails() 
-cables           <- get.cables()
+db.network  <- get.network()
+db.assets   <- get.assets()
+dmx.details <- get.dmxdetails() 
+db.cables   <- get.cables()
 ```
 
 # Introduction
 
-This document provides key technical documentation design for the lighting subsystems at UAC.
+This document provides key technical documentation design for the lighting systems at UAC.
 The intended audience of this document are the people who need to manage and maintain the system.
 
 Purpose of the lighting system:
@@ -95,7 +95,7 @@ xd <- c("ZLKU-B002", "ZLLU-B054"
 		, "ZLLU-B052", "bt_node")
 
 diag <- get_diagram(dmx_control 
-					, assets, cables
+					, db.assets , db.cables
 					, exc_dev = xd
 					, rankdir ="TB"
 					, label= '"Balcony Control"' )
@@ -109,7 +109,7 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 
 ```{dot  fig-sdl-dmx_control }
 //| label: fig-sdl-dmx_control
-//| fig-cap: Control Topology (cables with an 'a' prefix are unlabeled)
+//| fig-cap: Control Topology  
 //| cap-location: bottom
 //| file: _work/sdl-dmx_control.gv
 ```
@@ -124,7 +124,7 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 ```{r top1}
 selected.at <- dmx_control
 
-assets |> 
+db.assets  |> 
 	filter(AssetTag %in% selected.at) |>
     select(AssetTag, Manufacturer, Model, Desc) |>
     arrange( AssetTag ) |>
@@ -135,8 +135,6 @@ assets |>
 The console is protected from power surges via an opto-isolator/DMX splitter.
 
 ## KetraNet Topology
-
-> TODO: fix balcony subgraph
 
 ```{dot fig-sdl-topology2-control }
 //| label: fig-sdl-topology2-control
@@ -153,7 +151,7 @@ selected.at <- c(
               "ZLIU-B001", "ZLIU-B002", "ZLIU-B003" 
               )  
 
-assets |> 
+db.assets  |> 
 	filter(AssetTag %in% selected.at) |>
     select(AssetTag, Manufacturer, Model, Desc ) |>
     arrange( AssetTag ) |>
@@ -182,7 +180,7 @@ echo_control <- c(
 xd <- c("2310-0212")  
 
 diag <- get_diagram(  echo_control 
-					, assets, cables
+					, db.assets , db.cables
 					, exc_dev = xd
 					, rankdir ="TB"
 					, label= '"Echo Control"' )
@@ -206,7 +204,7 @@ __Restrictions__
 * The sconce lights has a timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well.
 * The lighting instruments which are hung from the balcony bars cannot be controlled from the keypad due to the point in the topology where unison and dmx are merged. 
 * Any one DMX address can only belong to one Zone.
-* Control of the ADJ Ultrabar 12 devices on the walls presents a challenge as they are configured as 12 address devices andt his DMX footprint is not directly supported by the *Echo* equipment.
+* Control of the ADJ Ultrabar 12 devices on the walls presents a challenge as they are configured as 12 address devices and this DMX footprint is not supported by the *Echo* equipment.
 
 The programming is managed via the Echo Access app which communicates via bluetooth.
 There is a configuration menu item in the app.
@@ -252,13 +250,7 @@ keypad |>
 	opt_stylize(style=3)
 ```
 
-
-
-::: callout-note
-:::
-
 ```{r zoneConfig}
-
 #Zones to DMX mappings
 zones2dmx |>
   arrange(Zone) |>
@@ -430,6 +422,10 @@ TODO: how to program the touchpad scenes.
 :::
 
 # Ketra Design - Stage
+
+:::{.callout-note}
+Many of the Ketra lamps have failed and have been redeployed in order to maintain the best possible coverage with the remaining lamps. What is documented here is the original design and does not reflect the current state of the system.
+:::
 
 ```{r parms }
 products <- tribble(
@@ -722,7 +718,7 @@ The lighting system has few network components.
 RJ45 and cat6 cabling is used for some interconnects - the protocol is DMX not Ethernet.
 
 ```{r net_dets, results="asis"}
-NetworkInventory |> 
+db.network  |> 
   filter(Category=="Lighting") |> 
   select(Location, Usage, Device, MAC, IP, URL, Notes) |>
 	gt() |>
@@ -744,7 +740,7 @@ cs = c("AssetTag","Qty"  ,
   "Type" ,
   "Desc"     )
 
-df <- assets |>  
+df <- db.assets  |>  
      filter( Category=="Lighting" 
           		, InService== "Y") |>  
 	 filter(!Type %in% c("Cable", "Bulb" , "Other")) |>

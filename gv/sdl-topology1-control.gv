@@ -9,7 +9,7 @@ node [shape=Mrecord, tooltip="" ,
       
 console [label="{Lighting Control|ETC CS40AV\nZLKU-C001|{<hdmi>hdmi|<dmx1>DMX 1|<dmx2>DMX 2}}"]
 
-keypad [label="{Keypad Pad\nAsset Tag?|<p>unison}"]
+keypad [label="{Keypad Pad\nZLKU-B002|<p>unison}"]
 echo2 [label="{{<p>unison|<bt>bluetooth|<dmx>dmx}|echo node|dmx}"]
 
 keypad:p -> echo2:p  
@@ -47,7 +47,7 @@ stamp [label= <<table>
     <td>Control Topology</td>
 </tr>    
 <tr><td>As of</td>
-    <td>2019-05-22</td>
+    <td>2016-03-16</td>
 </tr>
    
 </table>> ]  
