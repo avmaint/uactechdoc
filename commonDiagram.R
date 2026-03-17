@@ -73,7 +73,7 @@ get_device_code <- function(targets, inventory, cables) {
 	rowwise() |>
 	mutate(inports  =   inports( AssetTag, cables ) ) |>
 	mutate(outports =  outports( AssetTag, cables ) ) |>
-	mutate(mm = glue(" {Manufacturer}/{Model} ")) |>
+	mutate(mm = glue(" {Manufacturer}-{Model} ")) |>
 	mutate(label = glue('[ label= "{{
 						{inports}
 						| {{  {Desc}|{mm}|{AssetTag} }}
