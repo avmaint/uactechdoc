@@ -158,7 +158,7 @@ get_connectivity_diagram <- function(target_device, direction, inventory, cables
 	# Initialize BFS: queue for nodes to visit, set for visited nodes, list for collected cables
 	queue <- c(target_device)
 	visited_nodes_for_diagram <- c(target_device)
-	collected_cables <- data.frame()
+	collected_cables <- filtered_cables_by_type[FALSE, ] # Initialize with correct column structure
 	
 	# Perform BFS traversal
 	head_ptr <- 1

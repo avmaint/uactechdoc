@@ -41,7 +41,7 @@ further        <- get.further()
 # Introduction
 This document provides key technical documentation for the video recording and broadcasting subsystems at UAC. This diagram (@fig-video-overview) provides an overview of the major components and and in doing so leaves out some details.
 
-```{dot  fig-video-overview}
+```{dot   }
 //| fig-width: 4
 //| label: fig-video-overview
 //| fig-cap: "Video system overview."
@@ -77,7 +77,6 @@ cat(out_str)
 # write_clip(dot_code)
 ```
 
-
 ```{r,eval=FALSE}
 target <- "2507-0700"
 ```
@@ -109,7 +108,6 @@ db.cables |>
 			   , DstPort = "Target Port") |>
 	opt_stylize(style = 5)
 ```
-
 
 ## BMD VideoHub Matrix
 
@@ -263,6 +261,7 @@ st <- db.inventory |> filter(AssetTag == dev) |>
 tab <- db.cables |>
 	filter(DstTag == dev) |>
 	select(Tag,SrcTag,SrcPort,DstTag,DstPort,Type,Usage ) |>
+	arrange(DstPort) |>
 	gt() |>  
 	opt_stylize(style = 5) |>
 	tab_header(tt, subtitle=st)
@@ -426,16 +425,18 @@ There are two main recording devices in the system. The Blackmagic Design HyperD
 			 ) 
 	ps <- c(   "2507-0700"  
 	)
+	l <- '"Connectivity to Recorders and Resi"'
 	
-	a <- get_connectivity_diagram ( targets, "both", db.inventory
-									, db.cables, types = NULL
-									, label = '"Connectivity from VS88 into Projectors"' 
+	a <- get_connectivity_diagram ( targets, "both"
+									, db.inventory
+									, db.cables
+									, types = NULL
+									, label = l 
 									, rankdir = "LR",
 									partners = ps) 
 	#cat(get_diagram_aux(a))
 	grViz(a)
 ```
-
 
 ```{r RDnB_in_table, results='asis' }
 #| tbl-cap: "Recording Devices and Broadcasting"
@@ -450,7 +451,8 @@ tt <- glue("Inputs for {devlist}")
 st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
 
 tab <- db.cables |>
-	full_join(db.inventory, by=join_by(SrcTag == AssetTag)
+	full_join(db.inventory
+			  , by=join_by(SrcTag == AssetTag)
 			  , na_matches = "never") |>
 	filter(SrcTag %in% dev) |>
     select(Tag, SrcPort, DstTag
@@ -469,7 +471,6 @@ tab <- db.cables |>
 
 print_gt_table(tab ) |> cat()
 ```
-
 
 ```{r RDnB_ot_table, results='asis' }
 #| tbl-cap: "Recording Devices and Broadcasting"
@@ -506,27 +507,30 @@ print_gt_table(tab ) |> cat()
 
 
 # Topologies
+
 There are a lot of components to the system. One big diagram is daunting. The system description has been broken down into smaller portions to be more consumable. 
 
 ## Computer Topology
 
 There are three computers in the system (See @fig-topology1-computer):
 
-CDMU-A001 MacOS / ProPresenter / DVD Player
+CUMU-G002 / MacOS / ProPresenter / DVD Player
 : This system runs ProPresenter and has multiple outputs:
 
-* A built in operator display
-* an hdmi output via dongle that is used for programs that need to show their output on a OS managed display. For example the DVD Player or Powerpoint
-* Three outputs to the front projectors via the Decklink interface
-* A Combo output of Fill and Key for the ATEM
-* A stage display output to the rear display - via the decklink
-* A Stage display output to the Audio Mixer in the Prayer Room via NDI 
+* An HDMI port on the main system used as the operator display
+* An HDMI output via dongle that is used for programs that need to show their output on a OS managed display. For example the DVD Player or Powerpoint. This is converted to SDI and fed into the video hub.
+* Seven outputs from the Decklink card that are used for various purposes.  
+    +  Three SDI outputs to the front projectors via the Decklink interface
+    + Two SDI outputs of Fill and Key for the ATEM
+    + One SDI output for stage display which is fed into the video hub and then to the rear projector, broadcast room and the monitor beside FoH audio desk. 
+    + One output is space and could be used for the announcement layer.
+ 
 
-CDWU-0009 Windows / OBS  
+CDWU-0009 Windows  
 : This windows 10 system has a dual output video card. One is used for the operator display, and the second for presentation. It has Powerpoint for Windows installed.
 
-CUMU-G001 MacOS / ATEM Control / OBS / ProPresenter
-: This system runs the ATEM switcher software, and OBS (for prayer room monitoring) and can also run things like Zoom. Although it has an unused HDMI output via a dongle, it is not currently connected.
+CUMU-G001 MacOS / ATEM Control 
+: This system runs the ATEM switcher software and can also run things like Zoom. Although it has an unused HDMI output via a dongle, it is not currently connected.
 
 ```{dot}
 //| label: fig-topology1-computer
@@ -539,22 +543,45 @@ CUMU-G001 MacOS / ATEM Control / OBS / ProPresenter
 #| label: tab-topology1-computer
 #| fig-cap: "Computer Topology"
 
-print_inv(c("CUMU-G001","CDMU-A001" , "ZVIU-E004"  
+print_inv(c("CUMU-G001" , "ZVIU-E004"  
 		     ), db.inventory) |>
 	print_gt_table() |>
     cat()
 ```
 
 ## Projection Topology
-There are four projectors in the auditorium, three FoH and one at the rear for confidence. They are all feed an HDMI signal via HDBaseT (Over Cat6).
+There are four projectors in the auditorium, three FoH and one at the rear for confidence. They are all fed a HDBaseT signal (via Cat6) and a SDI signal.
 
-```{dot fig-topology-projection}
+```{dot    }
 //| fig-width: 4
 //| fig-height: 2
 //| label: fig-topology-projection
 //| fig-cap: "Topology of video projectors"
 //| file: gv/sdv-topology2-projection.gv
 ```
+
+```{r projtopo , results="asis"}
+    targets <- c( "ZVKU-A001"
+			 ) 
+	ps <- c(   "2507-0700"   
+			   ,"ZVVU-0001"
+			   ,"ZVVU-A001", "ZVVU-A002", "ZVVU-A003"
+		, "2601-1304", "2601-1305" , "2601-1306"
+			   )
+	
+	l <- '"Projection Topology"'
+	
+	a <- get_connectivity_diagram ( targets, "both"
+									, db.inventory
+									, db.cables
+									, types = NULL
+									, label = l 
+									, rankdir = "LR",
+									partners = ps) 
+	#cat(get_diagram_aux(a))
+	grViz(a)
+```
+
 
 ```{r top2}
 print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003"
@@ -576,10 +603,11 @@ There is a network cable that also runs to the lobby TV, and is for future use.
 ```
 
 ```{r l132}
-print_inv(c("ZVIU-A001", "ZVKU-A001"  ), db.inventory)
+print_inv(c("ZVIU-A001", "ZVKU-A001" 
+			, "2310-1700"
+			), db.inventory)
 ```
 
->TODO: the above list is missing the lobby tv
 
 * Diagrams and charts have been updated 
 * Inventory database updated with the new locations.
@@ -608,22 +636,37 @@ The TV in the library gets its content from the VideoHub, typical source is the 
  
 ```{r libtop, results="asis"}
 
-targets_v <- c(  "2507-0700" , "2512-1001" , "librarytv"
+targets_v <- c(    "2507-0700" 
+				 , "2512-1001" 
+				 , "2601-0600"
 			 ) 
 
-xd <- c(   "cam1" , "cam2", "cam3", "cam4", "bidi118"
-		   , "decklink"
-		   , "recorder"
+xd <- c(   "ZVCU-A001" , "ZVCU-A002", "ZVCU-A003"
+		   , "ZVRU-A001", "ZVRU-A002" #  "recorder"
+		   , "ZVIU-C001"
+		   , "ZVVU-C001"
+		   , "ZVIU-E002"
+		   , "ZVIU-E004"
+		  
 		 , "2601-2800"  
+		 , "2601-0803"
+		 , "2603-1203"
+		 , "2601-1304", "2601-1305" , "2601-1306"
+		 , "2510-0502", "2510-0503"
+		 , "ZVIU-A004"
+		 , "ZVIU-D002", "ZVIU-G001" 
+		 , "2602-1800-F38"
+		 , "c59", "c60"
 		) 
 
-label <- NA
+label <- '"Library Topology"'
 
 dot_code <- get_diagram(targets_v
 						, db.inventory, db.cables
 						, label=label , exc_dev=xd )
 out_str <- get_diagram_aux(dot_code)
 cat(out_str)
+grViz(dot_code)
 ```
 
 ```{r toplib_inv}
@@ -647,7 +690,7 @@ A key constraint for the ATEM video mixer is that all inputs must have the same 
 
 ### Outputs
 
-```{dot fig-topology-recout}
+```{dot  }
 //| fig-width: 4
 //| fig-height: 2
 //| label: fig-topology-recout
@@ -659,7 +702,7 @@ A key constraint for the ATEM video mixer is that all inputs must have the same 
 
 The WebPresenter (see @fig-topology-webpres) converts its input (SDI or HDMI) to a usb webcam format which can be used by the computer (it also acts as a two-channel switch). 
  
-```{dot fig-topology-webpres}
+```{dot  }
 //| fig-width: 4
 //| fig-height: 3
 //| label: fig-topology-webpres
@@ -735,4 +778,3 @@ db.cables |>
 	gt() |>
 	tab_header("Cables with SrcTag not in inventory")
 ```
-

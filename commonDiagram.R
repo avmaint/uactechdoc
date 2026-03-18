@@ -38,41 +38,53 @@ inports_old <- function(dev, cables) {
 	return( paste("{", text, "}")   )
 }
 
-inports <- function(dev, cables) {
+inports <- function(dev, cables_subset) { # Changed 'cables' to 'cables_subset'
 
-	text <- cables |>
+	text <- cables_subset |> # Used 'cables_subset'
+
 		      filter(DstTag == dev) |>
+
 		      # Use slice() with str_order() to perform a natural sort on the port names
+
 	          slice(stringr::str_order(DstPort, numeric = TRUE)) |>
-		      mutate(text = glue("<{DstPort}>{DstPort}")) |>
+
+		      mutate(port_id = paste0("p", stringr::str_replace_all(DstPort, "[^A-Za-z0-9_]", ""))) |>
+
+		      mutate(text = glue("<{port_id}>{DstPort}")) |>
+
 		      pull(text) |>
+
 		      paste(collapse = "|")
+
 	  
+
 	 return(paste("{", text, "}"))
+
 }
 
 
-outports <- function(dev, cables) {
-	text <- cables |>
+outports <- function(dev, cables_subset) { # Changed 'cables' to 'cables_subset'
+	text <- cables_subset |> # Used 'cables_subset'
 		filter(SrcTag == dev) |>
 		# Use slice() with str_order() to perform a natural sort on the port names
 		slice(stringr::str_order(SrcPort, numeric = TRUE)) |>
 		#arrange(SrcPort) |>
-		mutate(text = glue( "<{SrcPort}>{SrcPort}"  )) |>
+		mutate(port_id = paste0("p", stringr::str_replace_all(SrcPort, "[^A-Za-z0-9_]", ""))) |>
+		mutate(text = glue( "<{port_id}>{SrcPort}"  )) |>
 		pull(text) |> paste(    collapse="|")
 	
 	return( paste("{", text, "}")   )
 }
 
-get_device_code <- function(targets, inventory, cables) {
+get_device_code <- function(targets, inventory, cables_for_ports) {
 
 	devices_data <- inventory |>
 	filter(AssetTag %in%  targets) |>
 	filter(!is.na(AssetTag))  |>
-	mutate(tag = tolower(str_replace(AssetTag, "-", ""))) |>
+	mutate(tag = tolower(stringr::str_replace_all(AssetTag, "-", ""))) |>
 	rowwise() |>
-	mutate(inports  =   inports( AssetTag, cables ) ) |>
-	mutate(outports =  outports( AssetTag, cables ) ) |>
+	mutate(inports  =   inports( AssetTag, cables_for_ports ) ) |>
+	mutate(outports =  outports( AssetTag, cables_for_ports ) ) |>
 	mutate(mm = glue(" {Manufacturer}-{Model} ")) |>
 	mutate(label = glue('[ label= "{{
 						{inports}
@@ -92,7 +104,7 @@ get_cable_code <- function(target_cables, cables) {
 		mutate(cc = cable_color(Type)) |>
 		mutate(label = glue('[label= "{Tag}\n{Usage2}{Type}" color={cc} ]' )) |> 
 		mutate(code = glue( 
-			"{SrcTag2} {SrcPort2} -> {DstTag2} {DstPort2} {label} "
+			"'{SrcTag2}' {SrcPort2} -> '{DstTag2}' {DstPort2} {label} "
 		))
 	
 	return( paste(cable_code$code , collapse = "\n")	)	
@@ -108,11 +120,11 @@ get_extension_node <- function(tcables) {
 get_extension_edge <- function(tcables) {
 	edge1 <- tcables |>
 		filter(  DstIsCable) |> 
-		mutate(code = glue("{SrcTag2}{SrcPort2} -> {Tag2}{DstTag2} [label=\"{Tag}\n{Usage2}\"]\n"))
+		mutate(code = glue("'{SrcTag2}'{SrcPort2} -> {Tag2}{DstTag2} [label=\"{Tag}\n{Usage2}\"]\n"))
 
 	edge2 <- tcables |>
 		filter(  SrcIsCable) |> 
-		mutate(code = glue("{SrcTag2}{Tag2} -> {DstTag2}{DstPort2} [label=\"{Tag}\n{Usage2}\"]\n"))
+		mutate(code = glue("'{SrcTag2}'{Tag2} -> {DstTag2}{DstPort2} [label=\"{Tag}\n{Usage2}\"]\n"))
 
 	edges <- c(edge1$code, edge2$code)
 	return( paste(edges , collapse = "\n")	)	
@@ -133,13 +145,13 @@ get_diagram <- function(targets, inventory, cables, label=NA
 		filter(SrcTag %in% targets | DstTag %in% targets)  |>
 		mutate(SrcIsCable = SrcTag %in% cables$Tag) |>
 		mutate(DstIsCable = DstTag %in% cables$Tag) |>
-		mutate(SrcTag2 = tolower(str_replace(SrcTag, "-", ""))) |>
-		mutate(DstTag2 = tolower(str_replace(DstTag, "-", ""))) |>
+		mutate(SrcTag2 = tolower(stringr::str_replace_all(SrcTag, "-", ""))) |>
+		mutate(DstTag2 = tolower(stringr::str_replace_all(DstTag, "-", ""))) |>
 		mutate(SrcPort2 = str_replace(SrcPort, ' ' , '')) |>
 		mutate(DstPort2 = str_replace(DstPort, ' ' , '')) |>
 		mutate(SrcPort2 = ifelse(is.na(SrcPort), "", glue(": {SrcPort2}"))) |>
 		mutate(DstPort2 = ifelse(is.na(DstPort), "", glue(": {DstPort2}"))) |>
-		mutate(Tag2 = tolower(str_replace(Tag, "-", "")))  |>
+		mutate(Tag2 = tolower(stringr::str_replace_all(Tag, "-", "")))  |>
 		mutate(Usage2 = ifelse( is.na(Usage), "",  glue("{Usage} ")) ) 
 	
 	if ( !missing(exc_dev) )  {
@@ -172,7 +184,7 @@ node [shape=Mrecord, tooltip=\"\"
 
 edge [fontsize=8]
 		"  
-	, get_device_code(target_devices, inventory, cables)
+	, get_device_code(target_devices, inventory, target_cables)
 	, get_cable_code(target_cables, cables)
 	, get_extension_node(target_cables)
 	, get_extension_edge(target_cables)

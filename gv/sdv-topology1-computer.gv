@@ -1,39 +1,30 @@
 digraph topology1 { 
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Computer Topology\n(as of 2023-07-21)",
+      label="Computer Topology\n(as of 2026-03-17)",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" , fontsize = 10, 
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
-cumug001 [label="{{Video\nCUMU-G001}| OBS} "]
-cumue001 [label="{{<obs0>OBS0|<obs1>OBS1|<obs2>OBS2|<obs3>OBS3|<obs4>OBS4}|Audio DAW\nCUMU-E001}"]
-
-cameras [label=" {{Cameras}| {<l>Left|<c>Centre|<r>Right}} "]
-
+cumug001 [label="{{Video\nCUMU-G001}} "]
+ 
 zviua004 -> cumug001:usbin [label="2307-2100\nusb"]
-
-cumug001  -> cumue001:obs0 [label="2307-2101\nndi"] 
-cameras:l -> cumue001:obs1 [label="2301-2102\nrtsp"]
-cameras:c -> cumue001:obs2 [label="2301-2103\nrtsp"]
-cameras:r -> cumue001:obs3 [label="2301-2104\nrtsp"]
-cdmua001:sdndi -> cumue001:obs [label="2307-2105\nndi"  ]
-
-cdmua001  [ label="
+  
+cumug002  [ label="
 {  
-    { <in1> In 1  | <in2> In2 }  | Inputs   
-| {ProPresenter\nCDMU-A001}   
-| {
-  { \n\nStage\n\n\n\n | { <sdndi> Stage\nvia NDI |  <sd> RearDeckLink  } } 
+   { <in1> In 1  | <in2> In2 }   
+| {ProPresenter\nCUMU-G002}   
+| {{
+  { <sd> Stage\nDisplay } } 
 
  | {  Front_TW | { <pa> ProjA  | <pb> ProjB | <pc> ProjC }   } 	
 | { Front_SW | { <hdmi> Single }   }
  
 | { FillKey | { <k> Key  | <f> Fill }   }
  
-| { \nUSB\n\n |  {<usbc1>usbc1  } }
-}}}"]; 
+ 
+}}}}"]; 
 
 adapter [label="video dongle\nZVIU-xxxx"]
 
@@ -77,7 +68,7 @@ zvkua003 [label="{
   |{Video\nMatrix\nZVKU-A003}|
   {  } }"]
     
-cdwu0009 [label="{{OBS\nCDWU-0009}|{<vga1>vga1|<vga2>vga2|<hdmi>hdmi}}"]
+cdwu0009 [label="{{CDWU-0009}|{<vga1>vga1|<vga2>vga2|<hdmi>hdmi}}"]
 
 zviue004in [  label="
  DeckLink Video\nInterface\nZVIU-E004 | 
@@ -108,16 +99,15 @@ cdwu0009:hdmi  -> zvkua003:i7 [label="2307-2107\nhdmi"]
 
 subgraph sw_edges { 
 	edge [style="solid", color="blue" fontsize="12pt"]
-cdmua001:k  -> zviue004kf:c1   [label="2307-1800\nsw" ]
-cdmua001:f  -> zviue004kf:c2   [label="2307-1801\nsw" ]
-cdmua001:pa -> zviue004tw:c4   [label="2307-1802\nsw" ]
-cdmua001:pb -> zviue004tw:c6   [label="2307-1803\nsw" ]
-cdmua001:pc -> zviue004tw:c8   [label="2307-1804\nsw" ]
-cdmua001:sd -> zviue004sd:c3   [label="2307-1805\nsw" ]
-zviue004in:c5  -> cdmua001 :in1 [label="2307-1807\nsw" ]
-zviue004in:c7  -> cdmua001 :in2 [label="2307-1809\nsw" ]
-cdmua001:hdmi -> adapter        [label="2307-30000\nsw" ]
+cumug002:k  -> zviue004kf:c1   [label="2307-1800\nsw" ]
+cumug002:f  -> zviue004kf:c2   [label="2307-1801\nsw" ]
+cumug002:pa -> zviue004tw:c4   [label="2307-1802\nsw" ]
+cumug002:pb -> zviue004tw:c6   [label="2307-1803\nsw" ]
+cumug002:pc -> zviue004tw:c8   [label="2307-1804\nsw" ]
+cumug002:sd -> zviue004sd:c3   [label="2307-1805\nsw" ]
+zviue004in:c5  -> cumug002 :in1 [label="2307-1807\nsw" ]
+zviue004in:c7  -> cumug002 :in2 [label="2307-1809\nsw" ]
+cumug002:hdmi -> adapter        [label="2307-30000\nsw" ]
 
 }
-
 } 
