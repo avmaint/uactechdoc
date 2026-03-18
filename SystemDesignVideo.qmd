@@ -720,8 +720,8 @@ print_inv(c("ZVKU-A004", "ZVKU-A001", "CUMU-G001",
 # Network Details
 
 ```{r net-details, results='asis'} 
-network.data %>% 
-filter(Category=="Video") %>% 
+network.data |>
+filter(Category=="Video") |>
 select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
     gt( ) |>
 			opt_stylize(style = 3) |>
@@ -741,9 +741,9 @@ select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
 
 ```{r inventory, echo=FALSE, asis=TRUE}
 
-items <- db.inventory %>%  
+items <- db.inventory |> 
           filter( Category=="Video" ,
-                  InService== "Y", !is.na(AssetTag)) %>%  
+                  InService== "Y", !is.na(AssetTag)) |> 
           select(AssetTag) %>%
           pull()
   
