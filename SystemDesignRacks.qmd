@@ -1,0 +1,162 @@
+---
+title: "System Design Rack Profiles"
+date: last-modified
+editor: visual
+execute: 
+  eval: TRUE
+  echo: false
+  warning: false
+  message: false
+
+format:
+  html:
+    toc: true
+  pdf:
+    toc: true
+  titlepage-pdf:
+    toc: true     
+
+always_allow_html: yes  
+---
+
+# Introduction
+
+This is a detailed design report for the Audio and Video systems in the Youth Building. This documents is not complete as a lot of mapping work remains.
+ 
+```{r packages_functions }
+source('commonPackages.R')
+source('commonFunctions.R')
+source("commonRackProfile.R")
+
+
+gt_rack_summary <- function(df, rack) {
+tt <- glue("Overview of Rack : {rack}")
+asset <- df |> 
+	filter( AssetTag == rack) 
+
+dat <- tribble (
+	~Name       , ~Value 
+   , "Building" , asset$Building
+   , "Floor"    , asset$Floor
+   , "Room"     , asset$Room
+   , "Location" , asset$Location
+   , "Item Count"
+   , df |> filter( Rack == rack ) |> nrow() |> as.character()
+)
+	
+tab <- dat |> 
+		gt() |>  
+		opt_stylize(style = 5) |>
+		tab_header( tt )  
+	return(tab)
+}
+
+gt_rack_detail <- function(df, rack) {
+tt <- glue("Rack Contents: {rack}")
+asset <- df |> 
+	filter( AssetTag == rack) 
+
+st <- glue("Building {asset$Building}, Floor {asset$Floor}, Room {asset$Room}, Location {asset$Location}")
+	
+tab <- df |> 
+	filter( Rack == rack) |>
+	arrange( desc( RackU) ) |>
+	select(RackU, AssetTag
+		   , Manufacturer, Model
+		   , Desc, Usage ) |>
+		gt() |>  
+		opt_stylize(style = 5) |>
+		tab_header( tt, subtitle=st )  
+	return(tab)
+}
+```
+
+```{r get_data}
+db.inventory <- get.inventory()  
+```
+ 
+```{r}
+racks <- db.inventory |> select(Rack) |> 
+	distinct() |> pull()
+```
+
+# Racks
+
+```{r}
+db.inventory |> filter( AssetTag %in% racks) |>
+	select(AssetTag, Manufacturer, Model
+		   , Building, Room, Location) |>
+	arrange(AssetTag ) |> 
+	gt() |>  
+	opt_stylize(style = 5)
+```
+
+# Youth Building
+
+```{r  }
+rack <- '2308-0900'
+
+gt_rack_summary(db.inventory, rack)
+plot_rack_profile(rack, db.inventory)  
+```
+
+```{r}
+gt_rack_detail(db.inventory, rack)
+```
+
+```{r}
+rack <- '2308-0901'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory)
+```
+
+```{r}
+gt_rack_detail(db.inventory, rack)
+```
+
+```{r}
+rack <- 'ZAHU-0001'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory
+				  , range = c(31, 55))
+plot_rack_profile(rack, db.inventory
+				  , range = c(16, 30))
+plot_rack_profile(rack, db.inventory
+				  , range = c(1, 15))
+
+gt_rack_detail(db.inventory, rack)
+```
+
+```{r}
+rack <- 'ZVHU-0002'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory)
+
+gt_rack_detail(db.inventory, rack)
+```
+
+
+```{r}
+rack <- '2509-1703'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory)
+gt_rack_detail(db.inventory, rack)
+```
+
+# Baclony Rack
+
+```{r}
+rack <- '2602-1800'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory
+				  , range = c(21, 42))
+plot_rack_profile(rack, db.inventory
+				  , range = c(1, 21))
+gt_rack_detail(db.inventory, rack)
+```
+
