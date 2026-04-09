@@ -1,0 +1,278 @@
+---
+title: "Troubleshooting"
+author: "UAC Media Arts"
+execute:
+  eval: true
+  echo: false
+  warning: false
+  message: false
+format:
+  html:
+    toc: true
+    toc-depth: 2
+  pdf:
+    toc: true
+    toc-depth: 2
+  titlepage-pdf:
+    toc: true
+    toc-depth: 2
+
+always_allow_html: yes
+editor:
+  markdown:
+    wrap: sentence
+---
+
+```{=html}
+<style>
+.issue-page {
+  border: 1px solid #d7d7d7;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin: 1.25rem 0 2rem 0;
+  background: #fcfcfc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.issue-page h3 {
+  margin-top: 0;
+}
+
+.issue-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 1rem 0 1.25rem 0;
+}
+
+.issue-meta-item {
+  background: #f2f5f7;
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+}
+
+.issue-meta-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #4d5963;
+  margin-bottom: 0.2rem;
+}
+
+.issue-section {
+  margin-top: 1rem;
+}
+
+.issue-tags {
+  margin-top: 1.25rem;
+  font-size: 0.95rem;
+}
+
+.issue-tags a,
+.tag-index a {
+  text-decoration: none;
+}
+
+.tag-index ul {
+  margin-bottom: 1rem;
+}
+
+@media print {
+  .issue-page {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+</style>
+```
+
+```{r packages}
+source("./commonPackages.R")
+```
+
+```{r functions}
+source("./commonFunctions.R")
+source("./commonDiagram.R")
+```
+
+```{r data}
+network.data <- get.network()
+further <- get.further()
+cables <- get.cables()
+assets <- get.assets()
+
+db.issues <- read_excel("./data/knowledgebase.xlsx", sheet = "Issues") |>
+  filter(!is.na(IssueID)) |>
+  filter(is.na(Active) | Active == "Yes") |>
+  mutate(
+    SortOrder = replace_na(SortOrder, Inf),
+    Category = replace_na(Category, "Uncategorized"),
+    Subcategory = replace_na(Subcategory, "General"),
+    Tags = replace_na(Tags, "")
+  ) |>
+  arrange(Category, Subcategory, SortOrder, Title)
+```
+
+```{r helpers}
+slugify <- function(x) {
+  x |>
+    str_to_lower() |>
+    str_replace_all("[^a-z0-9]+", "-") |>
+    str_replace_all("(^-+|-+$)", "")
+}
+
+escape_html <- function(x) {
+  htmltools::htmlEscape(x %||% "")
+}
+
+normalize_text <- function(x) {
+  x <- x %||% ""
+  x <- str_replace_all(x, "\r\n?", "\n")
+  x <- str_trim(x)
+  if (identical(x, "")) NA_character_ else x
+}
+
+render_issue_section <- function(label, value) {
+  value <- normalize_text(value)
+  if (is.na(value)) {
+    return(NULL)
+  }
+
+  htmltools::tags$div(
+    class = "issue-section",
+    htmltools::tags$h4(label),
+    htmltools::tags$p(
+      htmltools::HTML(gsub("\n", "<br>", escape_html(value), fixed = TRUE))
+    )
+  )
+}
+
+render_issue_page <- function(issue_row) {
+  issue <- as.list(issue_row)
+  issue_anchor <- paste0("issue-", slugify(issue$IssueID))
+  issue_title <- issue$Title %||% issue$IssueID
+
+  tags <- issue$Tags |>
+    str_split(",", simplify = FALSE) |>
+    pluck(1) |>
+    str_trim() |>
+    discard(~ .x == "")
+
+  tag_links <- if (length(tags) == 0) {
+    "None"
+  } else {
+    paste0(
+      "<a href=\"#tag-", slugify(tags), "\">", escape_html(tags), "</a>",
+      collapse = ", "
+    )
+  }
+
+  sections <- compact(list(
+    render_issue_section("Symptom", issue$Symptom),
+    render_issue_section("Trigger Conditions", issue$TriggerConditions),
+    render_issue_section("Likely Cause", issue$LikelyCause),
+    render_issue_section("Recovery Steps", issue$RecoverySteps),
+    render_issue_section("Notes", issue$Notes)
+  ))
+
+  htmltools::tags$div(
+    id = issue_anchor,
+    class = "issue-page",
+    htmltools::tags$h3(issue_title),
+    htmltools::tags$div(
+      class = "issue-meta",
+      htmltools::tags$div(
+        class = "issue-meta-item",
+        htmltools::tags$div(class = "issue-meta-label", "Issue ID"),
+        htmltools::tags$div(issue$IssueID %||% "")
+      ),
+      htmltools::tags$div(
+        class = "issue-meta-item",
+        htmltools::tags$div(class = "issue-meta-label", "Applies To"),
+        htmltools::tags$div(issue$AppliesToAssetType %||% "")
+      )
+    ),
+    sections,
+    htmltools::tags$div(
+      class = "issue-tags",
+      htmltools::tags$strong("Tags:"),
+      htmltools::HTML(paste0(" ", tag_links))
+    )
+  )
+}
+
+render_tag_index <- function(issue_data) {
+  tag_map <- issue_data |>
+    transmute(
+      IssueID,
+      Title,
+      issue_anchor = paste0("issue-", slugify(IssueID)),
+      tag_list = str_split(Tags, ",")
+    ) |>
+    unnest(tag_list) |>
+    mutate(tag = str_trim(tag_list)) |>
+    filter(tag != "") |>
+    distinct(tag, IssueID, Title, issue_anchor) |>
+    arrange(tag, IssueID)
+
+  cat("\n# Tag Index\n\n")
+
+  if (nrow(tag_map) == 0) {
+    cat("No tags were found.\n")
+    return(invisible(NULL))
+  }
+
+  tags <- unique(tag_map$tag)
+
+  for (tag in tags) {
+    tag_anchor <- paste0("tag-", slugify(tag))
+    cat(glue("## <span id=\"{tag_anchor}\">{tag}</span>\n\n"))
+
+    tag_rows <- tag_map |>
+      filter(tag == !!tag)
+
+    for (i in seq_len(nrow(tag_rows))) {
+      cat(glue("- [{tag_rows$IssueID}: {tag_rows$Title}](#{tag_rows$issue_anchor})\n"))
+    }
+
+    cat("\n")
+  }
+}
+```
+
+# Introduction
+This page is intended to be a troubleshooting guide for common issues that may arise when working with the AVL systems at UAC. It provides step-by-step instructions and solutions for various problems that users may encounter.
+
+# Troubleshooting Issues
+
+```{r issue-pages, results='asis'}
+issue_groups <- db.issues |>
+  group_by(Category, Subcategory) |>
+  group_split()
+
+current_category <- NULL
+
+for (group in issue_groups) {
+  category <- group$Category[[1]]
+  subcategory <- group$Subcategory[[1]]
+
+  if (!identical(category, current_category)) {
+    cat(glue("\n# {category}\n\n"))
+    current_category <- category
+  }
+
+  cat(glue("\n## {subcategory}\n\n"))
+
+  for (i in seq_len(nrow(group))) {
+    htmltools::renderTags(render_issue_page(group[i, ])) |>
+      as.character() |>
+      cat("\n")
+    cat("\n")
+  }
+}
+
+render_tag_index(db.issues)
+```
+
+{{< include common_trailer.qmd >}}
