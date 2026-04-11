@@ -15,6 +15,9 @@ const DEFAULT_NODE_FIELDS = ["tag", "manufacturer", "model", "usage"];
 const DEFAULT_EDGE_FIELDS = ["tag", "type", "ports", "usage"];
 const DEFAULT_CROSSPOINT_FIELDS = ["port", "usage"];
 const ASSET_TABLE_DEFAULT_COLUMNS = ["AssetTag", "Model", "Manufacturer", "Desc", "Usage"];
+const DIAGRAM_INPUT_CONNECTIONS_CONTAINER_ID = "diagramInputConnections";
+const DIAGRAM_OUTPUT_CONNECTIONS_CONTAINER_ID = "diagramOutputConnections";
+
 const FALLBACK_FIELD_LABELS = {
     tag: "Tag",
     manufacturer: "Manufacturer",
@@ -26,7 +29,15 @@ const FALLBACK_FIELD_LABELS = {
     protocol: "Protocol",
     notes: "Notes",
     AssetTag: "Asset Tag",
-    Desc: "Description"
+    Desc: "Description",
+    TargetPort: "Target Port",
+    SourcePort: "Source Port",
+    DestinationPort: "Destination Port",
+    CableID: "Cable ID",
+    PartnerAssetTag: "Partner Asset Tag",
+    PartnerManufacturer: "Partner Manufacturer",
+    PartnerModel: "Partner Model",
+    PartnerUsage: "Partner Usage"
 };
 let nodeFieldDefaults = [...DEFAULT_NODE_FIELDS];
 let edgeFieldDefaults = [...DEFAULT_EDGE_FIELDS];
@@ -41,6 +52,14 @@ const tableSortStates = {
         direction: 'asc' // 'asc' or 'desc'
     },
     cableResults: {
+        column: null,
+        direction: 'asc'
+    },
+    [DIAGRAM_INPUT_CONNECTIONS_CONTAINER_ID]: {
+        column: null,
+        direction: 'asc'
+    },
+    [DIAGRAM_OUTPUT_CONNECTIONS_CONTAINER_ID]: {
         column: null,
         direction: 'asc'
     }
@@ -446,14 +465,15 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeAssetColumnSelect();
 
     const refreshDiagramAfterOptionChange = () => {
-        if (!currentFilters.targetTag) {
+        if (!(currentFilters.targetTag || currentFilters.cableId)) {
             return;
         }
         fetchAndRenderDiagramAndCables(
             currentFilters.targetTag,
             currentFilters.direction,
             currentFilters.cableType,
-            currentFilters.protocol
+            currentFilters.protocol,
+            currentFilters.cableId
         ).catch(error => {
             console.error("Error refreshing diagram after field change:", error);
         });
@@ -480,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let baseTargetTag = "";
     let contextMenuTargetTag = null;
-    let currentFilters = { targetTag: "", direction: "both", cableType: "", protocol: "" };
+    let currentFilters = { targetTag: "", cableId: "", direction: "both", cableType: "", protocol: "" };
     const nodeExpansionMap = new Map(); // tag -> Set('in','out')
     let lastCrosspointQuery = null;
     let assetTagOptions = [];
@@ -488,32 +508,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     viewDiagramBtn.addEventListener("click", async () => {
-        console.log("View Diagram & Cables button clicked."); // Added log
-        const targetTag = targetTagFilter.value.trim();
-        targetTagFilter.value = targetTag;
-        console.log("Target Tag value:", targetTag); // Added log
-        if (!targetTag) {
-            alert("Please enter a Target Asset Tag.");
+        console.log("View Diagram & Cables button clicked.");
+        const targetInputValue = targetTagFilter.value.trim();
+
+        if (!targetInputValue) {
+            alert("Please enter a Target Asset Tag or Cable ID.");
             return;
         }
 
-        baseTargetTag = targetTag;
+        const targetTag = targetInputValue;
+        const cableId = "";
+
+        baseTargetTag = targetInputValue;
         hiddenNodes.clear();
         hiddenNodeNeighbors.clear();
         allKnownDiagramAssetTags.clear();
         expansionResultLog.clear();
+        
         currentFilters = {
-            targetTag,
+            targetTag: targetTag,
+            cableId: cableId, // Pass the identified cable ID
             direction: directionFilter.value,
             cableType: cableTypeFilter.value,
             protocol: protocolFilter ? protocolFilter.value.trim() : ""
         };
+
         initializeExpansionMap(baseTargetTag, currentFilters.direction);
+
         await fetchAndRenderDiagramAndCables(
             currentFilters.targetTag,
             currentFilters.direction,
             currentFilters.cableType,
             currentFilters.protocol,
+            currentFilters.cableId, // Pass cableId as a new argument
             true // reset active assets on a fresh request
         );
     });
@@ -614,7 +641,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // Function to fetch and render diagram and cables based on filters and active assets
-    async function fetchAndRenderDiagramAndCables(targetTag, direction, cableType, protocol, resetActiveAssets = false, forceIncludeTags = new Set()) {
+    async function fetchAndRenderDiagramAndCables(targetTag, direction, cableType, protocol, cableId = "", resetActiveAssets = false, forceIncludeTags = new Set()) {
         const prevAvailableSnapshot = [...availableDiagramAssetTags];
         const expansionEntries = Array.from(nodeExpansionMap.entries());
         const selectedAssetsList = Array.from(selectedAssetTags)
@@ -652,7 +679,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // --- Fetch Cable Data (also used to derive node list) ---
         const cableParams = new URLSearchParams();
-        cableParams.append("target_tag", targetTag);
+        if (targetTag) cableParams.append("target_tag", targetTag);
+        if (cableId) cableParams.append("cable_id", cableId); // Pass the cable ID
         cableParams.append("direction", direction);
         if (cableType) cableParams.append("cable_type", cableType);
         if (protocol) cableParams.append("protocol", protocol);
@@ -683,6 +711,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else if (responsePayload && typeof responsePayload === 'object') {
                 cableData = responsePayload.cables || [];
                 backendAssetTags = responsePayload.asset_tags || [];
+                baseTargetTag = responsePayload.primary_target || targetTag || cableId || "";
             } else {
                 cableData = [];
             }
@@ -812,6 +841,33 @@ document.addEventListener("DOMContentLoaded", () => {
             return { availableChanged: false }; // Exit if SVG fetch fails
         }
 
+        // --- Fetch and render input/output connection tables ---
+        const diagramInputConnectionsContainer = document.getElementById(DIAGRAM_INPUT_CONNECTIONS_CONTAINER_ID);
+        const diagramOutputConnectionsContainer = document.getElementById(DIAGRAM_OUTPUT_CONNECTIONS_CONTAINER_ID);
+
+        if (diagramInputConnectionsContainer) diagramInputConnectionsContainer.innerHTML = '';
+        if (diagramOutputConnectionsContainer) diagramOutputConnectionsContainer.innerHTML = '';
+
+        if (targetTag && !cableId) { // Only fetch for asset tags, not cable IDs
+            try {
+                const inputResponse = await fetch(`${API_BASE_URL}/diagram/connections/inputs?target_tag=${encodeURIComponent(targetTag)}`);
+                const inputData = await inputResponse.json();
+                renderConnectionsTable(inputData, diagramInputConnectionsContainer, DIAGRAM_INPUT_CONNECTIONS_CONTAINER_ID, "Input Connections");
+            } catch (error) {
+                console.error("Error fetching input connections:", error);
+                if (diagramInputConnectionsContainer) diagramInputConnectionsContainer.innerHTML = `<p style="color: red;">Error loading input connections: ${error.message}</p>`;
+            }
+
+            try {
+                const outputResponse = await fetch(`${API_BASE_URL}/diagram/connections/outputs?target_tag=${encodeURIComponent(targetTag)}`);
+                const outputData = await outputResponse.json();
+                renderConnectionsTable(outputData, diagramOutputConnectionsContainer, DIAGRAM_OUTPUT_CONNECTIONS_CONTAINER_ID, "Output Connections");
+            } catch (error) {
+                console.error("Error fetching output connections:", error);
+                if (diagramOutputConnectionsContainer) diagramOutputConnectionsContainer.innerHTML = `<p style="color: red;">Error loading output connections: ${error.message}</p>`;
+            }
+        }
+
         attachNodeContextMenuHandlers();
         const availableChanged = prevAvailableSnapshot.length !== availableDiagramAssetTags.length ||
             prevAvailableSnapshot.some((tag, idx) => tag !== availableDiagramAssetTags[idx]);
@@ -862,6 +918,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!titleEl || !titleEl.textContent) return;
             const tag = titleEl.textContent.trim();
             if (!tag) return;
+            if (tag.startsWith("__cable_junction__::")) return;
             node.addEventListener('contextmenu', (event) => {
                 event.preventDefault();
                 showContextMenu(tag, event.clientX, event.clientY);
@@ -895,7 +952,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function handleHideNode(tag) {
-        if (!currentFilters.targetTag) return;
+        if (!(currentFilters.targetTag || currentFilters.cableId)) return;
         const normalizedTag = tag.trim();
         if (normalizedTag === baseTargetTag) {
             alert("Cannot hide the primary target asset.");
@@ -918,13 +975,14 @@ document.addEventListener("DOMContentLoaded", () => {
             currentFilters.targetTag,
             currentFilters.direction,
             currentFilters.cableType,
-            currentFilters.protocol
+            currentFilters.protocol,
+            currentFilters.cableId
         );
         clearDiagramStatus();
     }
 
     async function handleAddConnections(tag, direction) {
-        if (!currentFilters.targetTag) return;
+        if (!(currentFilters.targetTag || currentFilters.cableId)) return;
         if (!tag) return;
         const normalizedTag = tag.trim();
         if (!normalizedTag) return;
@@ -975,6 +1033,7 @@ document.addEventListener("DOMContentLoaded", () => {
             currentFilters.direction,
             currentFilters.cableType,
             currentFilters.protocol,
+            currentFilters.cableId,
             false,
             forceInclude
         );
@@ -1406,6 +1465,95 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!selectElement) return [...fallback];
         const values = Array.from(selectElement.selectedOptions).map(opt => opt.value);
         return values.length ? values : [...fallback];
+    }
+
+    // --- Utility: Render Connections Table ---
+    function humanizeConnectionsFieldLabel(value) {
+        if (!value) return "";
+        if (FALLBACK_FIELD_LABELS[value]) {
+            return FALLBACK_FIELD_LABELS[value];
+        }
+        const spaced = value.replace(/([A-Z])/g, ' $1').trim();
+        return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+    }
+
+    function renderConnectionsTable(data, container, tableId, title) {
+        if (!container) return;
+        
+        container.innerHTML = ''; // Clear previous content
+
+        if (!data || data.length === 0) {
+            const h4 = document.createElement("h4");
+            h4.textContent = title;
+            container.appendChild(h4);
+            container.innerHTML += `<p>No ${title.toLowerCase()} found for this asset.</p>`;
+            return;
+        }
+
+        const h4 = document.createElement("h4");
+        h4.textContent = title;
+        container.appendChild(h4);
+
+        const table = document.createElement("table");
+        table.className = "connections-table";
+        const thead = document.createElement("thead");
+        const tbody = document.createElement("tbody");
+
+        // Create table headers
+        const headers = Object.keys(data[0]);
+        const headerRow = document.createElement("tr");
+        headers.forEach(headerText => {
+            const th = document.createElement("th");
+            th.textContent = humanizeConnectionsFieldLabel(headerText);
+            th.dataset.column = headerText;
+            th.classList.add('sortable');
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Sort data based on current state
+        const currentSortState = tableSortStates[tableId];
+        if (currentSortState.column) {
+            data.sort((a, b) => {
+                const valA = a[currentSortState.column] ?? "";
+                const valB = b[currentSortState.column] ?? "";
+                let comparison = 0;
+                if (valA > valB) comparison = 1;
+                else if (valA < valB) comparison = -1;
+                return currentSortState.direction === 'desc' ? comparison * -1 : comparison;
+            });
+        }
+
+        // Create table rows
+        data.forEach(rowData => {
+            const row = document.createElement("tr");
+            headers.forEach(headerText => {
+                const td = document.createElement("td");
+                td.textContent = rowData[headerText];
+                row.appendChild(td);
+            });
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+
+        container.appendChild(table);
+
+        // Add event listeners to headers for sorting
+        thead.querySelectorAll('th.sortable').forEach(header => {
+            header.addEventListener('click', () => {
+                const column = header.dataset.column;
+                let direction = 'asc';
+
+                if (tableSortStates[tableId].column === column && tableSortStates[tableId].direction === 'asc') {
+                    direction = 'desc';
+                }
+
+                tableSortStates[tableId] = { column, direction };
+                // Re-render the specific table
+                renderConnectionsTable(data, container, tableId, title);
+            });
+        });
     }
 
     // --- Utility: Render Table ---

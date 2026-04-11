@@ -316,3 +316,67 @@ a:hover {
 .crosspoint-table td.no-connection {
     background-color: #ffffff;
 }
+
+/* Styles for new connections tables */
+.connections-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 30px; /* Add some space below the table */
+}
+
+.connections-table th,
+.connections-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.connections-table th {
+    background-color: #f2f2f2;
+    cursor: pointer; /* Indicate sortable */
+}
+
+.connections-table th:hover {
+    background-color: #e0e0e0;
+}
+
+.connections-table th.sort-asc::after {
+    content: " ▲";
+}
+
+.connections-table th.sort-desc::after {
+    content: " ▼";
+}
+
+@media print {
+    body {
+        background: #fff;
+        color: #000;
+    }
+    .top-actions,
+    .search-section,
+    .filter-section,
+    .tabs,
+    #assetResults,
+    #cableResults,
+    #diagramViewer > h3,
+    #diagramViewer .input-group,
+    #assetFilterCheckboxes {
+        display: none !important;
+    }
+    #diagramViewer {
+        display: block !important;
+        border: none;
+        padding: 0;
+    }
+    #diagramRenderArea {
+        border: none;
+        height: auto;
+    }
+    /* Page breaks for connections tables */
+    #diagramInputConnections,
+    #diagramOutputConnections {
+        page-break-before: always;
+    }
+}

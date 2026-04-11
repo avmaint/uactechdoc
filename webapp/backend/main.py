@@ -68,8 +68,10 @@ def load_cables_data():
         df_cables = pd.read_excel("../data/uac_cables.xlsx", sheet_name="Cables")
         # Force all columns to object dtype to prevent NaN re-introduction issues
         df_cables = df_cables.astype(object)
+        df_cables["Tag"] = df_cables["Tag"].astype(str).str.strip()
         df_cables["SrcTag"] = df_cables["SrcTag"].astype(str).str.strip()
         df_cables["DstTag"] = df_cables["DstTag"].astype(str).str.strip()
+        df_cables["TagNorm"] = df_cables["Tag"].str.upper()
         df_cables["SrcTagNorm"] = df_cables["SrcTag"].str.upper()
         df_cables["DstTagNorm"] = df_cables["DstTag"].str.upper()
         return df_cables
@@ -82,7 +84,10 @@ df_cables = load_cables_data()
 ASSET_TAG_LOOKUP: Dict[str, str] = {}
 VALID_ASSET_TAGS_NORMALIZED: Set[str] = set()
 CABLE_TAG_LOOKUP: Dict[str, str] = {}
+CABLE_RECORD_TAG_LOOKUP: Dict[str, str] = {}
 ALL_KNOWN_TAGS_NORMALIZED: Set[str] = set()
+VALID_CABLE_IDS_NORMALIZED: Set[str] = set()
+JUNCTION_NODE_PREFIX = "__cable_junction__::"
 
 ASSET_FIELD_MAP: Dict[str, str] = {}  # canonical -> column name
 ASSET_FIELD_LABELS: Dict[str, str] = {}
@@ -145,12 +150,20 @@ ASSET_TABLE_LABEL_OVERRIDES = {
 
 def rebuild_lookup_sets() -> None:
     """Rebuilds lookup dictionaries for asset and cable tags."""
-    global ASSET_TAG_LOOKUP, VALID_ASSET_TAGS_NORMALIZED, CABLE_TAG_LOOKUP, ALL_KNOWN_TAGS_NORMALIZED
+    global ASSET_TAG_LOOKUP, VALID_ASSET_TAGS_NORMALIZED, CABLE_TAG_LOOKUP
+    global CABLE_RECORD_TAG_LOOKUP, ALL_KNOWN_TAGS_NORMALIZED, VALID_CABLE_IDS_NORMALIZED
     ASSET_TAG_LOOKUP = dict(zip(df_assets["AssetTagNorm"], df_assets["AssetTag"]))
     VALID_ASSET_TAGS_NORMALIZED = set(ASSET_TAG_LOOKUP.keys())
 
+    CABLE_RECORD_TAG_LOOKUP = {}
+    for tag in df_cables["Tag"].dropna():
+        norm = normalize_tag_value(tag)
+        if norm and norm not in CABLE_RECORD_TAG_LOOKUP:
+            CABLE_RECORD_TAG_LOOKUP[norm] = str(tag).strip()
+    VALID_CABLE_IDS_NORMALIZED = set(CABLE_RECORD_TAG_LOOKUP.keys())
+
     CABLE_TAG_LOOKUP = {}
-    for tag in pd.concat([df_cables["SrcTag"], df_cables["DstTag"]]).dropna():
+    for tag in pd.concat([df_cables["Tag"], df_cables["SrcTag"], df_cables["DstTag"]]).dropna():
         norm = normalize_tag_value(tag)
         if norm and norm not in CABLE_TAG_LOOKUP:
             CABLE_TAG_LOOKUP[norm] = str(tag).strip()
@@ -194,6 +207,92 @@ def canonical_display_tag(tag_value: Optional[str]) -> str:
     if not norm:
         return ""
     return ASSET_TAG_LOOKUP.get(norm) or CABLE_TAG_LOOKUP.get(norm) or norm
+
+
+def is_cable_record_tag(tag_value: Optional[str]) -> bool:
+    return normalize_tag_value(tag_value) in VALID_CABLE_IDS_NORMALIZED
+
+
+def is_asset_tag(tag_value: Optional[str]) -> bool:
+    return normalize_tag_value(tag_value) in VALID_ASSET_TAGS_NORMALIZED
+
+
+def build_junction_node_id(current_cable_tag: Optional[str], referenced_cable_tag: Optional[str]) -> str:
+    pair = sorted([
+        normalize_tag_value(current_cable_tag),
+        normalize_tag_value(referenced_cable_tag),
+    ])
+    return JUNCTION_NODE_PREFIX + "::".join([part for part in pair if part])
+
+
+def is_junction_node_id(node_id: str) -> bool:
+    return str(node_id).startswith(JUNCTION_NODE_PREFIX)
+
+
+def resolve_query_target(target_tag: Optional[str], cable_id: Optional[str]) -> Tuple[str, str]:
+    target_norm = normalize_tag_value(target_tag)
+    cable_norm = normalize_tag_value(cable_id)
+
+    if target_norm and target_norm in ALL_KNOWN_TAGS_NORMALIZED:
+        return target_norm, canonical_display_tag(target_norm)
+    if target_norm and target_norm in VALID_CABLE_IDS_NORMALIZED:
+        return target_norm, canonical_display_tag(target_norm)
+    if cable_norm and cable_norm in VALID_CABLE_IDS_NORMALIZED:
+        return cable_norm, canonical_display_tag(cable_norm)
+
+    if target_norm or cable_norm:
+        unresolved = target_norm or cable_norm
+        raise HTTPException(status_code=404, detail=f"Unknown asset tag or cable ID: {unresolved}")
+
+    raise HTTPException(status_code=400, detail="Target asset tag or cable ID is required.")
+
+
+def rows_for_expansion_target(node_norm: str, directions: Set[str]) -> pd.DataFrame:
+    frames: List[pd.DataFrame] = []
+    if is_cable_record_tag(node_norm):
+        frames.append(df_cables[df_cables["TagNorm"] == node_norm])
+    if "in" in directions:
+        frames.append(df_cables[df_cables["DstTagNorm"] == node_norm])
+    if "out" in directions:
+        frames.append(df_cables[df_cables["SrcTagNorm"] == node_norm])
+    if not frames:
+        return df_cables.iloc[0:0].copy()
+    return pd.concat(frames).drop_duplicates()
+
+
+def expand_cable_reference_closure(seed_rows: pd.DataFrame) -> pd.DataFrame:
+    if seed_rows.empty:
+        return seed_rows.copy()
+
+    expanded = seed_rows.copy()
+    processed_refs: Set[str] = set()
+
+    while True:
+        endpoint_refs = (
+            set(expanded["SrcTagNorm"].dropna().tolist()) |
+            set(expanded["DstTagNorm"].dropna().tolist())
+        ) & VALID_CABLE_IDS_NORMALIZED
+        pending_refs = endpoint_refs - processed_refs
+        if not pending_refs:
+            break
+        processed_refs.update(pending_refs)
+        new_rows = df_cables[df_cables["TagNorm"].isin(pending_refs)]
+        if new_rows.empty:
+            continue
+        expanded = pd.concat([expanded, new_rows]).drop_duplicates()
+
+    return expanded
+
+
+def build_candidate_cables(expansion_map: Dict[str, Set[str]]) -> pd.DataFrame:
+    frames: List[pd.DataFrame] = []
+    for node_norm, dirs in expansion_map.items():
+        subset = rows_for_expansion_target(node_norm, dirs)
+        if not subset.empty:
+            frames.append(subset)
+    if not frames:
+        return df_cables.iloc[0:0].copy()
+    return expand_cable_reference_closure(pd.concat(frames).drop_duplicates())
 
 
 def reload_dataframes() -> None:
@@ -243,7 +342,7 @@ def rebuild_field_option_maps() -> None:
         "tag": "Tag",
         "ports": "In-Port → Out-Port",
     }
-    excluded_cable_columns = {"SrcTagNorm", "DstTagNorm"}
+    excluded_cable_columns = {"TagNorm", "SrcTagNorm", "DstTagNorm"}
     for column in df_cables.columns:
         if column in excluded_cable_columns:
             continue
@@ -547,6 +646,97 @@ async def get_diagram_field_options():
         "crosspoint": build_field_option_payload(CROSSPOINT_HEADER_LABELS, CROSSPOINT_DEFAULT_FIELDS),
     }
 
+# Helper function to get connection details (inputs or outputs)
+def _get_device_connections_details(target_norm: str, is_input: bool) -> List[Dict[str, str]]:
+    if is_input:
+        # For inputs, the target is the destination of the cable
+        cables_filtered = df_cables[df_cables["DstTagNorm"] == target_norm].copy()
+        partner_tag_col = "SrcTagNorm"
+        target_port_col = "DstPort"
+        partner_port_col = "SrcPort"
+    else:
+        # For outputs, the target is the source of the cable
+        cables_filtered = df_cables[df_cables["SrcTagNorm"] == target_norm].copy()
+        partner_tag_col = "DstTagNorm"
+        target_port_col = "SrcPort"
+        partner_port_col = "DstPort"
+
+    if cables_filtered.empty:
+        return []
+
+    # Filter out junction nodes when identifying partner assets
+    partner_assets_tags_norm = cables_filtered[partner_tag_col][
+        ~cables_filtered[partner_tag_col].apply(is_cable_record_tag)
+    ].unique()
+
+    # Get details for partner assets
+    partner_assets_details = df_assets[
+        df_assets["AssetTagNorm"].isin(partner_assets_tags_norm)
+    ].set_index("AssetTagNorm")
+
+    results = []
+    for _, cable_row in cables_filtered.iterrows():
+        partner_norm = cable_row[partner_tag_col]
+        
+        # Determine partner details. If it's a junction node, use generic info.
+        if is_cable_record_tag(partner_norm):
+            partner_details: Dict[str, Any] = { # Explicitly type as Dict[str, Any]
+                "Manufacturer": "N/A",
+                "Model": "Cable Junction",
+                "Usage": "Internal Cable Splice"
+            }
+            # For display, junction nodes might use a generated ID
+            partner_display_tag = f"JUNCTION_{canonical_display_tag(cable_row['Tag'])}" 
+        else:
+            partner_details = partner_assets_details.loc[partner_norm].to_dict() if partner_norm in partner_assets_details.index else {}
+            partner_display_tag = canonical_display_tag(partner_norm)
+        
+        result_row = {
+            "TargetPort": format_display_value(cable_row[target_port_col]),
+            ("SourcePort" if is_input else "DestinationPort"): format_display_value(cable_row[partner_port_col]),
+            "Protocol": format_display_value(cable_row["Protocol"]),
+            "CableID": canonical_display_tag(cable_row["Tag"]),
+            "PartnerAssetTag": partner_display_tag,
+            "PartnerManufacturer": format_display_value(partner_details.get("Manufacturer")),
+            "PartnerModel": format_display_value(partner_details.get("Model")),
+            "PartnerUsage": format_display_value(partner_details.get("Usage")),
+        }
+        results.append(result_row)
+    
+    # Clean the DataFrame before converting to dicts to handle JSON serialization
+    # Ensure results_df is created only if results is not empty
+    if results:
+        results_df = pd.DataFrame(results)
+        results_df = clean_dataframe_for_json(results_df)
+        return results_df.to_dict(orient="records")
+    return []
+
+
+@app.get("/diagram/connections/inputs")
+async def get_diagram_input_connections(target_tag: str) -> List[Dict[str, str]]:
+    """
+    Returns input connection details for a given target asset tag.
+    Includes partner device details (manufacturer, model, usage).
+    """
+    target_norm = normalize_tag_value(target_tag)
+    if not target_norm or target_norm not in VALID_ASSET_TAGS_NORMALIZED:
+        raise HTTPException(status_code=404, detail=f"Target asset tag not found: {target_tag}")
+    
+    return _get_device_connections_details(target_norm, is_input=True)
+
+@app.get("/diagram/connections/outputs")
+async def get_diagram_output_connections(target_tag: str) -> List[Dict[str, str]]:
+    """
+    Returns output connection details for a given target asset tag.
+    Includes partner device details (manufacturer, model, usage).
+    """
+    target_norm = normalize_tag_value(target_tag)
+    if not target_norm or target_norm not in VALID_ASSET_TAGS_NORMALIZED:
+        raise HTTPException(status_code=404, detail=f"Target asset tag not found: {target_tag}")
+    
+    return _get_device_connections_details(target_norm, is_input=False)
+
+
 # --- Graphviz DOT Generation Function ---
 def generate_dot_string(
     filtered_cables: pd.DataFrame,
@@ -563,60 +753,82 @@ def generate_dot_string(
     with custom node shapes and port displays.
     Ensures all specified nodes in `all_nodes_to_render` are included, even if isolated.
     """
-    dot_nodes = set(all_nodes_to_render) # Initialize with all nodes that need to be rendered
-    node_ports = {node_tag: {'src': {}, 'dst': {}} for node_tag in all_nodes_to_render} # Pre-fill node_ports
-    
-    # Collect all ports for nodes that have connecting cables
     collapse_mode = collapse_strategy in {"protocol", "type"}
+    dot_nodes: Set[str] = set()
+    asset_nodes = {str(tag).strip() for tag in all_nodes_to_render if str(tag).strip()}
+    node_ports: Dict[str, Dict[str, Dict[str, str]]] = {
+        node_tag: {"src": {}, "dst": {}} for node_tag in asset_nodes
+    }
+
+    graph_edges: List[Dict[str, object]] = []
+
+    def resolve_endpoint(row: pd.Series, side: str) -> Tuple[str, str, bool]:
+        cable_tag = normalize_tag_value(row.get("Tag"))
+        endpoint_tag = normalize_tag_value(row.get("SrcTag" if side == "src" else "DstTag"))
+        endpoint_display = canonical_display_tag(endpoint_tag)
+        port_value = normalize_asset_field_value(row.get("SrcPort" if side == "src" else "DstPort", ""))
+        if endpoint_tag and endpoint_tag in VALID_CABLE_IDS_NORMALIZED:
+            return build_junction_node_id(cable_tag, endpoint_tag), port_value, True
+        return endpoint_display, port_value, False
+
+    for _, row in filtered_cables.iterrows():
+        src_node, src_port, src_is_junction = resolve_endpoint(row, "src")
+        dst_node, dst_port, dst_is_junction = resolve_endpoint(row, "dst")
+        if not src_node or not dst_node:
+            continue
+        graph_edges.append({
+            "src_node": src_node,
+            "dst_node": dst_node,
+            "src_port": src_port,
+            "dst_port": dst_port,
+            "src_is_junction": src_is_junction,
+            "dst_is_junction": dst_is_junction,
+            "row": row,
+        })
+        dot_nodes.add(src_node)
+        dot_nodes.add(dst_node)
+        if not src_is_junction:
+            node_ports.setdefault(src_node, {"src": {}, "dst": {}})
+        if not dst_is_junction:
+            node_ports.setdefault(dst_node, {"src": {}, "dst": {}})
+
+    dot_nodes.update(asset_nodes)
 
     if collapse_mode:
-        grouped_entries: Dict[Tuple[str, str, str], List[pd.Series]] = {}
-        for _, row in filtered_cables.iterrows():
-            src_tag = str(row["SrcTag"])
-            dst_tag = str(row["DstTag"])
+        grouped_entries: Dict[Tuple[str, str, str], List[Dict[str, object]]] = {}
+        for edge in graph_edges:
+            row = edge["row"]
             group_label = collapse_label_for_row(row, collapse_strategy)
-            key = (src_tag, dst_tag, group_label)
-            grouped_entries.setdefault(key, []).append(row)
-            dot_nodes.add(src_tag)
-            dot_nodes.add(dst_tag)
-        # Build node port labels per grouping value/direction
-        for (src_tag, dst_tag, group_label), rows in grouped_entries.items():
-            src_port_id = sanitize_port_identifier(group_label, "out")
-            dst_port_id = sanitize_port_identifier(group_label, "in")
-            if src_tag not in node_ports:
-                node_ports[src_tag] = {'src': {}, 'dst': {}}
-            if dst_tag not in node_ports:
-                node_ports[dst_tag] = {'src': {}, 'dst': {}}
-            node_ports[src_tag]['src'][src_port_id] = group_label
-            node_ports[dst_tag]['dst'][dst_port_id] = group_label
+            key = (str(edge["src_node"]), str(edge["dst_node"]), group_label)
+            grouped_entries.setdefault(key, []).append(edge)
+
+        for (src_node, dst_node, group_label), edges in grouped_entries.items():
+            if src_node in node_ports:
+                node_ports[src_node]["src"][sanitize_port_identifier(group_label, "out")] = group_label
+            if dst_node in node_ports:
+                node_ports[dst_node]["dst"][sanitize_port_identifier(group_label, "in")] = group_label
     else:
-        for _, row in filtered_cables.iterrows():
-            src_tag = str(row["SrcTag"]) # Ensure string
-            dst_tag = str(row["DstTag"]) # Ensure string
-            src_port = str(row["SrcPort"]) # Ensure string
-            dst_port = str(row["DstPort"]) # Ensure string
+        for edge in graph_edges:
+            if edge["src_node"] in node_ports and edge["src_port"]:
+                node_ports[str(edge["src_node"])]["src"][str(edge["src_port"])] = str(edge["src_port"])
+            if edge["dst_node"] in node_ports and edge["dst_port"]:
+                node_ports[str(edge["dst_node"])]["dst"][str(edge["dst_port"])] = str(edge["dst_port"])
 
-            # Ensure these nodes exist in dot_nodes (they should if logic is correct, but safe check)
-            dot_nodes.add(src_tag)
-            dot_nodes.add(dst_tag)
-
-            # Ensure node_ports entries exist for src/dst tags
-            if src_tag not in node_ports:
-                node_ports[src_tag] = {'src': {}, 'dst': {}}
-            if dst_tag not in node_ports:
-                node_ports[dst_tag] = {'src': {}, 'dst': {}}
-
-            if src_port != "":
-                node_ports[src_tag]['src'][src_port] = src_port
-
-            if dst_port != "":
-                node_ports[dst_tag]['dst'][dst_port] = dst_port
+    assets_by_tag = {
+        row["AssetTag"]: row.to_dict()
+        for _, row in assets_df.iterrows()
+        if row.get("AssetTag")
+    }
 
     node_definitions = []
-    # Define nodes with HTML-like labels for ports and asset info
-    for node_tag_val in sorted([str(n) for n in list(dot_nodes)]): # Iterate over all collected nodes
-        asset_info = assets_df[assets_df["AssetTag"] == node_tag_val]
-        asset_record = asset_info.iloc[0].to_dict() if not asset_info.empty else {}
+    for node_tag_val in sorted(dot_nodes):
+        if is_junction_node_id(node_tag_val):
+            node_definitions.append(
+                f'  "{node_tag_val}" [shape=point, width=0.14, height=0.14, label="", xlabel="", tooltip="Cable splice/junction"];'
+            )
+            continue
+
+        asset_record = assets_by_tag.get(node_tag_val, {})
         display_tag = str(node_tag_val).strip()
         category_value = asset_record.get("Category") if asset_record else ""
         node_bg_color = DEFAULT_NODE_BACKGROUND
@@ -636,27 +848,24 @@ def generate_dot_string(
             center_rows.append(f'<TR><TD ALIGN="CENTER"><B>{html.escape(display_tag)}</B></TD></TR>')
         center_content = '<TABLE BORDER="0" CELLBORDER="0" CELLPADDING="1">' + "".join(center_rows) + '</TABLE>'
 
-        # Build DstPorts column
         dst_ports_content = ""
-        dst_port_items = node_ports.get(node_tag_val, {}).get('dst', {})
+        dst_port_items = node_ports.get(node_tag_val, {}).get("dst", {})
         sorted_dst_ports = sorted(dst_port_items.items(), key=lambda item: item[1].lower())
         if sorted_dst_ports:
-            dst_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">' # Changed CELLBORDER to 1
+            dst_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">'
             for port_id, label in sorted_dst_ports:
                 dst_ports_content += f'<TR><TD PORT="{html.escape(port_id)}" ALIGN="LEFT">{html.escape(label)}</TD></TR>'
-            dst_ports_content += '</TABLE>'
-        
-        # Build SrcPorts column
+            dst_ports_content += "</TABLE>"
+
         src_ports_content = ""
-        src_port_items = node_ports.get(node_tag_val, {}).get('src', {})
+        src_port_items = node_ports.get(node_tag_val, {}).get("src", {})
         sorted_src_ports = sorted(src_port_items.items(), key=lambda item: item[1].lower())
         if sorted_src_ports:
-            src_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">' # Changed CELLBORDER to 1
+            src_ports_content = '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1">'
             for port_id, label in sorted_src_ports:
                 src_ports_content += f'<TR><TD PORT="{html.escape(port_id)}" ALIGN="RIGHT">{html.escape(label)}</TD></TR>'
-            src_ports_content += '</TABLE>'
+            src_ports_content += "</TABLE>"
 
-        # Main node label table
         node_label_html = f'''<
         <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="white">
           <TR>
@@ -668,20 +877,16 @@ def generate_dot_string(
           </TR>
         </TABLE>
         >'''
-        
-        # Node attributes: shape=plain is key for HTML-like labels to work as rectangles
-        # Temporarily simplify label for debugging
         node_definitions.append(f'  "{node_tag_val}" [label={node_label_html}, shape=plain];')
 
     dot_edges = []
-    # Define edges with simplified labels
     if collapse_mode:
-        for (src_tag, dst_tag, group_label), rows in grouped_entries.items():
-            if not src_tag or not dst_tag:
+        for (src_node, dst_node, group_label), edges in grouped_entries.items():
+            if not src_node or not dst_node:
                 continue
             src_port_id = sanitize_port_identifier(group_label, "out")
             dst_port_id = sanitize_port_identifier(group_label, "in")
-            count = len(rows)
+            count = len(edges)
             edge_label = f"{html.escape(group_label)} ({count})"
             edge_color_value = ""
             if color_edges_by_protocol and collapse_strategy == "protocol":
@@ -691,41 +896,34 @@ def generate_dot_string(
                 edge_attributes.append(f'color="{edge_color_value}"')
                 edge_attributes.append(f'fontcolor="{edge_color_value}"')
             attr_text = " [" + ", ".join(edge_attributes) + "]"
-            from_port = f'"{src_tag}":"{src_port_id}"'
-            to_port = f'"{dst_tag}":"{dst_port_id}"'
-            dot_edges.append(f'  {from_port} -> {to_port}{attr_text};')
+            from_port = f'"{src_node}":"{src_port_id}"' if src_node in node_ports else f'"{src_node}"'
+            to_port = f'"{dst_node}":"{dst_port_id}"' if dst_node in node_ports else f'"{dst_node}"'
+            dot_edges.append(f"  {from_port} -> {to_port}{attr_text};")
     else:
-        for _, row in filtered_cables.iterrows():
-            src_tag = str(row["SrcTag"])
-            dst_tag = str(row["DstTag"])
-            cable_tag = str(row["Tag"])
-            cable_type = str(row["Type"])
-            src_port = str(row["SrcPort"])
-            dst_port = str(row["DstPort"])
+        for edge in graph_edges:
+            row = edge["row"]
+            label_parts = []
+            for field_key in edge_fields:
+                value = get_edge_field_value(row, field_key)
+                if value:
+                    label_parts.append(value)
+            edge_label = "\\n".join(label_parts) if label_parts else ""
+            edge_color_value = ""
+            if color_edges_by_protocol:
+                edge_color_value = get_protocol_color(row.get("Protocol"))
+            edge_attributes = []
+            if edge_label:
+                edge_attributes.append(f'label="{edge_label}"')
+            if edge_color_value:
+                edge_attributes.append(f'color="{edge_color_value}"')
+                edge_attributes.append(f'fontcolor="{edge_color_value}"')
 
-            if src_tag != "" and dst_tag != "":
-                label_parts = []
-                for field_key in edge_fields:
-                    value = get_edge_field_value(row, field_key)
-                    if value:
-                        label_parts.append(value)
-                edge_label = "\\n".join(label_parts) if label_parts else ""
-                edge_color_value = ""
-                if color_edges_by_protocol:
-                    edge_color_value = get_protocol_color(row.get("Protocol"))
-                edge_attributes = []
-                if edge_label:
-                    edge_attributes.append(f'label="{edge_label}"')
-                if edge_color_value:
-                    edge_attributes.append(f'color="{edge_color_value}"')
-                    edge_attributes.append(f'fontcolor="{edge_color_value}"')
-
-                from_port = f'"{src_tag}":"{html.escape(src_port)}"' if src_port != "" else f'"{src_tag}"'
-                to_port = f'"{dst_tag}":"{html.escape(dst_port)}"' if dst_port != "" else f'"{dst_tag}"'
-                attr_text = ""
-                if edge_attributes:
-                    attr_text = " [" + ", ".join(edge_attributes) + "]"
-                dot_edges.append(f'  {from_port} -> {to_port}{attr_text};')
+            from_port = f'"{edge["src_node"]}":"{html.escape(str(edge["src_port"]))}"' if edge["src_node"] in node_ports and edge["src_port"] else f'"{edge["src_node"]}"'
+            to_port = f'"{edge["dst_node"]}":"{html.escape(str(edge["dst_port"]))}"' if edge["dst_node"] in node_ports and edge["dst_port"] else f'"{edge["dst_node"]}"'
+            attr_text = ""
+            if edge_attributes:
+                attr_text = " [" + ", ".join(edge_attributes) + "]"
+            dot_edges.append(f"  {from_port} -> {to_port}{attr_text};")
 
     dot_string = "digraph G {\n  rankdir=LR;\n  node [fontsize=10];\n  edge [fontsize=8];\n" # Added rankdir and default font sizes
     dot_string += "\n".join(node_definitions)
@@ -811,7 +1009,8 @@ async def get_linked_assets(tag: str, direction: str = "outbound"):
 
 @app.get("/cables/filter", response_model=CableFilterResponse)
 async def filter_cables(
-    target_tag: str,
+    target_tag: Optional[str] = None,
+    cable_id: Optional[str] = None,
     direction: str = "both",  # "in", "out", "both"
     cable_type: Optional[str] = None,
     protocol: Optional[str] = None,
@@ -829,9 +1028,7 @@ async def filter_cables(
     if direction not in ["in", "out", "both"]:
         raise HTTPException(status_code=400, detail="Direction must be 'in', 'out', or 'both'.")
 
-    target_norm = normalize_tag_value(target_tag)
-    if not target_norm:
-        raise HTTPException(status_code=400, detail="Target asset tag is required.")
+    target_norm, primary_target = resolve_query_target(target_tag, cable_id)
 
     expansion_value = expansions if isinstance(expansions, str) else (expansions or "")
     expansion_map = parse_expansion_param(expansion_value, direction, target_norm)
@@ -852,29 +1049,7 @@ async def filter_cables(
             )
         broadly_involved_asset_tags_norm.update(additional_norm_list)
 
-    # Discover cables that touch any of the broadly involved assets so we do not
-    # prematurely drop legitimate rows.
-    candidate_mask = (
-        df_cables["SrcTagNorm"].isin(broadly_involved_asset_tags_norm) |
-        df_cables["DstTagNorm"].isin(broadly_involved_asset_tags_norm)
-    )
-    discovered_cables = df_cables[candidate_mask].copy()
-
-    # Apply expansion directives relative to each specified node.
-    expansion_frames = []
-    for node_norm, dirs in expansion_map.items():
-        subset_frames = []
-        if "in" in dirs:
-            subset_frames.append(discovered_cables[discovered_cables["DstTagNorm"] == node_norm])
-        if "out" in dirs:
-            subset_frames.append(discovered_cables[discovered_cables["SrcTagNorm"] == node_norm])
-        if subset_frames:
-            expansion_frames.append(pd.concat(subset_frames))
-
-    if expansion_frames:
-        candidate_cables = pd.concat(expansion_frames).drop_duplicates()
-    else:
-        candidate_cables = discovered_cables.iloc[0:0].copy()
+    candidate_cables = build_candidate_cables(expansion_map)
 
     # Apply cable type filtering
     if cable_type:
@@ -890,20 +1065,34 @@ async def filter_cables(
     if visible_asset_tags:
         visible_tags_set = set(normalize_tag_list(visible_asset_tags))
         candidate_cables = candidate_cables[
-            (candidate_cables["SrcTagNorm"].isin(visible_tags_set)) &
-            (candidate_cables["DstTagNorm"].isin(visible_tags_set))
+            (
+                candidate_cables["SrcTagNorm"].isin(visible_tags_set) |
+                candidate_cables["SrcTagNorm"].isin(VALID_CABLE_IDS_NORMALIZED)
+            ) &
+            (
+                candidate_cables["DstTagNorm"].isin(visible_tags_set) |
+                candidate_cables["DstTagNorm"].isin(VALID_CABLE_IDS_NORMALIZED)
+            )
         ]
 
     discovered_asset_tags: Set[str] = set()
-    for raw_tag in candidate_cables["SrcTag"].tolist():
+    for raw_tag in candidate_cables["SrcTagNorm"].tolist():
+        if raw_tag in VALID_CABLE_IDS_NORMALIZED:
+            continue
         canonical = canonical_display_tag(raw_tag)
         if canonical:
             discovered_asset_tags.add(canonical)
-    for raw_tag in candidate_cables["DstTag"].tolist():
+    for raw_tag in candidate_cables["DstTagNorm"].tolist():
+        if raw_tag in VALID_CABLE_IDS_NORMALIZED:
+            continue
         canonical = canonical_display_tag(raw_tag)
         if canonical:
             discovered_asset_tags.add(canonical)
-    discovered_asset_tags.update(denormalize_tags(broadly_involved_asset_tags_norm))
+    discovered_asset_tags.update({
+        canonical_display_tag(tag)
+        for tag in broadly_involved_asset_tags_norm
+        if is_asset_tag(tag)
+    })
 
     # Canonicalize Src/Dst tags for downstream consumers (tables, diagram parsing).
     candidate_cables["SrcTag"] = candidate_cables["SrcTag"].apply(canonical_display_tag)
@@ -914,18 +1103,19 @@ async def filter_cables(
         key=lambda x: x.lower()
     )
 
-    candidate_cables = candidate_cables.drop(columns=["SrcTagNorm", "DstTagNorm"], errors="ignore")
+    candidate_cables = candidate_cables.drop(columns=["TagNorm", "SrcTagNorm", "DstTagNorm"], errors="ignore")
     processed_cables = clean_dataframe_for_json(candidate_cables)
     return {
         "cables": processed_cables.to_dict(orient="records"),
         "asset_tags": cleaned_asset_tags,
-        "primary_target": canonical_display_tag(target_tag),
+        "primary_target": primary_target,
     }
 
 
 @app.get("/graphviz/dot")
 async def get_graphviz_dot(
-    target_tag: str,
+    target_tag: Optional[str] = None,
+    cable_id: Optional[str] = None,
     direction: str = "both",
     cable_type: Optional[str] = None,
     protocol: Optional[str] = None,
@@ -944,9 +1134,7 @@ async def get_graphviz_dot(
     # TEMPORARY: Return hardcoded SVG for debugging
     # return Response(content='<svg width="100" height="100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" /></svg>', media_type="image/svg+xml")
 
-    target_norm = normalize_tag_value(target_tag)
-    if not target_norm:
-        raise HTTPException(status_code=400, detail="Target asset tag is required.")
+    target_norm, _ = resolve_query_target(target_tag, cable_id)
 
     expansion_value = expansions if isinstance(expansions, str) else (expansions or "")
     expansion_map = parse_expansion_param(expansion_value, direction, target_norm)
@@ -961,27 +1149,7 @@ async def get_graphviz_dot(
             raise HTTPException(status_code=400, detail=f"Invalid additional asset tags: {', '.join(display_invalid)}. Please check your input.")
         broadly_involved_asset_tags_norm.update(additional_tags_list)
 
-    # Step 2: Discover all cables connected to the `broadly_involved_asset_tags`
-    discovered_cables = df_cables[
-        (df_cables["SrcTagNorm"].isin(broadly_involved_asset_tags_norm)) |
-        (df_cables["DstTagNorm"].isin(broadly_involved_asset_tags_norm))
-    ].copy()
-
-    # Step 3: Apply direction and cable_type filters based on expansion directives
-    expansion_frames = []
-    for node_norm, dirs in expansion_map.items():
-        subset_frames = []
-        if "in" in dirs:
-            subset_frames.append(discovered_cables[discovered_cables["DstTagNorm"] == node_norm])
-        if "out" in dirs:
-            subset_frames.append(discovered_cables[discovered_cables["SrcTagNorm"] == node_norm])
-        if subset_frames:
-            expansion_frames.append(pd.concat(subset_frames))
-
-    if expansion_frames:
-        candidate_cables = pd.concat(expansion_frames).drop_duplicates()
-    else:
-        candidate_cables = discovered_cables.iloc[0:0].copy()
+    candidate_cables = build_candidate_cables(expansion_map)
 
     if cable_type:
         candidate_cables = candidate_cables[
@@ -992,48 +1160,39 @@ async def get_graphviz_dot(
             candidate_cables["Protocol"].str.contains(protocol, case=False, na=False)
         ]
     
-    # Step 4: Determine the *final* set of nodes to render (normalized to avoid case duplicates)
-    candidate_src_norm = set(candidate_cables["SrcTagNorm"]) if "SrcTagNorm" in candidate_cables else set()
-    candidate_dst_norm = set(candidate_cables["DstTagNorm"]) if "DstTagNorm" in candidate_cables else set()
-    all_candidate_nodes_norm = {tag for tag in candidate_src_norm.union(candidate_dst_norm) if tag}
-    all_candidate_nodes_norm.update(broadly_involved_asset_tags_norm) # Include isolated additional assets
-
-    if visible_asset_tags:
-        user_visible_norm = set(normalize_tag_list(visible_asset_tags))
-        final_nodes_norm = all_candidate_nodes_norm.intersection(user_visible_norm)
+    visible_norm_set = set(normalize_tag_list(visible_asset_tags)) if visible_asset_tags else set()
+    if visible_norm_set:
+        filtered_cables = candidate_cables[
+            (
+                candidate_cables["SrcTagNorm"].isin(visible_norm_set) |
+                candidate_cables["SrcTagNorm"].isin(VALID_CABLE_IDS_NORMALIZED)
+            ) &
+            (
+                candidate_cables["DstTagNorm"].isin(visible_norm_set) |
+                candidate_cables["DstTagNorm"].isin(VALID_CABLE_IDS_NORMALIZED)
+            )
+        ].copy()
     else:
-        final_nodes_norm = set(all_candidate_nodes_norm)
-
-    final_nodes_norm.update(expansion_map.keys())
-    final_nodes_norm = {tag for tag in final_nodes_norm if tag}
-    final_nodes_to_render = denormalize_tags(final_nodes_norm)
-
-    # Build the final set of cables to render by looking at every cable between the selected nodes.
-    filtered_cables = df_cables[
-        (df_cables["SrcTagNorm"].isin(final_nodes_norm)) &
-        (df_cables["DstTagNorm"].isin(final_nodes_norm))
-    ].copy()
+        filtered_cables = candidate_cables.copy()
 
     # Canonicalize tag casing for all rendered edges/nodes.
     filtered_cables["SrcTag"] = filtered_cables["SrcTag"].apply(canonical_display_tag)
     filtered_cables["DstTag"] = filtered_cables["DstTag"].apply(canonical_display_tag)
 
-    # Respect cable_type filtering on the rendered edges as well.
-    if cable_type:
-        filtered_cables = filtered_cables[
-            filtered_cables["Type"].str.contains(cable_type, case=False, na=False)
-        ]
-    if protocol:
-        filtered_cables = filtered_cables[
-            filtered_cables["Protocol"].str.contains(protocol, case=False, na=False)
-        ]
-    if protocol:
-        filtered_cables = filtered_cables[
-            filtered_cables["Protocol"].str.contains(protocol, case=False, na=False)
-        ]
+    candidate_asset_nodes_norm = {
+        tag for tag in set(filtered_cables["SrcTagNorm"].tolist()) | set(filtered_cables["DstTagNorm"].tolist())
+        if is_asset_tag(tag)
+    }
+    candidate_asset_nodes_norm.update({tag for tag in broadly_involved_asset_tags_norm if is_asset_tag(tag)})
+    if visible_norm_set:
+        final_asset_nodes_norm = candidate_asset_nodes_norm.intersection(visible_norm_set)
+        final_asset_nodes_norm.update({tag for tag in expansion_map.keys() if is_asset_tag(tag)})
+    else:
+        final_asset_nodes_norm = candidate_asset_nodes_norm
+    final_nodes_to_render = denormalize_tags(final_asset_nodes_norm)
 
     # Handle truly empty graph (no nodes to render)
-    if not final_nodes_to_render:
+    if not final_nodes_to_render and filtered_cables.empty:
         empty_dot_string = "digraph G { label=\"No assets found to display.\"; labelloc=\"t\"; }"
         try:
             dot_source = graphviz.Source(empty_dot_string)
