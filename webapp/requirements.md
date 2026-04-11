@@ -9,7 +9,7 @@ This document outlines the requirements for the interactive web application.
     -   Searchable by asset tag, manufacturer, and model.
     -   Results displayed in a tabular format.
 -   **Cable Filtering:**
-    -   Filterable by a target asset tag.
+    -   Filterable by a target asset tag or a cable ID.
     -   Filterable by connection direction: in-bound, out-bound, or both.
     -   Filterable by cable type.
     -   Filtered cable data displayed in a tabular format.
@@ -19,6 +19,7 @@ This document outlines the requirements for the interactive web application.
     -   The diagramming technique should render the actual diagram, not just DOT code.
     -   Asset tags must be handled case-insensitively to avoid duplicate nodes when casing differs between data sources.
     -   Each node label must include the asset tag, manufacturer, model, and usage fields centered in the body.
+    -   **Cable-to-Cable Connections:** When a cable terminates at another cable (for example one row references another row's `Tag` in `SrcTag` or `DstTag`), the splice/junction must be depicted as a small dot (`shape=point`) node. The contributing cable segments remain separate labeled edges and the connection continues through the dot to the next cable segment or final destination asset. This pattern can repeat for multiple intermediate cables.
 
 ## 2. User Interface (UI)
 
@@ -30,7 +31,7 @@ This document outlines the requirements for the interactive web application.
     -   Cross-point matrix exploration.
 -   **Input Controls:**
     -   Text input fields for asset tag, manufacturer, model searches.
-    -   Text input field for target asset tag for cable filtering.
+    -   Text input field for target asset tag or cable ID for cable filtering.
     -   Dropdown/selection for connection direction (in-bound, out-bound, both).
     -   Text input field for cable type filtering.
     -   Text input field for protocol filtering so users can isolate specific logical paths (e.g., Dante, SDI).
@@ -48,8 +49,8 @@ This document outlines the requirements for the interactive web application.
     -   Connectivity diagrams will be rendered interactively or as images within the UI. When grouping is enabled, multiple ports of the same Protocol/Type must collapse into a single connection that displays the grouping label and the number of collapsed cables, while keeping inbound/outbound sides distinct.
     -   The asset table must always expose a Select column; any checked assets must automatically be included alongside the typed target when loading the cable table and diagram, even if they have no current adjacency in the rendered graph.
     -   The Cross-point tab must render a matrix with Source ports for rows and Target ports for columns, highlighting each intersecting cell in green when a connection exists for the selected protocol and white otherwise.
+    -   Below the connectivity diagram, two text tables must be displayed for the target device: one for input connection details and one for output connection details. Each table should include the target port, partner port (source for inputs, destination for outputs), protocol, cable ID, and the partner device's asset tag, manufacturer, model, and usage. All columns in these tables must be sortable by clicking their headers. These tables must be included in the print view, with a page break inserted before each table.
     -   When printing from the browser, only the connectivity diagram should appear to produce clean hard copies.
-
 ## 3. Technology Stack
 
 -   **Frontend:** HTML, CSS, JavaScript (lightweight, no heavy frameworks required unless specified).
@@ -81,7 +82,6 @@ This document outlines the requirements for the interactive web application.
 -   Add support for multiple diagram layouts (e.g., hierarchical, radial) to improve readability for complex connectivity.
 -   Provide a context menu on the individual diagram lines to hide. The node context menu should also provide a reshow option with a sublist of available lines that can be readded to the diagram.
 -   Allow the input list to be a comma-separated list of asset tags to support. This would allow users to explore connectivity between multiple assets simultaneously without needing to perform separate queries for each one.
--   Allow the cable and diagram viewer input box to also allow the entry of a cableid. This would allow users to explore the connectivity of a specific cable without needing to know the associated asset tags, which can be especially useful when investigating issues related to a particular connection.
 -   Some nodes have a large number of connections (e.g., the 2507-0700 has 20+ cables). The diagram can become cluttered and difficult to read. Implementing a more sophisticated layout algorithm or allowing users to selectively collapse/expand groups of connections would improve readability, collapsing should be done be grouping cables of the same type or protocol (to be implemented). When showing a collapsed group, replace the port labels with the grouping value. For example if the collapsed line represented the dante connections, show the labels as dante. Be sure to keep the inbound and outbound labels distinct.
 -   Provide a diagram option to export as jpg or png for easy sharing and documentation purposes. This would allow users to save and share connectivity diagrams without needing to share the entire web application or access to the backend data.
 -   Provide a diagram option to layout the diagram top-to-bottom or left-to-right. This would allow users to choose the layout that best suits their needs and improves readability, especially for diagrams with many connections.
