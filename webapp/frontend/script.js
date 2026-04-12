@@ -18,6 +18,16 @@ const ASSET_TABLE_DEFAULT_COLUMNS = ["AssetTag", "Model", "Manufacturer", "Desc"
 const DIAGRAM_INPUT_CONNECTIONS_CONTAINER_ID = "diagramInputConnections";
 const DIAGRAM_OUTPUT_CONNECTIONS_CONTAINER_ID = "diagramOutputConnections";
 
+// Asset Details Tab Constants
+const ASSET_DETAILS_TAB_ID = "assetDetails";
+const ASSET_DETAILS_INPUT_ID = "assetDetailsTagInput";
+const ASSET_DETAILS_VIEW_BUTTON_ID = "viewAssetDetailsBtn";
+const ASSET_DETAILS_CONTAINER_ID = "assetDetailsContainer";
+const ASSET_PROPERTIES_CONTAINER_ID = "assetProperties";
+const INPUT_PARTNERS_LIST_ID = "inputPartnersList";
+const OUTPUT_PARTNERS_LIST_ID = "outputPartnersList";
+const KNOWLEDGE_BASE_ISSUES_TABLE_ID = "knowledgeBaseIssuesTable";
+
 const FALLBACK_FIELD_LABELS = {
     tag: "Tag",
     manufacturer: "Manufacturer",
@@ -62,6 +72,10 @@ const tableSortStates = {
     [DIAGRAM_OUTPUT_CONNECTIONS_CONTAINER_ID]: {
         column: null,
         direction: 'asc'
+    },
+    knowledgeBaseIssuesTable: {
+        column: null,
+        direction: 'asc'
     }
 };
 
@@ -100,15 +114,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const assetTagSearch = document.getElementById("assetTagSearch");
     const manufacturerSearch = document.getElementById("manufacturerSearch");
     const modelSearch = document.getElementById("modelSearch");
+    const inServiceOnlyCheckbox = document.getElementById("inServiceOnlyCheckbox");
     const assetColumnSelect = document.getElementById("assetColumnSelect");
     const searchAssetsBtn = document.getElementById("searchAssetsBtn");
     const assetTableContainer = document.getElementById("assetTableContainer");
 
-    searchAssetsBtn.addEventListener("click", async () => {
+    const performAssetSearch = async () => {
         const params = new URLSearchParams();
         if (assetTagSearch.value) params.append("asset_tag", assetTagSearch.value);
         if (manufacturerSearch.value) params.append("manufacturer", manufacturerSearch.value);
         if (modelSearch.value) params.append("model", modelSearch.value);
+        // Add in_service_only parameter based on checkbox state (convert to string)
+        const inServiceValue = inServiceOnlyCheckbox ? inServiceOnlyCheckbox.checked : true;
+        params.append("in_service_only", inServiceValue.toString());
+        console.log("Asset search - in_service_only:", inServiceValue, "URL:", `${API_BASE_URL}/assets/search?${params.toString()}`);
 
         try {
             const response = await fetch(`${API_BASE_URL}/assets/search?${params.toString()}`);
@@ -117,12 +136,25 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const data = await response.json();
             assetTableData = Array.isArray(data) ? data : [];
+            console.log("Asset search results count:", assetTableData.length);
             renderAssetTable();
             document.querySelector('.tab-button[data-tab="assetResults"]').click(); // Switch to asset results tab
         } catch (error) {
             console.error("Error fetching assets:", error);
             assetTableContainer.innerHTML = `<p style="color: red;">Error loading assets: ${error.message}</p>`;
         }
+    };
+
+    searchAssetsBtn.addEventListener("click", performAssetSearch);
+
+    // Add Enter key support for asset search inputs
+    [assetTagSearch, manufacturerSearch, modelSearch].forEach(input => {
+        input.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                performAssetSearch();
+            }
+        });
     });
 
     // --- Cable and Diagram Viewer Logic ---
@@ -153,16 +185,83 @@ document.addEventListener("DOMContentLoaded", () => {
     const colorEdgesCheckbox = document.getElementById("colorEdgesByProtocol");
     const collapseStrategySelect = document.getElementById("collapseStrategySelect");
 
-    function setCrosspointInputValue(side, value) {
-        const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
-        const select = side === "source" ? crosspointSourceSelect : crosspointTargetSelect;
-        if (input) {
-            input.value = value;
+    // Asset Details tab elements
+    const assetDetailsTagInput = document.getElementById(ASSET_DETAILS_INPUT_ID);
+    const viewAssetDetailsBtn = document.getElementById(ASSET_DETAILS_VIEW_BUTTON_ID);
+    const assetPropertiesContainer = document.getElementById(ASSET_PROPERTIES_CONTAINER_ID);
+    const inputPartnersList = document.getElementById(INPUT_PARTNERS_LIST_ID);
+    const outputPartnersList = document.getElementById(OUTPUT_PARTNERS_LIST_ID);
+    const knowledgeBaseIssuesTableContainer = document.getElementById(KNOWLEDGE_BASE_ISSUES_TABLE_ID);
+
+    const performViewAssetDetails = async () => {
+        const targetAssetTag = assetDetailsTagInput.value.trim();
+        if (!targetAssetTag) {
+            alert("Please enter an Asset Tag to view details.");
+            return;
         }
-        if (select && !select.classList.contains("hidden")) {
-            select.value = value;
-        }
+        await fetchAndRenderAssetDetails(targetAssetTag);
+    };
+
+    viewAssetDetailsBtn.addEventListener("click", performViewAssetDetails);
+
+    // Add Enter key support for asset details input
+    if (assetDetailsTagInput) {
+        assetDetailsTagInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                performViewAssetDetails();
+            }
+        });
     }
+
+    // Knowledge Base tab elements
+    const kbIssueIdSearch = document.getElementById("kbIssueIdSearch");
+    const kbTagSearch = document.getElementById("kbTagSearch");
+    const kbFreeformSearch = document.getElementById("kbFreeformSearch");
+    const searchKnowledgeBaseBtn = document.getElementById("searchKnowledgeBaseBtn");
+    const kbResultsContainer = document.getElementById("kbResultsContainer");
+
+    const performKBSearch = async () => {
+        const issueId = kbIssueIdSearch.value.trim();
+        const tag = kbTagSearch.value.trim();
+        const freeform = kbFreeformSearch.value.trim();
+
+        if (!issueId && !tag && !freeform) {
+            alert("Please enter at least one search criterion.");
+            return;
+        }
+
+        const params = new URLSearchParams();
+        if (issueId) params.append("issue_id", issueId);
+        if (tag) params.append("tag", tag);
+        if (freeform) params.append("freeform", freeform);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/knowledgebase/search?${params.toString()}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            const issues = await response.json();
+            renderKBResults(issues);
+        } catch (error) {
+            console.error("Error fetching knowledge base results:", error);
+            alert(`Failed to fetch knowledge base results: ${error.message}`);
+        }
+    };
+
+    searchKnowledgeBaseBtn.addEventListener("click", performKBSearch);
+
+    // Add Enter key support for KB search inputs
+    [kbIssueIdSearch, kbTagSearch, kbFreeformSearch].forEach(input => {
+        if (input) {
+            input.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    performKBSearch();
+                }
+            });
+        }
+    });
 
     function setCrosspointInputValue(side, value) {
         const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
@@ -383,6 +482,52 @@ document.addEventListener("DOMContentLoaded", () => {
             columnsToShow.forEach(column => {
                 const td = document.createElement("td");
                 td.textContent = rowData[column] ?? "";
+
+                // Make AssetTag column clickable
+                if (column === "AssetTag" && assetTagValue) {
+                    td.style.cursor = "pointer";
+                    td.style.color = "#0066cc";
+                    td.style.textDecoration = "underline";
+                    td.addEventListener("click", async () => {
+                        // Update both Asset Details and Connectivity Diagram tabs
+                        assetDetailsTagInput.value = assetTagValue;
+                        targetTagFilter.value = assetTagValue;
+
+                        // Update the diagram state
+                        baseTargetTag = assetTagValue;
+                        hiddenNodes.clear();
+                        hiddenNodeNeighbors.clear();
+                        allKnownDiagramAssetTags.clear();
+                        expansionResultLog.clear();
+
+                        currentFilters = {
+                            targetTag: assetTagValue,
+                            cableId: "",
+                            direction: directionFilter.value,
+                            cableType: cableTypeFilter.value,
+                            protocol: protocolFilter ? protocolFilter.value.trim() : ""
+                        };
+
+                        initializeExpansionMap(baseTargetTag, currentFilters.direction);
+
+                        // Fetch and render asset details
+                        await fetchAndRenderAssetDetails(assetTagValue);
+
+                        // Also update the connectivity diagram in the background
+                        await fetchAndRenderDiagramAndCables(
+                            currentFilters.targetTag,
+                            currentFilters.direction,
+                            currentFilters.cableType,
+                            currentFilters.protocol,
+                            currentFilters.cableId,
+                            true // reset active assets on a fresh request
+                        );
+
+                        // Switch to Asset Details tab
+                        document.querySelector('.tab-button[data-tab="assetDetails"]').click();
+                    });
+                }
+
                 tr.appendChild(td);
             });
             tbody.appendChild(tr);
@@ -507,7 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const assetTagLookup = new Map();
 
 
-    viewDiagramBtn.addEventListener("click", async () => {
+    const performDiagramView = async () => {
         console.log("View Diagram & Cables button clicked.");
         const targetInputValue = targetTagFilter.value.trim();
 
@@ -524,7 +669,7 @@ document.addEventListener("DOMContentLoaded", () => {
         hiddenNodeNeighbors.clear();
         allKnownDiagramAssetTags.clear();
         expansionResultLog.clear();
-        
+
         currentFilters = {
             targetTag: targetTag,
             cableId: cableId, // Pass the identified cable ID
@@ -543,18 +688,55 @@ document.addEventListener("DOMContentLoaded", () => {
             currentFilters.cableId, // Pass cableId as a new argument
             true // reset active assets on a fresh request
         );
+
+        // Switch to diagram tab after loading (user explicitly requested to view it)
+        document.querySelector('.tab-button[data-tab="diagramViewer"]').click();
+    };
+
+    viewDiagramBtn.addEventListener("click", performDiagramView);
+
+    // Add Enter key support for diagram viewer inputs
+    [targetTagFilter, cableTypeFilter, protocolFilter].forEach(input => {
+        if (input) {
+            input.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    performDiagramView();
+                }
+            });
+        }
     });
 
+    const performViewCrosspoint = async () => {
+        const sourceTag = getCrosspointValue("source");
+        const targetTag = getCrosspointValue("target");
+        if (!sourceTag || !targetTag) {
+            alert("Please enter both Source and Target asset tags.");
+            return;
+        }
+        lastCrosspointQuery = { source: sourceTag, target: targetTag };
+        await fetchAndRenderCrosspointMatrix(sourceTag, targetTag);
+    };
+
     if (viewCrosspointBtn) {
-        viewCrosspointBtn.addEventListener("click", async () => {
-            const sourceTag = getCrosspointValue("source");
-            const targetTag = getCrosspointValue("target");
-            if (!sourceTag || !targetTag) {
-                alert("Please enter both Source and Target asset tags.");
-                return;
+        viewCrosspointBtn.addEventListener("click", performViewCrosspoint);
+    }
+
+    // Add Enter key support for crosspoint inputs
+    if (crosspointSourceInput) {
+        crosspointSourceInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                performViewCrosspoint();
             }
-            lastCrosspointQuery = { source: sourceTag, target: targetTag };
-            await fetchAndRenderCrosspointMatrix(sourceTag, targetTag);
+        });
+    }
+    if (crosspointTargetInput) {
+        crosspointTargetInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                performViewCrosspoint();
+            }
         });
     }
 
@@ -830,7 +1012,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Inject the SVG text directly into the div
             diagramRenderArea.innerHTML = svgText;
-            document.querySelector('.tab-button[data-tab="diagramViewer"]').click(); // Switch to diagram tab
             hideContextMenu();
             
         } catch (error) {
@@ -1394,17 +1575,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function setCrosspointInputValue(side, value) {
-        const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
-        const select = side === "source" ? crosspointSourceSelect : crosspointTargetSelect;
-        if (input) {
-            input.value = value;
-        }
-        if (select && !select.classList.contains("hidden")) {
-            select.value = value;
-        }
-    }
-
     function setCrosspointControlMode(side, mode, optionsList) {
         const input = side === "source" ? crosspointSourceInput : crosspointTargetInput;
         const select = side === "source" ? crosspointSourceSelect : crosspointTargetSelect;
@@ -1581,6 +1751,10 @@ document.addEventListener("DOMContentLoaded", () => {
         table.appendChild(thead);
 
         // Sort data based on current state
+        // Initialize sort state if it doesn't exist
+        if (!tableSortStates[tableId]) {
+            tableSortStates[tableId] = { column: null, direction: 'asc' };
+        }
         const currentSortState = tableSortStates[tableId];
         if (currentSortState.column) {
             data.sort((a, b) => {
@@ -1598,7 +1772,34 @@ document.addEventListener("DOMContentLoaded", () => {
             const row = document.createElement("tr");
             headers.forEach(headerText => {
                 const td = document.createElement("td");
-                td.textContent = rowData[headerText];
+
+                // Special handling for IssueID in knowledge base issues table
+                if (tableId === "knowledgeBaseIssuesTable" && headerText === "IssueID") {
+                    const issueId = rowData[headerText];
+                    if (issueId) {
+                        td.style.cursor = "pointer";
+                        td.style.color = "#0066cc";
+                        td.style.textDecoration = "underline";
+                        td.textContent = issueId;
+                        td.addEventListener("click", async () => {
+                            // Switch to Knowledge Base tab
+                            document.querySelector('.tab-button[data-tab="knowledgeBase"]').click();
+
+                            // Populate the IssueID search field
+                            if (kbIssueIdSearch) kbIssueIdSearch.value = issueId;
+                            if (kbTagSearch) kbTagSearch.value = '';
+                            if (kbFreeformSearch) kbFreeformSearch.value = '';
+
+                            // Perform the search
+                            await performKBSearch();
+                        });
+                    } else {
+                        td.textContent = rowData[headerText];
+                    }
+                } else {
+                    td.textContent = rowData[headerText];
+                }
+
                 row.appendChild(td);
             });
             tbody.appendChild(row);
@@ -1623,34 +1824,370 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     }
-});
-    async function updateOppositeOptions(side, tagValue) {
-        const otherSide = side === "source" ? "target" : "source";
-        const direction = side === "source" ? "outbound" : "inbound";
-        const result = await fetchConnectedAssetTags(tagValue, direction);
-        if (result.canonicalTag) {
-            setCrosspointInputValue(side, result.canonicalTag);
-        }
-        if (result.peers.length) {
-            setCrosspointControlMode(otherSide, "select", result.peers);
-        } else {
-            setCrosspointControlMode(otherSide, "text");
+
+    async function fetchAndRenderAssetDetails(assetTag) {
+        const assetPropertiesContainer = document.getElementById(ASSET_PROPERTIES_CONTAINER_ID);
+        const inputPartnersList = document.getElementById(INPUT_PARTNERS_LIST_ID);
+        const outputPartnersList = document.getElementById(OUTPUT_PARTNERS_LIST_ID);
+        const knowledgeBaseIssuesTableContainer = document.getElementById(KNOWLEDGE_BASE_ISSUES_TABLE_ID);
+
+        // Clear previous content from individual containers only
+        if (assetPropertiesContainer) assetPropertiesContainer.innerHTML = '<p>Loading asset details...</p>';
+        if (inputPartnersList) inputPartnersList.innerHTML = '';
+        if (outputPartnersList) outputPartnersList.innerHTML = '';
+        if (knowledgeBaseIssuesTableContainer) knowledgeBaseIssuesTableContainer.innerHTML = '';
+
+        document.querySelector(`.tab-button[data-tab="${ASSET_DETAILS_TAB_ID}"]`).click(); // Switch to asset details tab
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/assets/${encodeURIComponent(assetTag)}/details`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+
+            renderAssetProperties(data.asset, assetPropertiesContainer);
+            renderPartnersList(data.input_partners, inputPartnersList, "input");
+            renderPartnersList(data.output_partners, outputPartnersList, "output");
+            renderKnowledgeBaseIssues(data.knowledge_base_issues, knowledgeBaseIssuesTableContainer);
+        } catch (error) {
+            console.error("Error fetching asset details:", error);
+            if (assetPropertiesContainer) assetPropertiesContainer.innerHTML = `<p style="color: red;">Error loading asset details: ${error.message}</p>`;
+            if (inputPartnersList) inputPartnersList.innerHTML = '';
+            if (outputPartnersList) outputPartnersList.innerHTML = '';
+            if (knowledgeBaseIssuesTableContainer) knowledgeBaseIssuesTableContainer.innerHTML = '';
         }
     }
 
-    async function fetchConnectedAssetTags(tag, direction) {
-        const params = new URLSearchParams();
-        params.append("tag", tag);
-        params.append("direction", direction);
-        const response = await fetch(`${API_BASE_URL}/assets/linked?${params.toString()}`);
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || `HTTP ${response.status}`);
+    function renderAssetProperties(asset, container) {
+        if (!container || !asset) return;
+        container.innerHTML = '<h3>Properties</h3>';
+
+        const getValue = (key) => asset[key] || "";
+        const hasValue = (key) => asset[key] && String(asset[key]).trim() !== "";
+
+        // Define field groups
+        const basicFields = ["AssetTag", "Type", "Category", "InService", "Manufacturer", "Model", "SN", "AcqYear", "EOLYear", "Usage", "Desc"];
+        const locationFields = ["Building", "Floor", "Room", "Location", "Rack", "RackU", "RackHeight"];
+        const financialFields = ["Qty", "Unit", "AcqValue", "PurchaseDate", "PurcForm", "Invoice"];
+        const dispositionFields = ["Disposition", "DispositionDate", "DispositionDestination", "DispositionNotes"];
+
+        const allGroupedFields = new Set([
+            ...basicFields, ...locationFields, ...financialFields, ...dispositionFields
+        ]);
+
+        const content = document.createElement("div");
+        content.className = "asset-properties-content";
+
+        // Helper function to create a table with headers and values
+        function createPropertyTable(fields) {
+            // Filter to only fields that have values
+            const fieldsWithValues = fields.filter(field => hasValue(field));
+            if (fieldsWithValues.length === 0) return null;
+
+            const table = document.createElement("table");
+            table.className = "property-table";
+
+            // Create header row
+            const thead = document.createElement("thead");
+            const headerRow = document.createElement("tr");
+            fieldsWithValues.forEach(field => {
+                const th = document.createElement("th");
+                th.textContent = humanizeFieldLabel(field);
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Create value row
+            const tbody = document.createElement("tbody");
+            const valueRow = document.createElement("tr");
+            fieldsWithValues.forEach(field => {
+                const td = document.createElement("td");
+                td.textContent = getValue(field);
+                valueRow.appendChild(td);
+            });
+            tbody.appendChild(valueRow);
+            table.appendChild(tbody);
+
+            return table;
         }
-        const data = await response.json();
-        const peers = Array.isArray(data?.peers) ? data.peers : [];
-        return {
-            peers,
-            canonicalTag: data?.tag || "",
-        };
+
+        // Basic Information Table
+        const basicSection = document.createElement("div");
+        basicSection.className = "property-section";
+        basicSection.innerHTML = "<h4>Basic Information</h4>";
+
+        // Row 1: AssetTag, Type, Category, InService
+        const row1Table = createPropertyTable(["AssetTag", "Type", "Category", "InService"]);
+        if (row1Table) basicSection.appendChild(row1Table);
+
+        // Row 2: Manufacturer, Model, SN
+        const row2Table = createPropertyTable(["Manufacturer", "Model", "SN"]);
+        if (row2Table) basicSection.appendChild(row2Table);
+
+        // Row 3: AcqYear, EOLYear, Usage, Desc
+        const row3Table = createPropertyTable(["AcqYear", "EOLYear", "Usage", "Desc"]);
+        if (row3Table) basicSection.appendChild(row3Table);
+
+        content.appendChild(basicSection);
+
+        // Location Table
+        const hasLocation = locationFields.some(field => hasValue(field));
+        if (hasLocation) {
+            const locationSection = document.createElement("div");
+            locationSection.className = "property-section";
+            locationSection.innerHTML = "<h4>Location</h4>";
+
+            const locationTable = createPropertyTable(locationFields);
+            if (locationTable) locationSection.appendChild(locationTable);
+
+            content.appendChild(locationSection);
+        }
+
+        // Financial Table (including "Other" fields except EOLYear which is already in Basic)
+        const otherFields = Object.keys(asset).filter(key => !allGroupedFields.has(key) && hasValue(key));
+        const allFinancialFields = [...financialFields, ...otherFields];
+
+        const hasFinancial = allFinancialFields.some(field => hasValue(field));
+        if (hasFinancial) {
+            const financialSection = document.createElement("div");
+            financialSection.className = "property-section";
+            financialSection.innerHTML = "<h4>Financial</h4>";
+
+            const financialTable = createPropertyTable(allFinancialFields);
+            if (financialTable) financialSection.appendChild(financialTable);
+
+            content.appendChild(financialSection);
+        }
+
+        // Disposition (only if Disposition is not "N")
+        const disposition = getValue("Disposition").toUpperCase();
+        if (disposition && disposition !== "N") {
+            const dispSection = document.createElement("div");
+            dispSection.className = "property-section";
+            dispSection.innerHTML = "<h4>Disposition</h4>";
+
+            const dispTable = createPropertyTable(dispositionFields);
+            if (dispTable) dispSection.appendChild(dispTable);
+
+            content.appendChild(dispSection);
+        }
+
+        container.appendChild(content);
     }
+
+    function renderPartnersList(partners, container, direction) {
+        if (!container) return;
+        container.innerHTML = ''; // Clear previous content
+        if (!partners || partners.length === 0) {
+            container.textContent = `No ${direction} partners found.`;
+            return;
+        }
+        const ul = document.createElement("ul");
+        ul.className = "partner-list";
+        partners.forEach(partner => {
+            const li = document.createElement("li");
+            li.className = "partner-item";
+            li.textContent = `${partner.AssetTag} (${partner.Manufacturer} ${partner.Model} - ${partner.Usage})`;
+            li.dataset.assetTag = partner.AssetTag;
+            li.addEventListener("click", async (event) => {
+                const newTargetTag = event.target.dataset.assetTag;
+                if (newTargetTag) {
+                    // Update both Asset Details and Connectivity Diagram tabs
+                    assetDetailsTagInput.value = newTargetTag;
+                    targetTagFilter.value = newTargetTag;
+
+                    // Update the diagram state
+                    baseTargetTag = newTargetTag;
+                    hiddenNodes.clear();
+                    hiddenNodeNeighbors.clear();
+                    allKnownDiagramAssetTags.clear();
+                    expansionResultLog.clear();
+
+                    currentFilters = {
+                        targetTag: newTargetTag,
+                        cableId: "",
+                        direction: directionFilter.value,
+                        cableType: cableTypeFilter.value,
+                        protocol: protocolFilter ? protocolFilter.value.trim() : ""
+                    };
+
+                    initializeExpansionMap(baseTargetTag, currentFilters.direction);
+
+                    // Reload asset details for the clicked partner
+                    await fetchAndRenderAssetDetails(newTargetTag);
+
+                    // Also update the connectivity diagram in the background
+                    await fetchAndRenderDiagramAndCables(
+                        currentFilters.targetTag,
+                        currentFilters.direction,
+                        currentFilters.cableType,
+                        currentFilters.protocol,
+                        currentFilters.cableId,
+                        true // reset active assets on a fresh request
+                    );
+                }
+            });
+            ul.appendChild(li);
+        });
+        container.appendChild(ul);
+    }
+
+    function renderKnowledgeBaseIssues(issues, container) {
+        if (!container) return;
+        container.innerHTML = '<h3>Relevant Knowledge Base Issues</h3>';
+        if (!issues || issues.length === 0) {
+            container.innerHTML += "<p>No relevant knowledge base issues found.</p>";
+            return;
+        }
+        renderTable(issues, container, "knowledgeBaseIssuesTable"); // Reuse renderTable
+    }
+
+    function renderKBResults(issues) {
+        if (!kbResultsContainer) return;
+
+        kbResultsContainer.innerHTML = '';
+
+        if (!issues || issues.length === 0) {
+            kbResultsContainer.innerHTML = '<p>No knowledge base issues found matching your search criteria.</p>';
+            return;
+        }
+
+        const autoExpand = issues.length === 1;
+
+        issues.forEach((issue, index) => {
+            const issueSection = document.createElement('div');
+            issueSection.className = 'kb-issue-section';
+
+            // Create header (always visible)
+            const header = document.createElement('div');
+            header.className = 'kb-issue-header';
+            header.innerHTML = `
+                <span class="kb-issue-id">${escapeHtml(issue.IssueID || '')}</span>
+                <span class="kb-issue-title">${escapeHtml(issue.Title || '')}</span>
+                <span class="kb-expand-icon">${autoExpand ? '▼' : '▶'}</span>
+            `;
+
+            // Create details section (expandable)
+            const details = document.createElement('div');
+            details.className = autoExpand ? 'kb-issue-details expanded' : 'kb-issue-details';
+
+            // Build the details content
+            const fieldsToDisplay = [
+                { label: 'Category', value: issue.Category },
+                { label: 'Subcategory', value: issue.Subcategory },
+                { label: 'Symptom', value: issue.Symptom },
+                { label: 'Trigger Conditions', value: issue.TriggerConditions },
+                { label: 'Likely Cause', value: issue.LikelyCause },
+                { label: 'Recovery Steps', value: issue.RecoverySteps },
+                { label: 'Applies to Asset Type', value: issue.AppliesToAssetType },
+                { label: 'Applies to Asset Tag', value: issue.AppliesToAssetTag },
+                { label: 'Tags', value: issue.Tags },
+                { label: 'Notes', value: issue.Notes }
+            ];
+
+            fieldsToDisplay.forEach(field => {
+                if (field.value && field.value !== '' && field.value !== 'N/A') {
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.className = 'kb-field';
+
+                    const label = document.createElement('strong');
+                    label.textContent = field.label + ': ';
+                    fieldDiv.appendChild(label);
+
+                    const valueSpan = document.createElement('span');
+                    valueSpan.className = 'kb-field-value';
+
+                    // Special handling for Applies to Asset Tag - make tags clickable
+                    if (field.label === 'Applies to Asset Tag') {
+                        // Parse comma-separated tags
+                        const tags = field.value.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                        tags.forEach((tag, tagIndex) => {
+                            if (tagIndex > 0) {
+                                valueSpan.appendChild(document.createTextNode(', '));
+                            }
+                            const tagLink = document.createElement('span');
+                            tagLink.textContent = tag;
+                            tagLink.style.cursor = 'pointer';
+                            tagLink.style.color = '#0066cc';
+                            tagLink.style.textDecoration = 'underline';
+                            tagLink.addEventListener('click', async () => {
+                                // Update Asset Details and Connectivity Diagram
+                                assetDetailsTagInput.value = tag;
+                                targetTagFilter.value = tag;
+
+                                // Update the diagram state
+                                baseTargetTag = tag;
+                                hiddenNodes.clear();
+                                hiddenNodeNeighbors.clear();
+                                allKnownDiagramAssetTags.clear();
+                                expansionResultLog.clear();
+
+                                currentFilters = {
+                                    targetTag: tag,
+                                    cableId: "",
+                                    direction: directionFilter.value,
+                                    cableType: cableTypeFilter.value,
+                                    protocol: protocolFilter ? protocolFilter.value.trim() : ""
+                                };
+
+                                initializeExpansionMap(baseTargetTag, currentFilters.direction);
+
+                                // Fetch and render asset details
+                                await fetchAndRenderAssetDetails(tag);
+
+                                // Update connectivity diagram in background
+                                await fetchAndRenderDiagramAndCables(
+                                    currentFilters.targetTag,
+                                    currentFilters.direction,
+                                    currentFilters.cableType,
+                                    currentFilters.protocol,
+                                    currentFilters.cableId,
+                                    true
+                                );
+
+                                // Switch to Asset Details tab
+                                document.querySelector('.tab-button[data-tab="assetDetails"]').click();
+                            });
+                            valueSpan.appendChild(tagLink);
+                        });
+                    } else {
+                        // Render markdown if marked library is available
+                        if (typeof marked !== 'undefined' && marked.parse) {
+                            valueSpan.innerHTML = marked.parse(field.value);
+                        } else {
+                            valueSpan.textContent = field.value;
+                        }
+                    }
+
+                    fieldDiv.appendChild(valueSpan);
+
+                    details.appendChild(fieldDiv);
+                }
+            });
+
+            // Add click handler to toggle expansion
+            header.addEventListener('click', () => {
+                const isExpanded = details.classList.contains('expanded');
+                details.classList.toggle('expanded');
+                const icon = header.querySelector('.kb-expand-icon');
+                if (icon) {
+                    icon.textContent = isExpanded ? '▶' : '▼';
+                }
+            });
+
+            issueSection.appendChild(header);
+            issueSection.appendChild(details);
+            kbResultsContainer.appendChild(issueSection);
+        });
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+});

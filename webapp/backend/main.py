@@ -78,9 +78,26 @@ def load_cables_data():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading cable data: {e}")
 
+def load_knowledgebase_data():
+    """Loads knowledge base data from knowledgebase.xlsx."""
+    try:
+        df_kb = pd.read_excel("../data/knowledgebase.xlsx", sheet_name="Issues")
+        # Strip whitespace from column names
+        df_kb.columns = df_kb.columns.str.strip()
+        # Ensure AppliesToAssetTag is treated as string and handle NaN
+        df_kb["AppliesToAssetTag"] = df_kb["AppliesToAssetTag"].fillna("").astype(str).str.strip()
+        # Create a normalized version for easy searching
+        df_kb["AppliesToAssetTagNorm"] = df_kb["AppliesToAssetTag"].str.upper()
+        # Drop rows where IssueID is NaN (likely empty/summary rows)
+        df_kb = df_kb.dropna(subset=["IssueID"])
+        return df_kb
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading knowledge base data: {e}")
+
 # Load data globally for the application to avoid reloading on each request
 df_assets = load_assets_data()
 df_cables = load_cables_data()
+df_knowledgebase = load_knowledgebase_data() # NEW: Load knowledge base data
 ASSET_TAG_LOOKUP: Dict[str, str] = {}
 VALID_ASSET_TAGS_NORMALIZED: Set[str] = set()
 CABLE_TAG_LOOKUP: Dict[str, str] = {}
@@ -297,9 +314,10 @@ def build_candidate_cables(expansion_map: Dict[str, Set[str]]) -> pd.DataFrame:
 
 def reload_dataframes() -> None:
     """Reloads the global asset and cable DataFrames and associated lookup sets."""
-    global df_assets, df_cables, ASSET_TAG_LOOKUP, VALID_ASSET_TAGS_NORMALIZED
+    global df_assets, df_cables, df_knowledgebase, ASSET_TAG_LOOKUP, VALID_ASSET_TAGS_NORMALIZED # NEW: Add df_knowledgebase
     df_assets = load_assets_data()
     df_cables = load_cables_data()
+    df_knowledgebase = load_knowledgebase_data() # NEW: Reload knowledge base data
     rebuild_lookup_sets()
     rebuild_field_option_maps()
 
@@ -711,6 +729,43 @@ def _get_device_connections_details(target_norm: str, is_input: bool) -> List[Di
         return results_df.to_dict(orient="records")
     return []
 
+def _get_partner_details_for_asset(target_norm: str, is_input: bool) -> List[Dict[str, str]]:
+    partners: List[Dict[str, str]] = []
+    
+    if is_input:
+        filtered_cables = df_cables[df_cables["DstTagNorm"] == target_norm]
+        partner_tag_col = "SrcTagNorm"
+    else:
+        filtered_cables = df_cables[df_cables["SrcTagNorm"] == target_norm]
+        partner_tag_col = "DstTagNorm"
+
+    # Only consider unique actual asset partners, not cable junctions themselves
+    unique_partner_tags = filtered_cables[partner_tag_col][
+        ~filtered_cables[partner_tag_col].apply(is_cable_record_tag)
+    ].unique()
+
+    for partner_norm in unique_partner_tags:
+        partner_asset = df_assets[df_assets["AssetTagNorm"] == partner_norm]
+        if not partner_asset.empty:
+            record = partner_asset.iloc[0]
+            partners.append({
+                "AssetTag": canonical_display_tag(record["AssetTagNorm"]),
+                "Manufacturer": format_display_value(record.get("Manufacturer")),
+                "Model": format_display_value(record.get("Model")),
+                "Usage": format_display_value(record.get("Usage")),
+            })
+        else:
+            # If partner_norm is a valid asset but not in df_assets (e.g. data issue),
+            # or it's an unrecognized tag, still list it.
+            partners.append({
+                "AssetTag": canonical_display_tag(partner_norm),
+                "Manufacturer": "Unknown",
+                "Model": "Unknown",
+                "Usage": "Unknown",
+            })
+    
+    return sorted(partners, key=lambda x: x["AssetTag"].lower())
+
 
 @app.get("/diagram/connections/inputs")
 async def get_diagram_input_connections(target_tag: str) -> List[Dict[str, str]]:
@@ -736,6 +791,116 @@ async def get_diagram_output_connections(target_tag: str) -> List[Dict[str, str]
     
     return _get_device_connections_details(target_norm, is_input=False)
 
+
+@app.get("/assets/{asset_tag}/details")
+async def get_asset_details(asset_tag: str):
+    """
+    Returns comprehensive details for a given asset tag, including its properties,
+    input/output partners, and relevant knowledge base issues.
+    """
+    target_norm = normalize_tag_value(asset_tag)
+    if not target_norm or target_norm not in VALID_ASSET_TAGS_NORMALIZED:
+        raise HTTPException(status_code=404, detail=f"Asset tag not found: {asset_tag}")
+
+    # 1. Get asset properties
+    asset_record_df = df_assets[df_assets["AssetTagNorm"] == target_norm]
+    if asset_record_df.empty:
+        raise HTTPException(status_code=404, detail=f"Asset tag not found: {asset_tag}")
+
+    # Exclude AssetTagNorm which is an internal field
+    asset_properties = clean_dataframe_for_json(asset_record_df.drop(columns=["AssetTagNorm"]).iloc[0:1]).to_dict(orient="records")[0]
+
+    # 2. Get input partners
+    input_partners = _get_partner_details_for_asset(target_norm, is_input=True)
+
+    # 3. Get output partners
+    output_partners = _get_partner_details_for_asset(target_norm, is_input=False)
+
+    # 4. Get relevant knowledge base issues
+    # Filter for issues where the asset_tag (normalized) is present in the AppliesToAssetTagNorm column
+    relevant_issues_df = df_knowledgebase[
+        df_knowledgebase["AppliesToAssetTagNorm"].apply(
+            lambda x: target_norm in [tag.strip() for tag in x.split(',')] if pd.notna(x) else False
+        )
+    ].copy()
+    # We only care about IssueID, Title, Category, Subcategory for display
+    issue_display_columns = ["IssueID", "Title", "Category", "Subcategory"]
+    relevant_issues = clean_dataframe_for_json(relevant_issues_df[issue_display_columns]).to_dict(orient="records")
+
+    return {
+        "asset": asset_properties,
+        "input_partners": input_partners,
+        "output_partners": output_partners,
+        "knowledge_base_issues": relevant_issues,
+    }
+
+@app.get("/knowledgebase/search")
+async def search_knowledgebase(
+    issue_id: Optional[str] = None,
+    tag: Optional[str] = None,
+    freeform: Optional[str] = None,
+):
+    """
+    Search knowledge base issues by IssueID, Tag, or freeform text.
+    Results are sorted by Category, Subcategory, and SortOrder.
+    """
+    import re
+
+    filtered_kb = df_knowledgebase.copy()
+
+    # Filter by IssueID (case-insensitive partial match)
+    if issue_id:
+        filtered_kb = filtered_kb[
+            filtered_kb["IssueID"].fillna("").astype(str).str.contains(issue_id, case=False, na=False)
+        ]
+
+    # Filter by Tag (AppliesToAssetTag)
+    if tag:
+        tag_norm = tag.strip().upper()
+        filtered_kb = filtered_kb[
+            filtered_kb["AppliesToAssetTagNorm"].apply(
+                lambda x: tag_norm in [t.strip() for t in x.split(',')] if pd.notna(x) else False
+            )
+        ]
+
+    # Freeform text search (case-insensitive, whitespace/punctuation ignored)
+    if freeform:
+        # Normalize search text: remove whitespace and punctuation, lowercase
+        def normalize_text(text):
+            if pd.isna(text):
+                return ""
+            text_str = str(text)
+            # Remove all non-alphanumeric characters
+            return re.sub(r'[^a-z0-9]', '', text_str.lower())
+
+        normalized_search = normalize_text(freeform)
+
+        # Search across all text fields
+        text_fields = ["IssueID", "Category", "Subcategory", "Title", "Symptom",
+                      "TriggerConditions", "LikelyCause", "RecoverySteps",
+                      "AppliesToAssetType", "AppliesToAssetTag", "Tags", "Notes"]
+
+        # Create a mask for rows that match the search
+        mask = pd.Series([False] * len(filtered_kb), index=filtered_kb.index)
+        for field in text_fields:
+            if field in filtered_kb.columns:
+                field_mask = filtered_kb[field].apply(
+                    lambda x: normalized_search in normalize_text(x)
+                )
+                mask = mask | field_mask
+
+        filtered_kb = filtered_kb[mask]
+
+    # Sort by Category, Subcategory, SortOrder
+    filtered_kb = filtered_kb.sort_values(
+        by=["Category", "Subcategory", "SortOrder"],
+        na_position='last'
+    )
+
+    # Return all fields except the normalized tag field
+    result_kb = filtered_kb.drop(columns=["AppliesToAssetTagNorm"], errors="ignore")
+    processed_kb = clean_dataframe_for_json(result_kb)
+    return processed_kb.to_dict(orient="records")
 
 # --- Graphviz DOT Generation Function ---
 def generate_dot_string(
@@ -938,11 +1103,20 @@ async def search_assets(
     asset_tag: Optional[str] = None,
     manufacturer: Optional[str] = None,
     model: Optional[str] = None,
+    in_service_only: bool = True,
 ):
     """
     Search for assets by asset tag, manufacturer, or model.
+    Optionally filter to only in-service items (default: True).
     """
     filtered_assets = df_assets.copy()
+
+    # Filter by InService status if requested
+    if in_service_only:
+        # Only include assets where InService is explicitly "Y" (case-insensitive)
+        filtered_assets = filtered_assets[
+            filtered_assets["InService"].fillna("").astype(str).str.strip().str.upper() == "Y"
+        ]
 
     if asset_tag:
         filtered_assets = filtered_assets[
