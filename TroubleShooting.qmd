@@ -16,12 +16,19 @@ format:
   titlepage-pdf:
     toc: true
     toc-depth: 2
+    
+format-links: false  # This hides links to pdf/ipynb
 
 always_allow_html: yes
 editor:
   markdown:
     wrap: sentence
 ---
+
+# Troubleshooting Guide
+
+This document provides troubleshooting information for AVL systems, organized by category and indexed by both tags and asset tags.
+
 
 ```{=html}
 <style>
@@ -89,6 +96,7 @@ editor:
 
 ```{r packages}
 source("./commonPackages.R")
+library(markdown)
 ```
 
 ```{r functions}
@@ -97,19 +105,25 @@ source("./commonDiagram.R")
 ```
 
 ```{r data}
-network.data <- get.network()
+db.network <- get.network()
 further <- get.further()
-cables <- get.cables()
-assets <- get.assets()
+db.cables <- get.cables()
+db.assets <- get.assets()
 
-db.issues <- read_excel("./data/knowledgebase.xlsx", sheet = "Issues") |>
+db.issues <- read_excel("./data/knowledgebase.xlsx", sheet = "Issues")
+
+# Strip whitespace from column names
+colnames(db.issues) <- str_trim(colnames(db.issues))
+
+db.issues <- db.issues |>
   filter(!is.na(IssueID)) |>
   filter(is.na(Active) | Active == "Yes") |>
   mutate(
     SortOrder = replace_na(SortOrder, Inf),
     Category = replace_na(Category, "Uncategorized"),
     Subcategory = replace_na(Subcategory, "General"),
-    Tags = replace_na(Tags, "")
+    Tags = replace_na(Tags, ""),
+    AppliesToAssetTag = replace_na(AppliesToAssetTag, "")
   ) |>
   arrange(Category, Subcategory, SortOrder, Title)
 ```
@@ -133,18 +147,38 @@ normalize_text <- function(x) {
   if (identical(x, "")) NA_character_ else x
 }
 
+render_markdown <- function(text) {
+  if (is.na(text) || identical(text, "")) {
+    return("")
+  }
+
+  # Render markdown to HTML
+  html_output <- markdown::markdownToHTML(
+    text = text,
+    fragment.only = TRUE,
+    options = c("fragment_only", "autolink", "tables", "fenced_code")
+  )
+
+  # Clean up extra whitespace
+  html_output <- str_trim(html_output)
+
+  return(html_output)
+}
+
 render_issue_section <- function(label, value) {
   value <- normalize_text(value)
   if (is.na(value)) {
-    return(NULL)
+    return("")
   }
 
-  htmltools::tags$div(
-    class = "issue-section",
-    htmltools::tags$h4(label),
-    htmltools::tags$p(
-      htmltools::HTML(gsub("\n", "<br>", escape_html(value), fixed = TRUE))
-    )
+  # Render markdown content
+  content <- render_markdown(value)
+
+  glue(
+    "<div class=\"issue-section\">
+       <h4>{escape_html(label)}</h4>
+       <div>{content}</div>
+     </div>"
   )
 }
 
@@ -153,11 +187,14 @@ render_issue_page <- function(issue_row) {
   issue_anchor <- paste0("issue-", slugify(issue$IssueID))
   issue_title <- issue$Title %||% issue$IssueID
 
-  tags <- issue$Tags |>
+  tags_raw <- issue$Tags %||% ""
+  if (is.na(tags_raw)) tags_raw <- ""
+
+  tags <- tags_raw |>
     str_split(",", simplify = FALSE) |>
     pluck(1) |>
     str_trim() |>
-    discard(~ .x == "")
+    discard(~ is.na(.x) || identical(.x, ""))
 
   tag_links <- if (length(tags) == 0) {
     "None"
@@ -168,37 +205,56 @@ render_issue_page <- function(issue_row) {
     )
   }
 
+  # Process AppliesToAssetTag
+  asset_tags_raw <- issue$AppliesToAssetTag %||% ""
+  if (is.na(asset_tags_raw)) asset_tags_raw <- ""
+
+  asset_tags <- asset_tags_raw |>
+    str_split(",", simplify = FALSE) |>
+    pluck(1) |>
+    str_trim() |>
+    discard(~ is.na(.x) || identical(.x, ""))
+
+  asset_tag_links <- if (length(asset_tags) == 0) {
+    "None"
+  } else {
+    paste0(
+      "<a href=\"#asset-", slugify(asset_tags), "\">", escape_html(asset_tags), "</a>",
+      collapse = ", "
+    )
+  }
+
   sections <- compact(list(
     render_issue_section("Symptom", issue$Symptom),
     render_issue_section("Trigger Conditions", issue$TriggerConditions),
     render_issue_section("Likely Cause", issue$LikelyCause),
     render_issue_section("Recovery Steps", issue$RecoverySteps),
     render_issue_section("Notes", issue$Notes)
-  ))
+  )) |>
+    discard(~ is.na(.x) || identical(.x, "")) |>
+    paste(collapse = "\n")
 
-  htmltools::tags$div(
-    id = issue_anchor,
-    class = "issue-page",
-    htmltools::tags$h3(issue_title),
-    htmltools::tags$div(
-      class = "issue-meta",
-      htmltools::tags$div(
-        class = "issue-meta-item",
-        htmltools::tags$div(class = "issue-meta-label", "Issue ID"),
-        htmltools::tags$div(issue$IssueID %||% "")
-      ),
-      htmltools::tags$div(
-        class = "issue-meta-item",
-        htmltools::tags$div(class = "issue-meta-label", "Applies To"),
-        htmltools::tags$div(issue$AppliesToAssetType %||% "")
-      )
-    ),
-    sections,
-    htmltools::tags$div(
-      class = "issue-tags",
-      htmltools::tags$strong("Tags:"),
-      htmltools::HTML(paste0(" ", tag_links))
-    )
+  glue(
+    "<div id=\"{issue_anchor}\" class=\"issue-page\">
+       <h3>{escape_html(issue_title)}</h3>
+       <div class=\"issue-meta\">
+         <div class=\"issue-meta-item\">
+           <div class=\"issue-meta-label\">Issue ID</div>
+           <div>{escape_html(issue$IssueID)}</div>
+         </div>
+         <div class=\"issue-meta-item\">
+           <div class=\"issue-meta-label\">Applies To</div>
+           <div>{escape_html(issue$AppliesToAssetType)}</div>
+         </div>
+       </div>
+       {sections}
+       <div class=\"issue-tags\">
+         <strong>Tags:</strong> {tag_links}
+       </div>
+       <div class=\"issue-tags\">
+         <strong>Applies to Asset Tags:</strong> {asset_tag_links}
+       </div>
+     </div>"
   )
 }
 
@@ -212,32 +268,134 @@ render_tag_index <- function(issue_data) {
     ) |>
     unnest(tag_list) |>
     mutate(tag = str_trim(tag_list)) |>
-    filter(tag != "") |>
+    filter(!is.na(tag) & tag != "") |>
     distinct(tag, IssueID, Title, issue_anchor) |>
     arrange(tag, IssueID)
 
-  cat("\n# Tag Index\n\n")
-
   if (nrow(tag_map) == 0) {
-    cat("No tags were found.\n")
-    return(invisible(NULL))
+    return(
+      "<section id=\"tag-index\" class=\"tag-index\">
+         <h1>Tag Index</h1>
+         <p>No tags were found.</p>
+       </section>"
+    )
   }
 
   tags <- unique(tag_map$tag)
+  pieces <- c(
+    "<section id=\"tag-index\" class=\"tag-index\">",
+    "<h1>Tag Index</h1>"
+  )
 
   for (tag in tags) {
     tag_anchor <- paste0("tag-", slugify(tag))
-    cat(glue("## <span id=\"{tag_anchor}\">{tag}</span>\n\n"))
+    pieces <- c(
+      pieces,
+      glue("<h2 id=\"{tag_anchor}\">{escape_html(tag)}</h2>"),
+      "<ul>"
+    )
 
     tag_rows <- tag_map |>
       filter(tag == !!tag)
 
     for (i in seq_len(nrow(tag_rows))) {
-      cat(glue("- [{tag_rows$IssueID}: {tag_rows$Title}](#{tag_rows$issue_anchor})\n"))
+      pieces <- c(
+        pieces,
+        glue(
+          "<li><a href=\"#{tag_rows$issue_anchor[i]}\">{escape_html(tag_rows$IssueID[i])}: {escape_html(tag_rows$Title[i])}</a></li>"
+        )
+      )
     }
 
-    cat("\n")
+    pieces <- c(pieces, "</ul>")
   }
+
+  pieces <- c(pieces, "</section>")
+  paste0(pieces, collapse = "\n")
+}
+
+render_asset_tag_index <- function(issue_data, asset_data) {
+  # Parse asset tags from all issues
+  asset_tag_map <- issue_data |>
+    transmute(
+      IssueID,
+      Title,
+      issue_anchor = paste0("issue-", slugify(IssueID)),
+      asset_tag_list = str_split(AppliesToAssetTag, ",")
+    ) |>
+    unnest(asset_tag_list) |>
+    mutate(AssetTag = str_trim(asset_tag_list)) |>
+    filter(AssetTag != "" & !is.na(AssetTag)) |>
+    distinct(AssetTag, IssueID, Title, issue_anchor)
+
+  if (nrow(asset_tag_map) == 0) {
+    return(
+      "<section id=\"asset-tag-index\" class=\"tag-index\">
+         <h1>Asset Tag Index</h1>
+         <p>No asset tags were found.</p>
+       </section>"
+    )
+  }
+
+  # Join with asset data to get Manufacturer, Model, Usage
+  asset_tag_map <- asset_tag_map |>
+    left_join(
+      asset_data |> select(AssetTag, Manufacturer, Model, Usage),
+      by = "AssetTag"
+    ) |>
+    arrange(AssetTag, IssueID)
+
+  asset_tags <- unique(asset_tag_map$AssetTag)
+  pieces <- c(
+    "<section id=\"asset-tag-index\" class=\"tag-index\">",
+    "<h1>Asset Tag Index</h1>"
+  )
+
+  for (asset_tag in asset_tags) {
+    asset_anchor <- paste0("asset-", slugify(asset_tag))
+
+    # Get asset info for this tag (should be same for all rows with this tag)
+    asset_info <- asset_tag_map |>
+      filter(AssetTag == !!asset_tag) |>
+      slice(1)
+
+    # Build the heading with asset details
+    heading_parts <- c(escape_html(asset_tag))
+    if (!is.na(asset_info$Manufacturer) && asset_info$Manufacturer != "") {
+      heading_parts <- c(heading_parts, escape_html(asset_info$Manufacturer))
+    }
+    if (!is.na(asset_info$Model) && asset_info$Model != "") {
+      heading_parts <- c(heading_parts, escape_html(asset_info$Model))
+    }
+    if (!is.na(asset_info$Usage) && asset_info$Usage != "") {
+      heading_parts <- c(heading_parts, paste0("(", escape_html(asset_info$Usage), ")"))
+    }
+
+    heading_text <- paste(heading_parts, collapse = " - ")
+
+    pieces <- c(
+      pieces,
+      glue("<h2 id=\"{asset_anchor}\">{heading_text}</h2>"),
+      "<ul>"
+    )
+
+    asset_rows <- asset_tag_map |>
+      filter(AssetTag == !!asset_tag)
+
+    for (i in seq_len(nrow(asset_rows))) {
+      pieces <- c(
+        pieces,
+        glue(
+          "<li><a href=\"#{asset_rows$issue_anchor[i]}\">{escape_html(asset_rows$IssueID[i])}: {escape_html(asset_rows$Title[i])}</a></li>"
+        )
+      )
+    }
+
+    pieces <- c(pieces, "</ul>")
+  }
+
+  pieces <- c(pieces, "</section>")
+  paste0(pieces, collapse = "\n")
 }
 ```
 
@@ -252,27 +410,46 @@ issue_groups <- db.issues |>
   group_split()
 
 current_category <- NULL
+output <- character()
 
 for (group in issue_groups) {
   category <- group$Category[[1]]
   subcategory <- group$Subcategory[[1]]
 
   if (!identical(category, current_category)) {
-    cat(glue("\n# {category}\n\n"))
+    output <- c(output, glue("\n# {category}\n"))
     current_category <- category
   }
 
-  cat(glue("\n## {subcategory}\n\n"))
+  output <- c(output, glue("\n## {subcategory}\n"))
 
   for (i in seq_len(nrow(group))) {
-    htmltools::renderTags(render_issue_page(group[i, ])) |>
-      as.character() |>
-      cat("\n")
-    cat("\n")
+    output <- c(
+      output,
+      "```{=html}",
+      render_issue_page(group[i, ]),
+      "```",
+      ""
+    )
   }
 }
+```
 
-render_tag_index(db.issues)
+```{r tag-index, results='asis' }
+output <- c(
+  output,
+  "```{=html}",
+  render_tag_index(db.issues),
+  "```",
+  "",
+  "```{=html}",
+  render_asset_tag_index(db.issues, db.assets),
+  "```"
+)
+```
+
+```{r render-output, results='asis'}
+knitr::asis_output(paste(output, collapse = "\n"))
 ```
 
 {{< include common_trailer.qmd >}}
