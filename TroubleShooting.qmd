@@ -110,7 +110,8 @@ further <- get.further()
 db.cables <- get.cables()
 db.assets <- get.assets()
 
-db.issues <- read_excel("./data/knowledgebase.xlsx", sheet = "Issues")
+db.issues <- read_excel("./data/knowledgebase.xlsx", sheet = "Issues") 
+
 
 # Strip whitespace from column names
 colnames(db.issues) <- str_trim(colnames(db.issues))
