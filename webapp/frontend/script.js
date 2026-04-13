@@ -2113,7 +2113,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             tagLink.style.cursor = 'pointer';
                             tagLink.style.color = '#0066cc';
                             tagLink.style.textDecoration = 'underline';
-                            tagLink.addEventListener('click', async () => {
+                            tagLink.addEventListener('click', async (e) => {
+                                e.stopPropagation(); // Prevent event from bubbling to parent elements
+
                                 // Update Asset Details and Connectivity Diagram
                                 assetDetailsTagInput.value = tag;
                                 targetTagFilter.value = tag;
@@ -2169,12 +2171,17 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             // Add click handler to toggle expansion
-            header.addEventListener('click', () => {
+            header.addEventListener('click', (e) => {
+                console.log('KB header clicked', issue.IssueID);
                 const isExpanded = details.classList.contains('expanded');
+                console.log('Currently expanded:', isExpanded);
                 details.classList.toggle('expanded');
                 const icon = header.querySelector('.kb-expand-icon');
                 if (icon) {
                     icon.textContent = isExpanded ? '▶' : '▼';
+                    console.log('Icon changed to:', icon.textContent);
+                } else {
+                    console.log('Warning: expand icon not found');
                 }
             });
 

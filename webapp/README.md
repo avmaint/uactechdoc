@@ -1,6 +1,6 @@
-# UAC Tech Documentation Web Application
+# AVL Tech Assistant   
 
-This repository contains technical documentation for UAC systems, including an interactive web application designed to query asset and cable data, and visualize connectivity diagrams.
+This repository contains technical documentation for AVL systems, including an interactive web application designed to query asset and cable data, and visualize connectivity diagrams.
 
 ## Web Application Overview
 
