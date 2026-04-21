@@ -17,6 +17,7 @@ const DEFAULT_CROSSPOINT_FIELDS = ["port", "usage"];
 const ASSET_TABLE_DEFAULT_COLUMNS = ["AssetTag", "Model", "Manufacturer", "Desc", "Usage"];
 const DIAGRAM_INPUT_CONNECTIONS_CONTAINER_ID = "diagramInputConnections";
 const DIAGRAM_OUTPUT_CONNECTIONS_CONTAINER_ID = "diagramOutputConnections";
+const DIAGRAM_INTERNAL_ROUTES_CONTAINER_ID = "diagramInternalRoutes";
 
 // Asset Details Tab Constants
 const ASSET_DETAILS_TAB_ID = "assetDetails";
@@ -73,16 +74,24 @@ const tableSortStates = {
         column: null,
         direction: 'asc'
     },
+    [DIAGRAM_INTERNAL_ROUTES_CONTAINER_ID]: {
+        column: null,
+        direction: 'asc'
+    },
     knowledgeBaseIssuesTable: {
         column: null,
         direction: 'asc'
     }
 };
 
+// Global target asset — set when any asset tag is clicked anywhere in the UI
+let globalTargetAsset = null;
+
 // Store active asset tags for diagram filtering
 let activeDiagramAssetTags = [];
 let availableDiagramAssetTags = [];
 const hiddenNodes = new Set();
+const hiddenCables = new Set(); // Cable IDs hidden by route-traversal filtering
 const allKnownDiagramAssetTags = new Set();
 const adjacencyOutMap = new Map();
 const adjacencyInMap = new Map();
@@ -93,6 +102,16 @@ const expansionResultLog = new Map(); // node+direction -> includesNewNodes bool
 // hidden node's cables from the adjacency maps entirely.
 const hiddenNodeNeighbors = new Map(); // hiddenTag -> Set of neighbor tags
 const selectedAssetTags = new Set();
+
+function showLoadingSpinner(container, message = "Loading…") {
+    if (!container) return;
+    container.innerHTML = `<div class="loading-spinner">${message}</div>`;
+}
+
+function showEmptyState(container, message = "No results found.", icon = "📭") {
+    if (!container) return;
+    container.innerHTML = `<div class="empty-state"><span class="empty-state-icon">${icon}</span>${message}</div>`;
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOMContentLoaded event fired."); // Added log
@@ -124,10 +143,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (assetTagSearch.value) params.append("asset_tag", assetTagSearch.value);
         if (manufacturerSearch.value) params.append("manufacturer", manufacturerSearch.value);
         if (modelSearch.value) params.append("model", modelSearch.value);
-        // Add in_service_only parameter based on checkbox state (convert to string)
         const inServiceValue = inServiceOnlyCheckbox ? inServiceOnlyCheckbox.checked : true;
         params.append("in_service_only", inServiceValue.toString());
-        console.log("Asset search - in_service_only:", inServiceValue, "URL:", `${API_BASE_URL}/assets/search?${params.toString()}`);
+
+        showLoadingSpinner(assetTableContainer, "Searching assets…");
+        document.querySelector('.tab-button[data-tab="assetResults"]').click();
 
         try {
             const response = await fetch(`${API_BASE_URL}/assets/search?${params.toString()}`);
@@ -136,12 +156,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const data = await response.json();
             assetTableData = Array.isArray(data) ? data : [];
-            console.log("Asset search results count:", assetTableData.length);
             renderAssetTable();
-            document.querySelector('.tab-button[data-tab="assetResults"]').click(); // Switch to asset results tab
         } catch (error) {
             console.error("Error fetching assets:", error);
-            assetTableContainer.innerHTML = `<p style="color: red;">Error loading assets: ${error.message}</p>`;
+            assetTableContainer.innerHTML = `<div class="empty-state"><span class="empty-state-icon">⚠️</span>Error loading assets: ${error.message}</div>`;
         }
     };
 
@@ -184,6 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const colorNodesCheckbox = document.getElementById("colorNodesByCategory");
     const colorEdgesCheckbox = document.getElementById("colorEdgesByProtocol");
     const collapseStrategySelect = document.getElementById("collapseStrategySelect");
+    const excludeInternalRoutesCheckbox = document.getElementById("excludeInternalRoutes");
 
     // Asset Details tab elements
     const assetDetailsTagInput = document.getElementById(ASSET_DETAILS_INPUT_ID);
@@ -217,16 +236,44 @@ document.addEventListener("DOMContentLoaded", () => {
     // Knowledge Base tab elements
     const kbIssueIdSearch = document.getElementById("kbIssueIdSearch");
     const kbTagSearch = document.getElementById("kbTagSearch");
+    const kbActiveIssueTags = document.getElementById("kbActiveIssueTags");
     const kbFreeformSearch = document.getElementById("kbFreeformSearch");
     const searchKnowledgeBaseBtn = document.getElementById("searchKnowledgeBaseBtn");
     const kbResultsContainer = document.getElementById("kbResultsContainer");
+
+    async function loadKBTagOptions() {
+        if (!kbActiveIssueTags) return;
+        const prevSelected = new Set(
+            Array.from(kbActiveIssueTags.selectedOptions).map(o => o.value)
+        );
+        try {
+            const resp = await fetch(`${API_BASE_URL}/knowledgebase/tags`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+            kbActiveIssueTags.innerHTML = '';
+            (data.tags || []).forEach(opt => {
+                const el = document.createElement("option");
+                el.value = opt.value;
+                el.textContent = opt.label;
+                if (prevSelected.has(opt.value)) el.selected = true;
+                kbActiveIssueTags.appendChild(el);
+            });
+        } catch (e) {
+            console.error("Error loading KB tag options:", e);
+        }
+    }
+
+    loadKBTagOptions();
 
     const performKBSearch = async () => {
         const issueId = kbIssueIdSearch.value.trim();
         const tag = kbTagSearch.value.trim();
         const freeform = kbFreeformSearch.value.trim();
+        const selectedTags = kbActiveIssueTags
+            ? Array.from(kbActiveIssueTags.selectedOptions).map(o => o.value)
+            : [];
 
-        if (!issueId && !tag && !freeform) {
+        if (!issueId && !tag && !freeform && selectedTags.length === 0) {
             alert("Please enter at least one search criterion.");
             return;
         }
@@ -234,7 +281,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const params = new URLSearchParams();
         if (issueId) params.append("issue_id", issueId);
         if (tag) params.append("tag", tag);
+        selectedTags.forEach(t => params.append("tag", t));
         if (freeform) params.append("freeform", freeform);
+
+        showLoadingSpinner(kbResultsContainer, "Searching knowledge base…");
 
         try {
             const response = await fetch(`${API_BASE_URL}/knowledgebase/search?${params.toString()}`);
@@ -245,13 +295,13 @@ document.addEventListener("DOMContentLoaded", () => {
             renderKBResults(issues);
         } catch (error) {
             console.error("Error fetching knowledge base results:", error);
-            alert(`Failed to fetch knowledge base results: ${error.message}`);
+            showEmptyState(kbResultsContainer, `Error: ${error.message}`, "⚠️");
         }
     };
 
     searchKnowledgeBaseBtn.addEventListener("click", performKBSearch);
 
-    // Add Enter key support for KB search inputs
+    // Enter key support for text inputs (multi-select uses native selection, no auto-submit)
     [kbIssueIdSearch, kbTagSearch, kbFreeformSearch].forEach(input => {
         if (input) {
             input.addEventListener("keypress", (e) => {
@@ -421,7 +471,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderAssetTable() {
         if (!assetTableContainer) return;
         if (!assetTableData || assetTableData.length === 0) {
-            assetTableContainer.innerHTML = "<p>No results found.</p>";
+            showEmptyState(assetTableContainer, "No assets matched your search.", "🔍");
             return;
         }
 
@@ -463,6 +513,9 @@ document.addEventListener("DOMContentLoaded", () => {
             th.classList.add('sortable');
             headerRow.appendChild(th);
         });
+        const actionsHeader = document.createElement("th");
+        actionsHeader.textContent = "Actions";
+        headerRow.appendChild(actionsHeader);
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
@@ -488,48 +541,30 @@ document.addEventListener("DOMContentLoaded", () => {
                     td.style.cursor = "pointer";
                     td.style.color = "#0066cc";
                     td.style.textDecoration = "underline";
-                    td.addEventListener("click", async () => {
-                        // Update both Asset Details and Connectivity Diagram tabs
-                        assetDetailsTagInput.value = assetTagValue;
-                        targetTagFilter.value = assetTagValue;
-
-                        // Update the diagram state
-                        baseTargetTag = assetTagValue;
-                        hiddenNodes.clear();
-                        hiddenNodeNeighbors.clear();
-                        allKnownDiagramAssetTags.clear();
-                        expansionResultLog.clear();
-
-                        currentFilters = {
-                            targetTag: assetTagValue,
-                            cableId: "",
-                            direction: directionFilter.value,
-                            cableType: cableTypeFilter.value,
-                            protocol: protocolFilter ? protocolFilter.value.trim() : ""
-                        };
-
-                        initializeExpansionMap(baseTargetTag, currentFilters.direction);
-
-                        // Fetch and render asset details
-                        await fetchAndRenderAssetDetails(assetTagValue);
-
-                        // Also update the connectivity diagram in the background
-                        await fetchAndRenderDiagramAndCables(
-                            currentFilters.targetTag,
-                            currentFilters.direction,
-                            currentFilters.cableType,
-                            currentFilters.protocol,
-                            currentFilters.cableId,
-                            true // reset active assets on a fresh request
-                        );
-
-                        // Switch to Asset Details tab
+                    td.addEventListener("click", () => {
+                        setGlobalTargetAsset(assetTagValue);
                         document.querySelector('.tab-button[data-tab="assetDetails"]').click();
                     });
                 }
 
                 tr.appendChild(td);
             });
+
+            // Actions column
+            const actionsTd = document.createElement("td");
+            const hasRack = assetTagValue && rowData.Rack && String(rowData.Rack).trim() !== "" && String(rowData.Rack).trim().toUpperCase() !== "NAN";
+            if (hasRack) {
+                const rackBtn = document.createElement("button");
+                rackBtn.textContent = "View in Rack";
+                rackBtn.className = "action-link-btn";
+                rackBtn.addEventListener("click", () => {
+                    document.querySelector('.tab-button[data-tab="locationViewer"]').click();
+                    fetchAndRenderRackProfile(assetTagValue).catch(e => console.error("rack profile error:", e));
+                });
+                actionsTd.appendChild(rackBtn);
+            }
+            tr.appendChild(actionsTd);
+
             tbody.appendChild(tr);
         });
         table.appendChild(tbody);
@@ -639,6 +674,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (collapseStrategySelect) {
         collapseStrategySelect.addEventListener("change", refreshDiagramAfterOptionChange);
     }
+    if (excludeInternalRoutesCheckbox) {
+        excludeInternalRoutesCheckbox.addEventListener("change", refreshDiagramAfterOptionChange);
+    }
     if (assetColumnSelect) {
         assetColumnSelect.addEventListener("change", () => renderAssetTable());
     }
@@ -665,7 +703,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const cableId = "";
 
         baseTargetTag = targetInputValue;
+        updateUrlHash(targetInputValue);
         hiddenNodes.clear();
+        hiddenCables.clear();
         hiddenNodeNeighbors.clear();
         allKnownDiagramAssetTags.clear();
         expansionResultLog.clear();
@@ -694,6 +734,57 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     viewDiagramBtn.addEventListener("click", performDiagramView);
+
+    // --- Diagram Export ---
+    const exportSvgBtn = document.getElementById("exportSvgBtn");
+    const exportPngBtn = document.getElementById("exportPngBtn");
+
+    function getDiagramSvgElement() {
+        return diagramRenderArea ? diagramRenderArea.querySelector("svg") : null;
+    }
+
+    if (exportSvgBtn) {
+        exportSvgBtn.addEventListener("click", () => {
+            const svg = getDiagramSvgElement();
+            if (!svg) { alert("No diagram to export. Please load a diagram first."); return; }
+            const serializer = new XMLSerializer();
+            const svgStr = serializer.serializeToString(svg);
+            const blob = new Blob([svgStr], { type: "image/svg+xml" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `diagram-${baseTargetTag || "export"}.svg`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    if (exportPngBtn) {
+        exportPngBtn.addEventListener("click", () => {
+            const svg = getDiagramSvgElement();
+            if (!svg) { alert("No diagram to export. Please load a diagram first."); return; }
+            const serializer = new XMLSerializer();
+            const svgStr = serializer.serializeToString(svg);
+            const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+            const url = URL.createObjectURL(svgBlob);
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = img.naturalWidth || svg.viewBox.baseVal.width || 1200;
+                canvas.height = img.naturalHeight || svg.viewBox.baseVal.height || 800;
+                const ctx = canvas.getContext("2d");
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                URL.revokeObjectURL(url);
+                const a = document.createElement("a");
+                a.href = canvas.toDataURL("image/png");
+                a.download = `diagram-${baseTargetTag || "export"}.png`;
+                a.click();
+            };
+            img.src = url;
+        });
+    }
 
     // Add Enter key support for diagram viewer inputs
     [targetTagFilter, cableTypeFilter, protocolFilter].forEach(input => {
@@ -782,6 +873,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- Reload Data Button Logic ---
+    const reloadHistoryPanel = document.getElementById("reloadHistoryPanel");
+    const reloadHistoryContent = document.getElementById("reloadHistoryContent");
+
+    async function fetchAndRenderReloadHistory() {
+        if (!reloadHistoryContent) return;
+        try {
+            const resp = await fetch(`${API_BASE_URL}/data/reload-history`);
+            const entries = await resp.json();
+            if (!entries || entries.length === 0) {
+                reloadHistoryContent.innerHTML = "<em>No reloads recorded this session.</em>";
+                return;
+            }
+            const rows = entries.map(e => {
+                const statusBadge = e.status === "ok"
+                    ? `<span style="color:var(--color-success)">✔ ok</span>`
+                    : `<span style="color:var(--color-danger)">✘ error</span>`;
+                const counts = e.status === "ok"
+                    ? `${e.assets} assets / ${e.cables} cables / ${e.network} network / ${e.issues} issues`
+                    : escapeHtml(e.error || "");
+                return `<tr><td>${escapeHtml(e.timestamp)}</td><td>${statusBadge}</td><td>${counts}</td></tr>`;
+            }).join("");
+            reloadHistoryContent.innerHTML = `<table class="reload-history-table"><thead><tr><th>Time</th><th>Status</th><th>Counts</th></tr></thead><tbody>${rows}</tbody></table>`;
+        } catch (err) {
+            reloadHistoryContent.innerHTML = `<em>Could not load history: ${escapeHtml(err.message)}</em>`;
+        }
+    }
+
     reloadDataBtn.addEventListener('click', async () => {
         reloadDataBtn.disabled = true;
         reloadStatus.textContent = 'Reloading data...';
@@ -793,13 +911,22 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const payload = await response.json();
             reloadStatus.textContent = `Reloaded ${payload.assets || 0} assets / ${payload.cables || 0} cables`;
+            loadKBTagOptions();
+            fetchAndRenderReloadHistory();
         } catch (error) {
             console.error('Error reloading data:', error);
             reloadStatus.textContent = `Reload failed: ${error.message}`;
+            fetchAndRenderReloadHistory();
         } finally {
             reloadDataBtn.disabled = false;
         }
     });
+
+    if (reloadHistoryPanel) {
+        reloadHistoryPanel.addEventListener("toggle", () => {
+            if (reloadHistoryPanel.open) fetchAndRenderReloadHistory();
+        });
+    }
 
 
     document.addEventListener('click', () => hideContextMenu());
@@ -818,6 +945,10 @@ document.addEventListener("DOMContentLoaded", () => {
             await handleAddConnections(targetTag, 'in');
         } else if (action === 'add-out') {
             await handleAddConnections(targetTag, 'out');
+        } else if (action === 'add-inbound-for-outbound') {
+            await handleAddConnectedViaRoute(targetTag, 'inbound_for_outbound');
+        } else if (action === 'add-outbound-for-inbound') {
+            await handleAddConnectedViaRoute(targetTag, 'outbound_for_inbound');
         }
     });
 
@@ -856,6 +987,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const colorNodesEnabled = colorNodesCheckbox ? colorNodesCheckbox.checked : false;
         const colorEdgesEnabled = colorEdgesCheckbox ? colorEdgesCheckbox.checked : false;
         const collapseStrategy = collapseStrategySelect ? collapseStrategySelect.value : "none";
+        const excludeInternalRoutes = excludeInternalRoutesCheckbox ? excludeInternalRoutesCheckbox.checked : true;
         const combinedForceInclude = forceIncludeTags instanceof Set ? new Set(forceIncludeTags) : new Set();
         selectedAssetsList.forEach(tag => combinedForceInclude.add(tag));
 
@@ -868,12 +1000,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (protocol) cableParams.append("protocol", protocol);
         cableParams.append("node_fields", selectedNodeFields.join(','));
         cableParams.append("edge_fields", selectedEdgeFields.join(','));
+        cableParams.append("exclude_internal_routes", excludeInternalRoutes ? "true" : "false");
 
         if (additionalAssets) {
             cableParams.append("additional_asset_tags", additionalAssets);
         }
         if (expansionParam) {
             cableParams.append("expansions", expansionParam);
+        }
+        if (hiddenCables.size > 0) {
+            cableParams.append("hidden_cable_ids", Array.from(hiddenCables).join(','));
         }
         let cableData = [];
         let backendAssetTags = [];
@@ -952,6 +1088,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (resetActiveAssets) {
             hiddenNodes.clear();
+            hiddenCables.clear();
             allKnownDiagramAssetTags.clear();
             expansionResultLog.clear();
         }
@@ -983,6 +1120,7 @@ document.addEventListener("DOMContentLoaded", () => {
         dotParams.append("edge_fields", selectedEdgeFields.join(','));
         dotParams.append("color_nodes_by_category", colorNodesEnabled ? "true" : "false");
         dotParams.append("color_edges_by_protocol", colorEdgesEnabled ? "true" : "false");
+        dotParams.append("exclude_internal_routes", excludeInternalRoutes ? "true" : "false");
         if (collapseStrategy && collapseStrategy !== "none") {
             dotParams.append("collapse_strategy", collapseStrategy);
         }
@@ -995,6 +1133,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (expansionParam) {
             dotParams.append("expansions", expansionParam);
+        }
+        if (hiddenCables.size > 0) {
+            dotParams.append("hidden_cable_ids", Array.from(hiddenCables).join(','));
         }
 
         let svgText = "";
@@ -1022,31 +1163,33 @@ document.addEventListener("DOMContentLoaded", () => {
             return { availableChanged: false }; // Exit if SVG fetch fails
         }
 
-        // --- Fetch and render input/output connection tables ---
+        // --- Fetch and render connection tables (inputs, outputs, internal routes) ---
         const diagramInputConnectionsContainer = document.getElementById(DIAGRAM_INPUT_CONNECTIONS_CONTAINER_ID);
         const diagramOutputConnectionsContainer = document.getElementById(DIAGRAM_OUTPUT_CONNECTIONS_CONTAINER_ID);
+        const diagramInternalRoutesContainer = document.getElementById(DIAGRAM_INTERNAL_ROUTES_CONTAINER_ID);
 
         if (diagramInputConnectionsContainer) diagramInputConnectionsContainer.innerHTML = '';
         if (diagramOutputConnectionsContainer) diagramOutputConnectionsContainer.innerHTML = '';
+        if (diagramInternalRoutesContainer) diagramInternalRoutesContainer.innerHTML = '';
 
         if (targetTag && !cableId) { // Only fetch for asset tags, not cable IDs
             try {
-                const inputResponse = await fetch(`${API_BASE_URL}/diagram/connections/inputs?target_tag=${encodeURIComponent(targetTag)}`);
-                const inputData = await inputResponse.json();
-                renderConnectionsTable(inputData, diagramInputConnectionsContainer, DIAGRAM_INPUT_CONNECTIONS_CONTAINER_ID, "Input Connections");
+                const connResponse = await fetch(`${API_BASE_URL}/diagram/connections?target_tag=${encodeURIComponent(targetTag)}`);
+                if (connResponse.ok) {
+                    const connData = await connResponse.json();
+                    const sourceLabels = { PartnerAssetTag: "Source Asset Tag", PartnerManufacturer: "Source Manufacturer", PartnerModel: "Source Model", PartnerUsage: "Source Usage" };
+                    const destLabels   = { PartnerAssetTag: "Destination Asset Tag", PartnerManufacturer: "Destination Manufacturer", PartnerModel: "Destination Model", PartnerUsage: "Destination Usage" };
+                    renderConnectionsTable(connData.inputs || [], diagramInputConnectionsContainer, DIAGRAM_INPUT_CONNECTIONS_CONTAINER_ID, "Input Connections", sourceLabels);
+                    renderConnectionsTable(connData.outputs || [], diagramOutputConnectionsContainer, DIAGRAM_OUTPUT_CONNECTIONS_CONTAINER_ID, "Output Connections", destLabels);
+                    renderConnectionsTable(connData.internal_routes || [], diagramInternalRoutesContainer, DIAGRAM_INTERNAL_ROUTES_CONTAINER_ID, "Internal Routes");
+                }
             } catch (error) {
-                console.error("Error fetching input connections:", error);
-                if (diagramInputConnectionsContainer) diagramInputConnectionsContainer.innerHTML = `<p style="color: red;">Error loading input connections: ${error.message}</p>`;
+                console.error("Error fetching connection tables:", error);
+                if (diagramInputConnectionsContainer) diagramInputConnectionsContainer.innerHTML = `<p style="color: red;">Error loading connections: ${error.message}</p>`;
             }
 
-            try {
-                const outputResponse = await fetch(`${API_BASE_URL}/diagram/connections/outputs?target_tag=${encodeURIComponent(targetTag)}`);
-                const outputData = await outputResponse.json();
-                renderConnectionsTable(outputData, diagramOutputConnectionsContainer, DIAGRAM_OUTPUT_CONNECTIONS_CONTAINER_ID, "Output Connections");
-            } catch (error) {
-                console.error("Error fetching output connections:", error);
-                if (diagramOutputConnectionsContainer) diagramOutputConnectionsContainer.innerHTML = `<p style="color: red;">Error loading output connections: ${error.message}</p>`;
-            }
+            // Update location tab in background
+            fetchAndRenderRackProfile(targetTag).catch(e => console.error("rack profile error:", e));
         }
 
         attachNodeContextMenuHandlers();
@@ -1100,6 +1243,50 @@ document.addEventListener("DOMContentLoaded", () => {
             const tag = titleEl.textContent.trim();
             if (!tag) return;
             if (tag.startsWith("__cable_junction__::")) return;
+
+            // Add click handler to make node the new target
+            node.addEventListener('click', async (event) => {
+                // Only handle left click (button 0)
+                if (event.button !== 0) return;
+
+                console.log('Node clicked:', tag);
+
+                // Update the target tag filter
+                targetTagFilter.value = tag;
+
+                // Update diagram state
+                baseTargetTag = tag;
+                hiddenNodes.clear();
+                hiddenCables.clear();
+                hiddenNodeNeighbors.clear();
+                allKnownDiagramAssetTags.clear();
+                expansionResultLog.clear();
+
+                currentFilters = {
+                    targetTag: tag,
+                    cableId: "",
+                    direction: directionFilter.value,
+                    cableType: cableTypeFilter.value,
+                    protocol: protocolFilter ? protocolFilter.value.trim() : ""
+                };
+
+                initializeExpansionMap(baseTargetTag, currentFilters.direction);
+
+                // Refresh the diagram with the new target
+                await fetchAndRenderDiagramAndCables(
+                    currentFilters.targetTag,
+                    currentFilters.direction,
+                    currentFilters.cableType,
+                    currentFilters.protocol,
+                    currentFilters.cableId,
+                    true // reset active assets
+                );
+            });
+
+            // Add visual feedback on hover
+            node.style.cursor = 'pointer';
+
+            // Context menu handler (right-click)
             node.addEventListener('contextmenu', (event) => {
                 event.preventDefault();
                 showContextMenu(tag, event.clientX, event.clientY);
@@ -1229,6 +1416,186 @@ document.addEventListener("DOMContentLoaded", () => {
                 expansionResultLog.set(key, true);
             }
         }
+    }
+
+    async function handleAddConnectedViaRoute(tag, mode) {
+        if (!(currentFilters.targetTag || currentFilters.cableId)) return;
+        const displayTag = tag.trim();
+        if (!displayTag) return;
+        const tagLower = displayTag.toLowerCase();
+
+        // Fetch all cables for this node including internal route cables.
+        const params = new URLSearchParams();
+        params.append("target_tag", displayTag);
+        params.append("direction", "both");
+        params.append("exclude_internal_routes", "false");
+
+        let allCables = [];
+        try {
+            const resp = await fetch(`${API_BASE_URL}/cables/filter?${params.toString()}`);
+            if (!resp.ok) {
+                setDiagramStatus(`Failed to fetch route data for ${displayTag}.`, "error");
+                return;
+            }
+            const payload = await resp.json();
+            allCables = Array.isArray(payload) ? payload : (payload.cables || []);
+        } catch (e) {
+            console.error("Error fetching route cables:", e);
+            setDiagramStatus(`Error fetching route data for ${displayTag}: ${e.message}`, "error");
+            return;
+        }
+
+        // Internal route cables: SrcTag == DstTag == this node, type contains "route".
+        const routeCables = allCables.filter(c => {
+            const src = (c.SrcTag || '').trim().toLowerCase();
+            const dst = (c.DstTag || '').trim().toLowerCase();
+            return src === tagLower && dst === tagLower &&
+                   (c.Type || '').toLowerCase().includes('route');
+        });
+
+        // All external inbound cables (arrive at this node from elsewhere).
+        const allInbound = allCables.filter(c => {
+            const src = (c.SrcTag || '').trim().toLowerCase();
+            const dst = (c.DstTag || '').trim().toLowerCase();
+            return dst === tagLower && src !== tagLower;
+        });
+
+        // All external outbound cables (leave this node for elsewhere).
+        const allOutbound = allCables.filter(c => {
+            const src = (c.SrcTag || '').trim().toLowerCase();
+            const dst = (c.DstTag || '').trim().toLowerCase();
+            return src === tagLower && dst !== tagLower;
+        });
+
+        // Visible node tags (lowercase) — used to restrict the "anchor" side of the traversal.
+        const visibleTags = new Set(
+            activeDiagramAssetTags.map(t => (t || '').trim().toLowerCase()).filter(Boolean)
+        );
+
+        const tagsToAdd = new Set();
+        // relevantCableIds: cable IDs that are the specific route-identified connections.
+        // All other cables between newly added nodes and this node will be hidden.
+        const relevantCableIds = new Set();
+
+        if (mode === 'inbound_for_outbound') {
+            // Anchor: outbound cables to currently visible nodes (restrict discovery starting point).
+            // Discovery: ALL inbound cables — we want to find new upstream sources.
+            const visibleOutbound = allOutbound.filter(
+                c => visibleTags.has((c.DstTag || '').trim().toLowerCase())
+            );
+            const outboundSrcPorts = new Set(
+                visibleOutbound.map(c => (c.SrcPort || '').trim().toLowerCase()).filter(Boolean)
+            );
+            const relevantInboundPorts = new Set();
+            routeCables.forEach(r => {
+                const dstPort = (r.DstPort || '').trim().toLowerCase();
+                if (outboundSrcPorts.has(dstPort)) {
+                    const srcPort = (r.SrcPort || '').trim().toLowerCase();
+                    if (srcPort) relevantInboundPorts.add(srcPort);
+                }
+            });
+            allInbound.forEach(c => {
+                const dstPort = (c.DstPort || '').trim().toLowerCase();
+                const srcTag = (c.SrcTag || '').trim();
+                if (relevantInboundPorts.has(dstPort) && srcTag && srcTag.toUpperCase() !== 'NAN') {
+                    tagsToAdd.add(srcTag);
+                    if (c.Tag) relevantCableIds.add(c.Tag.trim());
+                }
+            });
+        } else {
+            // outbound_for_inbound:
+            // Anchor: inbound cables from currently visible nodes (restrict discovery starting point).
+            // Discovery: ALL outbound cables — we want to find new downstream destinations.
+            const visibleInbound = allInbound.filter(
+                c => visibleTags.has((c.SrcTag || '').trim().toLowerCase())
+            );
+            const inboundDstPorts = new Set(
+                visibleInbound.map(c => (c.DstPort || '').trim().toLowerCase()).filter(Boolean)
+            );
+            const relevantOutboundPorts = new Set();
+            routeCables.forEach(r => {
+                const srcPort = (r.SrcPort || '').trim().toLowerCase();
+                if (inboundDstPorts.has(srcPort)) {
+                    const dstPort = (r.DstPort || '').trim().toLowerCase();
+                    if (dstPort) relevantOutboundPorts.add(dstPort);
+                }
+            });
+            allOutbound.forEach(c => {
+                const srcPort = (c.SrcPort || '').trim().toLowerCase();
+                const dstTag = (c.DstTag || '').trim();
+                if (relevantOutboundPorts.has(srcPort) && dstTag && dstTag.toUpperCase() !== 'NAN') {
+                    tagsToAdd.add(dstTag);
+                    if (c.Tag) relevantCableIds.add(c.Tag.trim());
+                }
+            });
+        }
+
+        // Expansion direction: inbound sources need their outbound expanded (to reveal the
+        // cable going to the route device); outbound destinations need inbound expanded.
+        const expansionDir = mode === 'inbound_for_outbound' ? 'out' : 'in';
+
+        // For each newly added node, fetch ALL its cables in the expansion direction and
+        // hide every one except the route-identified cable(s). This covers cables from
+        // third-party nodes (e.g. 2308-1124 → 2601-2800) that aren't in the route-device's
+        // allCables set and would otherwise slip through.
+        if (relevantCableIds.size > 0) {
+            for (const newTag of tagsToAdd) {
+                const fetchParams = new URLSearchParams({
+                    target_tag: newTag,
+                    direction: expansionDir,
+                    exclude_internal_routes: 'true'
+                });
+                try {
+                    const resp = await fetch(`${API_BASE_URL}/cables/filter?${fetchParams.toString()}`);
+                    if (resp.ok) {
+                        const payload = await resp.json();
+                        const newNodeCables = Array.isArray(payload) ? payload : (payload.cables || []);
+                        newNodeCables.forEach(c => {
+                            const cableId = (c.Tag || '').trim();
+                            if (cableId && !relevantCableIds.has(cableId)) {
+                                hiddenCables.add(cableId);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error(`Error fetching cables for ${newTag}:`, e);
+                }
+            }
+        }
+
+        const label = mode === 'inbound_for_outbound' ? 'inbound' : 'outbound';
+
+        if (tagsToAdd.size === 0) {
+            const hint = routeCables.length === 0
+                ? ` (${displayTag} has no internal route cables — right-click the device that contains the route, e.g. a matrix switcher)`
+                : '';
+            setDiagramStatus(`No ${label} connections found via routes for ${displayTag}.${hint}`, "warn");
+            return;
+        }
+
+        // Unhide any of the found nodes that were previously hidden.
+        tagsToAdd.forEach(t => {
+            hiddenNodes.delete(t);
+            hiddenNodeNeighbors.delete(t);
+        });
+
+        tagsToAdd.forEach(t => {
+            addExpansionDirection(t, expansionDir);
+            if (!activeDiagramAssetTags.includes(t)) {
+                activeDiagramAssetTags.push(t);
+            }
+        });
+
+        await fetchAndRenderDiagramAndCables(
+            currentFilters.targetTag,
+            currentFilters.direction,
+            currentFilters.cableType,
+            currentFilters.protocol,
+            currentFilters.cableId,
+            false,
+            tagsToAdd
+        );
+        clearDiagramStatus();
     }
 
     function initializeExpansionMap(targetTag, direction) {
@@ -1647,22 +2014,15 @@ document.addEventListener("DOMContentLoaded", () => {
         return spaced.charAt(0).toUpperCase() + spaced.slice(1);
     }
 
-    function renderConnectionsTable(data, container, tableId, title) {
+    function renderConnectionsTable(data, container, tableId, title, labelOverrides = {}) {
         if (!container) return;
-        
+
         container.innerHTML = ''; // Clear previous content
 
-        if (!data || data.length === 0) {
-            const h4 = document.createElement("h4");
-            h4.textContent = title;
-            container.appendChild(h4);
-            container.innerHTML += `<p>No ${title.toLowerCase()} found for this asset.</p>`;
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            container.innerHTML = `<p style="padding:var(--space-3) var(--space-4);color:var(--color-text-muted);font-size:14px;">No ${title.toLowerCase()} found for this asset.</p>`;
             return;
         }
-
-        const h4 = document.createElement("h4");
-        h4.textContent = title;
-        container.appendChild(h4);
 
         const table = document.createElement("table");
         table.className = "connections-table";
@@ -1674,7 +2034,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const headerRow = document.createElement("tr");
         headers.forEach(headerText => {
             const th = document.createElement("th");
-            th.textContent = humanizeConnectionsFieldLabel(headerText);
+            th.textContent = labelOverrides[headerText] || humanizeConnectionsFieldLabel(headerText);
             th.dataset.column = headerText;
             th.classList.add('sortable');
             headerRow.appendChild(th);
@@ -1785,10 +2145,11 @@ document.addEventListener("DOMContentLoaded", () => {
                             // Switch to Knowledge Base tab
                             document.querySelector('.tab-button[data-tab="knowledgeBase"]').click();
 
-                            // Populate the IssueID search field
+                            // Populate the IssueID search field and clear others
                             if (kbIssueIdSearch) kbIssueIdSearch.value = issueId;
                             if (kbTagSearch) kbTagSearch.value = '';
                             if (kbFreeformSearch) kbFreeformSearch.value = '';
+                            if (kbActiveIssueTags) Array.from(kbActiveIssueTags.options).forEach(o => { o.selected = false; });
 
                             // Perform the search
                             await performKBSearch();
@@ -1825,6 +2186,59 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Sets the global target asset and refreshes all tabs that show single-asset data.
+    // Two-asset tabs (Cross-point, Signal Path) get their first/source field pre-filled.
+    // Does NOT switch tabs — callers decide navigation.
+    async function setGlobalTargetAsset(tag) {
+        if (!tag) return;
+        globalTargetAsset = tag;
+        updateUrlHash(tag);
+
+        // Fill all single-asset inputs
+        if (assetDetailsTagInput) assetDetailsTagInput.value = tag;
+        if (locationAssetTagInput) locationAssetTagInput.value = tag;
+        if (targetTagFilter) targetTagFilter.value = tag;
+
+        // Pre-fill first field of two-asset tabs
+        if (signalPathSource) signalPathSource.value = tag;
+        if (crosspointSourceInput) {
+            crosspointSourceInput.value = tag;
+            handleAssetInputChange("source", tag);
+        }
+
+        // Update and reload Knowledge Base for this asset
+        if (kbTagSearch) kbTagSearch.value = tag;
+        performKBSearch();
+
+        // Reset diagram state
+        baseTargetTag = tag;
+        hiddenNodes.clear();
+        hiddenCables.clear();
+        hiddenNodeNeighbors.clear();
+        allKnownDiagramAssetTags.clear();
+        expansionResultLog.clear();
+        currentFilters = {
+            targetTag: tag,
+            cableId: "",
+            direction: directionFilter.value,
+            cableType: cableTypeFilter.value,
+            protocol: protocolFilter ? protocolFilter.value.trim() : ""
+        };
+        initializeExpansionMap(baseTargetTag, currentFilters.direction);
+
+        // Load all single-asset tabs in parallel (fire-and-forget; each manages its own UI state)
+        fetchAndRenderAssetDetails(tag);
+        fetchAndRenderRackProfile(tag).catch(e => console.error("rack profile error:", e));
+        fetchAndRenderDiagramAndCables(
+            currentFilters.targetTag,
+            currentFilters.direction,
+            currentFilters.cableType,
+            currentFilters.protocol,
+            currentFilters.cableId,
+            true
+        );
+    }
+
     async function fetchAndRenderAssetDetails(assetTag) {
         const assetPropertiesContainer = document.getElementById(ASSET_PROPERTIES_CONTAINER_ID);
         const inputPartnersList = document.getElementById(INPUT_PARTNERS_LIST_ID);
@@ -1850,7 +2264,11 @@ document.addEventListener("DOMContentLoaded", () => {
             renderAssetProperties(data.asset, assetPropertiesContainer);
             renderPartnersList(data.input_partners, inputPartnersList, "input");
             renderPartnersList(data.output_partners, outputPartnersList, "output");
+            renderAssetNetwork(data.network || [], document.getElementById("assetNetworkContainer"));
             renderKnowledgeBaseIssues(data.knowledge_base_issues, knowledgeBaseIssuesTableContainer);
+
+            // Update location tab in background
+            fetchAndRenderRackProfile(assetTag).catch(e => console.error("rack profile error:", e));
         } catch (error) {
             console.error("Error fetching asset details:", error);
             if (assetPropertiesContainer) assetPropertiesContainer.innerHTML = `<p style="color: red;">Error loading asset details: ${error.message}</p>`;
@@ -1868,9 +2286,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const hasValue = (key) => asset[key] && String(asset[key]).trim() !== "";
 
         // Define field groups
-        const basicFields = ["AssetTag", "Type", "Category", "InService", "Manufacturer", "Model", "SN", "AcqYear", "EOLYear", "Usage", "Desc"];
-        const locationFields = ["Building", "Floor", "Room", "Location", "Rack", "RackU", "RackHeight"];
-        const financialFields = ["Qty", "Unit", "AcqValue", "PurchaseDate", "PurcForm", "Invoice"];
+        const basicFields = ["AssetTag", "Type", "Category", "InService", "Manufacturer", "Model", "SN", "AcqYear", "EolYear", "Usage", "Desc"];
+        const locationFields = ["Building", "Floor", "Room", "Sector", "Location", "Rack", "RackU", "RackHeight"];
+        const financialFields = ["Qty", "UnitValue", "AcqValue", "Unit", "PurcDate", "PurcFrom", "Invoice"];
+        const currencyFields = new Set(["UnitValue", "AcqValue"]);
+        const dateOnlyFields = new Set(["PurcDate"]);
+        const integerFields = new Set(["EolYear"]);
         const dispositionFields = ["Disposition", "DispositionDate", "DispositionDestination", "DispositionNotes"];
 
         const allGroupedFields = new Set([
@@ -1905,7 +2326,18 @@ document.addEventListener("DOMContentLoaded", () => {
             const valueRow = document.createElement("tr");
             fieldsWithValues.forEach(field => {
                 const td = document.createElement("td");
-                td.textContent = getValue(field);
+                const raw = getValue(field);
+                if (currencyFields.has(field)) {
+                    const num = parseFloat(raw);
+                    td.textContent = isNaN(num) ? raw : `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                } else if (dateOnlyFields.has(field)) {
+                    td.textContent = raw ? String(raw).split('T')[0].split(' ')[0] : raw;
+                } else if (integerFields.has(field)) {
+                    const num = parseFloat(raw);
+                    td.textContent = isNaN(num) ? raw : String(Math.round(num));
+                } else {
+                    td.textContent = raw;
+                }
                 valueRow.appendChild(td);
             });
             tbody.appendChild(valueRow);
@@ -1927,8 +2359,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const row2Table = createPropertyTable(["Manufacturer", "Model", "SN"]);
         if (row2Table) basicSection.appendChild(row2Table);
 
-        // Row 3: AcqYear, EOLYear, Usage, Desc
-        const row3Table = createPropertyTable(["AcqYear", "EOLYear", "Usage", "Desc"]);
+        // Row 3: AcqYear, EolYear, Usage, Desc
+        const row3Table = createPropertyTable(["AcqYear", "EolYear", "Usage", "Desc"]);
         if (row3Table) basicSection.appendChild(row3Table);
 
         content.appendChild(basicSection);
@@ -1946,7 +2378,7 @@ document.addEventListener("DOMContentLoaded", () => {
             content.appendChild(locationSection);
         }
 
-        // Financial Table (including "Other" fields except EOLYear which is already in Basic)
+        // Financial Table (including "Other" fields except EolYear which is already in Basic)
         const otherFields = Object.keys(asset).filter(key => !allGroupedFields.has(key) && hasValue(key));
         const allFinancialFields = [...financialFields, ...otherFields];
 
@@ -1978,6 +2410,56 @@ document.addEventListener("DOMContentLoaded", () => {
         container.appendChild(content);
     }
 
+    function renderAssetNetwork(nics, container) {
+        if (!container) return;
+        container.innerHTML = "";
+        if (!nics || nics.length === 0) {
+            container.innerHTML = `<p class="network-empty">No network records found.</p>`;
+            return;
+        }
+
+        const table = document.createElement("table");
+        table.className = "network-table";
+        table.innerHTML = `<thead><tr>
+            <th>NIC</th><th>IP</th><th>MAC</th><th>URL</th>
+            <th>Monitor</th><th>Assignment</th><th>Usage</th><th>Services</th><th>Notes</th>
+        </tr></thead>`;
+        const tbody = document.createElement("tbody");
+
+        nics.forEach(n => {
+            const tr = document.createElement("tr");
+            const missingIp = n.monitor && !n.ip;
+            if (missingIp) tr.className = "network-row-warning";
+
+            // URL cell — make clickable if present
+            let urlCell = "";
+            if (n.url) {
+                urlCell = `<a href="${escapeHtml(n.url)}" target="_blank" rel="noopener" class="network-url-link">${escapeHtml(n.url)}</a>`;
+            }
+
+            // Monitor cell
+            const monCell = n.monitor
+                ? `<span class="network-monitor-yes">Yes${missingIp ? " ⚠" : ""}</span>`
+                : `<span class="network-monitor-no">No</span>`;
+
+            tr.innerHTML = `
+                <td>${escapeHtml(n.nic  || "—")}</td>
+                <td class="network-ip">${escapeHtml(n.ip   || "—")}</td>
+                <td class="network-mac">${escapeHtml(n.mac  || "—")}</td>
+                <td>${urlCell || "—"}</td>
+                <td>${monCell}</td>
+                <td>${escapeHtml(n.static_reserved || "—")}</td>
+                <td>${escapeHtml(n.usage || "—")}</td>
+                <td class="network-services">${escapeHtml(n.services || "—")}</td>
+                <td>${escapeHtml(n.notes || "—")}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        container.appendChild(table);
+    }
+
     function renderPartnersList(partners, container, direction) {
         if (!container) return;
         container.innerHTML = ''; // Clear previous content
@@ -1992,47 +2474,278 @@ document.addEventListener("DOMContentLoaded", () => {
             li.className = "partner-item";
             li.textContent = `${partner.AssetTag} (${partner.Manufacturer} ${partner.Model} - ${partner.Usage})`;
             li.dataset.assetTag = partner.AssetTag;
-            li.addEventListener("click", async (event) => {
+            li.addEventListener("click", (event) => {
                 const newTargetTag = event.target.dataset.assetTag;
-                if (newTargetTag) {
-                    // Update both Asset Details and Connectivity Diagram tabs
-                    assetDetailsTagInput.value = newTargetTag;
-                    targetTagFilter.value = newTargetTag;
-
-                    // Update the diagram state
-                    baseTargetTag = newTargetTag;
-                    hiddenNodes.clear();
-                    hiddenNodeNeighbors.clear();
-                    allKnownDiagramAssetTags.clear();
-                    expansionResultLog.clear();
-
-                    currentFilters = {
-                        targetTag: newTargetTag,
-                        cableId: "",
-                        direction: directionFilter.value,
-                        cableType: cableTypeFilter.value,
-                        protocol: protocolFilter ? protocolFilter.value.trim() : ""
-                    };
-
-                    initializeExpansionMap(baseTargetTag, currentFilters.direction);
-
-                    // Reload asset details for the clicked partner
-                    await fetchAndRenderAssetDetails(newTargetTag);
-
-                    // Also update the connectivity diagram in the background
-                    await fetchAndRenderDiagramAndCables(
-                        currentFilters.targetTag,
-                        currentFilters.direction,
-                        currentFilters.cableType,
-                        currentFilters.protocol,
-                        currentFilters.cableId,
-                        true // reset active assets on a fresh request
-                    );
-                }
+                if (newTargetTag) setGlobalTargetAsset(newTargetTag);
             });
             ul.appendChild(li);
         });
         container.appendChild(ul);
+    }
+
+    // ---- Rack Profile / Location Tab ----
+
+    const locationAssetTagInput = document.getElementById("locationAssetTagInput");
+    const viewLocationBtn = document.getElementById("viewLocationBtn");
+    const printRackBtn = document.getElementById("printRackBtn");
+    const locationStatus = document.getElementById("locationStatus");
+
+    if (viewLocationBtn) {
+        viewLocationBtn.addEventListener("click", () => {
+            const tag = locationAssetTagInput ? locationAssetTagInput.value.trim() : "";
+            if (tag) fetchAndRenderRackProfile(tag).catch(e => console.error("rack profile error:", e));
+        });
+    }
+    if (printRackBtn) {
+        printRackBtn.addEventListener("click", () => {
+            document.body.classList.add("print-rack-mode");
+            window.print();
+            document.body.classList.remove("print-rack-mode");
+        });
+    }
+    if (locationAssetTagInput) {
+        locationAssetTagInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                const tag = locationAssetTagInput.value.trim();
+                if (tag) fetchAndRenderRackProfile(tag).catch(e => console.error("rack profile error:", e));
+            }
+        });
+    }
+
+    async function fetchAndRenderRackProfile(assetTag) {
+        const locationContent = document.getElementById("locationContent");
+        if (!locationContent) return;
+
+        if (locationAssetTagInput) locationAssetTagInput.value = assetTag;
+
+        showLoadingSpinner(locationContent, "Loading location…");
+
+        try {
+            const encoded = encodeURIComponent(assetTag);
+            const [rackResp, fpResp] = await Promise.all([
+                fetch(`${API_BASE_URL}/assets/${encoded}/rack-profile`),
+                fetch(`${API_BASE_URL}/location/floorplan?asset_tag=${encoded}`)
+            ]);
+
+            if (!rackResp.ok) {
+                const err = await rackResp.json().catch(() => ({}));
+                showEmptyState(locationContent, err.detail || `Asset not found: ${assetTag}`, "⚠️");
+                return;
+            }
+
+            const rackData = await rackResp.json();
+            const fpData   = fpResp.ok ? await fpResp.json().catch(() => null) : null;
+
+            renderRackProfile(rackData, assetTag, locationContent, fpData);
+        } catch (e) {
+            console.error("fetchAndRenderRackProfile error:", e);
+            showEmptyState(locationContent, `Error loading location: ${e.message}`, "⚠️");
+        }
+    }
+
+    function openFloorplanLightbox(dataUrl, caption) {
+        const overlay = document.createElement("div");
+        overlay.className = "floorplan-lightbox";
+
+        const img = document.createElement("img");
+        img.src = dataUrl;
+        img.alt = caption || "Floor plan";
+        overlay.appendChild(img);
+
+        if (caption) {
+            const cap = document.createElement("div");
+            cap.className = "floorplan-lightbox-caption";
+            cap.textContent = caption;
+            overlay.appendChild(cap);
+        }
+
+        const close = () => {
+            overlay.remove();
+            document.removeEventListener("keydown", onKey);
+        };
+        const onKey = (e) => { if (e.key === "Escape") close(); };
+        overlay.addEventListener("click", close);
+        document.addEventListener("keydown", onKey);
+        document.body.appendChild(overlay);
+    }
+
+    function renderRackProfile(data, assetTag, container, fpData = null) {
+        container.innerHTML = "";
+
+        // Floorplan image (most specific available, embedded as data URL)
+        if (fpData && fpData.image_data_url) {
+            const fpSection = document.createElement("div");
+            fpSection.className = "floorplan-section";
+
+            const fpLabel = document.createElement("p");
+            fpLabel.className = "floorplan-label";
+            const parts = [fpData.building, fpData.floor, fpData.room].filter(v => v && v.trim());
+            if (fpData.sector && String(fpData.sector).trim()) parts.push(`Sector ${fpData.sector}`);
+            fpLabel.textContent = `Floor Plan — ${parts.join(" / ")}`;
+            fpSection.appendChild(fpLabel);
+
+            const img = document.createElement("img");
+            img.src = fpData.image_data_url;
+            img.alt = fpData.filename || "Floor plan";
+            img.className = "floorplan-image";
+            img.title = "Click to view full size";
+            img.addEventListener("click", () => openFloorplanLightbox(fpData.image_data_url, fpLabel.textContent));
+            fpSection.appendChild(img);
+
+            container.appendChild(fpSection);
+        }
+
+        if (!data.rack_tag) {
+            const msg = document.createElement("p");
+            msg.className = "location-placeholder";
+            msg.innerHTML = `Asset <strong>${escapeHtml(assetTag)}</strong> is not assigned to a rack.`;
+            container.appendChild(msg);
+            return;
+        }
+
+        const header = document.createElement("div");
+        header.style.cssText = "margin-bottom:var(--space-4)";
+        header.innerHTML = `<h3 style="margin:0 0 4px 0">Rack: ${escapeHtml(data.rack_tag)}</h3>` +
+            (data.rack_height ? `<span style="font-size:13px;color:var(--color-text-muted)">${data.rack_height}U rack</span>` : "");
+        container.appendChild(header);
+
+        const front = data.devices.filter(d => d.face === "Front");
+        const rear  = data.devices.filter(d => d.face === "Rear");
+
+        const wrap = document.createElement("div");
+        wrap.className = "rack-profile-container";
+
+        if (front.length > 0 || rear.length > 0) {
+            const maxU = Math.max(
+                data.rack_height || 1,
+                ...data.devices.map(d => d.u_start + d.u_height - 1)
+            );
+            if (front.length > 0) wrap.appendChild(buildRackPanel("Front", front, maxU, data.rack_height, assetTag));
+            if (rear.length > 0)  wrap.appendChild(buildRackPanel("Rear",  rear,  maxU, data.rack_height, assetTag));
+        } else {
+            wrap.innerHTML = `<p class="location-placeholder">No racked devices found in ${escapeHtml(data.rack_tag)}.</p>`;
+        }
+
+        container.appendChild(wrap);
+    }
+
+    function buildRackPanel(faceLabel, devices, maxU, standardHeight, targetAssetTag) {
+        const U_PX = 30;       // pixels per rack unit
+        const LABEL_W = 32;    // width of U-number label column
+        const RACK_W = 260;    // inner rack width
+        const SVG_W = LABEL_W + RACK_W + 2;
+        const SVG_H = maxU * U_PX + 2;
+
+        const ns = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(ns, "svg");
+        svg.setAttribute("viewBox", `0 0 ${SVG_W} ${SVG_H}`);
+        svg.setAttribute("xmlns", ns);
+
+        // Background
+        const bg = document.createElementNS(ns, "rect");
+        bg.setAttribute("x", LABEL_W); bg.setAttribute("y", 0);
+        bg.setAttribute("width", RACK_W); bg.setAttribute("height", SVG_H);
+        bg.setAttribute("fill", "#ffffff"); bg.setAttribute("stroke", "#333"); bg.setAttribute("stroke-width", "1.5");
+        svg.appendChild(bg);
+
+        // U grid lines and labels (1 at bottom, maxU at top)
+        for (let u = 1; u <= maxU; u++) {
+            const y = SVG_H - u * U_PX;  // y of top edge of this U slot
+
+            // Dotted grid line
+            const line = document.createElementNS(ns, "line");
+            line.setAttribute("x1", LABEL_W); line.setAttribute("x2", SVG_W);
+            line.setAttribute("y1", y + U_PX); line.setAttribute("y2", y + U_PX);
+            line.setAttribute("stroke", "#ccc"); line.setAttribute("stroke-dasharray", "3,3"); line.setAttribute("stroke-width", "0.5");
+            svg.appendChild(line);
+
+            // U number label
+            const txt = document.createElementNS(ns, "text");
+            txt.setAttribute("x", LABEL_W - 4); txt.setAttribute("y", y + U_PX - U_PX / 2 + 4);
+            txt.setAttribute("text-anchor", "end"); txt.setAttribute("font-size", "9");
+            txt.setAttribute("fill", "#666"); txt.setAttribute("font-family", "Inter,Arial,sans-serif");
+            txt.textContent = u;
+            svg.appendChild(txt);
+        }
+
+        // Devices
+        devices.forEach(dev => {
+            const yTop = SVG_H - (dev.u_start + dev.u_height - 1) * U_PX - U_PX;
+            const devH = dev.u_height * U_PX;
+            const xLeft  = LABEL_W + Math.round(dev.x_start * RACK_W) + 1;
+            const devW   = Math.round((dev.x_end - dev.x_start) * RACK_W) - 2;
+
+            const isTarget = dev.asset_tag.toUpperCase() === targetAssetTag.toUpperCase();
+            const isAboveStd = standardHeight && dev.u_start > standardHeight;
+            let fillColor = faceLabel === "Front" ? "#bfdbfe" : "#bbf7d0";
+            if (isTarget) fillColor = "#fde68a";
+            if (isAboveStd) fillColor = "#fecaca";
+
+            // Clickable group — navigates to Asset Details for this device
+            const g = document.createElementNS(ns, "g");
+            g.setAttribute("style", "cursor: pointer;");
+            g.addEventListener("click", () => {
+                setGlobalTargetAsset(dev.asset_tag);
+                document.querySelector('.tab-button[data-tab="assetDetails"]').click();
+            });
+
+            // Native SVG tooltip
+            const titleEl = document.createElementNS(ns, "title");
+            titleEl.textContent = `${dev.asset_tag}${dev.usage ? " — " + dev.usage : ""}\nClick to view details`;
+            g.appendChild(titleEl);
+
+            const rect = document.createElementNS(ns, "rect");
+            rect.setAttribute("x", xLeft); rect.setAttribute("y", yTop);
+            rect.setAttribute("width", devW); rect.setAttribute("height", devH);
+            rect.setAttribute("fill", fillColor); rect.setAttribute("stroke", "#333"); rect.setAttribute("stroke-width", "1");
+            rect.setAttribute("rx", "2");
+            g.appendChild(rect);
+
+            // Label: asset tag + usage, centered, clipped
+            const label = `${dev.asset_tag}${dev.usage ? "\n" + dev.usage : ""}`;
+            const lines = label.split("\n").filter(Boolean);
+            const lineH = 11;
+            const totalTextH = lines.length * lineH;
+            const textStartY = yTop + devH / 2 - totalTextH / 2 + lineH - 2;
+
+            lines.forEach((line, i) => {
+                if (devH < 10) return;
+                const t = document.createElementNS(ns, "text");
+                t.setAttribute("x", xLeft + devW / 2);
+                t.setAttribute("y", textStartY + i * lineH);
+                t.setAttribute("text-anchor", "middle");
+                t.setAttribute("font-size", devH >= 24 ? "9" : "7");
+                t.setAttribute("font-family", "Inter,Arial,sans-serif");
+                t.setAttribute("fill", "#1e293b");
+                const clip = document.createElementNS(ns, "clipPath");
+                const clipId = `clip-${dev.asset_tag.replace(/[^a-z0-9]/gi, '')}-${i}-${faceLabel}`;
+                clip.setAttribute("id", clipId);
+                const clipRect = document.createElementNS(ns, "rect");
+                clipRect.setAttribute("x", xLeft); clipRect.setAttribute("y", yTop);
+                clipRect.setAttribute("width", devW); clipRect.setAttribute("height", devH);
+                clip.appendChild(clipRect);
+                svg.appendChild(clip);
+                t.setAttribute("clip-path", `url(#${clipId})`);
+                t.textContent = line;
+                g.appendChild(t);
+            });
+
+            svg.appendChild(g);
+        });
+
+        const panel = document.createElement("div");
+        panel.className = "rack-panel";
+
+        const title = document.createElement("h3");
+        title.textContent = faceLabel;
+        panel.appendChild(title);
+
+        const svgWrap = document.createElement("div");
+        svgWrap.className = "rack-svg-wrap";
+        svgWrap.appendChild(svg);
+        panel.appendChild(svgWrap);
+        return panel;
     }
 
     function renderKnowledgeBaseIssues(issues, container) {
@@ -2051,7 +2764,7 @@ document.addEventListener("DOMContentLoaded", () => {
         kbResultsContainer.innerHTML = '';
 
         if (!issues || issues.length === 0) {
-            kbResultsContainer.innerHTML = '<p>No knowledge base issues found matching your search criteria.</p>';
+            showEmptyState(kbResultsContainer, "No knowledge base issues matched your criteria.", "📚");
             return;
         }
 
@@ -2113,44 +2826,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             tagLink.style.cursor = 'pointer';
                             tagLink.style.color = '#0066cc';
                             tagLink.style.textDecoration = 'underline';
-                            tagLink.addEventListener('click', async (e) => {
-                                e.stopPropagation(); // Prevent event from bubbling to parent elements
-
-                                // Update Asset Details and Connectivity Diagram
-                                assetDetailsTagInput.value = tag;
-                                targetTagFilter.value = tag;
-
-                                // Update the diagram state
-                                baseTargetTag = tag;
-                                hiddenNodes.clear();
-                                hiddenNodeNeighbors.clear();
-                                allKnownDiagramAssetTags.clear();
-                                expansionResultLog.clear();
-
-                                currentFilters = {
-                                    targetTag: tag,
-                                    cableId: "",
-                                    direction: directionFilter.value,
-                                    cableType: cableTypeFilter.value,
-                                    protocol: protocolFilter ? protocolFilter.value.trim() : ""
-                                };
-
-                                initializeExpansionMap(baseTargetTag, currentFilters.direction);
-
-                                // Fetch and render asset details
-                                await fetchAndRenderAssetDetails(tag);
-
-                                // Update connectivity diagram in background
-                                await fetchAndRenderDiagramAndCables(
-                                    currentFilters.targetTag,
-                                    currentFilters.direction,
-                                    currentFilters.cableType,
-                                    currentFilters.protocol,
-                                    currentFilters.cableId,
-                                    true
-                                );
-
-                                // Switch to Asset Details tab
+                            tagLink.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                setGlobalTargetAsset(tag);
                                 document.querySelector('.tab-button[data-tab="assetDetails"]').click();
                             });
                             valueSpan.appendChild(tagLink);
@@ -2165,6 +2843,47 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
 
                     fieldDiv.appendChild(valueSpan);
+
+                    // Insert See Also section immediately after Applies to Asset Tag
+                    if (field.label === 'Applies to Asset Tag') {
+                        details.appendChild(fieldDiv);
+                        const resolved = issue.SeeAlsoResolved;
+                        if (Array.isArray(resolved) && resolved.length > 0) {
+                            const seen = new Set();
+                            const seeAlsoDiv = document.createElement('div');
+                            seeAlsoDiv.className = 'kb-field';
+                            const seeAlsoLabel = document.createElement('strong');
+                            seeAlsoLabel.textContent = 'See Also: ';
+                            seeAlsoDiv.appendChild(seeAlsoLabel);
+                            const listEl = document.createElement('ul');
+                            listEl.className = 'kb-seealso-list';
+                            resolved.forEach(rel => {
+                                if (!rel.IssueID || seen.has(rel.IssueID.toUpperCase())) return;
+                                seen.add(rel.IssueID.toUpperCase());
+                                const li = document.createElement('li');
+                                const link = document.createElement('span');
+                                link.textContent = rel.Title
+                                    ? `${rel.IssueID} - ${rel.Title}`
+                                    : rel.IssueID;
+                                link.style.cursor = 'pointer';
+                                link.style.color = '#0066cc';
+                                link.style.textDecoration = 'underline';
+                                link.addEventListener('click', async (e) => {
+                                    e.stopPropagation();
+                                    if (kbIssueIdSearch) kbIssueIdSearch.value = rel.IssueID;
+                                    if (kbTagSearch) kbTagSearch.value = '';
+                                    if (kbFreeformSearch) kbFreeformSearch.value = '';
+                                    if (kbActiveIssueTags) Array.from(kbActiveIssueTags.options).forEach(o => { o.selected = false; });
+                                    await performKBSearch();
+                                });
+                                li.appendChild(link);
+                                listEl.appendChild(li);
+                            });
+                            seeAlsoDiv.appendChild(listEl);
+                            details.appendChild(seeAlsoDiv);
+                        }
+                        return; // fieldDiv already appended above
+                    }
 
                     details.appendChild(fieldDiv);
                 }
@@ -2197,4 +2916,623 @@ document.addEventListener("DOMContentLoaded", () => {
         div.textContent = text;
         return div.innerHTML;
     }
+
+    // --- Signal Path Finder ---
+    const signalPathSource = document.getElementById("signalPathSource");
+    const signalPathTarget = document.getElementById("signalPathTarget");
+    const signalPathMaxHops = document.getElementById("signalPathMaxHops");
+    const findSignalPathBtn = document.getElementById("findSignalPathBtn");
+    const signalPathStatus = document.getElementById("signalPathStatus");
+    const signalPathResult = document.getElementById("signalPathResult");
+
+    async function performSignalPathFind() {
+        const source = signalPathSource ? signalPathSource.value.trim() : "";
+        const target = signalPathTarget ? signalPathTarget.value.trim() : "";
+        if (!source || !target) { alert("Enter both source and target asset tags."); return; }
+        const maxHops = signalPathMaxHops ? parseInt(signalPathMaxHops.value, 10) || 10 : 10;
+
+        if (signalPathStatus) { signalPathStatus.textContent = "Searching…"; signalPathStatus.classList.remove("hidden"); }
+        if (signalPathResult) signalPathResult.innerHTML = "";
+
+        try {
+            const params = new URLSearchParams({ source, target, max_hops: maxHops });
+            const resp = await fetch(`${API_BASE_URL}/signal-path?${params}`);
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${resp.status}`);
+            }
+            const data = await resp.json();
+            if (signalPathStatus) signalPathStatus.classList.add("hidden");
+            renderSignalPath(data);
+        } catch (e) {
+            if (signalPathStatus) { signalPathStatus.textContent = `Error: ${e.message}`; signalPathStatus.classList.remove("hidden"); }
+        }
+    }
+
+    function renderSignalPath(data) {
+        if (!signalPathResult) return;
+        signalPathResult.innerHTML = "";
+
+        const summary = document.createElement("div");
+        summary.className = "signal-path-summary";
+        if (data.found) {
+            summary.innerHTML = `Path found: <strong>${escapeHtml(data.source)}</strong> → <strong>${escapeHtml(data.target)}</strong> &nbsp;|&nbsp; <strong>${data.hops}</strong> hop${data.hops !== 1 ? "s" : ""}`;
+        } else {
+            summary.innerHTML = `<span style="color:var(--color-danger)">No path found</span>: ${escapeHtml(data.source)} → ${escapeHtml(data.target)}. ${escapeHtml(data.message || "")}`;
+        }
+        signalPathResult.appendChild(summary);
+
+        if (!data.path || data.path.length === 0) return;
+
+        const table = document.createElement("table");
+        table.className = "connections-table";
+        const headers = ["Hop", "From", "To", "Cable", "Type", "Protocol", "Src Port", "Dst Port"];
+        const fields  = [null, "from", "to", "cable_tag", "type", "protocol", "src_port", "dst_port"];
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        headers.forEach(h => { const th = document.createElement("th"); th.textContent = h; headerRow.appendChild(th); });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        data.path.forEach((hop, i) => {
+            const tr = document.createElement("tr");
+            fields.forEach((f, j) => {
+                const td = document.createElement("td");
+                td.textContent = f === null ? (i + 1) : (hop[f] || "");
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        signalPathResult.appendChild(table);
+    }
+
+    if (findSignalPathBtn) findSignalPathBtn.addEventListener("click", performSignalPathFind);
+    [signalPathSource, signalPathTarget].forEach(inp => {
+        if (inp) inp.addEventListener("keypress", e => { if (e.key === "Enter") { e.preventDefault(); performSignalPathFind(); } });
+    });
+
+    // --- URL Hash State ---
+    function updateUrlHash(tag) {
+        const hash = tag ? '#tag=' + encodeURIComponent(tag) : '#';
+        history.replaceState(null, '', hash);
+    }
+
+    function restoreFromUrlHash() {
+        const hash = window.location.hash;
+        if (!hash || !hash.startsWith('#tag=')) return;
+        const tag = decodeURIComponent(hash.slice(5)).trim();
+        if (!tag) return;
+        if (targetTagFilter) targetTagFilter.value = tag;
+        performDiagramView();
+    }
+
+    window.addEventListener('hashchange', () => {
+        const hash = window.location.hash;
+        if (!hash || !hash.startsWith('#tag=')) return;
+        const tag = decodeURIComponent(hash.slice(5)).trim();
+        if (tag && targetTagFilter) {
+            targetTagFilter.value = tag;
+            performDiagramView();
+        }
+    });
+
+    restoreFromUrlHash();
+
+    // -------------------------------------------------------------------------
+    // Dashboard — Route Comparison
+    // -------------------------------------------------------------------------
+
+    const dashboardContent       = document.getElementById("dashboardContent");
+    const dashboardLastUpdated   = document.getElementById("dashboardLastUpdated");
+    const dashboardRefreshBtn    = document.getElementById("dashboardRefreshBtn");
+    const dashboardAutoRefresh   = document.getElementById("dashboardAutoRefresh");
+    let   dashboardRefreshTimer  = null;
+
+    const DASHBOARD_POLL_MS = 30_000;
+
+    const DASHBOARD_STATUS_LABEL = {
+        ok:          { text: "OK",          cls: "dash-badge-ok"          },
+        warning:     { text: "WARNING",     cls: "dash-badge-warning"     },
+        critical:    { text: "CRITICAL",    cls: "dash-badge-critical"    },
+        unavailable: { text: "UNAVAILABLE", cls: "dash-badge-unavailable" },
+        pending:     { text: "PENDING",     cls: "dash-badge-pending"     },
+    };
+
+    function dashBadge(status) {
+        const info = DASHBOARD_STATUS_LABEL[status] || { text: status.toUpperCase(), cls: "dash-badge-pending" };
+        const span = document.createElement("span");
+        span.className = `dash-badge ${info.cls}`;
+        span.textContent = info.text;
+        return span;
+    }
+
+    function renderDashboard(data) {
+        if (!dashboardContent) return;
+        dashboardContent.innerHTML = "";
+
+        // Overall status banner
+        const banner = document.createElement("div");
+        banner.className = "dash-banner";
+        banner.appendChild(dashBadge(data.status));
+        if (data.message) {
+            const msg = document.createElement("span");
+            msg.className = "dash-banner-msg";
+            msg.textContent = data.message;
+            banner.appendChild(msg);
+        }
+        dashboardContent.appendChild(banner);
+
+        if (!data.panels || data.panels.length === 0) return;
+
+        // Section heading
+        const heading = document.createElement("h3");
+        heading.className = "dash-section-heading";
+        heading.textContent = "Route Comparison";
+        dashboardContent.appendChild(heading);
+
+        data.panels.forEach(panel => {
+            const card = document.createElement("div");
+            card.className = "dash-card";
+
+            // Card header
+            const header = document.createElement("div");
+            header.className = "dash-card-header";
+
+            const titleWrap = document.createElement("div");
+            titleWrap.className = "dash-card-title";
+
+            const assetLink = document.createElement("span");
+            assetLink.className = "dash-asset-link";
+            assetLink.textContent = panel.asset_tag;
+            assetLink.title = "Click to set as target asset";
+            assetLink.addEventListener("click", () => setGlobalTargetAsset(panel.asset_tag));
+            titleWrap.appendChild(assetLink);
+
+            if (panel.model || panel.usage) {
+                const meta = document.createElement("span");
+                meta.className = "dash-asset-meta";
+                meta.textContent = [panel.model, panel.usage].filter(Boolean).join(" — ");
+                titleWrap.appendChild(meta);
+            }
+
+            if (panel.adapter) {
+                const adapterTag = document.createElement("span");
+                adapterTag.className = "dash-adapter-tag";
+                adapterTag.textContent = panel.adapter;
+                titleWrap.appendChild(adapterTag);
+            }
+
+            const routeCount = document.createElement("span");
+            routeCount.className = "dash-route-count";
+            const checked = panel.total_routes_checked ?? 0;
+            const defined = panel.total_routes_defined ?? 0;
+            routeCount.textContent = panel.status === "pending" || panel.status === "unavailable"
+                ? `${defined} routes defined`
+                : `${checked} / ${defined} routes checked`;
+            titleWrap.appendChild(routeCount);
+
+            header.appendChild(titleWrap);
+            header.appendChild(dashBadge(panel.status));
+            card.appendChild(header);
+
+            // Body
+            if (panel.status === "ok") {
+                const ok = document.createElement("p");
+                ok.className = "dash-ok-msg";
+                ok.textContent = `✓ All ${checked} routes match live state`;
+                card.appendChild(ok);
+            } else if (panel.status === "unavailable") {
+                const msg = document.createElement("p");
+                msg.className = "dash-unavailable-msg";
+                msg.textContent = `CueCommander unreachable — ${panel.error || "no detail"}`;
+                card.appendChild(msg);
+            } else if (panel.status === "pending") {
+                const msg = document.createElement("p");
+                msg.className = "dash-pending-msg";
+                msg.textContent = panel.message || "Monitoring not yet configured for this device";
+                card.appendChild(msg);
+            }
+
+            if (panel.exceptions && panel.exceptions.length > 0) {
+                const table = document.createElement("table");
+                table.className = "dash-exceptions-table";
+
+                const thead = document.createElement("thead");
+                thead.innerHTML = `<tr>
+                    <th>Cable</th>
+                    <th>Output Port</th>
+                    <th>Expected Input</th>
+                    <th>Live Input</th>
+                    <th>Detail</th>
+                </tr>`;
+                table.appendChild(thead);
+
+                const tbody = document.createElement("tbody");
+                panel.exceptions.forEach(ex => {
+                    const tr = document.createElement("tr");
+                    tr.className = `dash-ex-row dash-ex-${ex.severity}`;
+                    tr.innerHTML = `
+                        <td class="dash-ex-cable">${escapeHtml(ex.cable_tag || "")}</td>
+                        <td>${escapeHtml(ex.output_port || (ex.output != null ? String(ex.output) : ""))}</td>
+                        <td>${ex.expected_input != null ? ex.expected_input : "—"}</td>
+                        <td>${ex.actual_input  != null ? ex.actual_input  : "—"}</td>
+                        <td class="dash-ex-msg">${escapeHtml(ex.message || "")}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                card.appendChild(table);
+            }
+
+            dashboardContent.appendChild(card);
+        });
+    }
+
+    function renderNetworkPanel(data) {
+        if (!dashboardContent) return;
+
+        const heading = document.createElement("h3");
+        heading.className = "dash-section-heading";
+        heading.textContent = "Network Status";
+        dashboardContent.appendChild(heading);
+
+        // Config exceptions card (Monitor=Yes but no IP)
+        if (data.config_exceptions && data.config_exceptions.length > 0) {
+            const card = document.createElement("div");
+            card.className = "dash-card";
+            const header = document.createElement("div");
+            header.className = "dash-card-header";
+            const title = document.createElement("div");
+            title.className = "dash-card-title";
+            title.textContent = "Config Exceptions";
+            header.appendChild(title);
+            header.appendChild(dashBadge("warning"));
+            card.appendChild(header);
+
+            const table = document.createElement("table");
+            table.className = "dash-exceptions-table";
+            table.innerHTML = `<thead><tr><th>Asset Tag</th><th>Usage</th><th>NIC</th><th>Issue</th></tr></thead>`;
+            const tbody = document.createElement("tbody");
+            data.config_exceptions.forEach(ex => {
+                const tr = document.createElement("tr");
+                tr.className = "dash-ex-row dash-ex-warning";
+                const assetLink = document.createElement("span");
+                assetLink.className = "dash-asset-link";
+                assetLink.textContent = ex.asset_tag;
+                assetLink.title = "Click to set as target asset";
+                assetLink.addEventListener("click", () => setGlobalTargetAsset(ex.asset_tag));
+                const tdTag = document.createElement("td");
+                tdTag.appendChild(assetLink);
+                const tdUsage = document.createElement("td");
+                tdUsage.textContent = ex.usage || "—";
+                const tdNic = document.createElement("td");
+                tdNic.textContent = ex.nic || "—";
+                const tdIssue = document.createElement("td");
+                tdIssue.textContent = ex.issue || "Monitor=Yes but no IP assigned";
+                tr.appendChild(tdTag);
+                tr.appendChild(tdUsage);
+                tr.appendChild(tdNic);
+                tr.appendChild(tdIssue);
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            card.appendChild(table);
+            dashboardContent.appendChild(card);
+        }
+
+        // Ping results — backend returns data.ping.results
+        const ping = data.ping || {};
+        if (ping.status === "unavailable" || !ping.results) {
+            const card = document.createElement("div");
+            card.className = "dash-card";
+            const p = document.createElement("p");
+            p.className = "dash-unavailable-msg";
+            p.textContent = `Ping data unavailable — ${ping.error || "CueCommander unreachable"}`;
+            card.appendChild(p);
+            dashboardContent.appendChild(card);
+            return;
+        }
+
+        const results = ping.results;
+        const total = results.length;
+        const down = results.filter(r => r.status === "down").length;
+        const highLat = results.filter(r => r.status === "high_latency").length;
+
+        const summaryCard = document.createElement("div");
+        summaryCard.className = "dash-card";
+        const summaryHeader = document.createElement("div");
+        summaryHeader.className = "dash-card-header";
+        const summaryTitle = document.createElement("div");
+        summaryTitle.className = "dash-card-title";
+        summaryTitle.textContent = `Ping Status (${total} monitored)`;
+        const overallStatus = down > 0 ? "critical" : highLat > 0 ? "warning" : "ok";
+        summaryHeader.appendChild(summaryTitle);
+        summaryHeader.appendChild(dashBadge(overallStatus));
+        summaryCard.appendChild(summaryHeader);
+
+        // Build per-asset NIC summary: { asset_tag -> { total, okCount } }
+        const nicSummary = {};
+        results.forEach(r => {
+            const tag = r.asset_tag;
+            if (!nicSummary[tag]) nicSummary[tag] = { total: 0, okCount: 0 };
+            nicSummary[tag].total++;
+            if (r.status === "ok") nicSummary[tag].okCount++;
+        });
+
+        if (down === 0 && highLat === 0) {
+            const ok = document.createElement("p");
+            ok.className = "dash-ok-msg";
+            ok.textContent = `✓ All ${total} monitored NICs reachable`;
+            summaryCard.appendChild(ok);
+        } else {
+            const table = document.createElement("table");
+            table.className = "dash-exceptions-table";
+            table.innerHTML = `<thead><tr><th>Asset Tag</th><th>Usage</th><th>NIC</th><th>IP</th><th>Status</th><th>Avg ms</th><th>Loss</th><th>NICs</th></tr></thead>`;
+            const tbody = document.createElement("tbody");
+            results.filter(r => r.status !== "ok").forEach(r => {
+                const tr = document.createElement("tr");
+                tr.className = `dash-ex-row dash-ex-${r.status === "down" ? "critical" : "warning"}`;
+
+                const assetLink = document.createElement("span");
+                assetLink.className = "dash-asset-link";
+                assetLink.textContent = r.asset_tag;
+                assetLink.addEventListener("click", () => setGlobalTargetAsset(r.asset_tag));
+                const tdTag = document.createElement("td");
+                tdTag.appendChild(assetLink);
+                tr.appendChild(tdTag);
+
+                const tdUsage = document.createElement("td");
+                tdUsage.textContent = r.usage || "—";
+                tr.appendChild(tdUsage);
+
+                [r.nic || "—", r.ip || "—", r.status,
+                 r.avg_ms != null ? r.avg_ms.toFixed(1) : "—",
+                 r.loss_pct != null ? `${r.loss_pct}%` : "—"
+                ].forEach(c => {
+                    const td = document.createElement("td");
+                    td.textContent = c;
+                    tr.appendChild(td);
+                });
+
+                // NIC summary column — only meaningful if device has >1 NIC
+                const s = nicSummary[r.asset_tag];
+                const tdNics = document.createElement("td");
+                if (s && s.total > 1) {
+                    tdNics.textContent = `${s.okCount}/${s.total} ok`;
+                    tdNics.className = s.okCount > 0 ? "nic-summary-partial" : "nic-summary-all-down";
+                }
+                tr.appendChild(tdNics);
+
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            summaryCard.appendChild(table);
+        }
+        dashboardContent.appendChild(summaryCard);
+    }
+
+    function renderKlangPanel(data) {
+        if (!dashboardContent) return;
+
+        const heading = document.createElement("h3");
+        heading.className = "dash-section-heading";
+        heading.textContent = "Klang Mix Consistency";
+        dashboardContent.appendChild(heading);
+
+        const card = document.createElement("div");
+        card.className = "dash-card";
+        const header = document.createElement("div");
+        header.className = "dash-card-header";
+        const titleWrap = document.createElement("div");
+        titleWrap.className = "dash-card-title";
+
+        const status  = data.status || "unavailable";
+        const sweep   = data.sweep || {};
+        const vReport = data.variances;
+
+        if (sweep.active || status === "pending") {
+            titleWrap.textContent = `Sweep in progress (mix ${sweep.mix_current || 0}/16)`;
+            header.appendChild(titleWrap);
+            header.appendChild(dashBadge("warning"));
+            card.appendChild(header);
+            const p = document.createElement("p");
+            p.className = "dash-ok-msg";
+            p.textContent = "Collecting state from all 16 mixes… (~17s total)";
+            card.appendChild(p);
+        } else if (status === "unavailable") {
+            titleWrap.textContent = "Mix Consistency";
+            header.appendChild(titleWrap);
+            header.appendChild(dashBadge("unavailable"));
+            card.appendChild(header);
+            const p = document.createElement("p");
+            p.className = "dash-unavailable-msg";
+            p.textContent = data.error || "No results yet — click Rebuild to start a sweep.";
+            card.appendChild(p);
+        } else if (vReport) {
+            const genAt = vReport.generated_at ? new Date(vReport.generated_at).toLocaleTimeString() : "";
+            titleWrap.textContent = `Mix Consistency${genAt ? ` (${genAt})` : ""}`;
+            header.appendChild(titleWrap);
+            header.appendChild(dashBadge(status));
+            card.appendChild(header);
+
+            // Discovered mixes table
+            const mixesData = data.mixes;
+            if (mixesData && mixesData.mixes && Object.keys(mixesData.mixes).length > 0) {
+                const mixTable = document.createElement("table");
+                mixTable.className = "dash-exceptions-table";
+                mixTable.innerHTML = `<thead><tr><th>#</th><th>Mix Name</th><th>Preset</th><th>Channel Data</th></tr></thead>`;
+                const mixTbody = document.createElement("tbody");
+                const sortedKeys = Object.keys(mixesData.mixes).map(Number).sort((a, b) => a - b);
+                sortedKeys.forEach(mixNum => {
+                    const m = mixesData.mixes[String(mixNum)];
+                    const tr = document.createElement("tr");
+                    [String(mixNum), m.mix_name || "—", m.preset || "—", "Pending (auth required)"].forEach((c, i) => {
+                        const td = document.createElement("td");
+                        td.textContent = c;
+                        if (i === 3) td.style.color = "var(--color-warning, #aaa)";
+                        tr.appendChild(td);
+                    });
+                    mixTbody.appendChild(tr);
+                });
+                mixTable.appendChild(mixTbody);
+                card.appendChild(mixTable);
+            }
+
+            if (vReport.total_variances === 0 && (!mixesData || mixesData.phase === "mix_names_only")) {
+                const p = document.createElement("p");
+                p.className = "dash-ok-msg";
+                p.style.marginTop = "8px";
+                p.textContent = vReport.note || "Per-channel consistency check pending.";
+                card.appendChild(p);
+            } else if (vReport.total_variances === 0) {
+                const p = document.createElement("p");
+                p.className = "dash-ok-msg";
+                p.textContent = "✓ All 16 mixes consistent";
+                card.appendChild(p);
+            } else {
+                const crit = vReport.critical_count || 0;
+                const total = vReport.total_variances;
+                const summary = document.createElement("p");
+                summary.className = "dash-ok-msg";
+                summary.textContent =
+                    `${total} variance${total !== 1 ? "s" : ""} across ${total} channel/attribute pair${total !== 1 ? "s" : ""}` +
+                    (crit > 0 ? ` — ${crit} critical (mute)` : "");
+                card.appendChild(summary);
+
+                const table = document.createElement("table");
+                table.className = "dash-exceptions-table";
+                table.innerHTML = `<thead><tr><th>Mix</th><th>Ch</th><th>Attribute</th><th>Consensus</th><th>Actual</th></tr></thead>`;
+                const tbody = document.createElement("tbody");
+                (vReport.variances || []).forEach(v => {
+                    const tr = document.createElement("tr");
+                    tr.className = `dash-ex-row dash-ex-${v.severity === "critical" ? "critical" : "warning"}`;
+                    [v.mix, v.channel, v.attribute, String(v.consensus), String(v.actual)].forEach(c => {
+                        const td = document.createElement("td");
+                        td.textContent = c;
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                card.appendChild(table);
+            }
+        }
+
+        if (!sweep.active) {
+            const bar = document.createElement("div");
+            bar.className = "dash-action-bar";
+            const btn = document.createElement("button");
+            btn.className = "dash-rebuild-btn";
+            btn.textContent = "Rebuild";
+            btn.addEventListener("click", () => triggerKlangRebuild(btn));
+            bar.appendChild(btn);
+            card.appendChild(bar);
+        }
+
+        dashboardContent.appendChild(card);
+    }
+
+    async function triggerKlangRebuild(btn) {
+        btn.disabled = true;
+        btn.textContent = "Starting…";
+        try {
+            const resp = await fetch(`${API_BASE_URL}/dashboard/klang/buildconsensus`, { method: "POST" });
+            if (resp.status === 409) {
+                btn.textContent = "Already running";
+                setTimeout(() => { btn.disabled = false; btn.textContent = "Rebuild"; }, 3000);
+                return;
+            }
+            if (!resp.ok) {
+                btn.disabled = false;
+                btn.textContent = "Rebuild";
+                return;
+            }
+            btn.textContent = "Sweep in progress…";
+            let tries = 0;
+            const poll = async () => {
+                tries++;
+                try {
+                    const sr = await fetch(`${API_BASE_URL}/dashboard/klang`);
+                    const sd = await sr.json();
+                    if (sd.sweep && !sd.sweep.active && sd.variances) {
+                        fetchAndRenderDashboard();
+                        return;
+                    }
+                } catch (_) { /* ignore polling errors */ }
+                if (tries < 20) setTimeout(poll, 2000);
+                else { btn.disabled = false; btn.textContent = "Rebuild"; }
+            };
+            setTimeout(poll, 3000);
+        } catch (_) {
+            btn.disabled = false;
+            btn.textContent = "Rebuild";
+        }
+    }
+
+    async function fetchAndRenderDashboard() {
+        if (!dashboardContent) return;
+        try {
+            const [xpResp, netResp, klangResp] = await Promise.all([
+                fetch(`${API_BASE_URL}/dashboard/crosspoint`),
+                fetch(`${API_BASE_URL}/dashboard/network`),
+                fetch(`${API_BASE_URL}/dashboard/klang`),
+            ]);
+            if (!xpResp.ok) throw new Error(`Crosspoint HTTP ${xpResp.status}`);
+            const xpData = await xpResp.json();
+            renderDashboard(xpData);
+
+            if (netResp.ok) {
+                const netData = await netResp.json();
+                renderNetworkPanel(netData);
+            } else {
+                renderNetworkPanel({ ping: { status: "unavailable", error: `HTTP ${netResp.status}` } });
+            }
+
+            const klangData = klangResp.ok ? await klangResp.json() : { status: "unavailable", error: `HTTP ${klangResp.status}` };
+            renderKlangPanel(klangData);
+
+            if (dashboardLastUpdated) {
+                const t = xpData.generated_at ? new Date(xpData.generated_at).toLocaleTimeString() : new Date().toLocaleTimeString();
+                dashboardLastUpdated.textContent = `Last updated: ${t}`;
+            }
+        } catch (err) {
+            if (dashboardContent) dashboardContent.innerHTML =
+                `<p class="dash-error">Failed to load dashboard: ${escapeHtml(err.message)}</p>`;
+        }
+    }
+
+    function scheduleDashboardRefresh() {
+        clearInterval(dashboardRefreshTimer);
+        if (dashboardAutoRefresh && dashboardAutoRefresh.checked) {
+            dashboardRefreshTimer = setInterval(fetchAndRenderDashboard, DASHBOARD_POLL_MS);
+        }
+    }
+
+    if (dashboardRefreshBtn) {
+        dashboardRefreshBtn.addEventListener("click", () => {
+            fetchAndRenderDashboard();
+        });
+    }
+
+    if (dashboardAutoRefresh) {
+        dashboardAutoRefresh.addEventListener("change", scheduleDashboardRefresh);
+    }
+
+    // Load dashboard when its tab is activated; start/stop auto-refresh accordingly
+    tabButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            if (btn.dataset.tab === "dashboard") {
+                fetchAndRenderDashboard();
+                scheduleDashboardRefresh();
+            } else {
+                clearInterval(dashboardRefreshTimer);
+            }
+        });
+    });
+
+    // Dashboard is the default active tab — load it on startup
+    fetchAndRenderDashboard();
+    scheduleDashboardRefresh();
 });

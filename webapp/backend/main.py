@@ -1,14 +1,21 @@
 import hashlib
+import json as _json
+import os
+import urllib.request as _urllib_request
+import urllib.error as _urllib_error
 import pandas as pd
 import numpy as np
 import html # Import html module
 import graphviz # Import graphviz
 import re
+import base64
+import datetime
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, Query # Import Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response # Import Response for SVG output
 from pydantic import BaseModel
-from typing import Optional, List, Set, Dict, Tuple
+from typing import Any, Optional, List, Set, Dict, Tuple, Callable
 
 app = FastAPI()
 
@@ -19,6 +26,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+_IMAGES_DIR = Path(__file__).resolve().parent.parent.parent / "images"
 
 def clean_dataframe_for_json(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -35,8 +44,18 @@ def clean_dataframe_for_json(df: pd.DataFrame) -> pd.DataFrame:
         if pd.api.types.is_datetime64_any_dtype(df_cleaned[col]):
             df_cleaned[col] = df_cleaned[col].apply(lambda x: x.isoformat() if x != "" else "") # Use "" not None here
         else:
-            # For all other columns, convert to string (or empty string if empty)
-            df_cleaned[col] = df_cleaned[col].apply(lambda x: str(x) if x != "" else "") # Use "" not None here
+            # Convert to string; render whole-number floats as integers ("1.0" -> "1")
+            def _to_str(x):
+                if x == "":
+                    return ""
+                try:
+                    f = float(x)
+                    if f == int(f):
+                        return str(int(f))
+                except (ValueError, TypeError, OverflowError):
+                    pass
+                return str(x)
+            df_cleaned[col] = df_cleaned[col].apply(_to_str)
             
     return df_cleaned
 
@@ -45,7 +64,10 @@ def normalize_tag_value(value: Optional[str]) -> str:
     """Returns a canonical representation for asset/cable tags."""
     if value is None:
         return ""
-    return str(value).strip().upper()
+    s = str(value).strip()
+    if not s or s.lower() in ('nan', 'none', 'nat'):
+        return ""
+    return s.upper()
 
 
 def load_assets_data():
@@ -78,26 +100,139 @@ def load_cables_data():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading cable data: {e}")
 
+def load_network_data() -> pd.DataFrame:
+    """Loads network NIC data from network.xlsx."""
+    try:
+        df = pd.read_excel("../data/network.xlsx")
+        df = df.astype(object)
+        df["AssetTag"] = df["AssetTag"].astype(str).str.strip()
+        df["AssetTagNorm"] = df["AssetTag"].str.upper()
+        # Normalise Monitor column to "Yes" / "No" / ""
+        df["Monitor"] = df["Monitor"].fillna("").astype(str).str.strip()
+        # Normalise IP — treat "tbd", "nan", "none" as empty
+        df["IP"] = df["IP"].fillna("").astype(str).str.strip()
+        df.loc[df["IP"].str.lower().isin(("nan", "none", "tbd", "na")), "IP"] = ""
+        # NIC column — blank for single-NIC rows
+        df["NIC"] = df["NIC"].fillna("").astype(str).str.strip()
+        df.loc[df["NIC"].str.lower().isin(("nan", "none")), "NIC"] = ""
+        return df
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading network data: {e}")
+
+
+def _network_rows_for_tag(df_net: pd.DataFrame, asset_tag: str) -> List[dict]:
+    """Return serialisable NIC records for one asset tag."""
+    rows = df_net[df_net["AssetTagNorm"] == asset_tag.strip().upper()]
+    result = []
+    for _, r in rows.iterrows():
+        ip       = str(r.get("IP",  "") or "").strip()
+        nic      = str(r.get("NIC", "") or "").strip()
+        mac      = str(r.get("MAC", "") or "").strip()
+        url      = str(r.get("URL", "") or "").strip()
+        mon      = str(r.get("Monitor", "") or "").strip()
+        usage    = str(r.get("Usage", "") or "").strip()
+        notes    = str(r.get("Notes", "") or "").strip()
+        static   = str(r.get("Static-Reserved", "") or "").strip()
+        services = str(r.get("Services", "") or "").strip()
+        _nan = ("nan", "none", "")
+        result.append({
+            "nic":       nic      if nic      not in _nan else "",
+            "mac":       mac      if mac      not in _nan else "",
+            "ip":        ip       if ip       not in _nan else "",
+            "url":       url      if url      not in _nan else "",
+            "monitor":   mon == "Yes",
+            "static_reserved": static   if static   not in _nan else "",
+            "usage":     usage    if usage    not in _nan else "",
+            "notes":     notes    if notes    not in _nan else "",
+            "services":  services if services not in _nan else "",
+        })
+    return result
+
+
 def load_knowledgebase_data():
     """Loads knowledge base data from knowledgebase.xlsx."""
     try:
         df_kb = pd.read_excel("../data/knowledgebase.xlsx", sheet_name="Issues")
-        # Strip whitespace from column names
         df_kb.columns = df_kb.columns.str.strip()
-        # Ensure AppliesToAssetTag is treated as string and handle NaN
         df_kb["AppliesToAssetTag"] = df_kb["AppliesToAssetTag"].fillna("").astype(str).str.strip()
-        # Create a normalized version for easy searching
         df_kb["AppliesToAssetTagNorm"] = df_kb["AppliesToAssetTag"].str.upper()
-        # Drop rows where IssueID is NaN (likely empty/summary rows)
+        if "SeeAlso" not in df_kb.columns:
+            df_kb["SeeAlso"] = ""
+        df_kb["SeeAlso"] = df_kb["SeeAlso"].fillna("").astype(str).str.strip()
         df_kb = df_kb.dropna(subset=["IssueID"])
         return df_kb
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading knowledge base data: {e}")
 
+
+def build_kb_seealso_map(df_kb: pd.DataFrame) -> Dict[str, List[Dict[str, str]]]:
+    """
+    Build a bidirectional SeeAlso map: issue_id_upper -> sorted list of
+    {IssueID, Title} dicts, deduplicated and excluding self-references.
+    Only includes references to IDs that actually exist in the dataset.
+    """
+    id_to_display: Dict[str, str] = {}
+    id_to_title: Dict[str, str] = {}
+    for _, row in df_kb.iterrows():
+        raw_id = str(row["IssueID"]).strip()
+        if raw_id:
+            key = raw_id.upper()
+            id_to_display[key] = raw_id
+            id_to_title[key] = str(row.get("Title") or "").strip()
+
+    # Collect explicit forward edges
+    edges: List[tuple] = []
+    for _, row in df_kb.iterrows():
+        src = str(row["IssueID"]).strip().upper()
+        for part in str(row.get("SeeAlso") or "").split(","):
+            dst = part.strip().upper()
+            if dst and dst != src and dst in id_to_display:
+                edges.append((src, dst))
+
+    # Build bidirectional adjacency (both directions per edge)
+    adj: Dict[str, set] = {k: set() for k in id_to_display}
+    for src, dst in edges:
+        adj[src].add(dst)
+        adj[dst].add(src)
+
+    result: Dict[str, List[Dict[str, str]]] = {}
+    for key, neighbors in adj.items():
+        result[key] = sorted(
+            [{"IssueID": id_to_display[n], "Title": id_to_title[n]} for n in neighbors],
+            key=lambda x: x["IssueID"].upper(),
+        )
+    return result
+
+def build_kb_active_tags(df_kb: pd.DataFrame) -> List[Dict[str, str]]:
+    """Return sorted unique keyword tags from the Tags column of active KB rows."""
+    if "Active" not in df_kb.columns:
+        active_df = df_kb
+    else:
+        active_df = df_kb[df_kb["Active"].fillna("").astype(str).str.strip().str.upper() == "YES"]
+    col = "Tags" if "Tags" in df_kb.columns else "AppliesToAssetTag"
+    tags: List[str] = []
+    for raw in active_df[col].dropna():
+        for part in str(raw).split(","):
+            t = part.strip().lstrip("#")
+            if t:
+                tags.append(t)
+    seen: set = set()
+    unique: List[str] = []
+    for t in tags:
+        key = t.upper()
+        if key not in seen:
+            seen.add(key)
+            unique.append(t)
+    unique.sort(key=lambda x: x.upper())
+    return [{"value": t, "label": t} for t in unique]
+
+
 # Load data globally for the application to avoid reloading on each request
 df_assets = load_assets_data()
 df_cables = load_cables_data()
-df_knowledgebase = load_knowledgebase_data() # NEW: Load knowledge base data
+df_knowledgebase = load_knowledgebase_data()
+KB_ACTIVE_TAGS: List[Dict[str, str]] = build_kb_active_tags(df_knowledgebase)
+KB_SEEALSO_MAP: Dict[str, List[Dict[str, str]]] = build_kb_seealso_map(df_knowledgebase)
 ASSET_TAG_LOOKUP: Dict[str, str] = {}
 VALID_ASSET_TAGS_NORMALIZED: Set[str] = set()
 CABLE_TAG_LOOKUP: Dict[str, str] = {}
@@ -314,10 +449,12 @@ def build_candidate_cables(expansion_map: Dict[str, Set[str]]) -> pd.DataFrame:
 
 def reload_dataframes() -> None:
     """Reloads the global asset and cable DataFrames and associated lookup sets."""
-    global df_assets, df_cables, df_knowledgebase, ASSET_TAG_LOOKUP, VALID_ASSET_TAGS_NORMALIZED # NEW: Add df_knowledgebase
+    global df_assets, df_cables, df_knowledgebase, KB_ACTIVE_TAGS, KB_SEEALSO_MAP, ASSET_TAG_LOOKUP, VALID_ASSET_TAGS_NORMALIZED
     df_assets = load_assets_data()
     df_cables = load_cables_data()
-    df_knowledgebase = load_knowledgebase_data() # NEW: Reload knowledge base data
+    df_knowledgebase = load_knowledgebase_data()
+    KB_ACTIVE_TAGS = build_kb_active_tags(df_knowledgebase)
+    KB_SEEALSO_MAP = build_kb_seealso_map(df_knowledgebase)
     rebuild_lookup_sets()
     rebuild_field_option_maps()
 
@@ -457,6 +594,14 @@ def format_display_value(value: Optional[str]) -> str:
     text = str(value).strip()
     if not text or text.lower() == "nan":
         return ""
+    # Render whole-number floats as integers (e.g. "1.0" -> "1")
+    if "." in text:
+        try:
+            f = float(text)
+            if f == int(f):
+                return str(int(f))
+        except (ValueError, OverflowError):
+            pass
     return text
 
 
@@ -641,18 +786,116 @@ async def read_root():
     return {"message": "Welcome to the UAC Tech Documentation API"}
 
 
+_reload_history: list = []
+_MAX_RELOAD_HISTORY = 50
+
+
 @app.post("/data/reload")
 async def reload_data():
     """Forces the backend to reload the asset and cable spreadsheets."""
     try:
         reload_dataframes()
-        return {
+        df_net_reload = load_network_data()
+        entry = {
+            "timestamp": datetime.datetime.now().isoformat(timespec="seconds"),
             "status": "ok",
             "assets": len(df_assets),
             "cables": len(df_cables),
+            "network": len(df_net_reload),
+            "issues": len(df_knowledgebase),
         }
+        _reload_history.append(entry)
+        if len(_reload_history) > _MAX_RELOAD_HISTORY:
+            _reload_history.pop(0)
+        return entry
     except Exception as exc:
+        entry = {
+            "timestamp": datetime.datetime.now().isoformat(timespec="seconds"),
+            "status": "error",
+            "error": str(exc),
+        }
+        _reload_history.append(entry)
+        if len(_reload_history) > _MAX_RELOAD_HISTORY:
+            _reload_history.pop(0)
         raise HTTPException(status_code=500, detail=f"Failed to reload data: {exc}")
+
+
+@app.get("/data/reload-history")
+async def get_reload_history():
+    """Returns the history of data reload events (most recent last)."""
+    return list(reversed(_reload_history))
+
+
+@app.get("/signal-path")
+async def find_signal_path(source: str, target: str, max_hops: int = 10):
+    """BFS to find the shortest cable path between two asset tags."""
+    src_norm = normalize_tag_value(source)
+    dst_norm = normalize_tag_value(target)
+
+    if src_norm not in VALID_ASSET_TAGS_NORMALIZED:
+        raise HTTPException(status_code=404, detail=f"Source asset not found: {source}")
+    if dst_norm not in VALID_ASSET_TAGS_NORMALIZED:
+        raise HTTPException(status_code=404, detail=f"Target asset not found: {target}")
+    if src_norm == dst_norm:
+        raise HTTPException(status_code=400, detail="Source and target must be different assets.")
+
+    # Build adjacency: asset_tag_norm -> list of (neighbor_norm, cable_row_dict)
+    # Each cable row connects SrcTagNorm -> DstTagNorm
+    direct = df_cables[df_cables["SrcTagNorm"].notna() & df_cables["DstTagNorm"].notna()].copy()
+    # Skip internal route cables (SrcTag == DstTag)
+    direct = direct[direct["SrcTagNorm"] != direct["DstTagNorm"]]
+
+    def _display(tag: str) -> str:
+        rows = df_assets[df_assets["AssetTagNorm"] == normalize_tag_value(tag)]
+        if rows.empty:
+            return tag
+        return format_display_value(rows.iloc[0]["AssetTag"])
+
+    # BFS
+    from collections import deque
+    queue: deque = deque()
+    queue.append((src_norm, []))  # (current_node_norm, path_of_cable_dicts)
+    visited: Set[str] = {src_norm}
+
+    while queue:
+        current, path = queue.popleft()
+        if len(path) >= max_hops:
+            continue
+        outbound = direct[direct["SrcTagNorm"] == current]
+        for _, row in outbound.iterrows():
+            neighbor = row["DstTagNorm"]
+            if not neighbor:
+                continue
+            cable_entry = {
+                "from": _display(row["SrcTag"]),
+                "to": _display(row["DstTag"]),
+                "cable_tag": format_display_value(row.get("Tag", "")),
+                "type": format_display_value(row.get("Type", "")),
+                "protocol": format_display_value(row.get("Protocol", "")),
+                "src_port": format_display_value(row.get("SrcPort", "")),
+                "dst_port": format_display_value(row.get("DstPort", "")),
+            }
+            new_path = path + [cable_entry]
+            if neighbor == dst_norm:
+                return {
+                    "found": True,
+                    "source": _display(source),
+                    "target": _display(target),
+                    "hops": len(new_path),
+                    "path": new_path,
+                }
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append((neighbor, new_path))
+
+    return {
+        "found": False,
+        "source": _display(source),
+        "target": _display(target),
+        "hops": None,
+        "path": [],
+        "message": f"No signal path found within {max_hops} hops.",
+    }
 
 
 @app.get("/diagram/options")
@@ -664,54 +907,48 @@ async def get_diagram_field_options():
         "crosspoint": build_field_option_payload(CROSSPOINT_HEADER_LABELS, CROSSPOINT_DEFAULT_FIELDS),
     }
 
-# Helper function to get connection details (inputs or outputs)
-def _get_device_connections_details(target_norm: str, is_input: bool) -> List[Dict[str, str]]:
-    if is_input:
-        # For inputs, the target is the destination of the cable
-        cables_filtered = df_cables[df_cables["DstTagNorm"] == target_norm].copy()
-        partner_tag_col = "SrcTagNorm"
-        target_port_col = "DstPort"
-        partner_port_col = "SrcPort"
-    else:
-        # For outputs, the target is the source of the cable
-        cables_filtered = df_cables[df_cables["SrcTagNorm"] == target_norm].copy()
-        partner_tag_col = "DstTagNorm"
-        target_port_col = "SrcPort"
-        partner_port_col = "DstPort"
-
-    if cables_filtered.empty:
+def _format_external_connection_rows(
+    cables_df: pd.DataFrame,
+    partner_tag_col: str,
+    target_port_col: str,
+    partner_port_col: str,
+    is_input: bool,
+) -> List[Dict[str, Any]]:
+    """Build external-connection rows (inputs or outputs) from a filtered cable DataFrame."""
+    if cables_df.empty:
         return []
 
-    # Filter out junction nodes when identifying partner assets
-    partner_assets_tags_norm = cables_filtered[partner_tag_col][
-        ~cables_filtered[partner_tag_col].apply(is_cable_record_tag)
+    partner_assets_tags_norm = cables_df[partner_tag_col][
+        ~cables_df[partner_tag_col].apply(is_cable_record_tag)
     ].unique()
 
-    # Get details for partner assets
     partner_assets_details = df_assets[
         df_assets["AssetTagNorm"].isin(partner_assets_tags_norm)
     ].set_index("AssetTagNorm")
 
     results = []
-    for _, cable_row in cables_filtered.iterrows():
+    for _, cable_row in cables_df.iterrows():
         partner_norm = cable_row[partner_tag_col]
-        
-        # Determine partner details. If it's a junction node, use generic info.
         if is_cable_record_tag(partner_norm):
-            partner_details: Dict[str, Any] = { # Explicitly type as Dict[str, Any]
+            partner_details: Dict[str, Any] = {
                 "Manufacturer": "N/A",
                 "Model": "Cable Junction",
-                "Usage": "Internal Cable Splice"
+                "Usage": "Internal Cable Splice",
             }
-            # For display, junction nodes might use a generated ID
-            partner_display_tag = f"JUNCTION_{canonical_display_tag(cable_row['Tag'])}" 
+            partner_display_tag = f"JUNCTION_{canonical_display_tag(cable_row['Tag'])}"
         else:
-            partner_details = partner_assets_details.loc[partner_norm].to_dict() if partner_norm in partner_assets_details.index else {}
+            partner_details = (
+                partner_assets_details.loc[partner_norm].to_dict()
+                if partner_norm in partner_assets_details.index
+                else {}
+            )
             partner_display_tag = canonical_display_tag(partner_norm)
-        
+
         result_row = {
             "TargetPort": format_display_value(cable_row[target_port_col]),
-            ("SourcePort" if is_input else "DestinationPort"): format_display_value(cable_row[partner_port_col]),
+            ("SourcePort" if is_input else "DestinationPort"): format_display_value(
+                cable_row[partner_port_col]
+            ),
             "Protocol": format_display_value(cable_row["Protocol"]),
             "CableID": canonical_display_tag(cable_row["Tag"]),
             "PartnerAssetTag": partner_display_tag,
@@ -720,14 +957,66 @@ def _get_device_connections_details(target_norm: str, is_input: bool) -> List[Di
             "PartnerUsage": format_display_value(partner_details.get("Usage")),
         }
         results.append(result_row)
-    
-    # Clean the DataFrame before converting to dicts to handle JSON serialization
-    # Ensure results_df is created only if results is not empty
+
     if results:
-        results_df = pd.DataFrame(results)
-        results_df = clean_dataframe_for_json(results_df)
-        return results_df.to_dict(orient="records")
+        df = pd.DataFrame(results)
+        df = clean_dataframe_for_json(df)
+        return df.to_dict(orient="records")
     return []
+
+
+def _build_diagram_connections_payload(target_norm: str) -> Dict[str, Any]:
+    """Return inputs, outputs, and internal_routes for a target asset tag (normalized)."""
+    all_cables = df_cables[
+        (df_cables["SrcTagNorm"] == target_norm) | (df_cables["DstTagNorm"] == target_norm)
+    ].copy()
+
+    if all_cables.empty:
+        return {"inputs": [], "outputs": [], "internal_routes": []}
+
+    # Internal routes: SrcTag == DstTag == this node and Type contains "route"
+    route_mask = (
+        (all_cables["SrcTagNorm"] == target_norm)
+        & (all_cables["DstTagNorm"] == target_norm)
+        & all_cables["Type"].str.contains("route", case=False, na=False)
+    )
+    internal_routes_df = all_cables[route_mask]
+
+    # Inputs: cables arriving at this node, excluding internal routes
+    inputs_df = all_cables[
+        (all_cables["DstTagNorm"] == target_norm) & ~route_mask
+    ].copy()
+
+    # Outputs: cables leaving this node, excluding internal routes
+    outputs_df = all_cables[
+        (all_cables["SrcTagNorm"] == target_norm) & ~route_mask
+    ].copy()
+
+    # Format internal route rows
+    route_rows = []
+    for _, row in internal_routes_df.iterrows():
+        route_rows.append({
+            "SourcePort": format_display_value(row["SrcPort"]),
+            "DestinationPort": format_display_value(row["DstPort"]),
+            "Protocol": format_display_value(row["Protocol"]),
+            "Usage": format_display_value(row.get("Usage", "")),
+            "CableID": canonical_display_tag(row["Tag"]),
+            "Type": format_display_value(row["Type"]),
+        })
+    if route_rows:
+        route_df = pd.DataFrame(route_rows)
+        route_df = clean_dataframe_for_json(route_df)
+        route_rows = route_df.to_dict(orient="records")
+
+    return {
+        "inputs": _format_external_connection_rows(
+            inputs_df, "SrcTagNorm", "DstPort", "SrcPort", is_input=True
+        ),
+        "outputs": _format_external_connection_rows(
+            outputs_df, "DstTagNorm", "SrcPort", "DstPort", is_input=False
+        ),
+        "internal_routes": route_rows,
+    }
 
 def _get_partner_details_for_asset(target_norm: str, is_input: bool) -> List[Dict[str, str]]:
     partners: List[Dict[str, str]] = []
@@ -767,29 +1056,19 @@ def _get_partner_details_for_asset(target_norm: str, is_input: bool) -> List[Dic
     return sorted(partners, key=lambda x: x["AssetTag"].lower())
 
 
-@app.get("/diagram/connections/inputs")
-async def get_diagram_input_connections(target_tag: str) -> List[Dict[str, str]]:
+@app.get("/diagram/connections")
+async def get_diagram_connections(target_tag: str) -> Dict[str, Any]:
     """
-    Returns input connection details for a given target asset tag.
-    Includes partner device details (manufacturer, model, usage).
+    Returns input connections, output connections, and internal route details for a
+    given target asset tag as a single combined payload.  Internal route cables
+    (SrcTag == DstTag == target and Type contains 'route') are excluded from both
+    the inputs and outputs lists and appear only in internal_routes.
     """
     target_norm = normalize_tag_value(target_tag)
     if not target_norm or target_norm not in VALID_ASSET_TAGS_NORMALIZED:
         raise HTTPException(status_code=404, detail=f"Target asset tag not found: {target_tag}")
-    
-    return _get_device_connections_details(target_norm, is_input=True)
 
-@app.get("/diagram/connections/outputs")
-async def get_diagram_output_connections(target_tag: str) -> List[Dict[str, str]]:
-    """
-    Returns output connection details for a given target asset tag.
-    Includes partner device details (manufacturer, model, usage).
-    """
-    target_norm = normalize_tag_value(target_tag)
-    if not target_norm or target_norm not in VALID_ASSET_TAGS_NORMALIZED:
-        raise HTTPException(status_code=404, detail=f"Target asset tag not found: {target_tag}")
-    
-    return _get_device_connections_details(target_norm, is_input=False)
+    return _build_diagram_connections_payload(target_norm)
 
 
 @app.get("/assets/{asset_tag}/details")
@@ -827,41 +1106,257 @@ async def get_asset_details(asset_tag: str):
     issue_display_columns = ["IssueID", "Title", "Category", "Subcategory"]
     relevant_issues = clean_dataframe_for_json(relevant_issues_df[issue_display_columns]).to_dict(orient="records")
 
+    df_net = load_network_data()
+    network_nics = _network_rows_for_tag(df_net, asset_tag)
+
     return {
         "asset": asset_properties,
         "input_partners": input_partners,
         "output_partners": output_partners,
         "knowledge_base_issues": relevant_issues,
+        "network": network_nics,
     }
+
+
+@app.get("/assets/{asset_tag}/network")
+def get_asset_network(asset_tag: str):
+    """Returns NIC records from network.xlsx for the given asset tag."""
+    target_norm = normalize_tag_value(asset_tag)
+    if not target_norm or target_norm not in VALID_ASSET_TAGS_NORMALIZED:
+        raise HTTPException(status_code=404, detail=f"Asset tag not found: {asset_tag}")
+    df_net = load_network_data()
+    nics = _network_rows_for_tag(df_net, asset_tag)
+    exceptions = [
+        {"nic": n["nic"], "message": "Monitor=Yes but no IP configured"}
+        for n in nics if n["monitor"] and not n["ip"]
+    ]
+    return {"asset_tag": asset_tag, "nics": nics, "exceptions": exceptions}
+
+
+def _parse_racku(racku_str: str):
+    """Parse a RackU value like 'F23', 'R10', 'F23-3-2-2' into structured fields."""
+    s = str(racku_str).strip()
+    if not s or s.lower() in ('nan', 'none', ''):
+        return None
+    face_char = s[0].upper()
+    face = "Front" if face_char == "F" else ("Rear" if face_char == "R" else "Unknown")
+    m = re.search(r'(\d+)', s)
+    if not m:
+        return None
+    u_start = int(m.group(1))
+    # Parse optional suffix -divisions-div_start-div_end
+    suffix_m = re.search(r'-(\d+)-(\d+)-(\d+)$', s)
+    if suffix_m:
+        num_div = int(suffix_m.group(1))
+        div_start = int(suffix_m.group(2))
+        div_end = int(suffix_m.group(3))
+    else:
+        num_div, div_start, div_end = 1, 1, 1
+    x_start = (div_start - 1) / num_div
+    x_end = div_end / num_div
+    return {"face": face, "u_start": u_start, "x_start": x_start, "x_end": x_end}
+
+
+def _floorplan_candidates(building: str, floor: str, room: str) -> list:
+    """Return candidate filenames ordered most-specific to least-specific."""
+    b = building.strip().lower()
+    f = floor.strip().lower()
+    r = room.strip().lower()
+    candidates = []
+    if b and f and r:
+        candidates.append(f"floorplan_{b}_{f}_r{r}.png")
+    if b and f:
+        candidates.append(f"floorplan_{b}_{f}.png")
+    if b:
+        candidates.append(f"floorplan_{b}.png")
+    return candidates
+
+
+@app.get("/location/floorplan")
+async def get_location_floorplan(asset_tag: str):
+    """Return location info and the best available floorplan image as a base64 data URL."""
+    tag_norm = normalize_tag_value(asset_tag)
+    if tag_norm not in VALID_ASSET_TAGS_NORMALIZED:
+        raise HTTPException(status_code=404, detail=f"Asset not found: {asset_tag}")
+
+    rows = df_assets[df_assets["AssetTagNorm"] == tag_norm]
+    if rows.empty:
+        raise HTTPException(status_code=404, detail=f"Asset not found: {asset_tag}")
+
+    row = rows.iloc[0]
+    building = str(row.get("Building", "") or "").strip()
+    floor    = str(row.get("Floor",    "") or "").strip()
+    room     = str(row.get("Room",     "") or "").strip()
+    sector_raw = row.get("Sector", "")
+    try:
+        sector = str(int(float(sector_raw))) if sector_raw not in ("", None) and str(sector_raw).strip().lower() not in ("nan", "") else ""
+    except (ValueError, TypeError):
+        sector = str(sector_raw).strip()
+
+    _PNG_SIG = b'\x89PNG\r\n\x1a\n'
+    for filename in _floorplan_candidates(building, floor, room):
+        image_path = _IMAGES_DIR / filename
+        if not image_path.is_file():
+            continue
+        image_bytes = image_path.read_bytes()
+        if not image_bytes.startswith(_PNG_SIG):
+            continue  # skip files that are not valid PNGs (e.g. mis-named PSDs)
+        data_url = "data:image/png;base64," + base64.b64encode(image_bytes).decode("ascii")
+        return {"image_data_url": data_url, "filename": filename,
+                "building": building, "floor": floor, "room": room, "sector": sector}
+
+    return {"image_data_url": None, "filename": None,
+            "building": building, "floor": floor, "room": room, "sector": sector}
+
+
+@app.get("/assets/{asset_tag}/rack-profile")
+async def get_rack_profile(asset_tag: str):
+    """
+    Returns rack profile data for the rack containing the given asset.
+    Includes all devices in the same rack with their U positions, parsed for SVG rendering.
+    """
+    target_norm = normalize_tag_value(asset_tag)
+    asset_rows = df_assets[df_assets["AssetTagNorm"] == target_norm]
+    if asset_rows.empty:
+        raise HTTPException(status_code=404, detail=f"Asset not found: {asset_tag}")
+
+    rack_tag_raw = asset_rows.iloc[0].get("Rack", "")
+    rack_tag = format_display_value(rack_tag_raw)
+
+    # If the asset has no Rack field, check if it IS itself a rack (other assets reference it)
+    if not rack_tag:
+        is_rack = df_assets["Rack"].astype(str).str.strip().str.upper().eq(target_norm).any()
+        if is_rack:
+            rack_tag = format_display_value(asset_rows.iloc[0]["AssetTag"])
+        else:
+            return {"rack_tag": None, "rack_height": None, "devices": [], "target_u": None}
+
+    # Resolve rack asset height from Desc field (e.g. "42U rack")
+    rack_asset_rows = df_assets[df_assets["AssetTag"].str.upper() == rack_tag.upper()]
+    standard_rack_height = None
+    if not rack_asset_rows.empty:
+        desc = str(rack_asset_rows.iloc[0].get("Desc", ""))
+        m = re.search(r'(\d+)\s*[Uu]', desc)
+        if m:
+            standard_rack_height = int(m.group(1))
+
+    # Get all assets in this rack that have a RackU
+    in_rack = df_assets[
+        df_assets["Rack"].astype(str).str.strip().str.upper() == rack_tag.upper()
+    ].copy()
+    in_rack = in_rack[in_rack["RackU"].notna()]
+    in_rack = in_rack[in_rack["RackU"].astype(str).str.strip().str.lower() != 'nan']
+
+    # Exclude RackHeight == 0
+    def rack_height_val(v):
+        try:
+            return float(v)
+        except (ValueError, TypeError):
+            return 1.0
+    in_rack = in_rack[in_rack["RackHeight"].apply(rack_height_val) != 0]
+
+    # Resolve conflicts: for same RackU keep highest AcqValue (random on tie)
+    import math as _math
+    def to_num(v):
+        try:
+            f = float(v)
+            return float('-inf') if _math.isnan(f) else f
+        except (ValueError, TypeError):
+            return float('-inf')
+
+    if not in_rack.empty:
+        in_rack = in_rack.copy()
+        in_rack['_cost'] = in_rack['AcqValue'].apply(to_num)
+        kept_indices = []
+        for _racku, grp in in_rack.groupby("RackU"):
+            if len(grp) == 1:
+                kept_indices.append(grp.index[0])
+            else:
+                max_cost = grp['_cost'].max()
+                best = grp[grp['_cost'] == max_cost]
+                kept_indices.append(best.sample(1).index[0])
+        in_rack = in_rack.loc[kept_indices].drop(columns=['_cost'])
+
+    devices = []
+    for _, row in in_rack.iterrows():
+        parsed = _parse_racku(str(row["RackU"]))
+        if parsed is None:
+            continue
+        u_h = rack_height_val(row.get("RackHeight", 1))
+        if u_h <= 0:
+            u_h = 1
+        u_h = int(round(u_h))
+        devices.append({
+            "asset_tag": format_display_value(row["AssetTag"]),
+            "usage": format_display_value(row.get("Usage", "")),
+            "manufacturer": format_display_value(row.get("Manufacturer", "")),
+            "model": format_display_value(row.get("Model", "")),
+            "face": parsed["face"],
+            "u_start": parsed["u_start"],
+            "u_height": u_h,
+            "x_start": parsed["x_start"],
+            "x_end": parsed["x_end"],
+            "is_target": row["AssetTag"].strip().upper() == target_norm,
+        })
+
+    # Determine target asset's u_start for scroll-to
+    target_u = None
+    for d in devices:
+        if d["is_target"]:
+            target_u = d["u_start"]
+            break
+
+    return {
+        "rack_tag": rack_tag,
+        "rack_height": standard_rack_height,
+        "devices": devices,
+        "target_u": target_u,
+    }
+
+
+@app.get("/knowledgebase/tags")
+async def get_knowledgebase_tags():
+    """Returns all unique asset tags found on active KB issues, sorted case-insensitively."""
+    return {"tags": KB_ACTIVE_TAGS}
+
 
 @app.get("/knowledgebase/search")
 async def search_knowledgebase(
     issue_id: Optional[str] = None,
-    tag: Optional[str] = None,
+    tag: List[str] = Query(default=[]),
     freeform: Optional[str] = None,
 ):
     """
     Search knowledge base issues by IssueID, Tag, or freeform text.
+    Multiple tag params are combined with OR semantics.
     Results are sorted by Category, Subcategory, and SortOrder.
     """
     import re
 
     filtered_kb = df_knowledgebase.copy()
 
-    # Filter by IssueID (case-insensitive partial match)
-    if issue_id:
-        filtered_kb = filtered_kb[
-            filtered_kb["IssueID"].fillna("").astype(str).str.contains(issue_id, case=False, na=False)
-        ]
+    # Combine issue_id, tag(s), and freeform with OR across criterion groups.
+    # Build a boolean mask for each active group, then OR them together.
+    masks = []
 
-    # Filter by Tag (AppliesToAssetTag)
+    # IssueID group: partial case-insensitive match
+    if issue_id:
+        masks.append(
+            filtered_kb["IssueID"].fillna("").astype(str).str.contains(issue_id, case=False, na=False)
+        )
+
+    # Tag group: OR across all supplied tags.  Each value is matched against the
+    # Tags keyword column (strip leading #) and also against AppliesToAssetTag.
     if tag:
-        tag_norm = tag.strip().upper()
-        filtered_kb = filtered_kb[
-            filtered_kb["AppliesToAssetTagNorm"].apply(
-                lambda x: tag_norm in [t.strip() for t in x.split(',')] if pd.notna(x) else False
-            )
-        ]
+        tag_norms = {t.strip().lstrip("#").upper() for t in tag if t.strip()}
+        if tag_norms:
+            def _tag_match(row):
+                asset_tags = {t.strip().lstrip("#").upper()
+                              for t in str(row.get("AppliesToAssetTagNorm", "") or "").split(",")}
+                kw_tags = {t.strip().lstrip("#").upper()
+                           for t in str(row.get("Tags", "") or "").split(",")}
+                return bool(tag_norms & (asset_tags | kw_tags))
+            masks.append(filtered_kb.apply(_tag_match, axis=1))
 
     # Freeform text search (case-insensitive, whitespace/punctuation ignored)
     if freeform:
@@ -880,16 +1375,23 @@ async def search_knowledgebase(
                       "TriggerConditions", "LikelyCause", "RecoverySteps",
                       "AppliesToAssetType", "AppliesToAssetTag", "Tags", "Notes"]
 
-        # Create a mask for rows that match the search
-        mask = pd.Series([False] * len(filtered_kb), index=filtered_kb.index)
+        freeform_mask = pd.Series([False] * len(filtered_kb), index=filtered_kb.index)
         for field in text_fields:
             if field in filtered_kb.columns:
-                field_mask = filtered_kb[field].apply(
+                freeform_mask = freeform_mask | filtered_kb[field].apply(
                     lambda x: normalized_search in normalize_text(x)
                 )
-                mask = mask | field_mask
+        masks.append(freeform_mask)
 
-        filtered_kb = filtered_kb[mask]
+    if not masks:
+        # No criteria supplied — return empty rather than everything
+        return []
+
+    # OR all criterion groups together
+    combined = masks[0]
+    for m in masks[1:]:
+        combined = combined | m
+    filtered_kb = filtered_kb[combined]
 
     # Sort by Category, Subcategory, SortOrder
     filtered_kb = filtered_kb.sort_values(
@@ -900,7 +1402,14 @@ async def search_knowledgebase(
     # Return all fields except the normalized tag field
     result_kb = filtered_kb.drop(columns=["AppliesToAssetTagNorm"], errors="ignore")
     processed_kb = clean_dataframe_for_json(result_kb)
-    return processed_kb.to_dict(orient="records")
+    records = processed_kb.to_dict(orient="records")
+
+    # Inject pre-computed bidirectional SeeAlsoResolved into each row
+    for record in records:
+        issue_key = str(record.get("IssueID") or "").strip().upper()
+        record["SeeAlsoResolved"] = KB_SEEALSO_MAP.get(issue_key, [])
+
+    return records
 
 # --- Graphviz DOT Generation Function ---
 def generate_dot_string(
@@ -1193,6 +1702,8 @@ async def filter_cables(
     expansions: Optional[str] = Query(None), # Node expansion directives
     node_fields: Optional[str] = Query(None),
     edge_fields: Optional[str] = Query(None),
+    hidden_cable_ids: Optional[str] = Query(None), # Comma-separated cable IDs to suppress
+    exclude_internal_routes: bool = True,
 ):
     """
     Filter cables based on a target asset tag, direction, optional cable type,
@@ -1233,6 +1744,22 @@ async def filter_cables(
     if protocol:
         candidate_cables = candidate_cables[
             candidate_cables["Protocol"].str.contains(protocol, case=False, na=False)
+        ]
+
+    # Suppress explicitly hidden cable IDs.
+    if hidden_cable_ids:
+        hidden_ids_norm = {normalize_tag_value(t) for t in hidden_cable_ids.split(",") if t.strip()}
+        candidate_cables = candidate_cables[
+            ~candidate_cables["TagNorm"].isin(hidden_ids_norm)
+        ]
+
+    # Exclude internal routes (where SrcTag == DstTag and Type contains "route")
+    if exclude_internal_routes:
+        candidate_cables = candidate_cables[
+            ~(
+                (candidate_cables["SrcTagNorm"] == candidate_cables["DstTagNorm"]) &
+                (candidate_cables["Type"].str.contains("route", case=False, na=False))
+            )
         ]
 
     # If we were given an explicit visible set, only include cables whose endpoints are visible.
@@ -1298,9 +1825,11 @@ async def get_graphviz_dot(
     expansions: Optional[str] = Query(None), # Node expansion directives
     node_fields: Optional[str] = Query(None), # Comma-separated node label fields
     edge_fields: Optional[str] = Query(None), # Comma-separated edge label fields
+    hidden_cable_ids: Optional[str] = Query(None), # Comma-separated cable IDs to suppress
     color_nodes_by_category: bool = Query(False),
     color_edges_by_protocol: bool = Query(False),
     collapse_strategy: Optional[str] = Query("none"),
+    exclude_internal_routes: bool = True,
 ):
     """
     Generates a Graphviz DOT string for filtered cables and assets.
@@ -1333,7 +1862,23 @@ async def get_graphviz_dot(
         candidate_cables = candidate_cables[
             candidate_cables["Protocol"].str.contains(protocol, case=False, na=False)
         ]
-    
+
+    # Suppress explicitly hidden cable IDs.
+    if hidden_cable_ids:
+        hidden_ids_norm = {normalize_tag_value(t) for t in hidden_cable_ids.split(",") if t.strip()}
+        candidate_cables = candidate_cables[
+            ~candidate_cables["TagNorm"].isin(hidden_ids_norm)
+        ]
+
+    # Exclude internal routes (where SrcTag == DstTag and Type contains "route")
+    if exclude_internal_routes:
+        candidate_cables = candidate_cables[
+            ~(
+                (candidate_cables["SrcTagNorm"] == candidate_cables["DstTagNorm"]) &
+                (candidate_cables["Type"].str.contains("route", case=False, na=False))
+            )
+        ]
+
     visible_norm_set = set(normalize_tag_list(visible_asset_tags)) if visible_asset_tags else set()
     if visible_norm_set:
         filtered_cables = candidate_cables[
@@ -1512,3 +2057,457 @@ async def get_crosspoint_matrix(
         "columns": columns_payload,
         "matrix": matrix,
     }
+
+
+# ---------------------------------------------------------------------------
+# Dashboard — Route Comparison
+# ---------------------------------------------------------------------------
+
+_CUECOMMANDER_BASE: str = os.environ.get(
+     "CUECOMMANDER_BASE", "http://uacts-g001:1880"
+ #   "CUECOMMANDER_BASE", "http://127.0.0.1:1880"
+).rstrip("/")
+_CUECOMMANDER_TIMEOUT_S: int = 5
+
+# Adapter registry: name -> comparison function.
+# Each function receives a DataFrame of route cable rows for one device and
+# returns {"status", "exceptions", "total_routes_checked"[, "error"]}.
+_ROUTE_ADAPTERS: Dict[str, Callable] = {}
+
+
+def _route_adapter(name: str) -> Callable:
+    """Decorator to register a route-comparison adapter."""
+    def decorator(fn: Callable) -> Callable:
+        _ROUTE_ADAPTERS[name] = fn
+        return fn
+    return decorator
+
+
+# Maps normalised asset tag -> adapter type string.
+# Add an entry here when a new routing device is commissioned and a
+# CueCommander flow exists for it.
+_ROUTE_ADAPTER_FOR_ASSET: Dict[str, str] = {
+    "2507-0700": "videohub",
+    # "ZVKU-A001": excluded — Kramer VS-88DT API makes device unstable
+    # "ZVIU-E004": excluded — BMD DeckLink Quad 2 has no viable API
+    # Dante audio routing will be handled as a virtual section, not per-asset
+}
+
+# Asset tags explicitly excluded from route monitoring.
+# These have route cables in the data but no safe/viable API for verification.
+_ROUTE_EXCLUDED_ASSETS: Set[str] = {"ZVKU-A001", "ZVIU-E004"}
+
+
+_NODERED_API_TOKEN: str = os.environ.get("NODERED_API_TOKEN", "vn-api-changeme")
+
+
+def _fetch_cuecommander_json(path: str) -> Any:
+    """GET JSON from CueCommander. Raises on any network or HTTP error."""
+    url = _CUECOMMANDER_BASE + path
+    req = _urllib_request.Request(url, headers={"Accept": "application/json"})
+    with _urllib_request.urlopen(req, timeout=_CUECOMMANDER_TIMEOUT_S) as resp:
+        return _json.loads(resp.read().decode())
+
+
+def _fetch_nodered_json(path: str) -> Any:
+    """GET JSON from Node-RED vocalnames API (includes auth token)."""
+    url = _CUECOMMANDER_BASE + path
+    req = _urllib_request.Request(url, headers={
+        "Accept": "application/json",
+        "X-Api-Token": _NODERED_API_TOKEN,
+    })
+    with _urllib_request.urlopen(req, timeout=_CUECOMMANDER_TIMEOUT_S) as resp:
+        return _json.loads(resp.read().decode())
+
+
+def _post_nodered_json(path: str, body: Optional[dict] = None) -> Any:
+    """POST to Node-RED vocalnames API with auth token. Returns parsed JSON."""
+    import urllib.error as _urllib_error
+    url = _CUECOMMANDER_BASE + path
+    data = _json.dumps(body or {}).encode()
+    req = _urllib_request.Request(url, data=data, method="POST", headers={
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-Api-Token": _NODERED_API_TOKEN,
+    })
+    with _urllib_request.urlopen(req, timeout=_CUECOMMANDER_TIMEOUT_S) as resp:
+        return _json.loads(resp.read().decode())
+
+
+def _parse_port_number(port_str: Any) -> Optional[int]:
+    """
+    Extract the port number from strings like 'in_1', 'out_1_HDbT', 'in_01'.
+    Splits on '_' and returns the first numeric segment after the prefix.
+    """
+    if port_str is None:
+        return None
+    s = str(port_str).strip()
+    if not s or s.lower() in ("nan", "none", "nat", ""):
+        return None
+    parts = s.split("_")
+    for part in parts[1:]:  # skip the 'in' / 'out' prefix
+        try:
+            return int(part)
+        except ValueError:
+            continue
+    return None
+
+
+@_route_adapter("videohub")
+def _videohub_adapter(routes_df: pd.DataFrame) -> dict:
+    """
+    Compare VideoHub cable records against CueCommander's cross-point state.
+    API: GET /api/videohub/crosspoints -> {"crosspoints": [{"input": N, "output": N}]}
+    """
+    try:
+        data = _fetch_cuecommander_json("/api/videohub/crosspoints")
+        live_map: Dict[int, int] = {
+            cp["output"]: cp["input"]
+            for cp in data.get("crosspoints", [])
+        }
+    except Exception as exc:
+        return {
+            "status": "unavailable",
+            "error": str(exc),
+            "exceptions": [],
+            "total_routes_checked": 0,
+        }
+
+    exceptions: List[dict] = []
+    for _, row in routes_df.iterrows():
+        output_num = _parse_port_number(row.get("DstPort"))
+        input_num  = _parse_port_number(row.get("SrcPort"))
+
+        if output_num is None:
+            exceptions.append({
+                "severity": "warning",
+                "cable_tag":      str(row.get("Tag", "")),
+                "asset_tag":      str(row.get("SrcTag", "")),
+                "output_port":    str(row.get("DstPort", "")),
+                "input_port":     str(row.get("SrcPort", "")),
+                "expected_input": input_num,
+                "actual_input":   None,
+                "message": f"Cannot parse output port '{row.get('DstPort', '')}' — skipped",
+            })
+            continue
+
+        live_input = live_map.get(output_num)
+        if live_input is None:
+            exceptions.append({
+                "severity":       "warning",
+                "cable_tag":      str(row.get("Tag", "")),
+                "asset_tag":      str(row.get("SrcTag", "")),
+                "output_port":    str(row.get("DstPort", "")),
+                "input_port":     str(row.get("SrcPort", "")),
+                "expected_input": input_num,
+                "actual_input":   None,
+                "message": f"Output {output_num}: not present in live routing table",
+            })
+        elif input_num != live_input:
+            exceptions.append({
+                "severity":       "warning",
+                "cable_tag":      str(row.get("Tag", "")),
+                "asset_tag":      str(row.get("SrcTag", "")),
+                "output_port":    str(row.get("DstPort", "")),
+                "input_port":     str(row.get("SrcPort", "")),
+                "expected_input": input_num,
+                "actual_input":   live_input,
+                "message": f"Output {output_num}: expected input {input_num}, live has input {live_input}",
+            })
+
+    status = (
+        "critical" if any(e["severity"] == "critical" for e in exceptions)
+        else "warning" if exceptions
+        else "ok"
+    )
+    return {
+        "status": status,
+        "exceptions": exceptions,
+        "total_routes_checked": len(routes_df),
+    }
+
+
+def _asset_meta(df_assets: pd.DataFrame, asset_tag: str) -> Dict[str, str]:
+    """Return model and usage strings for an asset tag, or empty strings."""
+    row = df_assets[df_assets["AssetTagNorm"] == asset_tag.strip().upper()]
+    if row.empty:
+        return {"model": "", "usage": ""}
+    r = row.iloc[0]
+    model = str(r.get("Model", "") or "").strip()
+    usage = str(r.get("Usage", "") or "").strip()
+    return {"model": model if model.lower() not in ("nan", "") else "",
+            "usage": usage if usage.lower() not in ("nan", "") else ""}
+
+
+@app.get("/dashboard/crosspoint")
+def get_dashboard_crosspoint():
+    """
+    Compare all defined route cables against live routing state from CueCommander.
+    Groups route cables by routing device; each device is checked by its registered
+    adapter. Devices in _ROUTE_EXCLUDED_ASSETS are silently omitted.
+    """
+    df_cables = load_cables_data()
+    df_assets = load_assets_data()
+
+    route_mask = (
+        df_cables["Type"].astype(str).str.strip().str.lower() == "route"
+    ) & (df_cables["SrcTagNorm"] == df_cables["DstTagNorm"])
+    route_df = df_cables[route_mask].copy()
+
+    # Drop excluded assets before building panels
+    route_df = route_df[~route_df["SrcTagNorm"].isin(
+        {t.upper() for t in _ROUTE_EXCLUDED_ASSETS}
+    )]
+
+    if route_df.empty:
+        return {
+            "generated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "status": "ok",
+            "message": "No route cables defined",
+            "panels": [],
+        }
+
+    panels: List[dict] = []
+    for asset_norm, group in route_df.groupby("SrcTagNorm"):
+        asset_tag    = str(group.iloc[0]["SrcTag"])
+        meta         = _asset_meta(df_assets, asset_tag)
+        adapter_type = _ROUTE_ADAPTER_FOR_ASSET.get(str(asset_norm))
+
+        if adapter_type is None:
+            panels.append({
+                "asset_tag":            asset_tag,
+                **meta,
+                "adapter":              None,
+                "status":               "pending",
+                "total_routes_defined": len(group),
+                "total_routes_checked": 0,
+                "exceptions":           [],
+                "message": f"No monitoring adapter configured for {asset_tag}",
+            })
+            continue
+
+        adapter_fn = _ROUTE_ADAPTERS.get(adapter_type)
+        if adapter_fn is None:
+            panels.append({
+                "asset_tag":            asset_tag,
+                **meta,
+                "adapter":              adapter_type,
+                "status":               "pending",
+                "total_routes_defined": len(group),
+                "total_routes_checked": 0,
+                "exceptions":           [],
+                "message": f"Adapter '{adapter_type}' not yet implemented",
+            })
+            continue
+
+        result = adapter_fn(group)
+        panels.append({
+            "asset_tag":            asset_tag,
+            **meta,
+            "adapter":              adapter_type,
+            "total_routes_defined": len(group),
+            **result,
+        })
+
+    statuses = [p["status"] for p in panels]
+    if all(s in ("unavailable", "pending") for s in statuses):
+        overall = "unavailable"
+    elif "critical" in statuses:
+        overall = "critical"
+    elif "warning" in statuses:
+        overall = "warning"
+    else:
+        overall = "ok"
+
+    return {
+        "generated_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "status": overall,
+        "panels": panels,
+    }
+
+
+@app.get("/dashboard/network")
+def get_dashboard_network():
+    """
+    Network monitoring panel for the operational dashboard.
+
+    Config exceptions (Monitor=Yes but no IP) are derived directly from
+    network.xlsx — always available.
+
+    Ping results come from CueCommander GET /api/network/status.
+    Returns status='unavailable' for that section if CueCommander is unreachable.
+    """
+    df_net  = load_network_data()
+    df_assets = load_assets_data()
+
+    # --- Config exceptions: Monitor=Yes rows with no IP ---
+    monitor_rows = df_net[df_net["Monitor"] == "Yes"]
+    no_ip_rows   = monitor_rows[monitor_rows["IP"] == ""]
+
+    config_exceptions: List[dict] = []
+    for _, r in no_ip_rows.iterrows():
+        tag = str(r.get("AssetTag", "") or "").strip()
+        # Look up model/usage from asset table for context
+        meta = _asset_meta(df_assets, tag)
+        config_exceptions.append({
+            "asset_tag": tag,
+            "nic":       str(r.get("NIC", "") or "").strip() or None,
+            "model":     meta["model"],
+            "usage":     meta["usage"] or str(r.get("Usage", "") or "").strip(),
+            "severity":  "warning",
+            "message":   "Monitor=Yes but no IP configured",
+        })
+
+    # --- Ping results from CueCommander ---
+    ping_panel: dict
+    try:
+        raw = _fetch_cuecommander_json("/api/network/status")
+
+        # Enrich each result with asset name from assets table
+        # CueCommander shape: { asset_tag, nic, ip, packets_sent, packets_received,
+        #                       avg_ms, loss_pct, status }
+        # status values: "ok" | "high_latency" | "down" | "unknown"
+        results = raw.get("results", [])
+        for item in results:
+            tag  = str(item.get("asset_tag", "") or "").strip()
+            meta = _asset_meta(df_assets, tag)
+            item.setdefault("model", meta["model"])
+            item.setdefault("usage", meta["usage"])
+
+        down     = [r for r in results if r.get("status") == "down"]
+        hi_lat   = [r for r in results if r.get("status") == "high_latency"]
+
+        ping_status = (
+            "critical" if down
+            else "warning" if hi_lat
+            else "ok"
+        )
+        ping_panel = {
+            "status":             ping_status,
+            "total_monitored":    len(results),
+            "down_count":         len(down),
+            "high_latency_count": len(hi_lat),
+            "results":            results,
+            "generated_at":       raw.get("generated_at"),
+        }
+    except Exception as exc:
+        ping_panel = {
+            "status":  "unavailable",
+            "error":   str(exc),
+            "exceptions": [],
+            "total_monitored": 0,
+        }
+
+    # Overall status
+    statuses = [
+        "warning" if config_exceptions else "ok",
+        ping_panel["status"],
+    ]
+    overall = (
+        "unavailable" if all(s == "unavailable" for s in statuses)
+        else "critical" if "critical" in statuses
+        else "warning"  if "warning"  in statuses
+        else "ok"
+    )
+
+    return {
+        "generated_at":       datetime.datetime.utcnow().isoformat() + "Z",
+        "status":             overall,
+        "config_exceptions":  config_exceptions,
+        "ping":               ping_panel,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Dashboard — Klang Mix Consistency
+# ---------------------------------------------------------------------------
+
+@app.get("/dashboard/klang")
+def get_dashboard_klang():
+    """
+    Klang mix-consistency panel for the operational dashboard.
+
+    Proxies to Node-RED vocalnames API:
+      GET /api/klang/status          — sweep state + result availability
+      GET /api/klang/reportmixvariances — stored variance report (if available)
+
+    The panel always returns immediately. If no results exist yet, status is
+    'unavailable'. The frontend Rebuild button triggers POST /dashboard/klang/buildconsensus.
+    """
+    try:
+        status_data = _fetch_nodered_json("/api/klang/status")
+    except Exception as exc:
+        return {
+            "generated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "status": "unavailable",
+            "error": f"Node-RED unreachable: {exc}",
+            "sweep": None,
+            "variances": None,
+        }
+
+    sweep_panel = {
+        "active":       status_data.get("sweep_active", False),
+        "started_at":   status_data.get("sweep_started_at"),
+        "mix_current":  status_data.get("sweep_mix_current", 0),
+    }
+
+    variances_panel = None
+    mixes_panel = None
+    panel_status = "unavailable"
+
+    if status_data.get("results_available"):
+        try:
+            var_data = _fetch_nodered_json("/api/klang/reportmixvariances")
+            total    = var_data.get("total_variances", 0)
+            criticals = [v for v in var_data.get("variances", []) if v.get("severity") == "critical"]
+            panel_status = "critical" if criticals else ("warning" if total > 0 else "ok")
+            variances_panel = {
+                "generated_at":    var_data.get("generated_at"),
+                "total_variances": total,
+                "critical_count":  len(criticals),
+                "variances":       var_data.get("variances", []),
+                "note":            var_data.get("note"),
+            }
+        except Exception as exc:
+            panel_status = "unavailable"
+            variances_panel = {"error": str(exc)}
+
+        try:
+            mm_data = _fetch_nodered_json("/api/klang/reportmastermix")
+            if mm_data.get("mixes"):
+                mixes_panel = {
+                    "mix_count": mm_data.get("mix_count", 0),
+                    "phase":     mm_data.get("phase"),
+                    "mixes":     mm_data["mixes"],
+                }
+        except Exception:
+            pass
+    elif status_data.get("sweep_active"):
+        panel_status = "pending"
+
+    return {
+        "generated_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "status":       panel_status,
+        "sweep":        sweep_panel,
+        "variances":    variances_panel,
+        "mixes":        mixes_panel,
+    }
+
+
+@app.post("/dashboard/klang/buildconsensus")
+def post_dashboard_klang_buildconsensus():
+    """
+    Trigger a Klang sweep + consensus build.
+    Proxies POST /api/klang/buildconsensus to Node-RED.
+    Returns 202 with estimated duration, or 409 if sweep already active.
+    """
+    try:
+        result = _post_nodered_json("/api/klang/buildconsensus")
+        return result
+    except Exception as exc:
+        import urllib.error as _ue
+        if isinstance(exc, _ue.HTTPError) and exc.code == 409:
+            body = _json.loads(exc.read().decode())
+            from fastapi.responses import JSONResponse
+            return JSONResponse(status_code=409, content=body)
+        return {"ok": False, "error": f"Node-RED unreachable: {exc}"}
