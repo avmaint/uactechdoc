@@ -3483,10 +3483,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         setTd.appendChild(setBtn);
                         tr.appendChild(setTd);
 
-                        // "Set all others to" — propagate this row's actual value to every other mix with the same channel+attr
+                        // "Set all others to" — propagate this row's actual value to all other 15 mixes
                         const propTd = document.createElement("td");
-                        const othersWithSame = variances.filter(o => o !== v && o.channel === v.channel && o.attribute === v.attribute);
-                        if (othersWithSame.length > 0) {
+                        const allMixNums = mixesData && mixesData.mixes
+                            ? Object.keys(mixesData.mixes).map(Number)
+                            : Array.from({length: 16}, (_, i) => i + 1);
+                        const otherMixNums = allMixNums.filter(m => m !== v.mix);
+                        if (otherMixNums.length > 0) {
                             const propBtn = document.createElement("button");
                             propBtn.className = "dash-fix-btn dash-prop-btn";
                             propBtn.textContent = String(v.actual);
@@ -3495,11 +3498,11 @@ document.addEventListener("DOMContentLoaded", () => {
                                 const orig = propBtn.textContent;
                                 propBtn.textContent = "…";
                                 try {
-                                    const results = await Promise.all(othersWithSame.map(o =>
+                                    const results = await Promise.all(otherMixNums.map(m =>
                                         fetch(`${API_BASE_URL}/dashboard/klang/setvariance`, {
                                             method: "POST",
                                             headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({ mix: o.mix, channel: o.channel, attribute: o.attribute, value: v.actual })
+                                            body: JSON.stringify({ mix: m, channel: v.channel, attribute: v.attribute, value: v.actual })
                                         }).then(r => r.json())
                                     ));
                                     if (results.every(r => r.ok)) { propBtn.textContent = "✓"; }
