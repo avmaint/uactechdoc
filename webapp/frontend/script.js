@@ -3425,7 +3425,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     th.dataset.col = key;
                     headerRow.appendChild(th);
                 });
-                headerRow.appendChild(document.createElement("th"));
+                const thSet = document.createElement("th");
+                thSet.textContent = "Set this to";
+                headerRow.appendChild(thSet);
+                const thProp = document.createElement("th");
+                thProp.textContent = "Set all others to";
+                headerRow.appendChild(thProp);
                 thead.appendChild(headerRow);
                 table.appendChild(thead);
 
@@ -3455,13 +3460,15 @@ document.addEventListener("DOMContentLoaded", () => {
                             td.textContent = c;
                             tr.appendChild(td);
                         });
-                        const fixTd = document.createElement("td");
-                        const fixBtn = document.createElement("button");
-                        fixBtn.className = "dash-fix-btn";
-                        fixBtn.textContent = "Fix";
-                        fixBtn.addEventListener("click", async () => {
-                            fixBtn.disabled = true;
-                            fixBtn.textContent = "…";
+                        // "Set this to" — set this mix to the consensus value
+                        const setTd = document.createElement("td");
+                        const setBtn = document.createElement("button");
+                        setBtn.className = "dash-fix-btn";
+                        setBtn.textContent = String(v.consensus);
+                        setBtn.addEventListener("click", async () => {
+                            setBtn.disabled = true;
+                            const orig = setBtn.textContent;
+                            setBtn.textContent = "…";
                             try {
                                 const r = await fetch(`${API_BASE_URL}/dashboard/klang/setvariance`, {
                                     method: "POST",
@@ -3469,20 +3476,39 @@ document.addEventListener("DOMContentLoaded", () => {
                                     body: JSON.stringify({ mix: v.mix, channel: v.channel, attribute: v.attribute, value: v.consensus })
                                 });
                                 const result = await r.json();
-                                if (result.ok) {
-                                    fixBtn.textContent = "✓";
-                                    tr.style.opacity = "0.4";
-                                } else {
-                                    fixBtn.textContent = "Err";
-                                    fixBtn.disabled = false;
-                                }
-                            } catch(e) {
-                                fixBtn.textContent = "Err";
-                                fixBtn.disabled = false;
-                            }
+                                if (result.ok) { setBtn.textContent = "✓"; tr.style.opacity = "0.4"; }
+                                else { setBtn.textContent = orig; setBtn.disabled = false; }
+                            } catch(e) { setBtn.textContent = orig; setBtn.disabled = false; }
                         });
-                        fixTd.appendChild(fixBtn);
-                        tr.appendChild(fixTd);
+                        setTd.appendChild(setBtn);
+                        tr.appendChild(setTd);
+
+                        // "Set all others to" — propagate this row's actual value to every other mix with the same channel+attr
+                        const propTd = document.createElement("td");
+                        const othersWithSame = variances.filter(o => o !== v && o.channel === v.channel && o.attribute === v.attribute);
+                        if (othersWithSame.length > 0) {
+                            const propBtn = document.createElement("button");
+                            propBtn.className = "dash-fix-btn dash-prop-btn";
+                            propBtn.textContent = String(v.actual);
+                            propBtn.addEventListener("click", async () => {
+                                propBtn.disabled = true;
+                                const orig = propBtn.textContent;
+                                propBtn.textContent = "…";
+                                try {
+                                    const results = await Promise.all(othersWithSame.map(o =>
+                                        fetch(`${API_BASE_URL}/dashboard/klang/setvariance`, {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({ mix: o.mix, channel: o.channel, attribute: o.attribute, value: v.actual })
+                                        }).then(r => r.json())
+                                    ));
+                                    if (results.every(r => r.ok)) { propBtn.textContent = "✓"; }
+                                    else { propBtn.textContent = orig; propBtn.disabled = false; }
+                                } catch(e) { propBtn.textContent = orig; propBtn.disabled = false; }
+                            });
+                            propTd.appendChild(propBtn);
+                        }
+                        tr.appendChild(propTd);
                         tbody.appendChild(tr);
                     });
                     headerRow.querySelectorAll("th[data-col]").forEach(th => {
