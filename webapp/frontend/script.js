@@ -81,6 +81,10 @@ const tableSortStates = {
     knowledgeBaseIssuesTable: {
         column: null,
         direction: 'asc'
+    },
+    klangVariances: {
+        column: "mix",
+        direction: 'asc'
     }
 };
 
@@ -3408,7 +3412,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const variances = vReport.variances || [];
                 const colKeys = ["mix", "channel", "attribute", "consensus", "vote", "actual"];
                 const colLabels = ["Mix", "Ch", "Attribute", "Consensus", "Vote", "Actual"];
-                let varSortCol = "mix", varSortDir = "asc";
+                const varSort = tableSortStates.klangVariances;
 
                 const table = document.createElement("table");
                 table.className = "dash-exceptions-table";
@@ -3431,14 +3435,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     tbody.innerHTML = "";
                     const sorted = [...variances].sort((a, b) => {
                         let av, bv;
-                        if (varSortCol === "vote") {
+                        if (varSort.column === "vote") {
                             av = a.vote_count != null ? a.vote_count / (a.total_votes || 1) : -1;
                             bv = b.vote_count != null ? b.vote_count / (b.total_votes || 1) : -1;
                         } else {
-                            av = a[varSortCol]; bv = b[varSortCol];
+                            av = a[varSort.column]; bv = b[varSort.column];
                         }
-                        if (av < bv) return varSortDir === "asc" ? -1 : 1;
-                        if (av > bv) return varSortDir === "asc" ? 1 : -1;
+                        if (av < bv) return varSort.direction === "asc" ? -1 : 1;
+                        if (av > bv) return varSort.direction === "asc" ? 1 : -1;
                         return 0;
                     });
                     sorted.forEach(v => {
@@ -3482,19 +3486,19 @@ document.addEventListener("DOMContentLoaded", () => {
                         tbody.appendChild(tr);
                     });
                     headerRow.querySelectorAll("th[data-col]").forEach(th => {
-                        const active = th.dataset.col === varSortCol;
-                        th.textContent = colLabels[colKeys.indexOf(th.dataset.col)] + (active ? (varSortDir === "asc" ? " ▲" : " ▼") : "");
+                        const active = th.dataset.col === varSort.column;
+                        th.textContent = colLabels[colKeys.indexOf(th.dataset.col)] + (active ? (varSort.direction === "asc" ? " ▲" : " ▼") : "");
                     });
                 }
 
                 headerRow.querySelectorAll("th[data-col]").forEach(th => {
                     th.addEventListener("click", () => {
                         const col = th.dataset.col;
-                        if (varSortCol === col) {
-                            varSortDir = varSortDir === "asc" ? "desc" : "asc";
+                        if (varSort.column === col) {
+                            varSort.direction = varSort.direction === "asc" ? "desc" : "asc";
                         } else {
-                            varSortCol = col;
-                            varSortDir = "asc";
+                            varSort.column = col;
+                            varSort.direction = "asc";
                         }
                         renderVarianceRows();
                     });
