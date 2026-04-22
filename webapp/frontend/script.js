@@ -3339,7 +3339,7 @@ document.addEventListener("DOMContentLoaded", () => {
             card.appendChild(header);
             const p = document.createElement("p");
             p.className = "dash-ok-msg";
-            p.textContent = "Collecting state from all 16 mixes… (~17s total)";
+            p.textContent = "Collecting state from all 16 mixes… (~11s total)";
             card.appendChild(p);
         } else if (status === "unavailable") {
             titleWrap.textContent = "Mix Consistency";
@@ -3365,13 +3365,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 mixTable.innerHTML = `<thead><tr><th>#</th><th>Mix Name</th><th>Preset</th><th>Channel Data</th></tr></thead>`;
                 const mixTbody = document.createElement("tbody");
                 const sortedKeys = Object.keys(mixesData.mixes).map(Number).sort((a, b) => a - b);
+                const hasChannelData = mixesData.phase !== "mix_names_only";
+                const chCount = mixesData.channels_with_data || 0;
                 sortedKeys.forEach(mixNum => {
                     const m = mixesData.mixes[String(mixNum)];
                     const tr = document.createElement("tr");
-                    [String(mixNum), m.mix_name || "—", m.preset || "—", "Pending (auth required)"].forEach((c, i) => {
+                    const chCell = hasChannelData ? `✓ ${chCount} ch` : "Pending";
+                    [String(mixNum), m.mix_name || "—", m.preset || "—", chCell].forEach((c, i) => {
                         const td = document.createElement("td");
                         td.textContent = c;
-                        if (i === 3) td.style.color = "var(--color-warning, #aaa)";
+                        if (i === 3) td.style.color = hasChannelData ? "var(--color-ok, #4a4)" : "var(--color-warning, #aaa)";
                         tr.appendChild(td);
                     });
                     mixTbody.appendChild(tr);
@@ -3396,8 +3399,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 const total = vReport.total_variances;
                 const summary = document.createElement("p");
                 summary.className = "dash-ok-msg";
+                const chWithVar = new Set((vReport.variances || []).map(v => v.channel)).size;
                 summary.textContent =
-                    `${total} variance${total !== 1 ? "s" : ""} across ${total} channel/attribute pair${total !== 1 ? "s" : ""}` +
+                    `${total} variance${total !== 1 ? "s" : ""} across ${chWithVar} channel${chWithVar !== 1 ? "s" : ""}` +
                     (crit > 0 ? ` — ${crit} critical (mute)` : "");
                 card.appendChild(summary);
 
