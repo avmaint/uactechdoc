@@ -1325,6 +1325,7 @@ details[open] .diagram-options-summary::before {
 }
 .dash-fix-btn:hover:not(:disabled) { background: #15803d; }
 .dash-fix-btn:disabled { background: #6b7280; cursor: default; }
+.dash-exceptions-table thead th[data-col]:hover { background: rgba(255,255,255,0.08); }
 
 @media (max-width: 700px) {
     .network-table th:nth-child(n+4),

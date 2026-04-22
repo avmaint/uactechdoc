@@ -3405,50 +3405,102 @@ document.addEventListener("DOMContentLoaded", () => {
                     (crit > 0 ? ` — ${crit} critical (mute)` : "");
                 card.appendChild(summary);
 
+                const variances = vReport.variances || [];
+                const colKeys = ["mix", "channel", "attribute", "consensus", "vote", "actual"];
+                const colLabels = ["Mix", "Ch", "Attribute", "Consensus", "Vote", "Actual"];
+                let varSortCol = "mix", varSortDir = "asc";
+
                 const table = document.createElement("table");
                 table.className = "dash-exceptions-table";
-                table.innerHTML = `<thead><tr><th>Mix</th><th>Ch</th><th>Attribute</th><th>Consensus</th><th>Vote</th><th>Actual</th><th></th></tr></thead>`;
+                const thead = document.createElement("thead");
+                const headerRow = document.createElement("tr");
+                colKeys.forEach((key, i) => {
+                    const th = document.createElement("th");
+                    th.textContent = colLabels[i];
+                    th.style.cursor = "pointer";
+                    th.dataset.col = key;
+                    headerRow.appendChild(th);
+                });
+                headerRow.appendChild(document.createElement("th"));
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
                 const tbody = document.createElement("tbody");
-                (vReport.variances || []).forEach(v => {
-                    const tr = document.createElement("tr");
-                    tr.className = `dash-ex-row dash-ex-${v.severity === "critical" ? "critical" : "warning"}`;
-                    const voteStr = (v.vote_count != null && v.total_votes != null)
-                        ? `${v.vote_count}/${v.total_votes}` : "—";
-                    [v.mix, v.channel, v.attribute, String(v.consensus), voteStr, String(v.actual)].forEach(c => {
-                        const td = document.createElement("td");
-                        td.textContent = c;
-                        tr.appendChild(td);
+
+                function renderVarianceRows() {
+                    tbody.innerHTML = "";
+                    const sorted = [...variances].sort((a, b) => {
+                        let av, bv;
+                        if (varSortCol === "vote") {
+                            av = a.vote_count != null ? a.vote_count / (a.total_votes || 1) : -1;
+                            bv = b.vote_count != null ? b.vote_count / (b.total_votes || 1) : -1;
+                        } else {
+                            av = a[varSortCol]; bv = b[varSortCol];
+                        }
+                        if (av < bv) return varSortDir === "asc" ? -1 : 1;
+                        if (av > bv) return varSortDir === "asc" ? 1 : -1;
+                        return 0;
                     });
-                    const fixTd = document.createElement("td");
-                    const fixBtn = document.createElement("button");
-                    fixBtn.className = "dash-fix-btn";
-                    fixBtn.textContent = "Fix";
-                    fixBtn.addEventListener("click", async () => {
-                        fixBtn.disabled = true;
-                        fixBtn.textContent = "…";
-                        try {
-                            const r = await fetch(`${API_BASE_URL}/dashboard/klang/setvariance`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ mix: v.mix, channel: v.channel, attribute: v.attribute, value: v.consensus })
-                            });
-                            const result = await r.json();
-                            if (result.ok) {
-                                fixBtn.textContent = "✓";
-                                tr.style.opacity = "0.4";
-                            } else {
+                    sorted.forEach(v => {
+                        const tr = document.createElement("tr");
+                        tr.className = `dash-ex-row dash-ex-${v.severity === "critical" ? "critical" : "warning"}`;
+                        const voteStr = (v.vote_count != null && v.total_votes != null)
+                            ? `${v.vote_count}/${v.total_votes}` : "—";
+                        [v.mix, v.channel, v.attribute, String(v.consensus), voteStr, String(v.actual)].forEach(c => {
+                            const td = document.createElement("td");
+                            td.textContent = c;
+                            tr.appendChild(td);
+                        });
+                        const fixTd = document.createElement("td");
+                        const fixBtn = document.createElement("button");
+                        fixBtn.className = "dash-fix-btn";
+                        fixBtn.textContent = "Fix";
+                        fixBtn.addEventListener("click", async () => {
+                            fixBtn.disabled = true;
+                            fixBtn.textContent = "…";
+                            try {
+                                const r = await fetch(`${API_BASE_URL}/dashboard/klang/setvariance`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ mix: v.mix, channel: v.channel, attribute: v.attribute, value: v.consensus })
+                                });
+                                const result = await r.json();
+                                if (result.ok) {
+                                    fixBtn.textContent = "✓";
+                                    tr.style.opacity = "0.4";
+                                } else {
+                                    fixBtn.textContent = "Err";
+                                    fixBtn.disabled = false;
+                                }
+                            } catch(e) {
                                 fixBtn.textContent = "Err";
                                 fixBtn.disabled = false;
                             }
-                        } catch(e) {
-                            fixBtn.textContent = "Err";
-                            fixBtn.disabled = false;
-                        }
+                        });
+                        fixTd.appendChild(fixBtn);
+                        tr.appendChild(fixTd);
+                        tbody.appendChild(tr);
                     });
-                    fixTd.appendChild(fixBtn);
-                    tr.appendChild(fixTd);
-                    tbody.appendChild(tr);
+                    headerRow.querySelectorAll("th[data-col]").forEach(th => {
+                        const active = th.dataset.col === varSortCol;
+                        th.textContent = colLabels[colKeys.indexOf(th.dataset.col)] + (active ? (varSortDir === "asc" ? " ▲" : " ▼") : "");
+                    });
+                }
+
+                headerRow.querySelectorAll("th[data-col]").forEach(th => {
+                    th.addEventListener("click", () => {
+                        const col = th.dataset.col;
+                        if (varSortCol === col) {
+                            varSortDir = varSortDir === "asc" ? "desc" : "asc";
+                        } else {
+                            varSortCol = col;
+                            varSortDir = "asc";
+                        }
+                        renderVarianceRows();
+                    });
                 });
+
+                renderVarianceRows();
                 table.appendChild(tbody);
                 card.appendChild(table);
             }
