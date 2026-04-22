@@ -3407,16 +3407,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const table = document.createElement("table");
                 table.className = "dash-exceptions-table";
-                table.innerHTML = `<thead><tr><th>Mix</th><th>Ch</th><th>Attribute</th><th>Consensus</th><th>Actual</th></tr></thead>`;
+                table.innerHTML = `<thead><tr><th>Mix</th><th>Ch</th><th>Attribute</th><th>Consensus</th><th>Vote</th><th>Actual</th><th></th></tr></thead>`;
                 const tbody = document.createElement("tbody");
                 (vReport.variances || []).forEach(v => {
                     const tr = document.createElement("tr");
                     tr.className = `dash-ex-row dash-ex-${v.severity === "critical" ? "critical" : "warning"}`;
-                    [v.mix, v.channel, v.attribute, String(v.consensus), String(v.actual)].forEach(c => {
+                    const voteStr = (v.vote_count != null && v.total_votes != null)
+                        ? `${v.vote_count}/${v.total_votes}` : "—";
+                    [v.mix, v.channel, v.attribute, String(v.consensus), voteStr, String(v.actual)].forEach(c => {
                         const td = document.createElement("td");
                         td.textContent = c;
                         tr.appendChild(td);
                     });
+                    const fixTd = document.createElement("td");
+                    const fixBtn = document.createElement("button");
+                    fixBtn.className = "dash-fix-btn";
+                    fixBtn.textContent = "Fix";
+                    fixBtn.addEventListener("click", async () => {
+                        fixBtn.disabled = true;
+                        fixBtn.textContent = "…";
+                        try {
+                            const r = await fetch(`${API_BASE_URL}/dashboard/klang/setvariance`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ mix: v.mix, channel: v.channel, attribute: v.attribute, value: v.consensus })
+                            });
+                            const result = await r.json();
+                            if (result.ok) {
+                                fixBtn.textContent = "✓";
+                                tr.style.opacity = "0.4";
+                            } else {
+                                fixBtn.textContent = "Err";
+                                fixBtn.disabled = false;
+                            }
+                        } catch(e) {
+                            fixBtn.textContent = "Err";
+                            fixBtn.disabled = false;
+                        }
+                    });
+                    fixTd.appendChild(fixBtn);
+                    tr.appendChild(fixTd);
                     tbody.appendChild(tr);
                 });
                 table.appendChild(tbody);

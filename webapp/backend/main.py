@@ -2494,6 +2494,16 @@ def get_dashboard_klang():
     }
 
 
+@app.post("/dashboard/klang/setvariance")
+def post_dashboard_klang_setvariance(body: dict):
+    """Proxy POST /api/klang/setvariance to Node-RED."""
+    try:
+        result = _post_nodered_json("/api/klang/setvariance", body)
+        return result
+    except Exception as exc:
+        return {"ok": False, "error": f"Node-RED unreachable: {exc}"}
+
+
 @app.post("/dashboard/klang/buildconsensus")
 def post_dashboard_klang_buildconsensus():
     """
