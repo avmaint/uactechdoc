@@ -3496,17 +3496,23 @@ document.addEventListener("DOMContentLoaded", () => {
                             propBtn.addEventListener("click", async () => {
                                 propBtn.disabled = true;
                                 const orig = propBtn.textContent;
-                                propBtn.textContent = "…";
+                                propBtn.textContent = `0/${otherMixNums.length}`;
                                 try {
-                                    const results = await Promise.all(otherMixNums.map(m =>
-                                        fetch(`${API_BASE_URL}/dashboard/klang/setvariance`, {
+                                    let allOk = true;
+                                    for (let i = 0; i < otherMixNums.length; i++) {
+                                        propBtn.textContent = `${i + 1}/${otherMixNums.length}`;
+                                        const r = await fetch(`${API_BASE_URL}/dashboard/klang/setvariance`, {
                                             method: "POST",
                                             headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({ mix: m, channel: v.channel, attribute: v.attribute, value: v.actual })
-                                        }).then(r => r.json())
-                                    ));
-                                    if (results.every(r => r.ok)) { propBtn.textContent = "✓"; }
-                                    else { propBtn.textContent = orig; propBtn.disabled = false; }
+                                            body: JSON.stringify({ mix: otherMixNums[i], channel: v.channel, attribute: v.attribute, value: v.actual })
+                                        });
+                                        const result = await r.json();
+                                        if (!result.ok) { allOk = false; }
+                                        // wait for SwitchUser + SET to complete before next mix
+                                        await new Promise(res => setTimeout(res, 400));
+                                    }
+                                    propBtn.textContent = allOk ? "✓" : "Err";
+                                    if (!allOk) propBtn.disabled = false;
                                 } catch(e) { propBtn.textContent = orig; propBtn.disabled = false; }
                             });
                             propTd.appendChild(propBtn);
