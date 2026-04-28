@@ -862,6 +862,7 @@ async def reload_data():
     try:
         reload_dataframes()
         df_net_reload = load_network_data()
+        _push_network_targets_to_cuecommander(_build_network_targets(df_net_reload))
         entry = {
             "timestamp": datetime.datetime.now().isoformat(timespec="seconds"),
             "status": "ok",
@@ -2627,13 +2628,32 @@ def get_dashboard_crosspoint():
 def get_network_targets():
     """
     Returns all Monitor=Yes rows from network.xlsx that have an IP address.
-    Used by CueCommander to build its ping sweep target list so that
-    network.xlsx is the single source of truth for monitored nodes.
+    This is the canonical source of truth for monitored nodes.  The webapp
+    backend pushes this list to CueCommander (POST /api/network/targets) each
+    time the dashboard is fetched or data is reloaded — CueCommander does not
+    call this endpoint directly.
     """
     df = load_network_data()
-    monitor = df[df["Monitor"] == "Yes"]
-    targets = []
-    for _, row in monitor.iterrows():
+    targets = _build_network_targets(df)
+    return {
+        "targets": targets,
+        "total": len(targets),
+        "generated_at": datetime.datetime.utcnow().isoformat() + "Z",
+    }
+
+
+def _push_network_targets_to_cuecommander(targets: List[dict]) -> None:
+    """Push Monitor=Yes target list to CueCommander. Fire-and-forget; errors are silently ignored."""
+    try:
+        _post_nodered_json("/api/network/targets", {"targets": targets})
+    except Exception:
+        pass
+
+
+def _build_network_targets(df_net: pd.DataFrame) -> List[dict]:
+    """Extract Monitor=Yes rows with IPs from a loaded network DataFrame."""
+    targets: List[dict] = []
+    for _, row in df_net[df_net["Monitor"] == "Yes"].iterrows():
         ip = str(row.get("IP", "") or "").strip()
         if not ip:
             continue
@@ -2649,11 +2669,7 @@ def get_network_targets():
                 "related_issue_ids": _parse_issue_ids(row.get("RelatedIssueId")),
             }
         )
-    return {
-        "targets": targets,
-        "total": len(targets),
-        "generated_at": datetime.datetime.utcnow().isoformat() + "Z",
-    }
+    return targets
 
 
 @app.get("/dashboard/network")
@@ -2669,6 +2685,10 @@ def get_dashboard_network():
     """
     df_net = load_network_data()
     df_assets = load_assets_data()
+
+    # Push current target list to CueCommander so it knows what to ping.
+    # Webapp is the source of truth (reads network.xlsx); CC never calls us.
+    _push_network_targets_to_cuecommander(_build_network_targets(df_net))
 
     # --- Config exceptions: Monitor=Yes rows with no IP ---
     monitor_rows = df_net[df_net["Monitor"] == "Yes"]
