@@ -1152,6 +1152,17 @@ details[open] .diagram-options-summary::before {
 }
 .dash-asset-link:hover { color: #004499; }
 
+.dash-kb-link {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #0066cc;
+    cursor: pointer;
+    text-decoration: underline;
+    white-space: nowrap;
+}
+.dash-kb-link:hover { color: #004499; }
+
 .dash-asset-meta {
     font-size: 13px;
     color: var(--color-text-muted);

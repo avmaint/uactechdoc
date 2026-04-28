@@ -130,6 +130,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             button.classList.add("active");
             document.getElementById(button.dataset.tab).classList.add("active");
+
+            if (button.dataset.tab === "crosspointViewer" && globalTargetAsset) {
+                if (crosspointSourceInput && !crosspointSourceInput.value.trim()) {
+                    crosspointSourceInput.value = globalTargetAsset;
+                    handleAssetInputChange("source", globalTargetAsset);
+                }
+            }
         });
     });
 
@@ -3273,7 +3280,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             const table = document.createElement("table");
             table.className = "dash-exceptions-table";
-            table.innerHTML = `<thead><tr><th>Asset Tag</th><th>Usage</th><th>NIC</th><th>IP</th><th>Status</th><th>Avg ms</th><th>Loss</th><th>NICs</th></tr></thead>`;
+            table.innerHTML = `<thead><tr><th>Asset Tag</th><th>Usage</th><th>NIC</th><th>IP</th><th>Status</th><th>Avg ms</th><th>Loss</th><th>NICs</th><th>KB Issues</th></tr></thead>`;
             const tbody = document.createElement("tbody");
             results.filter(r => r.status !== "ok").forEach(r => {
                 const tr = document.createElement("tr");
@@ -3308,6 +3315,31 @@ document.addEventListener("DOMContentLoaded", () => {
                     tdNics.className = s.okCount > 0 ? "nic-summary-partial" : "nic-summary-all-down";
                 }
                 tr.appendChild(tdNics);
+
+                // KB Issues column — clickable issue IDs from network.xlsx RelatedIssueId
+                const tdKb = document.createElement("td");
+                const issueIds = Array.isArray(r.related_issue_ids) ? r.related_issue_ids : [];
+                if (issueIds.length > 0) {
+                    issueIds.forEach((issueId, idx) => {
+                        if (idx > 0) tdKb.appendChild(document.createTextNode(" "));
+                        const link = document.createElement("span");
+                        link.className = "dash-kb-link";
+                        link.textContent = issueId;
+                        link.title = `Open KB issue ${issueId}`;
+                        link.addEventListener("click", async () => {
+                            document.querySelector('.tab-button[data-tab="knowledgeBase"]').click();
+                            if (kbIssueIdSearch) kbIssueIdSearch.value = issueId;
+                            if (kbTagSearch) kbTagSearch.value = "";
+                            if (kbFreeformSearch) kbFreeformSearch.value = "";
+                            if (kbActiveIssueTags) Array.from(kbActiveIssueTags.options).forEach(o => { o.selected = false; });
+                            await performKBSearch();
+                        });
+                        tdKb.appendChild(link);
+                    });
+                } else {
+                    tdKb.textContent = "—";
+                }
+                tr.appendChild(tdKb);
 
                 tbody.appendChild(tr);
             });
