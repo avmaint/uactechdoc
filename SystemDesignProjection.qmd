@@ -106,8 +106,8 @@ It can be controlled via the buttons on the front panel or from its built in web
 
 
 ```{r psi, results='asis'}
-#| label: fig-matrix-inputs
-#| fig-cap: Matrix Inputs
+#| label: tbl-matrix-inputs
+#| tbl-cap: Matrix Inputs
 
 psi <- tribble(
 ~Input, ~Usage, ~Comment,
@@ -162,8 +162,8 @@ print_gt_table(tab) |> cat()
 ```
 
 ```{r pso, results='asis'}
-#| label: fig-matrix-outputs
-#| fig-cap: Matrix Outputs
+#| label: tbl-matrix-outputs
+#| tbl-cap: Matrix Outputs
  
 pso <- tribble(
 ~Output, ~Type, ~Usage, ~Comment,
@@ -310,8 +310,8 @@ CDWU-0009 Windows / PowerPoint
 ```
 
 ```{r gt_topComp}
-#| fig-cap: Computer Inventory
-#| label: fig-comp-top
+#| tbl-cap: Computer Inventory
+#| label: tbl-comp-top
 selected.at <- c(
                 "CDWU-0009", "CDMU-A001"
               , "CUMU-G001", "CUMU-E001"
@@ -344,8 +344,8 @@ Long distance signal transmission is achieved using Cat5e or Cat6 cabling. An in
 ```
 
 ```{r}
-#| fig-cap: Projection Topology Inventory
-#| label: fig-proj-det
+#| tbl-cap: Projection Topology Inventory
+#| label: tbl-proj-det
 selected.at <- c(
               "ZVKU-A001", 
               "ZVVU-0001",
@@ -378,8 +378,8 @@ The TV in the lobby gets its content from the video matrix. For the main service
 ```
 
 ```{r gt-topLobby}
-#| fig-cap: Lobby Inventory
-#| label: fig-lob-top
+#| tbl-cap: Lobby Inventory
+#| label: tbl-lob-top
 
 selected.at <- c(
               "ZVKU-A001" , "ZVIU-A002"
@@ -407,7 +407,7 @@ There is an HDMI splitter at the Nursery TV which provides an HDMI feed to the T
 
 Each TV has a remote control.
 
-```{dot top_nursery}
+```{dot }
 //| fig-width: 4
 //| label: fig-top-nursery
 //| fig-cap: "Nursery Topology"
@@ -415,8 +415,8 @@ Each TV has a remote control.
 ```
 
 ```{r top3}
-#| fig-cap: Nursery Topology Inventoru
-#| label: fig-nursery-det
+#| tbl-cap: Nursery Topology Inventory
+#| label: tbl-nursery-det
 
 selected.at <- c(
               "ZVKU-A001",  
@@ -475,9 +475,9 @@ See @fig-rec-wp and @fig-wp-det
 ```
 
 ```{r}
-#| fig-cap: WebPresenter Details
+#| tbl-cap: WebPresenter Details
 #| cap-location: bottom
-#| label: fig-wp-det
+#| label: tbl-wp-det
 selected.at <- c(
               "ZVKU-A003", 
               "ZVRU-A001", "ZVRU-A002",
@@ -507,14 +507,14 @@ The details of the network configuration are not shown. See the Network design d
 See @fig-net-det
 
 ```{r gt-net-details, results="asis", fig.id=TRUE }
-#| fig-cap: Network Details
+#| tbl-cap: Network Details
 #| cap-location: bottom
-#| label: fig-net-det
+#| label: tbl-net-det
 NetworkInventory |> 
  left_join(assets) |>
  filter(Category=="Video") |> 
- filter(Building == "Main") |>
- select(AssetTag, Location, Usage, Device, MAC, IP, URL, Notes) |>
+ filter(Building == "B1") |>
+ select(AssetTag, Location, Usage, MAC, IP, URL, Notes) |>
  arrange(AssetTag) |>
 	gt() |>
 	opt_stylize(style = 3) |>
@@ -529,9 +529,9 @@ NetworkInventory |>
 # Video Equipment Inventory
 
 ```{r inventory }
-#| fig-cap: Asset Details
+#| tbl-cap: Asset Details
 #| cap-location: bottom
-#| label: fig-asset-det
+#| label: tbl-asset-det
  
 cs = c("AssetTag", "Qty"  ,
   "Manufacturer" ,
