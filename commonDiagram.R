@@ -103,8 +103,8 @@ get_cable_code <- function(target_cables, cables) {
 		filter(! (SrcIsCable | DstIsCable)) |> # extensions handle separately	
 		mutate(cc = cable_color(Type)) |>
 		mutate(label = glue('[label= "{Tag}\n{Usage2}{Type}" color={cc} ]' )) |> 
-		mutate(code = glue( 
-			"'{SrcTag2}' {SrcPort2} -> '{DstTag2}' {DstPort2} {label} "
+		mutate(code = glue(
+			'"{SrcTag2}" {SrcPort2} -> "{DstTag2}" {DstPort2} {label} '
 		))
 	
 	return( paste(cable_code$code , collapse = "\n")	)	
@@ -120,11 +120,11 @@ get_extension_node <- function(tcables) {
 get_extension_edge <- function(tcables) {
 	edge1 <- tcables |>
 		filter(  DstIsCable) |> 
-		mutate(code = glue("'{SrcTag2}'{SrcPort2} -> {Tag2}{DstTag2} [label=\"{Tag}\n{Usage2}\"]\n"))
+		mutate(code = glue('"{SrcTag2}"{SrcPort2} -> {Tag2}{DstTag2} [label="{Tag}\n{Usage2}"]\n'))
 
 	edge2 <- tcables |>
-		filter(  SrcIsCable) |> 
-		mutate(code = glue("'{SrcTag2}'{Tag2} -> {DstTag2}{DstPort2} [label=\"{Tag}\n{Usage2}\"]\n"))
+		filter(  SrcIsCable) |>
+		mutate(code = glue('"{SrcTag2}"{Tag2} -> {DstTag2}{DstPort2} [label="{Tag}\n{Usage2}"]\n'))
 
 	edges <- c(edge1$code, edge2$code)
 	return( paste(edges , collapse = "\n")	)	
@@ -141,29 +141,81 @@ get_diagram <- function(targets, inventory, cables, label=NA
 
 	label <- ifelse(is.na(label) , my_label, label)  
 	
-	target_cables <- cables |>
-		filter(SrcTag %in% targets | DstTag %in% targets)  |>
-		mutate(SrcIsCable = SrcTag %in% cables$Tag) |>
-		mutate(DstIsCable = DstTag %in% cables$Tag) |>
-		mutate(SrcTag2 = tolower(stringr::str_replace_all(SrcTag, "-", ""))) |>
-		mutate(DstTag2 = tolower(stringr::str_replace_all(DstTag, "-", ""))) |>
-		mutate(SrcPort2 = str_replace(SrcPort, ' ' , '')) |>
-		mutate(DstPort2 = str_replace(DstPort, ' ' , '')) |>
-		mutate(SrcPort2 = ifelse(is.na(SrcPort), "", glue(": {SrcPort2}"))) |>
-		mutate(DstPort2 = ifelse(is.na(DstPort), "", glue(": {DstPort2}"))) |>
-		mutate(Tag2 = tolower(stringr::str_replace_all(Tag, "-", "")))  |>
-		mutate(Usage2 = ifelse( is.na(Usage), "",  glue("{Usage} ")) ) 
-	
-	if ( !missing(exc_dev) )  {
-		target_cables <- target_cables |> filter(!(SrcTag %in% exc_dev) & !(DstTag %in% exc_dev) )
-	}
-	
-	target_devices <- unique(c(target_cables$SrcTag ,
-						target_cables$DstTag ,
-						targets ))
- 	if ( !missing(exc_dev) )  {
- 							   target_devices <- setdiff(target_devices, exc_dev)
- 							   } 
+  # Initialize nodes and cables for traversal
+  initial_target_nodes <- unique(targets)
+  initial_target_nodes <- initial_target_nodes[!is.na(initial_target_nodes)] # Remove NA if any
+  
+  queue <- initial_target_nodes
+  visited_nodes <- initial_target_nodes
+  collected_cables_raw <- cables[FALSE, names(cables)] # Empty dataframe with cables structure
+
+  head_ptr <- 1
+  while(head_ptr <= length(queue)) {
+    current_node <- queue[head_ptr]
+
+    # Find all cables connected to the current_node
+    connected_cables_step <- cables %>%
+      filter(SrcTag == current_node | DstTag == current_node)
+
+    # Add these cables to our collection
+    if(nrow(connected_cables_step) > 0) {
+      collected_cables_raw <- bind_rows(collected_cables_raw, connected_cables_step)
+    }
+
+    # Identify new nodes (assets or cables) to visit
+    new_src_nodes <- setdiff(connected_cables_step$SrcTag, visited_nodes)
+    new_dst_nodes <- setdiff(connected_cables_step$DstTag, visited_nodes)
+    
+    new_nodes <- unique(c(new_src_nodes, new_dst_nodes))
+    new_nodes <- new_nodes[!is.na(new_nodes)] # Remove NA if any
+
+    if (length(new_nodes) > 0) {
+      queue <- c(queue, new_nodes)
+      visited_nodes <- c(visited_nodes, new_nodes)
+    }
+    
+    head_ptr <- head_ptr + 1
+  }
+
+  # Remove duplicates from collected_cables (can happen with bind_rows and cycles)
+  collected_cables_raw <- collected_cables_raw %>% distinct()
+  
+  # Filter out excluded devices early
+  if ( !missing(exc_dev) )  {
+    visited_nodes <- setdiff(visited_nodes, exc_dev)
+    collected_cables_raw <- collected_cables_raw |> 
+      filter(!(SrcTag %in% exc_dev) & !(DstTag %in% exc_dev) )
+  }
+
+  # Ensure collected_cables has the correct structure for subsequent mutates
+  if (nrow(collected_cables_raw) == 0) {
+    target_cables <- cables[FALSE, names(cables)] # Empty structure, no cables
+    target_devices <- character(0) # Empty character vector
+  } else {
+    target_cables <- collected_cables_raw %>%
+      # Ensure SrcIsCable/DstIsCable are based on the *full* original cables list
+      mutate(SrcIsCable = SrcTag %in% cables$Tag) %>%
+      mutate(DstIsCable = DstTag %in% cables$Tag) %>%
+      # ... original mutates for SrcTag2, DstTag2, etc. ...
+      mutate(SrcTag2 = tolower(stringr::str_replace_all(SrcTag, "-", ""))) %>%
+      mutate(DstTag2 = tolower(stringr::str_replace_all(DstTag, "-", ""))) %>%
+      mutate(SrcPort2 = str_replace(SrcPort, ' ' , '')) %>%
+      mutate(DstPort2 = str_replace(DstPort, ' ' , '')) %>%
+      mutate(SrcPort2 = ifelse(is.na(SrcPort), "", glue(": {SrcPort2}"))) %>%
+      mutate(DstPort2 = ifelse(is.na(DstPort), "", glue(": {DstPort2}"))) %>%
+      mutate(Tag2 = tolower(stringr::str_replace_all(Tag, "-", "")))  %>%
+      mutate(Usage2 = ifelse( is.na(Usage), "",  glue("{Usage} ")) )
+
+    target_devices <- unique(c(target_cables$SrcTag, target_cables$DstTag, initial_target_nodes))
+    target_devices <- target_devices[!is.na(target_devices)] # Remove NA if any
+    
+    # Filter out any cables from target_devices, as get_device_code should only draw assets
+    # 'cables' here refers to the full 'cables' dataframe passed to get_diagram
+    cable_tags_in_diagram <- unique(cables$Tag) 
+    target_devices <- setdiff(target_devices, cable_tags_in_diagram)
+
+    target_devices <- intersect(target_devices, visited_nodes) # Ensure devices are still valid after exclusion
+  }
 
 # todo consider using qreport::makegraphviz	
 
