@@ -695,27 +695,46 @@ OBS could also be used for a special event where we want to stream direct to, eg
 
 The webpresenter can also be used for video calls, see @sec-video-call.
 
-```{r}
+```{r wpcon-gen}
 target <- wp <- c('ZVIU-A004', "ZVKU-A003" )
 
 xd <- c("2308-1124","ZVIU-C001","ZVIU-E003","ZVIU-A008"
 		, "ZVKU-A001"
 		,"ZVCU-A001","ZVCU-A002", "ZVCU-A003"
-		, "2307-2306", "2308-1123", "ZVIU-D002")
+		, "2307-2306", "2308-1123", "ZVIU-D002"
+		, "ZLIU-A002", "ZAMU-A001", "ZAMU-A002", "ZAMUB001"
+		, "ZVVU-0002", "ZVIU-A001", "ZVIU-A002"
+		, "CDMU-A001", "CDWU-0009")
 diag <- get_diagram(target , assets, cables
 					, exc_dev =xd
 					, label= '"Web Presenter Connections"'
 					, rankdir ="TB")
 
-write_file(diag, "_work/diag598.gv")
+gv_path  <- "_work/diag598.gv"
+png_path <- "_work/diag598.png"
+write_file(diag, gv_path)
+grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(png_path, width = 1200)
 ```
 
-```{dot wpcon   }
+::: {.content-visible when-format="html"}
+```{dot wpcon}
 //| fig-cap: Web Presenter Connections
 //| cap-location: bottom
 //| label: fig-wp-conn
-//| file:  _work/diag598.gv
+//| file: _work/diag598.gv
 ```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r wpcon-pdf}
+#| label: fig-wp-conn
+#| fig-cap: Web Presenter Connections
+#| fig-width: 5.5
+#| fig-height: 3.5
+knitr::include_graphics(png_path)
+```
+:::
+
 
 # Video Calls - Zoom, etc {#sec-video-call}
 
