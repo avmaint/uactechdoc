@@ -11,9 +11,9 @@ ci <- str_replace(ci, 'rmarkdown','qmd')
 
 This document is compiled by merging text and data together using [quarto](https://quarto.org). The source is found on [github](https://github.com/avmaint/uactechdoc), project "avmaint/uactechdoc", file "`r ci`.
 
-```{r change_history}
+```{r  }
 #| tab-cap: Document Change History
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 #| label: tab-change-history
 
 tab <- commit.log.html(  ci )

@@ -273,7 +273,7 @@ Network
 ::: {#fig-item-inv .cell-output-display}
 
 ```{r item_inventory, results='asis'}
-#| label: fig-item_inventory
+#| label: tbl-item_inventory
 
 asset_items <- inventory |>
 	filter(  Building == 'Main' 

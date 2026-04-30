@@ -476,7 +476,7 @@ See @fig-rec-wp and @fig-wp-det
 
 ```{r}
 #| tbl-cap: WebPresenter Details
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 #| label: tbl-wp-det
 selected.at <- c(
               "ZVKU-A003", 
@@ -508,7 +508,7 @@ See @fig-net-det
 
 ```{r gt-net-details, results="asis", fig.id=TRUE }
 #| tbl-cap: Network Details
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 #| label: tbl-net-det
 NetworkInventory |> 
  left_join(assets) |>
@@ -530,7 +530,7 @@ NetworkInventory |>
 
 ```{r inventory }
 #| tbl-cap: Asset Details
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 #| label: tbl-asset-det
  
 cs = c("AssetTag", "Qty"  ,

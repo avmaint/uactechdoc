@@ -327,7 +327,7 @@ print_gt_table(tab) |> cat()
 ```{r vh-connections, results='asis'}
 # TODO: fix the code below.
 #| label: tab-topology1-computer
-#| fig-cap: "VideoHub Connected Devices"
+#| tbl-cap: "VideoHub Connected Devices"
 
 dev <- "2507-0700" #videohub
 
@@ -541,7 +541,7 @@ CUMU-G001 MacOS / ATEM Control
 ```{r topology1-computer, results='asis'}
 # TODO: fix the code below.
 #| label: tab-topology1-computer
-#| fig-cap: "Computer Topology"
+#| tbl-cap: "Computer Topology"
 
 print_inv(c("CUMU-G001" , "ZVIU-E004"  
 		     ), db.inventory) |>

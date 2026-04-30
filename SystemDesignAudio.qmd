@@ -30,7 +30,7 @@ NetworkInventory <- get.network()
 assets   <- get.assets() #Assets are cached via commonFunctions.R
 ```
 
-```{r dci}
+```{r dci, eval=FALSE}
 #TODO: replace work.config with function calls.
 
 ins <- get_dante_devices() %>%
@@ -163,23 +163,29 @@ tribble(~Device, ~InputRange, ~Notes
  
  
 ```{r input.list}
-#| label: fig-sda-inputs-dlive 
-#| fig-cap: "dLive Socket Inputs"
-get_inputs("dLive","") |>
-	arrange(Interface, Socket) |>
-	select(Interface,Socket,Source,Detail) |>
+#| label: tbl-sda-inputs-dlive 
+#| tbl-cap: "dLive Socket Inputs"
+
+dlive =c("2407-3000", "2407-3001", "2407-3002", "2410-1902")
+
+slice1 <- db.cables |>
+	filter(DstTag %in% dlive) |>
+	arrange(DstTag, DstPort) |>
+	select(DstTag, DstPort , Usage, SrcTag, SrcPort)  |>
+	filter( !is.na(Usage) ) 
+
+slice1 |>
 	gt() |>
 	opt_stylize(style=5) |>
 	tab_header("Sockets for each Device") |>
 	gt_split(row_every_n = 25)
 ```
- 
 
 ```{r top1}
-print_inv(c( "2407-3000", "2407-3001", "2407-3002",
+print_inv(c( "2407-3000", "2407-3001", "2407-3002", "2410-1902",
 			 "CUMU-G002", "ZAPU-0001",
-             "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003",
-             "ZAHU-0005", "ZAHU-0006"
+             "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003"
+               
              ), assets)
 ```
 
@@ -215,8 +221,8 @@ After the console, some audio processing is handled by the Q-sys core, and some 
 ```
 
 ```{r foh-inv}
-#| label: fig-foh-inv
-#| fig-cap: FoH Inventory
+#| label: tbl-foh-inv
+#| tbl-cap: FoH Inventory
 cs <- c( 
 "2407-3001",
 "ZAHU-0001", "ZAHU-0005", "ZAHU-0002", "ZAHU-0001", "ZAHU-0006",
@@ -257,7 +263,7 @@ This console has 16 mix busses. Since the console is capable of multiple routing
 >TODO: Update @fig-m7-busses with DAW details 
 
 ```{r m7_busses}
-#| label: fig-m7-busses
+#| label: tbl-m7-busses
 #| tab-cap: M7 Bus Usage
  
 tribble( 
@@ -299,7 +305,7 @@ Now lets finish our journey to the speakers.
 ```{r tab-amp-list}
 #| label: tab-amp-list
 #| tab-cap: List of Amplifiers
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 selected <- c( "ZAAU-0005", "ZAAU-0006", "ZAAU-0011" 
            , "ZAAU-0007",  "ZAAU-0001" #"ZAAU-0008",
            , "ZAAU-0002", "ZAAU-0003", "ZAAU-0004", "2309-0914")
@@ -467,35 +473,37 @@ fmt_dante_chart <- function(dir, targets, header) {
 
 ## Dante Inputs by Device
 
+TODO: The following charts need to be redeveloped to use the db.cables data structure.
+
 ```{r}
-fmt_dante_chart("In"
-				, "ZAKU-0001"
-				, "Inputs for the M7CL")
+# fmt_dante_chart("In"
+# 				, "ZAKU-0001"
+# 				, "Inputs for the M7CL")
 
 ```
 
 ```{r}
-fmt_dante_chart("In"
-				, "ZAKU-0002"
-				, "Inputs for the DM1000")
+# fmt_dante_chart("In"
+# 				, "ZAKU-0002"
+# 				, "Inputs for the DM1000")
 
 ```
 ```{r}
-fmt_dante_chart("In"
-				, c("2308-1124", "ZAIU-E002")
-				, "Inputs for the Reference Monitors and Video Mixer")
+# fmt_dante_chart("In"
+# 				, c("2308-1124", "ZAIU-E002")
+# 				, "Inputs for the Reference Monitors and Video Mixer")
 ```
 
 ```{r}
-fmt_dante_chart("In"
-				, "CUMU-E001"
-				, "Inputs for the Livestream DAW")
+# fmt_dante_chart("In"
+# 				, "CUMU-E001"
+# 				, "Inputs for the Livestream DAW")
 
 ```
 
 ```{r eval=FALSE}
-#| label: fig-dante-inputs-by-device
-#| fig-cap: Dante Inputs by Device
+#| label: tbl-dante-inputs-by-device
+#| tbl-cap: Dante Inputs by Device
 
 get_dante_devices() |>
 	filter(InOut == "In") |>
@@ -517,31 +525,33 @@ get_dante_devices() |>
 
 ## Dante Outputs by Device
 
+TODO: The following charts need to be redeveloped to use the db.cables data structure.
+
 ```{r}
-fmt_dante_chart("Out"
-				, "ZAKU-0001" 
-				, "Outputs for the M7CL")
+# fmt_dante_chart("Out"
+# 				, "ZAKU-0001" 
+# 				, "Outputs for the M7CL")
 ```
 ```{r}
-fmt_dante_chart("Out"
-				, "CUMU-E001" 
-				, "Outputs for the DAW Workstation")
+# fmt_dante_chart("Out"
+# 				, "CUMU-E001" 
+# 				, "Outputs for the DAW Workstation")
 ```
 
 ```{r}
-fmt_dante_chart("Out"
-				, c("ZAMU-B001", "ZAMU-B002", "ZAMU-B003", "ZAMU-A001") 
-				, "Outputs for the Wireless Microphone Receivers")
+# fmt_dante_chart("Out"
+# 				, c("ZAMU-B001", "ZAMU-B002", "ZAMU-B003", "ZAMU-A001") 
+# 				, "Outputs for the Wireless Microphone Receivers")
 ```
 ```{r}
-fmt_dante_chart("Out"
-				, "CDMU-A001" 
-				, "Outputs for the ProPresenter Computer")
+# fmt_dante_chart("Out"
+# 				, "CDMU-A001" 
+# 				, "Outputs for the ProPresenter Computer")
 ```
 
 ```{r eval=FALSE}
-#| label: fig-dante-outputs-by-device
-#| fig-cap: Dante Outputs by Device
+#| label: tbl-dante-outputs-by-device
+#| tbl-cap: Dante Outputs by Device
 
 get_dante_devices() |>
 	filter(InOut == "Out") |>
@@ -710,8 +720,8 @@ routing %>%
 
 
 ```{r dante_inv}
-#| label: fig-dante-inventoru
-#| fig-cap: Dante Inventory
+#| label: tbl-dante-inventoru
+#| tbl-cap: Dante Inventory
 #| 
 cs <- c(  "ZAIU-B001", "ZAIU-B002" 
         , "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003"
@@ -943,10 +953,12 @@ rane:o4 -> videomix:i2
 Some of the audio system components have network (tcp/ip specicially) connectivity requriements. The primary audio console can be remotely operated from an iPad, so other devices also must be on the network as well, but they are personal devices and not part of this inventory. In the balcony, network switch NSCU-A003 provides wired access.    
 
 ```{r ni716} 
- NetworkInventory %>% 
-  filter(Category=="Audio") %>% 
-  select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
-  kable()  
+#TODO: redo using the new network data structure
+
+ # NetworkInventory %>% 
+ #  filter(Category=="Audio") %>% 
+ #  select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
+ #  kable()  
     # kable_styling("striped", full_width = TRUE)
 ```
 
@@ -998,10 +1010,10 @@ cat(print_gt_table(tab))
 
 # Input Map for Printing
 {{< pagebreak >}} 
-```{r ToPrint}
+```{r ToPrint, eval=FALSE}
 include <- c(seq(1,24), seq(25,40))
 
-g0 <- get_inputs("dLive", "") |>
+g0 <- get_inputs("dLive") |>
 	  select( Interface,  Socket, Source, Detail  ) |>
   filter(Interface == "DM64") 
 

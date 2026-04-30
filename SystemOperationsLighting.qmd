@@ -10,6 +10,8 @@ execute:
 format:
   html:
     toc: true
+  titlepage-pdf:
+    toc: true  
   pdf:
     toc: true
     fig-pos: h
@@ -73,9 +75,9 @@ The sconce lights also have an timed switch which is next to the keypad, **if yo
 ![The Keypad](./images/sol-keypad.jpg){width=15% #fig-sol-keypad}
 
 ```{r keypad}
-#| fig-cap: "Keypad Presets"
-#| fig-cap-location: bottom
-#| label: fig-keypad-presets
+#| tbl-cap: "Keypad Presets"
+#| tbl-cap-location: bottom
+#| label: tbl-keypad-presets
 
 keypad <-  get_keypad_buttons()  %>% rename(Description = B_Description)
 
@@ -186,10 +188,13 @@ tab <- playback |>
 	tab_header("Playback Map")
 ```
 
+```{r}
+tab
+```
+
+
 ```{r playback-map, results='asis' }
-#| label: fig-playbacks  
-#| fig-cap: Playback Map 
-#| fig-cap-location: bottom
+#| label: tbl-playbacks#| tbl-cap: Playback Map#| tbl-cap-location: bottom
 
 cat(print_gt_table(tab))
 ```
@@ -241,7 +246,7 @@ TODO: **The list below is out of date and needs to be updated.** See @fig-interm
 :::
 
 ```{r intermediate}
-#| label: fig-intermediate-playbacks
+#| label: tbl-intermediate-playbacks
 playback %>%
   filter(IsSimple == "N"  ) %>%
 #  arrange(Playback) %>%
@@ -322,9 +327,9 @@ The best way to view these videos is via RightNowMedia. Search for or click on:
 Titles classified as Basic are videos every operator should watch (about 21 minutes). 
 
 ```{r tab-basic}
-#| fig-cap: "Basic Training"
-#| cap-location: bottom
-#| label: fig-basic
+#| tbl-cap: "Basic Training"
+#| tbl-cap-location: bottom
+#| label: tbl-basic
 #| 
 get.training() %>%
   filter(Topic1=="Lighting") %>%
@@ -357,9 +362,9 @@ get.training() %>%
 The following Intermediate videos should be viewed after you become comfortable with normal operations (12 minutes). 
 
 ```{r tab-intermediate}
-#| fig-cap: "Intermediate Training"
-#| cap-location: bottom
-#| label: fig-intermendiate
+#| tbl-cap: "Intermediate Training"
+#| tbl-cap-location: bottom
+#| label: tbl-intermendiate
 #| 
 get.training() %>%
   filter(Topic1=="Lighting") %>%
@@ -393,9 +398,9 @@ These last titles are classified as Advanced, they are as not likely to be usefu
 
 
 ```{r tab-advanced}
-#| fig-cap: "Advanced Training"
-#| cap-location: bottom
-#| label: fig-advanced
+#| tbl-cap: "Advanced Training"
+#| tbl-cap-location: bottom
+#| label: tbl-advanced
 #| 
 get.training() %>%
   filter(Topic1=="Lighting") %>%
@@ -460,9 +465,9 @@ Effect
 There is a series of videos on these topics on Right now media. Search for or click on: [Lighting / Lighting Design / 01 Basic](https://www.rightnowmedia.org/Training/Post/View/359210)
 
 ```{r tab-advanced}
-#| fig-cap: Lighting Design
-#| cap-location: bottom
-#| label: fig-ifcb
+#| tbl-cap: Lighting Design
+#| tbl-cap-location: bottom
+#| label: tbl-ifcb
 #| 
 get.training() %>%
   filter(Topic1=="Lighting") %>%

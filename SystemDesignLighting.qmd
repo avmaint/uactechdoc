@@ -553,7 +553,7 @@ Each group would be controlled by its own DMX channel group.
 ```{r groups   }
 #| label: tbl-ketra-groups
 #| tbl-cap: Ketra Groups
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 smry <- plan |> 
   group_by(group) |>
   summarise(Lamp_Count = n() )

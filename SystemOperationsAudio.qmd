@@ -84,9 +84,9 @@ Although not part of the audio system, it is often the audio engineer who turns 
 See (@fig-training-videos) for a list of training videos. The titles are links you can follow.
  
 ```{r training}
-#| fig-cap: "Training Videos"
-#| cap-location: bottom
-#| label: fig-training-videos
+#| tbl-cap: "Training Videos"
+#| tbl-cap-location: bottom
+#| label: tbl-training-videos
 #| 
 get.training() |>
   filter(Topic1=="Audio") |>
@@ -114,8 +114,8 @@ get.training() |>
 There is a good collection of videos on YouTube from the [Dante Certification program](https://www.audinate.com/learning/training-certification/dante-certification-program) . You can enroll in the program which will give you access to all of the videos. The level 1 videos are listed here @fig-training-videos-dante.
 
 ```{r training-dante}
-#| fig-cap: "Dante Training Videos"
-#| label: fig-training-videos-dante
+#| tbl-cap: "Dante Training Videos"
+#| label: tbl-training-videos-dante
 #| 
 get.training() |>
   filter(Topic1=="Audio") |>
@@ -154,10 +154,10 @@ __1. DM64 Inputs:__
 The inputs "Inst10" through Inst14" are meant for guest instruments such as a violin, flute, or Sax. They are setup this way so they are also readily available to broadcast and IEM mixes.
  
 ```{r mixrack-inputs-analog, eval=TRUE}
-#| label: fig-mixrack-inputs-analog
-#| fig-cap: MixRack Analog Inputs
-get_inputs("MixRack") |>
-   select(Name, Port, `dLive Inputs (normal)`) |>	
+#| label: tbl-mixrack-inputs-analog
+#| tbl-cap: MixRack Analog Inputs
+get_inputs("2407-3000") |>
+   select(DstTag, DstPort, Usage) |>	
   gt() |>
   tab_header("dLive MixRack Analog Input Map") |>
   opt_stylize(style=3) |>
@@ -186,10 +186,10 @@ __2. DX168 Inputs:__
 There are 16 analog inputs in the small stage rack located next to the drum riser. There are used for the drum inputs, and the bass. 
 
 ```{r mixrack-dx168-analog, eval=TRUE}
-#| label: fig-mixrack-inputs-dx168
-#| fig-cap: DX168 Drum rack Analog Inputs
-get_inputs("DX1-DX168") |>
-   select(Name, Port, `dLive Inputs (normal)`) |>	
+#| label: tbl-mixrack-inputs-dx168
+#| tbl-cap: DX168 Drum rack Analog Inputs
+get_inputs("2410-1902") |>
+   select(DstTag, DstPort, Usage) |>	
   gt() |>
   tab_header("dLive DX168 Drum Rack Analog Inputs") |>
   opt_stylize(style=3) |>
@@ -216,11 +216,11 @@ __3. Dante Inputs:__
 I/O expansion port #1 on the DM64 is fitted with a 128x128 port Dante card. This is used for 16 inputs from the Shure ULXD receivers, two inputs from the ProPresenter computer, and 64 inputs from the Propresenter computer used for Virtual Soundcheck. The other computers can also provide Dante inputs.
 
 ```{r mixrack-dante-inputs, eval=TRUE}
-#| label: fig-mixrack-dante-inputs
-#| fig-cap: MixRack Dante Inputs
-get_inputs("IO1-Dante") |>
-	filter(Port < 20) |>
-   select(Name, Device, Port, `dLive Inputs (normal)`) |>	
+#| label: tbl-mixrack-dante-inputs
+#| tbl-cap: MixRack Dante Inputs
+get_inputs("2407-3002") |>
+	filter(DstPort < 20) |>
+   select(DstTag, DstPort, Usage) |>	
   gt() |>
   tab_header("MixRack Dante Inputs") |>
   opt_stylize(style=3) |>
@@ -234,8 +234,8 @@ o3 <- get_outputs("ZAMU-B002")
 o4 <- get_outputs("ZAMU-B003")
 
 rbind(o1,o2,o3,o4) |>
-	select(-Usage) |>
-	pivot_wider(names_from = "Device", values_from = "Name") |>
+	pivot_wider(names_from = "SrcTag"
+				, values_from = "Usage") |>
 	gt() |>
     tab_header("Shure Sources via Dante") |>
     opt_stylize(style=3) |>
@@ -245,11 +245,11 @@ rbind(o1,o2,o3,o4) |>
 Virtual Sound Check is enabled by going into the IO settings and the "Virtual SoundCheck" tab. When enabled, the normal inputs are overridden with the VSC configuration. These inputs are applicable:
 
 ```{r mixrack-dante-inputs-vsc }
-#| label: fig-mixrack-dante-inputs-vsc
-#| fig-cap: Dante Inputs for Virtual Sound Check
-get_inputs("IO1-Dante") |>
-	filter(Port > "64" ) |>
-   select(Name, Device, Port,   `dLive Input (VSC)`) |>	
+#| label: tbl-mixrack-dante-inputs-vsc
+#| tbl-cap: Dante Inputs for Virtual Sound Check
+get_inputs("2407-3002") |>
+	filter(DstPort > "in_64" ) |>
+   select(SrcTag, SrcPort, Usage) |>	
   gt() |>
   tab_header("MixRack Dante Inputs for Virtual Sound Check") |>
   opt_stylize(style=3) |>
@@ -261,10 +261,10 @@ __4. Surface Inputs:__ The console surface has 8 analog inputs on the back which
 Part of what is included in the scene definition is the channel layout. 
 
 ```{r s5000-analog-inputs }
-#| label: fig-s5000-analog-inputs
-#| fig-cap: S5000 surface Analog Inputs  
-get_inputs("S5000") |> 
-  select(Name, Device, Port, `dLive Inputs (normal)`) |>	
+#| label: tbl-s5000-analog-inputs
+#| tbl-cap: S5000 surface Analog Inputs  
+get_inputs("2407-3001") |> 
+  select(SrcTag, SrcPort, DstPort, Usage) |>	
   gt() |>
   tab_header("S5000 Surface Analog Inputs") |>
   opt_stylize(style=3) |>
@@ -311,8 +311,8 @@ We have eight monitor amplifier channels, each which can handle a load of two of
 Our standard monitor configuration is (@fig-monitors), however with our usage of the IEMs, these are not all that often used.
 
 ```{r gt.monitors}
-#| label: fig-monitors
-#| fig-cap: Standard Monitor Map
+#| label: tbl-monitors
+#| tbl-cap: Standard Monitor Map
 get_monitors() |>
 	gt() |>
 	tab_header("Standard Monitor Map") |>
@@ -392,8 +392,8 @@ To recall Scene 001, press the scene button on the right hand side, and then usi
 The softkeys allow the operator to quickly access common features. They are located on the very right hand side of the console, see figure @fig-soa-s5000-softkeys for the location and  @fig-soa-dlive-softkeys for the standard usage.
 
 ```{r}
-#| label: fig-soa-dlive-softkeys
-#| fig-cap: dLive Sof Keys
+#| label: tbl-soa-dlive-softkeys
+#| tbl-cap: dLive Sof Keys
 softkeys <- tribble(
 ~SoftKey , ~Function 
 ,"1","Monitor 1 to faders"  

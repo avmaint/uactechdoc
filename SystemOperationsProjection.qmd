@@ -46,9 +46,9 @@ The firm that makes ProPresenter, Renewed Vision, has many great training videos
 They have been organized in the list below, @fig-training-videos, into basic, intermediate and advanced topics.
 
 ```{r training}
-#| fig-cap: "Training Videos"
-#| cap-location: bottom
-#| label: fig-training-videos
+#| tbl-cap: "Training Videos"
+#| tbl-cap-location: bottom
+#| label: tbl-training-videos
 #| 
 get.training() |>
   filter(Topic1=="Projection") |>
@@ -85,10 +85,10 @@ Early in the week the service cue sheet for the following Sunday will be distrib
 It is very rare that you won't create your playlist this way. After starting ProPresenter, find the "+" in the upper left corner next to "Library" @fig-sop_pco_playlist7_1
 
 ```{r sop_pco_playlist7_1, echo=FALSE}
-#| label: fig-sop_pco_playlist7_1
-#| fig-cap: Click on the "+"
+#| label: tbl-sop_pco_playlist7_1
+#| tbl-cap: Click on the "+"
 #| fig.retina: 2
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 
 include_graphics("./images/sop_pco_playlist7_1.jpg")
 ```
@@ -96,10 +96,10 @@ include_graphics("./images/sop_pco_playlist7_1.jpg")
 Then select "Planning Center Service...". @fig-sop_pco_playlist7_2
  
 ```{r sop_pco_playlist7_2, fig.pos="H" }
-#| label: fig-sop_pco_playlist7_2
-#| fig-cap: Select "New PCO Playlist"
+#| label: tbl-sop_pco_playlist7_2
+#| tbl-cap: Select "New PCO Playlist"
 #| fig.retina: 2
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 
 include_graphics("./images/sop_pco_playlist7_2.jpg")
 ```
@@ -108,9 +108,9 @@ Next you will see a pop-up where you need to select the plan that you want to us
 
 ```{r sop_pco_playlist7_3  }
 #| label:   fig-sop_pco_playlist7_3
-#| fig-cap: Click on the desired date and then "Select"
+#| tbl-cap: Click on the desired date and then "Select"
 #| fig.retina: 2
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 
 include_graphics("./images/sop_pco_playlist7_3.jpg")
 ```
@@ -122,10 +122,10 @@ If a Song is new, you will have to add it. See @sec-songs for more details.
 If you created the playlist before Sunday, you should refresh the playlist on Sunday morning to collect any updates. After doing a refresh check to make sure your arrangement choices haven't been changed. @fig-sop_pco_playlist7_4
  
 ```{r sop_pco_playlist7_4 , fig.pos="H" }
-#| label: fig-sop_pco_playlist7_4
-#| fig-cap: Refresh a PCO playlist
+#| label: tbl-sop_pco_playlist7_4
+#| tbl-cap: Refresh a PCO playlist
 #| fig.retina: 2
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 
 include_graphics("./images/sop_pco_playlist7_4.jpg")
 ```
@@ -136,10 +136,10 @@ A PCO generated playlist remains linked to PCO. Items that were defined in PCO c
 If you need more flexibility, you can convert a PCO playlist to a manual one. @fig-sop_pco_playlist7_5
 
 ```{r sop_pco_playlist7_5 }
-#| label: fig-sop_pco_playlist7_5
-#| fig-cap: Convert to a non-PCO playlist
+#| label: tbl-sop_pco_playlist7_5
+#| tbl-cap: Convert to a non-PCO playlist
 #| fig.retina: 2
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 
 include_graphics("./images/sop_pco_playlist7_5.jpg")
 ```
@@ -151,10 +151,10 @@ ProPresenter is able to import the contents of a PowerPoint presentation. It cre
 You execute the import via File \> Import \> Import PowerPoint. @fig-sop-ppt-import-1
 
 ```{r sop-ppt-import-1 }
-#| label: fig-sop-ppt-import-1
-#| fig-cap: Importing a PowerPoint
+#| label: tbl-sop-ppt-import-1
+#| tbl-cap: Importing a PowerPoint
 #| fig.retina: 2
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 
 include_graphics("./images/sop_ppt_import7_1.jpg")
 ```
@@ -162,10 +162,10 @@ include_graphics("./images/sop_ppt_import7_1.jpg")
 and then navigate to the PowerPoint file. @fig-sop-ppt-import-2
 
 ```{r sop-ppt-import-2 }
-#| label: fig-sop-ppt-import-2
-#| fig-cap: Import
+#| label: tbl-sop-ppt-import-2
+#| tbl-cap: Import
 #| fig.retina: 2
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 
 include_graphics("./images/sop_ppt_import7_2.jpg")
 ```
@@ -326,9 +326,9 @@ Colour Themed Light Cues
 : Light cues Lq:100.0 through Lq:899.9 are reserved for light cues that correspond to different colour combinations, suitable to accompany music. The numbers correspond to major colours, see table @fig-digit-convention .
 
 ```{r}
-#| fig-cap: "Cue Name Digit Convention"
-#| fig-cap-location: bottom
-#| label: fig-digit-convention
+#| tbl-cap: "Cue Name Digit Convention"
+#| tbl-cap-location: bottom
+#| label: tbl-digit-convention
 
 tribble(
 	~Digit, ~Colour,

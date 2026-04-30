@@ -174,13 +174,13 @@ The complete list of external sources (@tbl-input-map / @fig-atem-inputs):
 
 ```{r tbl-input-map}
 #| tbl-cap: Inputs to the ATEM
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 #| label: tbl-input-map
 
 cables |> 
 	filter(DstTag == "ZVKU-A003") |> 
 	left_join(assets, join_by (SrcTag == AssetTag )) |>
-	select(DstPort, Usage ,  SrcTag, SrcPort, Desc  ) |> 
+	select(DstPort, Usage.x ,  SrcTag, SrcPort, Desc  ) |> 
 	arrange(DstPort) |> 
 	gt() |>
 	opt_stylize(style=3) |>
@@ -189,7 +189,8 @@ cables |>
 				SrcPort = "Source Port",
 				Desc    = "Source Description") |>
 	tab_footnote("Usually used for the Stage camera via extension cable"
-				 , locations= cells_body(columns=DstPort,
+				 , locations= 
+				 	cells_body(columns=DstPort,
 				 						rows = DstPort == 'in8'))
 ```
 
@@ -259,13 +260,13 @@ The Auxiliary output is sent to two destinations:
 
 ```{r tbl-atem-outputs}
 #| tbl-cap: ATEM Outputs
-#| cap-location: bottom
+#| tbl-cap-location: bottom
 #| label: tab-atem-outputs
 
 cables |> 
 	filter(SrcTag == "ZVKU-A003") |> 
 	left_join(assets, join_by (DstTag == AssetTag )) |>
-	select(SrcPort, Usage ,  DstTag, DstPort, Desc  ) |> 
+	select(SrcPort, Usage.x ,  DstTag, DstPort, Desc  ) |> 
 	arrange(SrcPort) |> 
 	gt() |>
 	opt_stylize(style=3) |>
@@ -854,8 +855,8 @@ Open Safari and then for each camera do these steps:
 * Enter the address for a camera in the address bar (see @fig-camera-address). They will be on the left bookmark bar but if not, listed here as well.
 
 ```{r addresses}
-#| label: fig-camera-address
-#| fig-cap: Camera Addresses
+#| label: tbl-camera-address
+#| tbl-cap: Camera Addresses
 
 network.data  |>
   filter(AssetTag %in% c("ZVCU-A001","ZVCU-A002","ZVCU-A003")) |>

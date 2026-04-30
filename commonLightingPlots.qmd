@@ -1,3 +1,14 @@
+```{r}
+source("commonPackages.R")
+source("commonFunctions.R")
+db.network  <- get.network()
+db.assets   <- get.assets()
+dmx.details <- get.dmxdetails() 
+db.cables   <- get.cables()
+```
+
+ 
+
 ```{r clprefpoints}
 #stage and room reference points
 stage.refs <- tribble(
@@ -147,10 +158,10 @@ These diagrams are approximations (dimension wise), and somewhat simplified. For
 
 ## Theartrical Channels
 
-```{r fig-clptchan }
-#| label: fig-clptchan
-#| fig-cap: Room Overview
-#| cap-location: bottom
+```{r   }
+#| label: tbl-clptchan
+#| tbl-cap: Room Overview
+#| tbl-cap-location: bottom
 
 channels <-  dmx.details %>% filter(!is.na(x))
 
@@ -176,10 +187,10 @@ Some items are quite moveable so may not match this diagram, specifically fixtur
 
 Zoom in on the stage (@fig-clpzoomstage). Some of the lighting is mounted on the ceiling and some sits on the stage. Some of them are portabe (CSPARs and AW Bars) and are used for lighting scrims, backdrops, etc.
 
-```{r fig-clpzoomstage}
-#| label: fig-clpzoomstage
-#| fig-cap: Zoom in on stage
-#| cap-location: bottom
+```{r   }
+#| label: tbl-clpzoomstage
+#| tbl-cap: Zoom in on stage
+#| tbl-cap-location: bottom
 
 channels <-  dmx.details |>
 	filter(!is.na(x)) |>
@@ -199,10 +210,10 @@ ggplot() +
 
 @fig-clpstagepots
 
-```{r fig-clpstagepots}
-#| label: fig-clpstagepots
-#| fig-cap: Stage Pots
-#| cap-location: bottom
+```{r  }
+#| label: tbl-clpstagepots
+#| tbl-cap: Stage Pots
+#| tbl-cap-location: bottom
 #| 
 chs <- dmx.details |> filter(Location == "Stage Pots") |> select(Channel, Usage)
 lox <- merge(chs, all.pots, by.x="Usage", by.y="group" )
@@ -232,10 +243,10 @@ __Pendants over the Balcony__
 There are 20 pendants currently installed. There were originally 24. There were four pendants in the vacinity of the balcony bars that were removed to make room for the bars. Two over the balcony and two over the main floor.  
 :::
 
-```{r clppendants}
-#| label: fig-clppendants
-#| fig-cap: Pendants
-#| cap-location: bottom
+```{r  }
+#| label: tbl-clppendants
+#| tbl-cap: Pendants
+#| tbl-cap-location: bottom
 
 pendants <- tribble(
 ~fixture,  ~Channel, ~x,  ~y, ~sz,
@@ -329,10 +340,10 @@ ggplot() +
 * These lamps are RGB lamps.
 * There is a pair of 3-way light swtiches at the entrance doors that can turn off the lights. These are controlled via a switch located by the south-east and north-east doors. The control at the south-east door has a programmable timer. This is to ensure that there is some lighting in the evenings between dusk and midnight to enable safe passage.
 
-```{r fig-clpsconse}
-#| label: fig-clpsconse
-#| fig-cap: Pendants
-#| cap-location: bottom
+```{r   }
+#| label: tbl-clpsconse
+#| tbl-cap: Pendants
+#| tbl-cap-location: bottom
 
 sconse1 <- tribble(
   ~Item, ~Channel, ~x, ~y,
@@ -370,10 +381,10 @@ Each Pot under the Balcony is an RGB lamp.
 
 The plot is illustrative - They are not accurately placed. There are 26 pot lights (all Ketra). 
 
-```{r fig-clpubal }
-#| label: fig-clpubal
-#| fig-cap: Under Balcony
-#| cap-location: bottom
+```{r   }
+#| label: tbl-clpubal
+#| tbl-cap: Under Balcony
+#| tbl-cap-location: bottom
  
 ubal <- tribble(
 ~fixture,  ~Channel, ~x,  ~y, ~sz, 
