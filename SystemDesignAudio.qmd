@@ -174,11 +174,12 @@ slice1 <- db.cables |>
 	select(DstTag, DstPort , Usage, SrcTag, SrcPort)  |>
 	filter( !is.na(Usage) ) 
 
-slice1 |>
+tbl <- slice1 |>
 	gt() |>
 	opt_stylize(style=5) |>
-	tab_header("Sockets for each Device") |>
-	gt_split(row_every_n = 25)
+	tab_header("Sockets for each Device")
+
+if (knitr::is_latex_output()) tbl else gt_split(tbl, row_every_n = 25)
 ```
 
 ```{r top1}
