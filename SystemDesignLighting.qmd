@@ -107,7 +107,8 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 #system(glue("open {tf}"))
 ```
 
-```{dot  fig-sdl-dmx_control }
+```{dot fig-sdl-dmx_control  }
+//| echo: true  
 //| label: fig-sdl-dmx_control
 //| fig-cap: Control Topology  
 //| cap-location: bottom
@@ -242,8 +243,8 @@ zones2dmx     <- get_zones2dmx()
 ```
 
 ```{r keypad}
-#| label: fig-keypad-index
-#| fig-cap: Keypad Index
+#| label: tbl-keypad-index
+#| tbl-cap: Keypad Index
 keypad |>
   arrange(Button) |>
 	gt() |>
@@ -373,7 +374,7 @@ Lines refer to power distribution circuits from the balcony closet to east and w
 
 Only the balcony ones are current in active use.
 
-```{r}
+```{r }
 circuits <- tribble(
   ~Circuit.Lo, ~Circuit.Hi, ~Destination, ~Source,
    1 ,10 ,  "Balcony East Bar",  "Balcony Closet",  
@@ -382,12 +383,13 @@ circuits <- tribble(
    40,42 ,  "Stage Floor",       "Electrical Room"
 )
 
-tab <- circuits |> 
+ circuits |> 
   select("Circuit.Lo", 	"Circuit.Hi", "Source", "Destination") |>
 	gt() |>
 	opt_stylize(style=3)
 
-gtsave(tab, "_work/sdl-circuits.png")
+#print_gt_table(tab) |> cat()
+
 ```
 
 ![Circuit Destinations](_work/sdl-circuits.png){#fig-circuits width=75mm}
@@ -531,8 +533,8 @@ return(g)
 The basic floor plan (stage). See @fig-basic-floor
 
 ```{r fig-basic-floor }
-#| label: fig-basic-floor
-#| fig-cap: Basic Floor Plan
+#| label: tbl-basic-floor
+#| tbl-cap: Basic Floor Plan
 df <- plan
  g <- ggplot(df) + coord_equal() +
   # geom_path(data=l1, aes(x=x, y=y) ) +
@@ -549,8 +551,8 @@ The design has divided up the design into `r plan |> select(group) |> unique() |
 Each group would be controlled by its own DMX channel group.
 
 ```{r groups   }
-#| label: fig-ketra-groups
-#| fig-cap: Ketra Groups
+#| label: tbl-ketra-groups
+#| tbl-cap: Ketra Groups
 #| cap-location: bottom
 smry <- plan |> 
   group_by(group) |>
@@ -567,8 +569,8 @@ We need to keep the light off the screens so we need to use the spot width lamps
 With nothing else added, these will create dots on the floor.
 
 ```{r  walls477}
-#| label: fig-walls
-#| fig-cap: Walls
+#| label: tbl-walls
+#| tbl-cap: Walls
 p1 <- plan |> 
    filter(group == "Wall" ) 
 
@@ -584,8 +586,8 @@ With all of them on, the centre section wil be brighter than the outside.
 For coverage behind the bulkhead, we can use "Two Rows"
 
 ```{r fig-downstage }
-#| label: fig-downstage
-#| fig-cap: Down Stage
+#| label: tbl-downstage
+#| tbl-cap: Down Stage
 p1 <- plan |> 
    filter(group == "Down Stage" ) 
 
@@ -597,8 +599,8 @@ makeplot(p1 )
 The WF covers most of the riser
 
 ```{r  fig-upstagecentre }
-#| label: fig-upstagecentre
-#| fig-cap: Upstage Centre
+#| label: tbl-upstagecentre
+#| tbl-cap: Upstage Centre
 p1 <- plan |> 
    filter(group == "Up Stage" ) 
 
@@ -611,8 +613,8 @@ The there are 10 centre pots are in one groups to wash most of the platform.
 There will be a hot spot down the centre if all are on at once.
 
 ```{r fig-centrewash }
-#| label: fig-centrewash
-#| fig-cap: Centre Wash
+#| label: tbl-centrewash
+#| tbl-cap: Centre Wash
 p1 <- plan |> 
    filter(group == "Centre"  )   
 
@@ -689,9 +691,9 @@ The expected maximum transition time is `r T` seconds.
 Reference location "r1" is the "zero" point.
 
 ```{r fig-floor-plan  }
-#| label: fig-floor-plan
-#| fig-cap-location: bottom
-#| fig-cap: Floor Plan  
+#| label: tbl-floor-plan
+#| tbl-cap-location: bottom
+#| tbl-cap: Floor Plan
  
 key.refs <- all.refs |> filter(group != "post")
 ggplot() + 
@@ -719,8 +721,9 @@ RJ45 and cat6 cabling is used for some interconnects - the protocol is DMX not E
 
 ```{r net_dets, results="asis"}
 db.network  |> 
+	inner_join(db.assets, by=join_by(AssetTag == AssetTag)) |>  
   filter(Category=="Lighting") |> 
-  select(Location, Usage, Device, MAC, IP, URL, Notes) |>
+  select(Location, Usage.x, MAC, IP, URL, Notes) |>
 	gt() |>
 	opt_stylize(style=3) |>
 	tab_header("Network Details") |>
@@ -795,7 +798,6 @@ Each one needs two channels.
 Intensity of zero is stop.
 The closer to 50 the slower it rotates.
 1-49 and 50-100 rotate in opposite directions.
-
 
 ## Terminology
 
