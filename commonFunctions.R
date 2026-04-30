@@ -4,14 +4,14 @@
 #tODO - use of globals, cache_assets and cache_network is subject to bugs.
 
 path         <- file.path("~", "Documents", "UACTech", "SystemDocumentation")
-data_dir     <- file.path(path, "github", "uactechdoc", "data")
-asset_file   <- "uac_assets.xlsx"
-network_file <- "uac_network.xlsx"
-cables_file  <- "uac_cables.xlsx"
-glossary_file <- "uac_glossary.xlsx"
-lighting_file <- "uac_lighting.xlsx"
+data_dir     <- file.path("~", "Documents", "UACTech", "uacdata")
+asset_file   <- "assets.xlsx"
+network_file <- "network.xlsx"
+cables_file  <- "cables.xlsx"
+glossary_file <- "glossary.xlsx"
+lighting_file <- "lighting.xlsx"
 training_file <- "training_videos.xlsx"
-rooms_file    <- "uac_rooms.xlsx"
+rooms_file    <- "rooms.xlsx"
 
 #' This function takes a list of asset tags and the inventory 
 #' returns a formatted kable table of the results. 
@@ -45,7 +45,7 @@ print_inv_kable <- function(items, inventory) {
     arrange( AssetTag ) %>%
     kable(align="l") %>%
     column_spec( 1,  bold = TRUE ) %>%
-    kable_styling("striped", full_width = TRUE)
+    kable_styling(bootstrap_options = "striped", latex_options = "striped")
 }
 
 print_inv <- function(items, inventory) {
@@ -140,7 +140,7 @@ cache_network <- read_excel(file.path(data_dir, network_file),
 
 ct <- c( rep("text",2),    # AssetTag, Category
          rep("numeric",3), # Qty UnitValue AcqValue
-         rep("text",14),   # Manufacturer	Model	Building	Floor	Room	Location	Type	Desc	SN	InService
+         rep("text",15),   # Manufacturer	Model	Building	Floor	Room	Location	Type	Desc	SN	InService
          "date",           # PurcDate
          rep("text",2),    # PurcFrom Invoice
          "text",           # Comments	

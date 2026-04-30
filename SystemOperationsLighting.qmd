@@ -192,9 +192,10 @@ tab <- playback |>
 tab
 ```
 
-
-```{r playback-map, results='asis' }
-#| label: tbl-playbacks#| tbl-cap: Playback Map#| tbl-cap-location: bottom
+```{r  results='asis' }
+#| label: tbl-playbacks
+#| tbl-cap: Playback Map
+#| tbl-cap-location: bottom
 
 cat(print_gt_table(tab))
 ```
@@ -253,7 +254,7 @@ playback %>%
   select(-IsSimple) %>%
   kable() %>%
   column_spec( 1:2,   bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE)
+  kable_styling(bootstrap_options = "striped", latex_options = "striped")
 ```
 
 For longterm storage you can save your show to a file or a USB stick. Save the current settings before overwriting with your saved show.
