@@ -8,9 +8,10 @@
 
 require(dplyr)
 require(kableExtra)
+require(quarto)
 
 srcdir <-  "~/Documents/UACTech/SystemDocumentation/github/uactechdoc"
-trgdir <- "~/Dropbox/UAC_Tech_Docs"
+trgdir <- file.path(srcdir, "_output")
 sog    <- "~/Documents/UACTech/SystemDocumentation/data/SystemOperationsGuide.xlsx"
 ti     <- "~/Documents/UACTech/SystemDocumentation/TechInventory.xlsx"
 
@@ -30,33 +31,33 @@ files <- tribble( # The file to process and whether is depends on the inventory 
   "SystemOperationsProjection",     TRUE,   TRUE,
   "SystemOperationsVideo",          TRUE,   TRUE,
 
-  "TechHomePage",                   TRUE,   FALSE,
+  #"TechHomePage",                   TRUE,   FALSE,
 
-  "TeamDesign",                     FALSE,  FALSE,
-  "TechTeamIntro",                  FALSE,  FALSE,
+  #"TeamDesign",                     FALSE,  FALSE,
+  #"TechTeamIntro",                  FALSE,  FALSE,
   
-  "ElectricalGuide",                FALSE,  FALSE,
-  "InventoryManagement",            TRUE,   FALSE,
-  "SystemAdministrationGuide",      TRUE,   FALSE,
+  #"ElectricalGuide",                FALSE,  FALSE,
+  #"InventoryManagement",            TRUE,   FALSE,
+  #"SystemAdministrationGuide",      TRUE,   FALSE,
           
-  "index",                          FALSE,  FALSE,
-  "SystemOperationsGuide",          FALSE,  TRUE 
+  #"index",                          FALSE,  FALSE,
+  #"SystemOperationsGuide",          FALSE,  TRUE 
 )
 
 needs.updating <- function(file) {
-  rmd.file   <- paste0(srcdir, "/", f, '.Rmd' )
+  qmd.file   <- paste0(srcdir, "/", f, '.qmd' )
   html2.file <- paste0(trgdir, "/", f, ".html" )
   #get modification times
-  rmd.mt <- file.info(rmd.file)$mtime
+  qmd.mt <- file.info(qmd.file)$mtime
   html2.mt <- file.info(html2.file)$mtime
   sog.mt   <- file.info(sog)$mtime
   ti.mt   <- file.info(ti)$mtime
   
-  rmd.newer <- (rmd.mt > html2.mt) 
+  qmd.newer <- (qmd.mt > html2.mt) 
   sog.newer <- (sog.mt > html2.mt) & files[files$File==f,"Rundown"]
   ti.newer  <- (ti.mt > html2.mt)  & files[files$File==f,"Inventory"]
   
-  return.value <- rmd.newer | sog.newer | ti.newer
+  return.value <- qmd.newer | sog.newer | ti.newer
   
   return(return.value)
 }
@@ -68,19 +69,19 @@ for (f in files$File) {
   
   print(paste("Processing:", f))
   
-  rmd.file   <- paste0(srcdir, "/", f, '.Rmd' )
+  qmd.file   <- paste0(srcdir, "/", f, '.qmd' )
   html2.file <- paste0(trgdir, "/", f, ".html" )
   html1.file <- paste0(srcdir, "/", f, '.html' )
   pdf.file   <- paste0(trgdir, "/", f, ".pdf"  )
   
   #get modification times
-  rmd.mt <- file.info(rmd.file)$mtime
+  qmd.mt <- file.info(qmd.file)$mtime
   html2.mt <- file.info(html2.file)$mtime
   
-  if (needs.updating(f)) {  
-    #render
-    rmarkdown::render(rmd.file, output_format = "html_document")
-  
+  if (needs.updating(f)) {
+    #render — must use quarto_render so {{< include >}} directives are processed
+    quarto::quarto_render(qmd.file, output_format = "html", quiet = FALSE)
+
     #move it to target
     cmd <- paste("mv", html1.file, trgdir)
     system(cmd)
