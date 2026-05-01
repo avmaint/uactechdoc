@@ -3,7 +3,7 @@
 .Rhistory
 *.pdf
 *.html
-!webapp/frontend/*.html
+webapp/*
 data/~*.xlsx
 data/*
 SystemDesign*_files
