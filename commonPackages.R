@@ -1,7 +1,7 @@
 # commonPackages
 
 require(readr)
- require(readxl)
+require(readxl)
 require(knitr)
 require(jpeg)
 require(grid)

@@ -31,8 +31,8 @@ source("./commonDiagramConnectivity.R")
 
 ```{r getdata}
 db.inventory <- get.inventory()
- 
-db.cables <- get.cables()
+db.assets    <- get.assets() 
+db.cables    <- get.cables()
  
 network.data   <- get.network()
 further        <- get.further()
@@ -721,8 +721,9 @@ print_inv(c("ZVKU-A004", "ZVKU-A001", "CUMU-G001",
 
 ```{r net-details, results='asis'} 
 network.data |>
+	inner_join(db.assets, by=join_by(AssetTag == AssetTag)) |>
 filter(Category=="Video") |>
-select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
+select(AssetTag, Usage.x,   MAC, IP, URL, Notes) %>%
     gt( ) |>
 			opt_stylize(style = 3) |>
     		tab_style(
@@ -749,8 +750,6 @@ items <- db.inventory |>
   
 #print_inv(items, db.inventory)
 ```
-
->TODO need to add CUMU-G001 to the list
 
 {{< include common_trailer.qmd >}}
 

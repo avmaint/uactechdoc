@@ -30,10 +30,10 @@ source("./commonDiagram.R")
 ```
 
 ```{r data}
-network.data <- get.network()
+db.network <- get.network()
 further      <- get.further()
-cables       <- get.cables()
-assets       <- get.assets()
+db.cables       <- get.cables()
+db.assets       <- get.assets()
 ```
 
 # Introduction
@@ -97,7 +97,7 @@ Be gentle.</small>
 :::
 
 ::: callout-note
-TODO: Which jacks are the correct network jacks\>
+TODO: Which jacks are the correct network jacks
 :::
 
 # Operating Remote Cameras via the Joystick
@@ -153,7 +153,7 @@ The middle row of buttons will be typically used to direct a camera to a preset 
 
 6.  
 
-    Worhsip Team Wide
+    Worship Team Wide
 
     :   The whole team of 6 or so singers.
         When used you may need to go wider of narrower depending on the vocal compliment of that week.
@@ -177,9 +177,9 @@ The complete list of external sources (@tbl-input-map / @fig-atem-inputs):
 #| tbl-cap-location: bottom
 #| label: tbl-input-map
 
-cables |> 
+db.cables |> 
 	filter(DstTag == "ZVKU-A003") |> 
-	left_join(assets, join_by (SrcTag == AssetTag )) |>
+	left_join(db.assets, join_by (SrcTag == AssetTag )) |>
 	select(DstPort, Usage.x ,  SrcTag, SrcPort, Desc  ) |> 
 	arrange(DstPort) |> 
 	gt() |>
@@ -263,9 +263,9 @@ The Auxiliary output is sent to two destinations:
 #| tbl-cap-location: bottom
 #| label: tab-atem-outputs
 
-cables |> 
+db.cables |> 
 	filter(SrcTag == "ZVKU-A003") |> 
-	left_join(assets, join_by (DstTag == AssetTag )) |>
+	left_join(db.assets, join_by (DstTag == AssetTag )) |>
 	select(SrcPort, Usage.x ,  DstTag, DstPort, Desc  ) |> 
 	arrange(SrcPort) |> 
 	gt() |>
@@ -459,16 +459,9 @@ Using them has three steps:
 The built-in media players can be used to playback static graphics or very short videos.
 The graphics are changed using the ATEM control software on the Mac (CUMU-G001):
 
--   On the bottom of the screen their are four tabs: Switcher, Media, Audio, Camera, select the "Media" tab.\
-    wtf
--   v1 (@mediatablocation)
--   v2 @mediatablocation
--   v3 @fig:mediatablocation
--   v4 (@fig:mediatablocation)
--   v5 \@ref(fig:mediatablocation)
--   v6 \ref{fig:mediatablocation}
+-   On the bottom of the screen there are four tabs: Switcher, Media, Audio, Camera, select the "Media" tab, as shown in @fig-mediatablocation.
 
-![Media tab location](./images/sov-softwareswtichermediaarrow.png){#fig:mediatablocation}
+![Media tab location](./images/sov-softwareswtichermediaarrow.png){#fig-mediatablocation}
 
 -   On the left hand side there is a file navigator. Dropbox will be one of the "Favourites". Expand it by clicking on the "\>".
 -   Navigate to the folder for the week, eg "serv_aug25"
@@ -705,7 +698,7 @@ xd <- c("2308-1124","ZVIU-C001","ZVIU-E003","ZVIU-A008"
 		, "ZLIU-A002", "ZAMU-A001", "ZAMU-A002", "ZAMUB001"
 		, "ZVVU-0002", "ZVIU-A001", "ZVIU-A002"
 		, "CDMU-A001", "CDWU-0009")
-diag <- get_diagram(target , assets, cables
+diag <- get_diagram(target , db.assets, db.cables
 					, exc_dev =xd
 					, label= '"Web Presenter Connections"'
 					, rankdir ="TB")
@@ -717,7 +710,7 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(png_path, width = 1200)
 ```
 
 ::: {.content-visible when-format="html"}
-```{dot wpcon}
+```{dot  }
 //| fig-cap: Web Presenter Connections
 //| cap-location: bottom
 //| label: fig-wp-conn
@@ -726,8 +719,8 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(png_path, width = 1200)
 :::
 
 ::: {.content-visible unless-format="html"}
-```{r wpcon-pdf}
-#| label: fig-wp-conn
+```{r  }
+#| label: fig-wp-conn2
 #| fig-cap: Web Presenter Connections
 #| fig-width: 5.5
 #| fig-height: 3.5
@@ -877,7 +870,7 @@ Open Safari and then for each camera do these steps:
 #| label: tbl-camera-address
 #| tbl-cap: Camera Addresses
 
-network.data  |>
+db.network  |>
   filter(AssetTag %in% c("ZVCU-A001","ZVCU-A002","ZVCU-A003")) |>
   select( AssetTag, URL , Notes ) |>
     gt( ) |>

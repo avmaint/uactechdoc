@@ -21,25 +21,30 @@ always_allow_html: yes
 
 # Introduction
 
-This is a detailed design report for the Audio and Video systems in the Youth Building. This documents is not complete as a lot of mapping work remains.
- 
-```{r packages_functions }
+This documents the rack profiles for the Audio, Video and Lighting systems at UAC.
+
+This is a work in progress and is not complete as a lot of mapping work remains.
+
+```{r packages  }
 source('commonPackages.R')
 source('commonFunctions.R')
 source("commonRackProfile.R")
+```
 
-
+```{r  functions}
 gt_rack_summary <- function(df, rack) {
 tt <- glue("Overview of Rack : {rack}")
 asset <- df |> 
 	filter( AssetTag == rack) 
 
 dat <- tribble (
-	~Name       , ~Value 
-   , "Building" , asset$Building
-   , "Floor"    , asset$Floor
-   , "Room"     , asset$Room
-   , "Location" , asset$Location
+	~Name         , ~Value 
+   , "Building"   , asset$Building
+   , "Floor"      , asset$Floor
+   , "Room"       , asset$Room
+   , "Location"   , asset$Location
+   , "Description", asset$Desc
+   , "Usage"      , asset$Usage
    , "Item Count"
    , df |> filter( Rack == rack ) |> nrow() |> as.character()
 )
@@ -74,48 +79,30 @@ tab <- df |>
 ```{r get_data}
 db.inventory <- get.inventory()  
 ```
- 
-```{r}
+
+```{r racklist}
 racks <- db.inventory |> select(Rack) |> 
 	distinct() |> pull()
 ```
 
 # Racks
 
-```{r}
+```{r gt_racks}
 db.inventory |> filter( AssetTag %in% racks) |>
-	select(AssetTag, Manufacturer, Model
+	select(AssetTag
+		   , Manufacturer, Model
+		   , Desc, Usage 
 		   , Building, Room, Location) |>
-	arrange(AssetTag ) |> 
+	arrange(Building, Room,AssetTag ) |> 
 	gt() |>  
 	opt_stylize(style = 5)
 ```
 
-# Youth Building
+# Main Floor
 
-```{r  }
-rack <- '2308-0900'
+## Amp Room ZAHU-0001
 
-gt_rack_summary(db.inventory, rack)
-plot_rack_profile(rack, db.inventory)  
-```
-
-```{r}
-gt_rack_detail(db.inventory, rack)
-```
-
-```{r}
-rack <- '2308-0901'
-gt_rack_summary(db.inventory, rack)
-
-plot_rack_profile(rack, db.inventory)
-```
-
-```{r}
-gt_rack_detail(db.inventory, rack)
-```
-
-```{r}
+```{r ZAHU-0001}
 rack <- 'ZAHU-0001'
 gt_rack_summary(db.inventory, rack)
 
@@ -125,11 +112,50 @@ plot_rack_profile(rack, db.inventory
 				  , range = c(16, 30))
 plot_rack_profile(rack, db.inventory
 				  , range = c(1, 15))
+```
 
+F15 is a brush plate F30 PP
+
+```{r gtZAHU-0001}
 gt_rack_detail(db.inventory, rack)
 ```
 
-```{r}
+## Broadcast Room ZAHU-0003
+
+```{r ZAHU-0003}
+rack <- 'ZAHU-0003'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory)
+```
+
+F10 Blank F09 Patch F08 Gap F06-7 blank F02-03 Blank F01 Startech RKPW161915
+
+R02 PDU
+
+```{r gtZAHU-0003}
+gt_rack_detail(db.inventory, rack)
+```
+
+## Stage Rack 2509-1703
+
+```{r 2509-1703}
+rack <- '2509-1703'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory)
+gt_rack_detail(db.inventory, rack)
+```
+
+## Server Room
+
+Yet to be documented
+
+# Balcony
+
+## ZVHU-0002
+
+```{r ZVHU-0002}
 rack <- 'ZVHU-0002'
 gt_rack_summary(db.inventory, rack)
 
@@ -138,18 +164,9 @@ plot_rack_profile(rack, db.inventory)
 gt_rack_detail(db.inventory, rack)
 ```
 
+## Baclony Rack 2602-1800
 
-```{r}
-rack <- '2509-1703'
-gt_rack_summary(db.inventory, rack)
-
-plot_rack_profile(rack, db.inventory)
-gt_rack_detail(db.inventory, rack)
-```
-
-# Baclony Rack
-
-```{r}
+```{r balcony_rack}
 rack <- '2602-1800'
 gt_rack_summary(db.inventory, rack)
 
@@ -160,3 +177,208 @@ plot_rack_profile(rack, db.inventory
 gt_rack_detail(db.inventory, rack)
 ```
 
+## 2410-0900
+
+```{r 2410-0900}
+rack <- '2410-0900'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory
+				   )
+gt_rack_detail(db.inventory, rack)
+```
+
+## ZAHU-0004
+
+```{r ZAHU-0004}
+rack <- 'ZAHU-0004'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory
+				   )
+gt_rack_detail(db.inventory, rack)
+```
+
+## ZAHU-0005
+
+```{r ZAHU-0005}
+rack <- 'ZAHU-0005'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory
+				   )
+```
+
+F12 Gemini PL-8 - notag179 ? check sn F11 Shure UA844 ZAIU-B003 F10 - F07 ULXDQ F06 Tascam CD F01 Stuart and related gear
+
+R12 PDU
+
+```{r gtZAHU-0005}
+gt_rack_detail(db.inventory, rack)
+```
+
+## ZVHU-0001
+
+```{r ZVHU-0001}
+rack <- 'ZVHU-0001'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory )
+```
+
+F08 STARTech RKPW161915 F10 Sehlf with Decklink 3U
+
+F13 Shelf with 6 MC
+
+Group1: G005,g004,G003
+
+Group 2: ZVIU-A009, ZVIU-A006
+
+Group 3: ZVIU-E001
+
+F14 Gap
+
+F15 - Kramer 2U
+
+F17-18 Gap
+
+F19 Blinds
+
+F20 Furhman PL-8
+
+R04 Shelf for Clearcom 2U
+
+R06 ZLIU-0003
+
+R20 PDU
+
+```{r gtZVHU-0001}
+gt_rack_detail(db.inventory, rack)
+```
+
+## ZVHU-0002
+
+```{r ZVHU-0002b}
+rack <- 'ZVHU-0002'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory  )
+```
+
+F01-03 Drawer F04-06 Drawer F07-F09 Drawer F10-F12 Gap F14 Gap F16 Gap
+
+```{r gtZVHU-0002b}
+gt_rack_detail(db.inventory, rack)
+```
+
+## ZVHU-0003
+
+```{r ZVHU-0003}
+rack <- 'ZVHU-0003'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory)
+```
+
+F10 Furman PL-8 f08 blank F7 gap
+
+```{r gtZVHU-0003}
+gt_rack_detail(db.inventory, rack)
+```
+
+## ZAHU-0002
+
+```{r ZAHU-0002}
+rack <- 'ZAHU-0002'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory )
+```
+
+F1-3 HH09-HH12 F4-6 HH5-8 F7-9 HH1-4 F10-11 BP3-6 F12-13 BP1-2 F14-15 blank F16 blank F17 blank F18-20 blank
+
+```{r gtZAHU-0002}
+gt_rack_detail(db.inventory, rack)
+```
+
+# Fellowship Hall
+
+## 2401-3000
+
+```{r 2401-3000}
+rack <- '2401-3000'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory )
+```
+
+```{r gt2401-3000}
+gt_rack_detail(db.inventory, rack)
+```
+
+# Youth Building
+
+## Rear Desk 2308-0900
+
+```{r 2308-0900 }
+rack <- '2308-0900'
+
+gt_rack_summary(db.inventory, rack)
+plot_rack_profile(rack, db.inventory)  
+```
+
+```{r gt2308-0900}
+gt_rack_detail(db.inventory, rack)
+```
+
+## Stage 2308-0901
+
+```{r 2308-0901}
+rack <- '2308-0901'
+gt_rack_summary(db.inventory, rack)
+
+plot_rack_profile(rack, db.inventory)
+```
+
+```{r gt2308-0901}
+gt_rack_detail(db.inventory, rack)
+```
+
+# Reference Chart of U Heights
+
+```{r tofrh}
+
+u_inch =1.75
+u_mm = 44.45
+
+num_u <- seq(0, 41)
+
+df_u <- tibble(
+	U = num_u+1,
+	Height_inch = num_u * u_inch,
+	Height_mm = num_u * u_mm
+)
+
+
+df <- df_u
+library(data.table)  # Or use base R subsetting
+n_rows <- nrow(df)
+chunk_size <- ceiling(n_rows / 3)
+
+df1 <- df[1:chunk_size, ]
+df2 <- df[(chunk_size+1):(2*chunk_size), ]
+df3 <- df[(2*chunk_size+1):n_rows, ]
+
+wide_df <- cbind(df1, df2, df3)
+names(wide_df) <- c(names(df1), paste0(names(df2), "_2"), paste0(names(df3), "_3"))
+
+# Now format as gt
+wide_df |>
+  gt() |>
+	cols_label(
+   U = "U", Height_inch = "Height (in)", Height_mm = "Height (mm)",
+   U_2 = "U", Height_inch_2 = "Height (in)", Height_mm_2 = "Height (mm)",
+   U_3 = "U", Height_inch_3 = "Height (in)", Height_mm_3 = "Height (mm)"
+  )  |>
+  tab_header("Table of Rack Heights")
+```

@@ -1,0 +1,270 @@
+---
+title: "System Design - Audio"
+author: "UAC Media Arts"
+execute: 
+  eval: true
+  echo: false
+  warning: false
+  message: false
+format:
+  html:
+    toc: true
+  pdf:
+    toc: true
+  titlepage-pdf:
+    toc: true
+always_allow_html: yes
+---
+
+```{r packages, include=FALSE}
+source("commonPackages.r")
+```
+
+```{r functions}
+source("commonFunctions.r")
+```
+
+```{r getdata}
+credentials <- get.credentials()
+software    <- get.software()
+```
+
+# Introduction
+
+This document provides key administrative documentation for the AV technical systems at UAC. This material is meant to be disclosed to a few people who may need this information to take over the responsibilities of the Technical Manager.  
+
+# Credentials
+One can't manage the systems if you cannot get past userids and passwords, so they need to be protected and shared discretly.
+
+Passwords are not revealed in this document, instead the following tables discloses which passwords exist (PasswordKnown). Terry knows these passwords and a copy will be filed with the Office Manager.
+
+## Internal Systems
+```{r}
+credentials %>% 
+  mutate(PasswordKnown = !is.na(Password)) %>%
+  filter(AssetOrService=="Asset") %>%
+  select(ID,	Userid, PasswordKnown, 	Comment) %>%
+  rename(AssetTag = ID) %>%
+  gt(  ) |>
+  opt_stylize(style=5) 
+```
+
+## External Services
+  
+```{r}  
+credentials %>% 
+  mutate(PasswordKnown = !is.na(Password)) %>%
+  filter(AssetOrService=="Service") %>%
+  select(ID, URL,	Userid, PasswordKnown, 	Comment) %>%
+  rename(Name = ID) %>%
+  gt(  ) |>
+  opt_stylize(style=5)  
+```
+
+# Software
+
+The details of which software is to be installed on every system. A manufacturer value of 'oss' means open source software.
+License keys are not exposed in this report.
+
+```{r software}
+software %>%
+  arrange(InstalledOn, Manufacturer, Title) %>%
+  select(InstalledOn, Title, Version, Manufacturer, Comments) %>%
+  gt(  ) |>
+  opt_stylize(style=5) 
+```
+
+## Summary by Title
+
+```{r}
+ software |>
+	mutate(installed = "X") |>
+	select(Title,InstalledOn, installed ) |>
+	pivot_wider(names_from = "InstalledOn", values_from = "installed" ) |>
+    gt(  ) |>
+    opt_stylize(style=5) 
+```
+
+# Server Applications
+
+Three custom server applications run on the video computer **CUMU-G001** under the `avuser` account. All are managed with a `run.sh` script in their respective directories under `/Users/avuser/`.
+
+## AVL Tech Assistant (`avltechassistant`) {#sec-avltechassistant}
+
+### Purpose
+
+A web-based documentation and asset management tool for the AV/Lighting technical systems. Provides asset search, connectivity diagrams, signal path finding, rack location views, a knowledge base, and an operational dashboard.
+
+### Architecture
+
+| Component | Technology | Port |
+|-----------|-----------|------|
+| Frontend | Python `http.server` serving static HTML/CSS/JS | 8080 |
+| Backend | FastAPI + uvicorn | 9000 |
+| Data | Excel spreadsheets (`/data/*.xlsx`) | — |
+| Diagrams | Graphviz (`dot`) | — |
+
+The frontend is a single-page application (`index.html`) that calls the backend REST API. The backend reads asset, cable, network, and knowledge base data from `.xlsx` files at startup (reloadable via the UI). Connectivity diagrams are rendered server-side using Graphviz and returned as SVG.
+
+The backend also proxies manual lookups to the `media_arts_home` server (see below), rewriting relative file URLs to absolute before returning them to the browser.
+
+### Source Code
+
+GitHub: `https://github.com/avmaint/avltechassistant` (private, owned by `avmaint` account; `donert` is a collaborator)
+
+### Directory Layout
+
+```
+avltechassistant/
+  backend/
+    main.py           # FastAPI application
+    requirements.txt
+  frontend/
+    index.html
+    script.js
+    style.css
+    full.render.js
+  tests/
+    run_tests.py
+  data/               # symlink → ../data  (xlsx data files live outside the repo)
+  run.sh
+```
+
+### Dependencies
+
+- Python 3 with virtual environment (`.venv/`)
+- Graphviz — installed via MacPorts at `/opt/local/bin/dot`; must be on PATH
+
+### Installation (first time on a new machine)
+
+```bash
+cd /Users/avuser/avltechassistant
+./run.sh install        # creates .venv and installs Python packages
+ln -s ../data data      # point to shared data directory if not already present
+```
+
+Ensure `/opt/local/bin` is on the PATH used by the shell that launches the app (add to `~/.zshrc`):
+
+```bash
+export PATH="/opt/local/bin:$PATH"
+```
+
+### Deployment (updating to latest code)
+
+```bash
+cd /Users/avuser/avltechassistant
+./run.sh deploy         # git pull + pip install
+./run.sh restart        # stop and start both services
+```
+
+### Start / Stop
+
+```bash
+./run.sh start          # starts frontend (8080) and backend (9000) as background daemons
+./run.sh stop           # stops both
+./run.sh restart        # stop then start
+```
+
+Logs: `frontend.log` and `backend.log` in the repo root directory.
+
+---
+
+## Media Arts Home (`media_arts_home`) {#sec-media-arts-home}
+
+### Purpose
+
+An internal web server providing:
+
+- **Documentation browser** — rendered HTML versions of the Quarto system design documents
+- **Manuals browser** — PDF equipment manuals indexed by asset tag
+- **Messages board** — operational notes visible to the tech team
+
+### Architecture
+
+| Component | Technology | Port |
+|-----------|-----------|------|
+| Web server | Flask (Python) | 80 |
+| Docs | Static HTML files in `docs/` directory | — |
+| Manuals | PDF files in `manuals/` directory | — |
+| Manual index | `manuals/assets_manuals_index.json` | — |
+
+### Source Code
+
+GitHub: `https://github.com/avmaint/media_arts_home` (private)
+
+### Key API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /` | Home page |
+| `GET /docs/` | Documentation index |
+| `GET /docs/<filename>` | Serve a documentation file |
+| `GET /manuals/` | Manuals index |
+| `GET /manuals/files/<path>` | Serve a PDF manual |
+| `GET /api/manuals/<asset_tag>` | JSON list of manuals for an asset |
+| `GET /api/messages` | Retrieve operational messages |
+| `POST /api/messages` | Post a new message |
+
+### Installation (first time)
+
+```bash
+cd /Users/avuser/media_arts_home
+./run.sh install        # creates .venv and installs Flask
+```
+
+Publish content after first install:
+
+```bash
+./scripts/publish_docs.sh       # copies rendered HTML docs into docs/
+./scripts/publish_manuals.sh    # copies PDFs and builds manuals index
+```
+
+### Deployment (updating)
+
+```bash
+cd /Users/avuser/media_arts_home
+./run.sh deploy         # git pull + pip install
+./run.sh stop
+./run.sh start
+```
+
+### Start / Stop
+
+```bash
+./run.sh start          # starts Flask on port 80 as a background daemon
+./run.sh stop
+```
+
+Log: `server.log` in the repo root directory.
+
+---
+
+## CueCommander {#sec-cuecommander-admin}
+
+{{< include common_CueCommander.qmd >}}
+
+### Installation & Startup
+
+CueCommander runs on the Node-RED platform. Node-RED is installed as a global npm package and starts automatically when `avuser` logs in via an Apple Automator script.
+
+To start or restart manually:
+
+```bash
+node-red start
+```
+
+The web interface is available at `http://192.168.0.206:1880/ui`.
+
+Source code: `https://github.com/donert/CueCommander-NR` (public)
+
+---
+
+## Quick Reference — All Services
+
+| Application | URL | Port | Run script location |
+|-------------|-----|------|-------------------|
+| AVL Tech Assistant | `http://192.168.0.206:8080` | 8080 / 9000 | `/Users/avuser/avltechassistant/run.sh` |
+| Media Arts Home | `http://192.168.0.206` | 80 | `/Users/avuser/media_arts_home/run.sh` |
+| CueCommander | `http://192.168.0.206:1880/ui` | 1880 | Automator / `node-red` |
+
+{{< include common_trailer.qmd >}}

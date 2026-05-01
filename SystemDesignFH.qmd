@@ -21,7 +21,7 @@ always_allow_html: yes
 
 # Introduction
 
-This is a detailed design report for the Audio and Video systems in Fellowship Hall. This documents is almost complete, with the bluray player details missing.
+This is a detailed design report for the Audio and Video systems in Fellowship Hall. This document is almost complete, with the bluray player details missing.
 
 ```{r packages_functions }
 source('commonPackages.R')

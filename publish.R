@@ -2,12 +2,14 @@
 # If the source has been updated since last publication, 
 # then render create a pdf and put the results in the publication directory 
 
-#It doesn't consider dependencies so if a jpg, gv or common function is changed it wil lnot be published.
-#TODO: add modification time dependency check on jpg, png and gv files (base it on  a prefix)
-#TODO: add dependency on common code, includeing furtherinformation (which should be renamed to be common...)
+publish.all <- FALSE
 
-require(dplyr)
-require(kableExtra)
+#It doesn't consider dependencies so if a jpg, gv or common function is changed it will not be published.
+#TODO: add modification time dependency check on jpg, png and gv files (base it on a prefix)
+#TODO: add dependency on common code, including furtherinformation (which should be renamed to be common...)
+
+require(tidyverse)
+require(gt)
 require(quarto)
 
 srcdir <-  "~/Documents/UACTech/SystemDocumentation/github/uactechdoc"
@@ -15,8 +17,8 @@ trgdir <- file.path(srcdir, "_output")
 sog    <- "~/Documents/UACTech/SystemDocumentation/data/SystemOperationsGuide.xlsx"
 ti     <- "~/Documents/UACTech/SystemDocumentation/TechInventory.xlsx"
 
-chromecmd <- "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome"
-chromeopt <- "--headless --disable-gpu --print-to-pdf "
+# chromecmd <- "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome"
+# chromeopt <- "--headless --disable-gpu --print-to-pdf "
 
 files <- tribble( # The file to process and whether is depends on the inventory or Rundown data.
   ~File,                    ~Inventory,  ~Rundown,
@@ -25,11 +27,17 @@ files <- tribble( # The file to process and whether is depends on the inventory 
   "SystemDesignNetwork",            TRUE,   FALSE,
   "SystemDesignProjection",         TRUE,   FALSE,
   "SystemDesignVideo",              TRUE,   FALSE,
-
+  "SystemDesignYouth",              TRUE,   FALSE,
+  
   "SystemOperationsAudio",          TRUE,   TRUE,
   "SystemOperationsLighting",       TRUE,   TRUE,
   "SystemOperationsProjection",     TRUE,   TRUE,
   "SystemOperationsVideo",          TRUE,   TRUE,
+  
+  "TroubleShooting",                TRUE,   TRUE,
+  
+  "SystemAdministrationGuide",      TRUE,   FALSE, 
+  
 
   #"TechHomePage",                   TRUE,   FALSE,
 
@@ -48,17 +56,21 @@ needs.updating <- function(file) {
   qmd.file   <- paste0(srcdir, "/", f, '.qmd' )
   html2.file <- paste0(trgdir, "/", f, ".html" )
   #get modification times
-  qmd.mt <- file.info(qmd.file)$mtime
+  qmd.mt   <- file.info(qmd.file)$mtime
   html2.mt <- file.info(html2.file)$mtime
+
+  # Output file doesn't exist yet — always needs publishing
+  if (is.na(html2.mt)) return(TRUE)
+
   sog.mt   <- file.info(sog)$mtime
-  ti.mt   <- file.info(ti)$mtime
-  
-  qmd.newer <- (qmd.mt > html2.mt) 
+  ti.mt    <- file.info(ti)$mtime
+
+  qmd.newer <- (qmd.mt > html2.mt)
   sog.newer <- (sog.mt > html2.mt) & files[files$File==f,"Rundown"]
   ti.newer  <- (ti.mt > html2.mt)  & files[files$File==f,"Inventory"]
-  
+
   return.value <- qmd.newer | sog.newer | ti.newer
-  
+
   return(return.value)
 }
 
@@ -78,20 +90,11 @@ for (f in files$File) {
   qmd.mt <- file.info(qmd.file)$mtime
   html2.mt <- file.info(html2.file)$mtime
   
-  if (needs.updating(f)) {
-    #render — must use quarto_render so {{< include >}} directives are processed
+  if (publish.all | needs.updating(f) ) {
+  	
     quarto::quarto_render(qmd.file, output_format = "html", quiet = FALSE)
-
-    #move it to target
-    cmd <- paste("mv", html1.file, trgdir)
-    system(cmd)
   
-    #make pdf
-    cmd <- paste(chromecmd, chromeopt, html2.file)
-    system(cmd)  
-  
-    #rename it
-    system2("mv", args=paste("output.pdf", pdf.file) )
+    quarto::quarto_render(qmd.file, output_format = "titlepage-pdf", quiet = FALSE)
     
     results <- rbind(results, data.frame(File=f, Action="Updated"))
     } else {
@@ -100,12 +103,9 @@ for (f in files$File) {
     }
 }
 
-results %>%
-  kable(format="html") %>%
-  column_spec( 1,  bold = TRUE ) %>%
-  kable_styling("striped", full_width = TRUE) %>% print()
-
-#files %>% group_by(File) %>% summarise(N = nth()) %>% filter(N > 1)
+results |>
+	gt() |>
+	opt_stylize(style=5)  |> print()
 
 print(results)
 print("Complete.")

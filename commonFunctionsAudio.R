@@ -1,13 +1,12 @@
 # Common code for SystemOperationsAudio and SystemDesignAudio 
 library(here)
 
-fname <- here("data", "uac_audio_config.xlsx")
+#fname <- here("data", "uac_audio_config.xlsx")
 #fname <- "/Users/donert/Documents/UACTech/SystemDocumentation/github/uactechdoc/data/uac_audio_config.xlsx"
+#fnamedlive <- here('data', "uac_dlive_config.xlsx")
 
-fnamedlive <- here('data', "uac_dlive_config.xlsx")
-
-db.sources <- read_excel(fname,  sheet = "Sources" )
-db.outputs <- read_excel(fname,  sheet = "Outputs" )
+fname <- here('data', "cables.xlsx")
+db.cables <- read_excel(fname,  sheet = "Cables" )
 
 get_monitors <- function() { 
   data <- tribble(
@@ -27,25 +26,26 @@ get_monitors <- function() {
 
 get_inputs <- function( device ) {
 
-	if ( ! (device   %in% db.sources$Device ) )
+	if ( ! (device   %in% db.cables$DstTag ) )
 		stop(paste("Input Edit Error: Unknown device-", device))
 		
-  res <- db.sources |>
-		filter(Device == device) |>
-  	    filter(!is.na(Name))
-  			 	
+  res <- db.cables |>
+		filter(device == DstTag)
+  # |>
+  # 	    filter(!is.na(Name))
+  # 			 	
   return(res)
 }
 
 get_outputs <- function( device ) {
 
-	if ( ! (device   %in% db.outputs$Device ) )
+	if ( ! (device   %in% db.cables$SrcTag ) )
 		stop(paste("Output Edit Error: Unknown device-", device))
 		
-  res <- db.outputs |>
-		filter(Device == device) |>
-  	    filter(!is.na(Name))
+	res <- db.cables |>
+		filter(device == SrcTag) 
+# 	|>
+#   	    filter(!is.na(Name))
   			 	
   return(res)
 }
-	

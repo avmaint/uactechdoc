@@ -318,26 +318,6 @@ get.rooms <- function() {
 }
 
 print_gt_table <- function(gt_table, vwidth = NULL, vheight = NULL) {
-	temp_png <- tempfile(fileext=".png", tmpdir="_work")
-	
-	# Check if gtsave supports vwidth/vheight (passed via ...)
-	# This is a bit tricky as vwidth/vheight are usually for webshot directly.
-	# A safer approach might be to capture the image and then resize it if needed.
-	# However, gtsave does pass ... to webshot2::webshot, so it should work.
-	
-	gtsave_args <- list(data = gt_table, filename = temp_png)
-	if (!is.null(vwidth)) gtsave_args$vwidth <- vwidth
-	if (!is.null(vheight)) gtsave_args$vheight <- vheight
-	
-	do.call(gtsave, gtsave_args)
-	
-	out_str <- case_when(
-		knitr::is_latex_output() 
-		~ sprintf("\\includegraphics[width=\\linewidth]{%s}", temp_png) , 
-		knitr::is_html_output() 
-		~ sprintf("![](%s)", temp_png),
-		knitr::pandoc_to("docx") ~  "word is unsupported for dynamic tables",
-		TRUE ~ "unsupported output type for table"
-	)	
-	return(out_str)
+	print(gt_table)
+	invisible(NULL)
 }

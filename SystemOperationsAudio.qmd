@@ -29,6 +29,7 @@ source("commonFunctionsAudio.R")
 ```{r data}
 db.inventory <- get.inventory()
 db.cables     <- get.cables()
+assets        <- get.assets()
 ```
 
 # Introduction
@@ -45,7 +46,7 @@ Purpose of our Sound System:
 ## Audio System Overview
 
 
-```{dot fig-soa-system-overview }
+```{dot}
 //| label: fig-soa-system-overview
 //| fig-cap: Audio System Overview
 //| cap-location: bottom
@@ -83,7 +84,7 @@ Although not part of the audio system, it is often the audio engineer who turns 
 
 See (@fig-training-videos) for a list of training videos. The titles are links you can follow.
  
-```{r training}
+```{r}
 #| tbl-cap: "Training Videos"
 #| tbl-cap-location: bottom
 #| label: tbl-training-videos
@@ -113,7 +114,7 @@ get.training() |>
 
 There is a good collection of videos on YouTube from the [Dante Certification program](https://www.audinate.com/learning/training-certification/dante-certification-program) . You can enroll in the program which will give you access to all of the videos. The level 1 videos are listed here @fig-training-videos-dante.
 
-```{r training-dante}
+```{r}
 #| tbl-cap: "Dante Training Videos"
 #| label: tbl-training-videos-dante
 #| 
@@ -153,7 +154,7 @@ __1. DM64 Inputs:__
  
 The inputs "Inst10" through Inst14" are meant for guest instruments such as a violin, flute, or Sax. They are setup this way so they are also readily available to broadcast and IEM mixes.
  
-```{r mixrack-inputs-analog, eval=TRUE}
+```{r eval=TRUE}
 #| label: tbl-mixrack-inputs-analog
 #| tbl-cap: MixRack Analog Inputs
 get_inputs("2407-3000") |>
@@ -185,7 +186,7 @@ db.cables |>
 __2. DX168 Inputs:__
 There are 16 analog inputs in the small stage rack located next to the drum riser. There are used for the drum inputs, and the bass. 
 
-```{r mixrack-dx168-analog, eval=TRUE}
+```{r eval=TRUE}
 #| label: tbl-mixrack-inputs-dx168
 #| tbl-cap: DX168 Drum rack Analog Inputs
 get_inputs("2410-1902") |>
@@ -215,7 +216,7 @@ db.cables |>
 __3. Dante Inputs:__
 I/O expansion port #1 on the DM64 is fitted with a 128x128 port Dante card. This is used for 16 inputs from the Shure ULXD receivers, two inputs from the ProPresenter computer, and 64 inputs from the Propresenter computer used for Virtual Soundcheck. The other computers can also provide Dante inputs.
 
-```{r mixrack-dante-inputs, eval=TRUE}
+```{r eval=TRUE}
 #| label: tbl-mixrack-dante-inputs
 #| tbl-cap: MixRack Dante Inputs
 get_inputs("2407-3002") |>
@@ -244,7 +245,7 @@ rbind(o1,o2,o3,o4) |>
 
 Virtual Sound Check is enabled by going into the IO settings and the "Virtual SoundCheck" tab. When enabled, the normal inputs are overridden with the VSC configuration. These inputs are applicable:
 
-```{r mixrack-dante-inputs-vsc }
+```{r}
 #| label: tbl-mixrack-dante-inputs-vsc
 #| tbl-cap: Dante Inputs for Virtual Sound Check
 get_inputs("2407-3002") |>
@@ -260,7 +261,7 @@ __4. Surface Inputs:__ The console surface has 8 analog inputs on the back which
 
 Part of what is included in the scene definition is the channel layout. 
 
-```{r s5000-analog-inputs }
+```{r}
 #| label: tbl-s5000-analog-inputs
 #| tbl-cap: S5000 surface Analog Inputs  
 get_inputs("2407-3001") |> 
@@ -291,11 +292,23 @@ The Dante outputs are in two categories:
 
 2. Many of the Mix busses are sent out via Dante as well, including all monitor mixes (8), the sub out matrix (1), the video matrix (2) and the FoH LR main mix (1). For a total of 12 such outputs. 
 
-Because there are upto 128 active inputs and an addtional 12 outputs, some of the 128 Dante outputs cannot be linked to the Direct Outs. 
+Because there are upto 128 active inputs and an addtional 12 outputs, some of the 128 Dante outputs cannot be linked to the Direct Outs.
 
-:::{.callout-note}
-TODO  - update to dLive config.
-:::
+The table below shows the configured Dante outputs from the dLive system.
+
+```{r dlive-dante-outputs}
+#| tbl-cap: dLive Dante Outputs
+dlive_devices <- c("2407-3000", "2407-3001", "2407-3002", "2410-1902")
+db.cables |>
+	filter(Protocol %in% c("dante", "GigaAce"), SrcTag %in% dlive_devices, !is.na(Usage)) |>
+	left_join(assets |> select(AssetTag, Model, Desc), by = c("SrcTag" = "AssetTag")) |>
+	mutate(Console = paste(SrcTag, coalesce(Model, ""), coalesce(Desc, "")) |> str_squish()) |>
+	select(Console, SrcPort, DstTag, DstPort, Usage) |>
+	arrange(Console, SrcPort) |>
+	gt() |>
+	opt_stylize(style = 3) |>
+	tab_header("dLive Dante Outputs")
+```
 
  
 
@@ -310,7 +323,7 @@ We have eight monitor amplifier channels, each which can handle a load of two of
 
 Our standard monitor configuration is (@fig-monitors), however with our usage of the IEMs, these are not all that often used.
 
-```{r gt.monitors}
+```{r}
 #| label: tbl-monitors
 #| tbl-cap: Standard Monitor Map
 get_monitors() |>
@@ -362,7 +375,7 @@ There is a DCA that is tied to the Fx returns for all Fx so you can quickly kill
 
 The IEM system is managed by the Klang Hardware. All of the console's 128 Dante outputs are routed 1:1 to the Klang Konductor inputs. Konductor sends outputs via Dante to each of the Kontrollers and, in addition The first four Klang mixes (stereo pairs) are routed to the Quelle Interface device which converts to Analog and to Shure wireless transmitters for the IEM packs.
 
-```{dot fig-sda-outputs-iem }
+```{dot}
 //| label: fig-sda-outputs-iem
 //| fig-cap: IEM Topology
 //| cap-location: bottom
@@ -385,7 +398,7 @@ __Scene 001__
 
 To recall Scene 001, press the scene button on the right hand side, and then using the right monitor, scroll to the top of the list where you will find "Master". Touch it to select it and then press the physical "Go" button to the right.   (@fig-soa-dlive-scene-recall).
 
-![Scene Recall](./images/soa-dlive-scene-recall.png){#fig-soa-scene-recall width=65mm}
+ [Scene Recall](./images/soa-dlive-scene-recall.png){#fig-soa-scene-recall width=65mm}
 
 ## dLive Softkeys 
 

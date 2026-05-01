@@ -222,7 +222,7 @@ print_gt_table(tab) |> cat()
 
 ## Video Matrix Configurations
 
-:::{.calloiut-note}
+:::{.callout-note}
 Would this be better located in the Video Operations?
 :::
 

@@ -79,6 +79,19 @@ plot_rack_profile <- function(rack_asset_tag, inventory_df, range = NULL) {
     )
 
   # --- 3. Determine effective plotting range and create full_plot_data ---
+  # Extract standard rack height from rack_asset_tag's description
+  rack_description_row <- inventory_df %>%
+    filter(AssetTag == rack_asset_tag)
+
+  standard_rack_height <- NA_integer_ # Default to NA
+  if (nrow(rack_description_row) > 0) {
+    rack_description <- rack_description_row %>% pull(Desc)
+    standard_rack_height_match <- str_match(rack_description, "(\\d+)U")
+    if (!is.na(standard_rack_height_match[1,2])) {
+      standard_rack_height <- as.integer(standard_rack_height_match[1,2])
+    }
+  }
+
   # Calculate overall max_u_for_rack before range filtering
   overall_max_u_for_rack <- max(parsed_devices$u_end, 1, na.rm = TRUE)
 
@@ -134,7 +147,7 @@ plot_rack_profile <- function(rack_asset_tag, inventory_df, range = NULL) {
   # Create all possible U positions for front and rear within the effective range
   all_u_positions <- expand_grid(
     face = c("Front", "Rear"),
-    u_start = effective_min_u:total_rack_height_u
+    u_start = effective_min_u:(total_rack_height_u - 1) # Corrected to highest U number
   ) %>%
   mutate(u_end = u_start + 1) # All empty slots are 1U high
 
@@ -144,7 +157,11 @@ plot_rack_profile <- function(rack_asset_tag, inventory_df, range = NULL) {
       label_text = coalesce(label_text, ""),
       x_start_norm = coalesce(x_start_norm, 0),
       x_end_norm = coalesce(x_end_norm, 1),
-      fill_color = ifelse(is.na(AssetTag), "grey95", face)
+      fill_color = case_when(
+        is.na(AssetTag) ~ "grey95", # Empty slot
+        !is.na(standard_rack_height) & (u_start > standard_rack_height) ~ "lightcoral", # Above standard height
+        TRUE ~ face # Normal device (Front/Rear)
+      )
     ) %>%
     select(face, u_start, u_end, x_start_norm, x_end_norm, label_text, fill_color, AssetTag)
 
@@ -152,11 +169,11 @@ plot_rack_profile <- function(rack_asset_tag, inventory_df, range = NULL) {
   # --- 4. Plotting using ggplot2 ---
   p <- ggplot(data = full_plot_data, aes(fill = fill_color)) + # Fill by fill_color
     # Rack outline - draw for each facet
-    annotate("rect", xmin = 0, xmax = 1, ymin = effective_min_u - 1, ymax = total_rack_height_u, # Adjusted ymin for range
+    annotate("rect", xmin = 0, xmax = 1, ymin = effective_min_u - 1, ymax = total_rack_height_u - 1, # Adjusted ymax for range
              fill = "white", color = "black", linewidth = 0.5) + # Background rect
 
     # U-unit demarcation lines
-    geom_hline(yintercept = seq(effective_min_u, total_rack_height_u, by = 1), color = "lightgrey", linetype = "dotted") + # Adjusted for range
+    geom_hline(yintercept = seq(effective_min_u, total_rack_height_u - 1, by = 1), color = "lightgrey", linetype = "dotted") + # Adjusted for range
 
     # Devices as rectangles
     geom_rect(aes(xmin = x_start_norm, xmax = x_end_norm,
@@ -171,17 +188,17 @@ plot_rack_profile <- function(rack_asset_tag, inventory_df, range = NULL) {
     # Scales and labels
     # U-positions are on the Y-axis, width is on the X-axis (standard ggplot orientation)
     scale_y_continuous(name = "U Position (from bottom)", # For U-positions (on Y axis)
-                       breaks = seq(effective_min_u - 0.5, total_rack_height_u - 0.5, by = 1), # Labels centered in each U slot
-                       labels = seq(effective_min_u, total_rack_height_u, by = 1), # Labels to match U number
+                       breaks = seq(effective_min_u - 0.5, total_rack_height_u - 1 - 0.5, by = 1), # Labels centered in each U slot
+                       labels = seq(effective_min_u, total_rack_height_u - 1, by = 1), # Labels to match U number
                        expand = c(0, 0),
-                       limits = c(effective_min_u - 1, total_rack_height_u)) + # Set limits for the displayed range
+                       limits = c(effective_min_u - 1, total_rack_height_u - 1)) + # Set limits for the displayed range
     scale_x_continuous(name = NULL, # For width (on X axis)
                        breaks = NULL,
                        labels = NULL,
                        expand = c(0, 0)) +
     # No coord_flip() needed for vertical orientation.
     # The ymin=u_start-1, ymax=u_end-1 already ensure 1U is at the bottom.
-    scale_fill_manual(values = c("Front" = "lightblue", "Rear" = "lightgreen", "grey95" = "grey95")) + # Manual fill for faces and empty slots
+    scale_fill_manual(values = c("Front" = "lightblue", "Rear" = "lightgreen", "grey95" = "grey95", "lightcoral" = "lightcoral")) + # Manual fill for faces, empty slots, and above rack
 
     labs(title = glue("Rack Profile: {rack_asset_tag}"), subtitle = plot_subtitle) +
     theme_minimal() +

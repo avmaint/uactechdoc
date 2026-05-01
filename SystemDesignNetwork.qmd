@@ -27,7 +27,7 @@ source("commonDiagram.R")
 portmap <- function(sw) {
  cap <- glue("Port Usage for {sw}")
 
- t<- cables |>
+ t<- db.cables |>
 	filter(SrcTag == sw  ) |>
  	mutate(Comments = paste(Usage, Notes)) |>
 	select(  Tag
@@ -48,9 +48,9 @@ portmap <- function(sw) {
 ```
 
 ```{r getdata}
-network <- get.network()
-inventory <- get.inventory()
-cables <- get.cables()
+db.network <- get.network() 
+db.assets <- get.assets()
+db.cables <- get.cables()
 ```
 
 # Introduction
@@ -70,13 +70,16 @@ There are content filtering rules applied to the network which blocks access to 
 
 # Overview of Network Topology
 
-There are two interconnected physical networks. The general network 192.168.0.0/24 and the AV Network.
+There are two interconnected physical networks. 
+
+* The general network (IT-NET) which provides internet access and IT services for office computers and printers. It runs on subnet 192.168.0.0/24 using (mostly) the Cisco switches and Aruba WAPs.
+* The AV Network production network .
 
 ::: callout-note
-There are likely more networks than depcited here. Which have not yet been documented.
+There are likely more networks than depicted here. Which have not yet been documented.
 :::
 
-The purpose of the AV Network is to isolate the Dante traffic to its own physical devices to both tightly control bandwidth and access. The AV Network is itself divided into two VLANs:
+The purpose of the AV Network is to isolate the AV production traffic, specifically Dante traffic to its own physical devices to both tightly control bandwidth and access. The AV Network is itself divided into several VLANs:
 
 ```{r av.vlan}
 tribble(~NAME, ~VLAN, ~Subnet, ~Description
@@ -90,7 +93,8 @@ tribble(~NAME, ~VLAN, ~Subnet, ~Description
 ) |>
 	arrange(VLAN) |>
 	gt() |>
-	opt_stylize(style=5)
+	opt_stylize(style=5) |> 
+	tab_header("AV Net Subnets and VLANs")
 ```
 
 # External Access Capabilities
@@ -119,35 +123,35 @@ Rogers Network Management
 
 Audinate’s Dante protocol uses a combination of network protocols for different purposes. Multicast is used an IGMP snooping is required. Clock stability is critical for this workload. Details:
 
-1.  [**Addressing**: Dante devices use DHCP for addressing when available or will auto-assign an IP address in the 169.254.0.0/16 range on the primary network and 172.31.0.0/16 on the secondary network if DHCP is not available^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+1.  **Addressing**: Dante devices use DHCP for addressing when available or will auto-assign an IP address in the 169.254.0.0/16 range on the primary network and 172.31.0.0/16 on the secondary network if DHCP is not available^[1](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators)^.
 
 2.  **Audio Transport**: Dante audio is unicast by default but can be set to use multicast for cases of one-to-many distribution. [The ports used are UDP 14336-14591 for unicast and UDP 4321 for multicast^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
 
-3.  **Video Transport**: Dante video is optimized to run on Gigabit Ethernet and has a bandwidth cap of 700 Mbps. [Dante video flows must be multicast if video is being sent to more than one destination^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+3.  **Video Transport**: Dante video is optimized to run on Gigabit Ethernet and has a bandwidth cap of 700 Mbps. [Dante video flows must be multicast if video is being sent to more than one destination^2^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
 
-4.  [**Device Discovery**: mDNS and DNS-SD are used for discovery and enumeration of other Dante devices including Dante Controller^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+4.  **Device Discovery**: mDNS and DNS-SD are used for discovery and enumeration of other Dante devices including Dante Controller^[3](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators)^.
 
-5.  [**Synchronization**: Dante uses Precision Time Protocol (PTP version 1, IEEE 1588-2002) by default for time synchronization^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+5.  **Synchronization**: Dante uses Precision Time Protocol (PTP version 1, IEEE 1588-2002) by default for time synchronization^[4](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators)^.
 
-6.  **Control and Monitoring Traffic**: Dante monitoring and control traffic uses various ports. [For example, UDP 8700-8708 for multicast control and monitoring, and UDP 4440, 4444, 4455 for audio control^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+6.  **Control and Monitoring Traffic**: Dante monitoring and control traffic uses various ports. For example, UDP 8700-8708 for multicast control and monitoring, and UDP 4440, 4444, 4455 for audio control^[5](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators)^.
 
-7.  **Quality of Service (QoS)**: Dante as a real-time media streaming service benefits from low latency and jitter on the network. [QoS should be used for prioritization of Dante clock and audio on mixed-use networks^1^](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators).
+7.  **Quality of Service (QoS)**: Dante as a real-time media streaming service benefits from low latency and jitter on the network. QoS should be used for prioritization of Dante clock and audio on mixed-use networks^[6](https://www.audinate.com/learning/technical-documentation/dante-information-for-network-administrators)^.
 
 ## NDI
 
 NewTek’s Network Device Interface (NDI) uses a combination of network protocols for different purposes:
 
-1.  [**Addressing**: NDI resolves host names to IP addresses over the LAN automatically^1^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/). [It uses mDNS (multicast Domain Name System) to create a zero-configuration environment for discovery^1^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/).
+1.  [**Addressing**: NDI resolves host names to IP addresses over the LAN automatically^7^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/). [It uses mDNS (multicast Domain Name System) to create a zero-configuration environment for discovery^1^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/).
 
-2.  [**Video and Audio Transport**: NDI is designed to run over gigabit Ethernet^2^](https://en.wikipedia.org/wiki/Network_Device_Interface). [It operates bi-directionally over a LAN with many video streams on a shared connection^1^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/). [Its encoding algorithm is resolution and frame-rate independent, supporting 4K resolutions and beyond along with 16 channels and more of floating-point audio^1^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/).
+2.  [**Video and Audio Transport**: NDI is designed to run over gigabit Ethernet^8^](https://en.wikipedia.org/wiki/Network_Device_Interface). [It operates bi-directionally over a LAN with many video streams on a shared connection^9^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/). [Its encoding algorithm is resolution and frame-rate independent, supporting 4K resolutions and beyond along with 16 channels and more of floating-point audio^10^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/).
 
-3.  [**Discovery and Registration**: NDI uses mDNS for automatic discovery and registration^1^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/). [It also supports 2 other discovery modes (NDI Access, NDI Discovery Server) that allow for operations across subnets and without mDNS^2^](https://en.wikipedia.org/wiki/Network_Device_Interface).
+3.  [**Discovery and Registration**: NDI uses mDNS for automatic discovery and registration^11^](https://ndi.tv/tools/education/networking/best-practices/networking-best-practice/). [It also supports 2 other discovery modes (NDI Access, NDI Discovery Server) that allow for operations across subnets and without mDNS^2^](https://en.wikipedia.org/wiki/Network_Device_Interface).
 
-4.  [**Transport Protocols**: NDI uses TCP by default^2^](https://en.wikipedia.org/wiki/Network_Device_Interface). [NDI 3.x has options to use UDP multicast or unicast with forward error correction (FEC) instead of TCP, and can load balance streams across multiple network interface controllers (NICs) without using link aggregation^2^](https://en.wikipedia.org/wiki/Network_Device_Interface). [The release of NDI version 4.0 introduces the ‘Multi-TCP’ transport^2^](https://en.wikipedia.org/wiki/Network_Device_Interface).
+4.  [**Transport Protocols**: NDI uses TCP by default^2^](https://en.wikipedia.org/wiki/Network_Device_Interface). [NDI 3.x has options to use UDP multicast or unicast with forward error correction (FEC) instead of TCP, and can load balance streams across multiple network interface controllers (NICs) without using link aggregation^12^](https://en.wikipedia.org/wiki/Network_Device_Interface). [The release of NDI version 4.0 introduces the ‘Multi-TCP’ transport^2^](https://en.wikipedia.org/wiki/Network_Device_Interface).
 
 # ISP Service
 
-```{dot isp_service}
+```{dot}
 //| label: fig-isp_service
 //| fig-cap: "ISP Service"
 //| file: gv/sdn-isp-service.gv
@@ -155,14 +159,14 @@ NewTek’s Network Device Interface (NDI) uses a combination of network protocol
 
 # Overall Switch Topology
 
-```{dot overalltopology}
+```{dot  }
 //| label: fig-overalltopology
 //| fig-cap: "Overall Switch Topology"
 //| file: gv/sdn-overalltopology.gv
 ```
 
 ::: callout-note
-The A&H dLive Mixrack (2407-3000) has a closed network connection to the S5000 mix surface (2407-3001) via a black STP cable from Room130 to Room205. The MACs for both devices should show up on the same port on the switch. The ethernet port on the s5000 surface should not be used.
+The A&H dLive Mixrack (2407-3000) has a closed network connection to the S5000 mix surface (2407-3001) via a black STP cable from Room130 to Room205. The MACs for both devices should show up on the same port on the switch. The ethernet port on the s5000 surface should not be used, as you could create a network loop.
 :::
 
 ```{r gt.switch_inv }
@@ -171,20 +175,22 @@ selected.at <-
   		   	 , "NSCU-A002"
   		   	 , "NSCU-A003"
   		   	 , "NSCU-A004"
-  		   	 , "NSCU-A005"
-  		   	 , "2308-1100"
+  		   	 , "NSCU-A005" 
   		   	 , "NSTU-H001"
+  		   	 , "2603-1201", "2603-1202", "2603-1203", "2603-1204", "2603-1205"
                    )
 
- network |>
+ db.network |>
  	filter( AssetTag %in% selected.at) |> 
-    select(AssetTag, Device, Usage, MAC, IP, Notes) |>
+    select(AssetTag
+    	   #, Device
+    	   , Usage, MAC, IP, Notes) |>
  	arrange(AssetTag) |>
 	gt() |> 
 	tab_header("Switch Inventory - MACs and IP") |>
     opt_stylize(style=3) 
  
- inventory |> 
+ db.assets |> 
 	filter( AssetTag %in% selected.at) |> 
  	select(AssetTag, Manufacturer
  		   , Model
@@ -195,27 +201,26 @@ selected.at <-
  		   , Desc) |>
  	arrange(AssetTag) |>
  	gt() |> 
-	tab_header("Switch Inventory") |>
+	tab_header("Switch Inventory Locations") |>
     opt_stylize(style=3) 
 ```
 
 # Wifi
 
-From an AV Technical Production perspective, our Wifi network is not normally used for media transport, but rather for control functions. Examples include:
+From an AV Technical Production perspective, the IT-Net Wifi network is not used for media transport but is available for general use. There are multiple HP Aruba WAPs distributed around the building and also in the portable. 
 
--   Audiante Dante Controller
--   Shure Wireless Workbench
--   Renewed Vision Propresenter Remote
--   Yamaha Studio Manager
--   ETC Web control / Lighting Console
--   etc
+The AV-Net has a single WAP available for use. Examples include:
 
-We have used them for NDI video trnasport from cell phone to a production computer.
-
-There is a network of nine wireless access points distributed around the building (Hewlett Packard Enterprise IAP-315). There is also a WAP in the Youth building.
+- Audiante Dante Controller
+- Shure Wireless Workbench
+- Renewed Vision Propresenter Remote
+- ETC Web control / Lighting Console
+- Klang:app
+- NDI Camera and NDI Capture HX
+- etc
 
 ```{r gt_wap_list}
-inventory |>
+db.assets |>
 	filter(Manufacturer == "Aruba") |>
 	select(AssetTag, Manufacturer, Model, Building, Floor, Room, SN, Desc) |>
 	arrange(AssetTag) |>
@@ -258,7 +263,7 @@ ssid |>
     opt_stylize(style=3) 
 ```
 
-> Only UAC-SR has access to internal network devices. In order to control any systems or stream media to a production computer over the wifi network, the device would need to be on the UAC-SR network.
+> Only UAC-SR has access to internal network devices (IT-Net).  
 
 # Server Room
 
@@ -272,12 +277,12 @@ portmap( "NSCU-A001")
 
 Cables in ports that need identification:
 
--   port 4 Grey
--   port 5 Black
--   port 6 Black
--   port 26 is the link for A001 ?? or A003
+- port 4 Grey
+- port 5 Black
+- port 6 Black
+- port 26 is the link for A001 ?? or A003
 
-```{dot top-audiorack}
+```{dot }
 //| label: fig-top-audiorack
 //| fig-cap: "Audio Rack Topology"
 //| file: gv/sdn-top-audiorack.gv
@@ -287,7 +292,7 @@ Cables in ports that need identification:
 sw <- c("NSCU-A005")
 cap <- glue("Location for {sw} ")
 
-inventory |> 
+db.assets |> 
 	filter( AssetTag %in% sw) |> 
  	select(AssetTag, Manufacturer
  		   , Model
@@ -306,14 +311,14 @@ inventory |>
 selected.at <- data.frame(AssetTag=c( "ZVVU-A001", "ZVVU-A002",  
                   "ZVVU-A003", "NSCU-A005" ))
 
-merge(network, selected.at) |>
+merge(db.network, selected.at) |>
     select(AssetTag, Device, Usage, MAC, IP, Notes) |>
 	gt()  |>
 	opt_stylize(style=3)
 
 selected.at <- data.frame(AssetTag=c( "ZAHU-0001"))
 
-merge(inventory, selected.at) |> 
+merge(db.assets, selected.at) |> 
     select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) |>
 	gt()  |>
 	opt_stylize(style=3)
@@ -321,7 +326,6 @@ merge(inventory, selected.at) |>
 
 ```{r a005_ports}
 portmap( "NSCU-A005")
-
 ```
 
 # Balcony Front Desk
@@ -361,19 +365,18 @@ outdated [label="Incomplete and outdated", fontcolor=red]
 
 ```{r, fddetails}
 selected.at <-   
-  data.frame(AssetTag=c(   "NSCU-A003",
+  data.frame(AssetTag=c( "NSCU-A003",
   						 "NSCU-A004" 
-                  
                   ))
 
-merge(network, selected.at) |> 
-    select(AssetTag, Device, Usage, MAC, IP, Notes) |>
+merge(db.network, selected.at) |> 
+    select(AssetTag, Usage, MAC, IP, Notes) |>
 	gt()  |>
 	opt_stylize(style=3) 
 
 #selected.at <- data.frame(AssetTag=c( "ZAHU-0004"))
 
-merge(inventory, selected.at) |> 
+merge(db.assets, selected.at) |> 
     select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) |>
 	gt()  |>
 	opt_stylize(style=3) 
@@ -478,14 +481,10 @@ ZLKUC001 [label="{ETC Ligthing Console|ZLKU-C001}"]
 
 subgraph cluster_zvhu0001 { label="ZVHU-0001 rack"  
                             tooltip="Front Desk Rack"
-        zvkua001     [label="{Video Matrix|ZVKU-A001}", 
-                  tooltip=" Kramer VS88-DT"] 
-  }
+          }
 
 balconyrear -- cdwu0009
- 
 balconyrear -- cumug002
-balconyrear -- zvkua001
 balconyrear -- ZLKUC001
 } 
 ```
@@ -502,15 +501,15 @@ selected.at <- data.frame(AssetTag=
                   "ZLKU-C001") 
                 		   	)
 
-merge(network, selected.at) |> 
+merge(db.network, selected.at) |> 
     arrange(AssetTag) |>
-    select(AssetTag, Device, Usage, MAC, IP, Notes) |>
+    select(AssetTag, Usage, MAC, IP, Notes) |>
 	gt()  |>
 	opt_stylize(style=3)
   
 selected.at <- data.frame(AssetTag=c("ZVHU-0002"))
 
-merge(inventory, selected.at) |> 
+merge(db.assets, selected.at) |> 
     select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) |>
 	gt()  |>
 	opt_stylize(style=3)
@@ -524,7 +523,7 @@ portmap( "NSCU-A004")
 
 The Broadcast room is where the streaming/broadcast workstation is located.
 
-```{dot room134}
+```{dot  }
 //| label: fig-room134
 //| fig-cap: "Broadcast room"
 //| file: gv/sdn-room134.gv
@@ -538,13 +537,13 @@ selected.at <- data.frame(AssetTag=
                   "CUMU-E001") 
                 		   	)
 
-merge(network, selected.at) |> 
+merge(db.network, selected.at) |> 
     arrange(AssetTag) |>
-    select(AssetTag, Device, Usage, MAC, IP, Notes) |>
+    select(AssetTag, Usage, MAC, IP, Notes) |>
 	gt()  |>
 	opt_stylize(style=3)
   
-merge(inventory, selected.at) |> 
+merge(db.assets, selected.at) |> 
     select(AssetTag, Manufacturer, Model, Floor, Room, Location, Desc) |>
 	gt()  |>
 	opt_stylize(style=3)
@@ -564,9 +563,9 @@ portmap( "NSCU-A002")
 targ <- "NSCU-A002" 
 cap <- glue("Devices connected to {targ}")
 
-cables |>
+db.cables |>
 	filter(SrcTag == targ) |>
-	left_join(inventory, by=join_by(DstTag == AssetTag )) |>
+	left_join(db.assets, by=join_by(DstTag == AssetTag )) |>
 	mutate(MM = md(glue("{Manufacturer}<br>{Model}"))) |>
 	mutate(Loc = md(glue("{Building}/{Floor}<br>{Room}/{Location}"))) |>
 	select( SrcPort, Tag, DstTag
@@ -595,7 +594,7 @@ portmap( "2405-2502")
 ```
 
 ::: {#fig-youth-network .cell-output-display}
-```{r youth-network1, results="asis"}
+```{r youth-network1, results="asis", eval=FALSE }
 label <- "'Youth Network - Core Switch to Edge Switch'"
 
 targets_v <- c( "NSTU-H001" # youth switch
@@ -604,7 +603,7 @@ targets_v <- c( "NSTU-H001" # youth switch
 			  , "NSCU-A002"  
 			 ) 
 
-xd <- c(   "CDWU-A001" # FH COmputer
+xd <- c(   "CDWU-A001" # FH Computer
 		 , "NAHU-B008" #FH WAP
 		 , "NAHU-B001"
 		 , "NSCU-A005"
@@ -614,7 +613,7 @@ xd <- c(   "CDWU-A001" # FH COmputer
 		) 
 
 dot_code <- get_diagram(targets_v
-						, inventory, cables
+						, db.assets, db.cables
 						, label=label , exc_dev=xd )
 out_str <- get_diagram_aux(dot_code)
 cat(out_str)
@@ -625,7 +624,7 @@ Youth Network - Core Switch to Edge Switch
 :::
 
 ::: cell-output-display
-```{r youth-network2, results="asis"}
+```{r youth-network2, results="asis", eval=FALSE}
 label <- "'Youth Network - Edge Switch'"
 
 targets_v <- c( "NSTU-H001" # youth switch
@@ -645,7 +644,7 @@ xd <- c( "2404-2701" #audio amp
 		) 
 
 dot_code <- get_diagram(targets_v
-						, inventory, cables
+						, db.assets, db.cables
 						, label=label , exc_dev=xd )
 out_str <- get_diagram_aux(dot_code)
 cat(out_str)
@@ -658,16 +657,17 @@ Youth Network - Edge Switch
 # Network Details - All Locations
 
 ```{r}
-network |> 
-	select(Location, AssetTag, Usage, Device, MAC, IP, URL, Notes) |>
-	gt()  |>
+db.network |>
+	left_join(db.assets |> select(AssetTag, Location, Room, Sector), by = "AssetTag") |>
+	select(AssetTag, Location, Room, Usage, MAC, IP, URL, Notes) |>
+	gt() |>
 	opt_stylize(style=3)
 ```
 
 ```{r mac_needed, eval=FALSE}
 # Devices which are in need of IP Address Allocation
 #Allocation is pending delivery of equipment so we can know the MAC address.  
-network |>
+db.network |>
   select(-Category, -Location, -Usage, -Notes, -URL) |> 
   filter( ! is.na(MAC)  ) |> 
   filter(   is.na(IP)   ) |> 

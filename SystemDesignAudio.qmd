@@ -23,41 +23,27 @@ source("commonPackages.R")
 ```{r functions}
 source("commonFunctions.R")
 source("commonFunctionsAudio.R")
+source("commonCrosspoint.R")
+
 ```
 
 ```{r getdata}
-NetworkInventory <- get.network()
-assets   <- get.assets() #Assets are cached via commonFunctions.R
+db.network <- get.network()
+db.assets   <- get.assets() #Assets are cached via commonFunctions.R
+
+dlive <- c("2407-3000", "2407-3001", "2407-3002", "2410-1902")
+
 ```
 
-```{r dci, eval=FALSE}
-#TODO: replace work.config with function calls.
+```{r dci}
+dlive_devices <- c("2407-3000", "2407-3001", "2407-3002", "2410-1902")
 
-ins <- get_dante_devices() %>%
-       filter(InOut == "In") %>%
-       rename(DeviceIn = Device, 
-              NetworkDeviceIn = NetworkDevice,
-              NetworkDeviceChannelIn = NetworkDeviceChannel,
-              LabelIn = Label,
-              NotesIn = Usage)
-
-outs <- get_dante_devices() %>%
-       filter(InOut == "Out") %>%
-       rename(DeviceOut = Device,
-              NetworkDeviceOut = NetworkDevice,
-              NetworkDeviceChannelOut = NetworkDeviceChannel,
-              LabelOut = Label,
-              NotesOut = Usage)
-
-console <- work.config.consoleinputs %>%
-           filter(!is.na(NetworkDevice)) %>%
-           rename(NetworkDeviceIn = NetworkDevice,
-                  NetworkDeviceChannelIn =  NetworkDeviceChannel)
-
-t1 <- merge(ins , work.config.dantepatch)  
-t2 <- merge(t1, outs, by=c("NetworkDeviceOut", 
-                           "NetworkDeviceChannelOut"))
-dante.console.ins <- merge(t2, console )
+dante.console.ins <- db.cables |>
+	filter(Protocol == "dante", DstTag %in% dlive_devices, !is.na(Usage)) |>
+	left_join(db.assets |> select(AssetTag, Model, Desc), by = c("SrcTag" = "AssetTag")) |>
+	mutate(Source = paste(SrcTag, coalesce(Model, ""), coalesce(Desc, ""))) |>
+	select(Source, SrcPort, DstTag, DstPort, Usage) |>
+	arrange(DstTag, DstPort)
 ```
 
 # Introduction
@@ -116,7 +102,7 @@ The console system has preamp inputs via the stage box, the mixrack and the surf
 
 A consistent wiring plan helps make system more predictable and easier for all audio engineers to use. The consistent wiring plan is also essential to leveage the power of console's show and scene recall feature. It minimizes the amount of rewiring required. 
 
-The dLive system is capable of mixing 128 inputs at a time. We are configured with considerably more input capacity which gives a lot of flexibility. See @fig-sda-inputs-dlive for the socket details.
+The dLive system is capable of mixing 128 inputs at a time. We are configured with considerably more input capacity which gives a lot of flexibility. The socket details for each dLive device are listed in the tables below.
 
 ```{r in-count}
 #I am writing  code to display a table. I want a summary row which has a total #for the input count. please correct the code
@@ -162,24 +148,21 @@ tribble(~Device, ~InputRange, ~Notes
  
  
  
-```{r input.list}
-#| label: tbl-sda-inputs-dlive 
-#| tbl-cap: "dLive Socket Inputs"
-
-dlive =c("2407-3000", "2407-3001", "2407-3002", "2410-1902")
-
-slice1 <- db.cables |>
+```{r}
+db.cables |>
 	filter(DstTag %in% dlive) |>
 	arrange(DstTag, DstPort) |>
-	select(DstTag, DstPort , Usage, SrcTag, SrcPort)  |>
-	filter( !is.na(Usage) ) 
-
-tbl <- slice1 |>
-	gt() |>
-	opt_stylize(style=5) |>
-	tab_header("Sockets for each Device")
-
-if (knitr::is_latex_output()) tbl else gt_split(tbl, row_every_n = 25)
+	select(DstTag, DstPort, Usage, SrcTag, SrcPort) |>
+	filter(!is.na(Usage)) |>
+	group_by(DstTag) |>
+	group_split() |>
+	purrr::walk(\(grp) {
+		grp |>
+			gt() |>
+			opt_stylize(style = 5) |>
+			tab_header(  glue( "Asset: {unique(grp$DstTag)}"  ) ) |>
+			print()
+	})
 ```
 
 ```{r top1}
@@ -187,7 +170,7 @@ print_inv(c( "2407-3000", "2407-3001", "2407-3002", "2410-1902",
 			 "CUMU-G002", "ZAPU-0001",
              "ZAMU-A001", "ZAMU-B001", "ZAMU-B002", "ZAMU-B003"
                
-             ), assets)
+             ), db.assets)
 ```
 
 ## Front of House
@@ -229,7 +212,7 @@ cs <- c(
 "ZAHU-0001", "ZAHU-0005", "ZAHU-0002", "ZAHU-0001", "ZAHU-0006",
 "ZVKU-A003", "ZAIU-E001")
 
-print_inv(cs , assets) |> tab_header("Front of House Inventory")
+print_inv(cs , db.assets) |> tab_header("Front of House Inventory")
 ```
 
 ### Other FoH gear
@@ -254,46 +237,51 @@ The lobby distribution is handled via a Stuart Audio Hub. It drives four 10W amp
 ```{r lobby.inv}
 cs <- c("2410-0800", "2410-0803", "ZAAU-0009", "ZAAU-0010")
 
-print_inv(cs , assets)
+print_inv(cs , db.assets)
 ```
 
-### M7 Mix Bus Usage
+### Outputs 
 
-This console has 16 mix busses. Since the console is capable of multiple routing paths within the console. This is described by the 'And then' description which informs about what happens next within the console.
-
->TODO: Update @fig-m7-busses with DAW details 
-
-```{r m7_busses}
-#| label: tbl-m7-busses
-#| tab-cap: M7 Bus Usage
- 
-tribble( 
-~MixNo, ~Description, ~And_then 
-, 1, "Monitor 1", "To Rack EQ then Omni 1" 
-, 2, "Monitor 2", "To Rack EQ then Omni 2" 
-, 3, "Monitor 3", "To Rack EQ then Omni 3" 
-, 4, "Monitor 4", "To Rack EQ then Omni 4" 
-, 5, "Monitor 5", "To Rack EQ then Omni 5" 
-, 6, "Monitor 6", "To Rack EQ then Omni 6"   
-, 7, "Effect- Reverb plate", "To Rack 5 then STRIN 1" 
-, 8, "Effect- Rev-X Hall"  , "To Rack 6 then STRIN 2" 
-, 9, "Effect- mono Delay"  , "To Rack 7 then STRIN 3" 
-,10, "Effect- Chorus"      , "To Rack 8 then STRIN 4"  
-,11, "Dr Toms"             , "Slot2 #3" 
-,12, "Dr Metal"            , "Slot2 #4" 
-,13, "Room Mics"           , "Slot2 #14"
-,14, "Record Mix"          , "Omni 14" 
-,15, "B3"                  , "Slot2 #9"
-,16, ""                    , ""
-) |>
-	gt() |>
-	opt_stylize(style=3) |>
-	tab_header("M7 Bus Usage")
+```{r}
+db.cables |>
+	filter(SrcTag %in% dlive) |>
+	arrange(SrcTag, SrcPort) |>
+	select(SrcTag, SrcPort, Usage, DstTag, DstPort) |>
+	filter(!is.na(Usage)) |>
+	group_by(SrcTag) |>
+	group_split() |>
+	purrr::walk(\(grp) {
+		grp |>
+			gt() |>
+			opt_stylize(style = 5) |>
+			tab_header(  glue( "Asset: {unique(grp$SrcTag)}"  ) ) |>
+			print()
+	})
 ```
 
 ## Amplifiers
 
 Now lets finish our journey to the speakers.  
+
+* Amps 1 - 6 drive the front clusters. Clusters are numbers from East to west.
+* Amp 7 is the under balcony.
+* Amps 8 - 9 drive the monitors. 
+
+```{r}
+fohamp.list <- c( "Amp1", "Amp2", "Amp3" 
+             , "Amp4", "Amp5", "Amp6"
+			 , "Amp7" )
+
+monamp.list <-  c( "Amp8-Mon1-4", "Amp9-Mon5-8")
+
+amp.list <- c(fohamp.list, monamp.list)
+```
+
+```{r}
+crosspoint(db.cables
+		   ,  source_assets="2408-2700" 
+		   , dest_assets=fohamp.list)
+```
 
 ```{dot sda-outputs}
 //| label: fig-sda-outputs
@@ -301,19 +289,15 @@ Now lets finish our journey to the speakers.
 //| file: gv/sda-outputs.gv
 ```
 
->TODO: update the chart below to reflect the amplifier list.
-
-```{r tab-amp-list}
+```{r  }
 #| label: tab-amp-list
 #| tab-cap: List of Amplifiers
 #| tbl-cap-location: bottom
-selected <- c( "ZAAU-0005", "ZAAU-0006", "ZAAU-0011" 
-           , "ZAAU-0007",  "ZAAU-0001" #"ZAAU-0008",
-           , "ZAAU-0002", "ZAAU-0003", "ZAAU-0004", "2309-0914")
-print_inv(selected, assets)
+
+print_inv(amp.list, db.assets)
 ```
 
-Amps 1 - 6 drive the front clusters. Clusters are numbers from East to west. Amps 8 - 9 drive the monitors. Amp 7 is the under balcony .
+
 
 ```{r bose.amps}
 
@@ -340,7 +324,6 @@ ba |>
 
 ```
 
-
 ## Speakers
 
 We have speakers in several locations:
@@ -359,7 +342,7 @@ cs <- c("ZASU-0001-0002",
 "ZASU-0012-0019",
 "ZASU-0020-0021")
 
-print_inv(cs , assets)
+print_inv(cs , db.assets)
 ```
 
 
@@ -405,7 +388,7 @@ pockets |>
 ```
 
 ```{r}
-assets |> filter(str_detect(AssetTag, "^FB")) |>
+db.assets |> filter(str_detect(AssetTag, "^FB")) |>
 	select(AssetTag, Model, Usage) |> 
 	gt() |>
 	opt_stylize(style=5) |>
@@ -449,7 +432,7 @@ fmt_dante_chart <- function(dir, targets, header) {
 	filter(InOut == dir) |>
 	filter(Device %in% targets) |>	
 	filter(Used == "Y") |>
- 	left_join(assets, by=join_by(Device == AssetTag)) |>
+ 	left_join(db.assets, by=join_by(Device == AssetTag)) |>
 	mutate(GroupTitle = paste(Device, Model, Desc)) |>
 #todo figure out why USage isn't in the data
 		
@@ -474,103 +457,48 @@ fmt_dante_chart <- function(dir, targets, header) {
 
 ## Dante Inputs by Device
 
-TODO: The following charts need to be redeveloped to use the db.cables data structure.
+Each row shows a Dante audio path arriving at a receiving device (`DstTag`).
 
-```{r}
-# fmt_dante_chart("In"
-# 				, "ZAKU-0001"
-# 				, "Inputs for the M7CL")
-
-```
-
-```{r}
-# fmt_dante_chart("In"
-# 				, "ZAKU-0002"
-# 				, "Inputs for the DM1000")
-
-```
-```{r}
-# fmt_dante_chart("In"
-# 				, c("2308-1124", "ZAIU-E002")
-# 				, "Inputs for the Reference Monitors and Video Mixer")
-```
-
-```{r}
-# fmt_dante_chart("In"
-# 				, "CUMU-E001"
-# 				, "Inputs for the Livestream DAW")
-
-```
-
-```{r eval=FALSE}
-#| label: tbl-dante-inputs-by-device
-#| tbl-cap: Dante Inputs by Device
-
-get_dante_devices() |>
-	filter(InOut == "In") |>
-	filter(Used == "Y") |>
- 	left_join(assets, by=join_by(Device == AssetTag)) |>
-	mutate(GroupTitle = paste(Device, Model, Desc)) |>
-	select(GroupTitle, NetworkDevice, NetworkDeviceChannel, Label, Usage) |>
-	gt(groupname_col = "GroupTitle") |>
-	opt_stylize(style=3) |>
-	tab_header("Dante Inputs by Device") |>
-	cols_label(NetworkDeviceChannel = "Ch")  |>
-  tab_options(     # these does not work well for pdf output :( 
-      row_group.as_column = FALSE
-    , row_group.font.weight = 'Bold'  
-    , row_group.font.size = 12
-    , table.font.size = 8
-  )
+```{r dante-inputs-by-device}
+db.cables |>
+	filter(Protocol == "dante", !is.na(Usage)) |>
+	left_join(db.assets |> select(AssetTag, Model, Desc), by = c("DstTag" = "AssetTag")) |>
+	mutate(Device = paste(DstTag, coalesce(Model, ""), coalesce(Desc, "")) |> str_squish()) |>
+	select(Device, DstPort, SrcTag, SrcPort, Usage) |>
+	arrange(Device, DstPort) |>
+	group_by(Device) |>
+	group_split() |>
+	purrr::walk(\(grp) {
+		grp |>
+			select(-Device) |>
+			gt() |>
+			opt_stylize(style = 3) |>
+			tab_header(unique(grp$Device)) |>
+			print()
+	})
 ```
 
 ## Dante Outputs by Device
 
-TODO: The following charts need to be redeveloped to use the db.cables data structure.
+Each row shows a Dante audio path leaving a transmitting device (`SrcTag`).
 
-```{r}
-# fmt_dante_chart("Out"
-# 				, "ZAKU-0001" 
-# 				, "Outputs for the M7CL")
-```
-```{r}
-# fmt_dante_chart("Out"
-# 				, "CUMU-E001" 
-# 				, "Outputs for the DAW Workstation")
-```
-
-```{r}
-# fmt_dante_chart("Out"
-# 				, c("ZAMU-B001", "ZAMU-B002", "ZAMU-B003", "ZAMU-A001") 
-# 				, "Outputs for the Wireless Microphone Receivers")
-```
-```{r}
-# fmt_dante_chart("Out"
-# 				, "CDMU-A001" 
-# 				, "Outputs for the ProPresenter Computer")
-```
-
-```{r eval=FALSE}
-#| label: tbl-dante-outputs-by-device
-#| tbl-cap: Dante Outputs by Device
-
-get_dante_devices() |>
-	filter(InOut == "Out") |>
-	filter(Used == "Y") |>
- 	left_join(assets, by=join_by(Device == AssetTag)) |>
-	mutate(GroupTitle = paste(Device, Model, Desc)) |>
-	select(GroupTitle, NetworkDevice, NetworkDeviceChannel, Label, Usage) |>
-	gt(groupname_col = "GroupTitle") |>
-	opt_stylize(style=3) |>
-	tab_header("Dante Outputs by Device") |>
-	cols_label(NetworkDeviceChannel = "Ch")  |>
-  tab_options(     # these does not work well for pdf output :( 
-      row_group.as_column = FALSE
-    , row_group.font.weight = 'Bold'  
-    , row_group.font.size = 12
-    , table.font.size = 8
-  )
-
+```{r dante-outputs-by-device}
+db.cables |>
+	filter(Protocol == "dante", !is.na(Usage)) |>
+	left_join(db.assets |> select(AssetTag, Model, Desc), by = c("SrcTag" = "AssetTag")) |>
+	mutate(Device = paste(SrcTag, coalesce(Model, ""), coalesce(Desc, "")) |> str_squish()) |>
+	select(Device, SrcPort, DstTag, DstPort, Usage) |>
+	arrange(Device, SrcPort) |>
+	group_by(Device) |>
+	group_split() |>
+	purrr::walk(\(grp) {
+		grp |>
+			select(-Device) |>
+			gt() |>
+			opt_stylize(style = 3) |>
+			tab_header(unique(grp$Device)) |>
+			print()
+	})
 ```
 
 
@@ -733,7 +661,7 @@ cs <- c(  "ZAIU-B001", "ZAIU-B002"
 		, "2308-1124"
         )
 
-print_inv(cs , assets)
+print_inv(cs , db.assets)
 ```
 
 # LiveStream Configuration PROPOSED
@@ -956,7 +884,7 @@ Some of the audio system components have network (tcp/ip specicially) connectivi
 ```{r ni716} 
 #TODO: redo using the new network data structure
 
- # NetworkInventory %>% 
+ # db.network %>% 
  #  filter(Category=="Audio") %>% 
  #  select(AssetTag, Usage, Device, MAC, IP, URL, Notes) %>%
  #  kable()  
@@ -977,7 +905,7 @@ cs = c("AssetTag", "Qty"  ,
   "Type" ,
   "Desc"     )
 
-assets %>%  
+db.assets %>%  
           filter( Category=="Audio" , InService== "Y") %>%  
           dplyr::select(one_of(cs)) %>% 
           kable(   )   
@@ -1007,7 +935,7 @@ tab <- get.glossary() |>
 cat(print_gt_table(tab))
 ``` 
 
-'' < include common_trailer.qmd >}}
+{{< include common_trailer.qmd >}}
 
 # Input Map for Printing
 {{< pagebreak >}} 
