@@ -605,10 +605,34 @@ details[open] .diagram-options-summary::before {
     border-bottom: none;
 }
 
-.partners-section, .knowledgebase-section, .network-section {
+.partners-section, .knowledgebase-section, .network-section, .manuals-section {
     margin-top: var(--space-5);
     padding-top: var(--space-4);
     border-top: 1px solid var(--color-border-light);
+}
+
+.manuals-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.manuals-list li {
+    padding: var(--space-1) 0;
+}
+
+.manuals-list a {
+    color: var(--color-link, #2563eb);
+    text-decoration: none;
+}
+
+.manuals-list a:hover {
+    text-decoration: underline;
+}
+
+.manuals-empty {
+    color: var(--color-text-muted, #6b7280);
+    font-style: italic;
 }
 
 .partners-columns {

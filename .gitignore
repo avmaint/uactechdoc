@@ -3,6 +3,7 @@
 .Rhistory
 *.pdf
 *.html
+!webapp/frontend/*.html
 data/~*.xlsx
 SystemDesign*_files
 SystemOperations*_files
@@ -25,7 +26,6 @@ InventoryManagement_files/
 **/*.quarto_ipynb
 *_files/
 webapp/backend/__pycache__/*
-webapp/backend/*
 VideoHubMatrix*.*
 dante map_2025-10-08.xlsx
 create_graph.R

@@ -28,6 +28,7 @@ const ASSET_PROPERTIES_CONTAINER_ID = "assetProperties";
 const INPUT_PARTNERS_LIST_ID = "inputPartnersList";
 const OUTPUT_PARTNERS_LIST_ID = "outputPartnersList";
 const KNOWLEDGE_BASE_ISSUES_TABLE_ID = "knowledgeBaseIssuesTable";
+const ASSET_MANUALS_CONTAINER_ID = "assetManualsContainer";
 
 const FALLBACK_FIELD_LABELS = {
     tag: "Tag",
@@ -2255,28 +2256,36 @@ document.addEventListener("DOMContentLoaded", () => {
         const inputPartnersList = document.getElementById(INPUT_PARTNERS_LIST_ID);
         const outputPartnersList = document.getElementById(OUTPUT_PARTNERS_LIST_ID);
         const knowledgeBaseIssuesTableContainer = document.getElementById(KNOWLEDGE_BASE_ISSUES_TABLE_ID);
+        const manualsContainer = document.getElementById(ASSET_MANUALS_CONTAINER_ID);
 
         // Clear previous content from individual containers only
         if (assetPropertiesContainer) assetPropertiesContainer.innerHTML = '<p>Loading asset details...</p>';
         if (inputPartnersList) inputPartnersList.innerHTML = '';
         if (outputPartnersList) outputPartnersList.innerHTML = '';
         if (knowledgeBaseIssuesTableContainer) knowledgeBaseIssuesTableContainer.innerHTML = '';
+        if (manualsContainer) manualsContainer.innerHTML = '';
 
         document.querySelector(`.tab-button[data-tab="${ASSET_DETAILS_TAB_ID}"]`).click(); // Switch to asset details tab
 
         try {
-            const response = await fetch(`${API_BASE_URL}/assets/${encodeURIComponent(assetTag)}/details`);
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            const [detailsResponse, manualsResponse] = await Promise.all([
+                fetch(`${API_BASE_URL}/assets/${encodeURIComponent(assetTag)}/details`),
+                fetch(`${API_BASE_URL}/manuals/${encodeURIComponent(assetTag)}`),
+            ]);
+
+            if (!detailsResponse.ok) {
+                const errorData = await detailsResponse.json().catch(() => ({}));
+                throw new Error(errorData.detail || `HTTP error! status: ${detailsResponse.status}`);
             }
-            const data = await response.json();
+            const data = await detailsResponse.json();
+            const manualsData = manualsResponse.ok ? await manualsResponse.json() : null;
 
             renderAssetProperties(data.asset, assetPropertiesContainer);
             renderPartnersList(data.input_partners, inputPartnersList, "input");
             renderPartnersList(data.output_partners, outputPartnersList, "output");
             renderAssetNetwork(data.network || [], document.getElementById("assetNetworkContainer"));
             renderKnowledgeBaseIssues(data.knowledge_base_issues, knowledgeBaseIssuesTableContainer);
+            renderManuals(manualsData, manualsContainer);
 
             // Update location tab in background
             fetchAndRenderRackProfile(assetTag).catch(e => console.error("rack profile error:", e));
@@ -2287,6 +2296,28 @@ document.addEventListener("DOMContentLoaded", () => {
             if (outputPartnersList) outputPartnersList.innerHTML = '';
             if (knowledgeBaseIssuesTableContainer) knowledgeBaseIssuesTableContainer.innerHTML = '';
         }
+    }
+
+    function renderManuals(data, container) {
+        if (!container) return;
+        container.innerHTML = '';
+        if (!data || !data.manuals || data.manuals.length === 0) {
+            container.innerHTML = '<p class="manuals-empty">No manuals available.</p>';
+            return;
+        }
+        const list = document.createElement('ul');
+        list.className = 'manuals-list';
+        data.manuals.forEach(manual => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = manual.url;
+            a.textContent = manual.name;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            li.appendChild(a);
+            list.appendChild(li);
+        });
+        container.appendChild(list);
     }
 
     function renderAssetProperties(asset, container) {
