@@ -5,6 +5,7 @@
 *.html
 !webapp/frontend/*.html
 data/~*.xlsx
+data/*
 SystemDesign*_files
 SystemOperations*_files
 *.aux
