@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-pandas
-openpyxl
-python-multipart
-python-dotenv
-tabulate
-graphviz
