@@ -103,6 +103,40 @@ for (f in files$File) {
     }
 }
 
+# ── Word documents ─────────────────────────────────────────────────────────────
+# Convert .docx files in word_docs/ to HTML using pandoc (bundled with Quarto).
+# Only converts if the source is newer than the existing output.
+
+word_src_dir <- file.path(srcdir, "word_docs")
+docx_files   <- list.files(word_src_dir, pattern = "\\.docx$", full.names = FALSE)
+pandoc_bin   <- file.path(dirname(quarto::quarto_path()), "tools", "pandoc")
+
+for (docx in docx_files) {
+  src  <- path.expand(file.path(word_src_dir, docx))
+  stem <- tools::file_path_sans_ext(docx)
+  # Sanitize filename: replace spaces with underscores for the output file
+  out_name <- paste0(gsub(" ", "_", stem), ".html")
+  out  <- path.expand(file.path(trgdir, out_name))
+
+  src.mt <- file.info(src)$mtime
+  out.mt <- file.info(out)$mtime
+  
+  if (publish.all | is.na(out.mt) | (src.mt > out.mt)) {
+    print(paste("Converting:", docx))
+    system2(pandoc_bin, args = c(
+      shQuote(src),
+      "-o", shQuote(out),
+      "--standalone",
+	    "--embed-resources",
+      "--metadata", paste0("title=", shQuote(stem))
+    ))
+    results <- rbind(results, data.frame(File = out_name, Action = "Updated"))
+  } else {
+    print(paste(docx, "Update not required."))
+    results <- rbind(results, data.frame(File = out_name, Action = "Not updated"))
+  }
+}
+
 results |>
 	gt() |>
 	opt_stylize(style=5)  |> print()
