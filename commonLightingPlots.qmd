@@ -159,9 +159,9 @@ These diagrams are approximations (dimension wise), and somewhat simplified. For
 ## Theartrical Channels
 
 ```{r   }
-#| label: tbl-clptchan
-#| tbl-cap: Room Overview
-#| tbl-cap-location: bottom
+#| label: fig-clptchan
+#| fig-cap: Room Overview
+#| fig-cap-location: bottom
 
 channels <-  dmx.details %>% filter(!is.na(x))
 
@@ -185,12 +185,12 @@ Some items are quite moveable so may not match this diagram, specifically fixtur
 * 34-40 are sometimes free standing and washing the walls around the screens, backlight for the scrims or installed inside the white plastic pillars.
 * 67 (which is actually 6 bars) has been used for a ceiling wash, the large scrims,  etc.
 
-Zoom in on the stage (@fig-clpzoomstage). Some of the lighting is mounted on the ceiling and some sits on the stage. Some of them are portabe (CSPARs and AW Bars) and are used for lighting scrims, backdrops, etc.
+Zoom in on the stage (@fig-clpzoomstage). Some of the lighting is mounted on the ceiling and some sits on the stage. Some of them are portable (CSPARs and AW Bars) and are used for lighting scrims, backdrops, etc.
 
 ```{r   }
-#| label: tbl-clpzoomstage
-#| tbl-cap: Zoom in on stage
-#| tbl-cap-location: bottom
+#| label: fig-clpzoomstage
+#| fig-cap: Zoom in on stage
+#| fig-cap-location: bottom
 
 channels <-  dmx.details |>
 	filter(!is.na(x)) |>
@@ -211,9 +211,9 @@ ggplot() +
 @fig-clpstagepots
 
 ```{r  }
-#| label: tbl-clpstagepots
-#| tbl-cap: Stage Pots
-#| tbl-cap-location: bottom
+#| label: fig-clpstagepots
+#| fig-cap: Stage Pots
+#| fig-cap-location: bottom
 #| 
 chs <- dmx.details |> filter(Location == "Stage Pots") |> select(Channel, Usage)
 lox <- merge(chs, all.pots, by.x="Usage", by.y="group" )

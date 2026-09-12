@@ -7,7 +7,7 @@ node [shape=Mrecord, tooltip="" ,
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
-console [label="{Lighting Control|ETC CS40AV\nZLKU-C001|{<hdmi>hdmi|<dmx1>DMX 1|<dmx2>DMX 2}}"]
+console [label="{Lighting Control|grandMA3 onPC wing XT\n2607-2500|{<dmxA>DMX A|<dmxB>DMX B}}"]
 
 keypad [label="{Keypad Pad\nZLKU-B002|<p>unison}"]
 echo2 [label="{{<p>unison|<bt>bluetooth|<dmx>dmx}|echo node|dmx}"]
@@ -39,7 +39,7 @@ pathway:o2 -> stage
 pathway:o3 -> topbar
 pathway:o4 -> fohbar
 
-console:dmx1 -> optoisolator:i1
+console:dmxA -> optoisolator:i1
 
 Node [shape=plaintext, fillcolor=white]
 stamp [label= <<table>
@@ -47,7 +47,7 @@ stamp [label= <<table>
     <td>Control Topology</td>
 </tr>    
 <tr><td>As of</td>
-    <td>2016-03-16</td>
+    <td>2026-09-12</td>
 </tr>
    
 </table>> ]  

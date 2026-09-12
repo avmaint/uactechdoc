@@ -113,18 +113,18 @@ get_cable_code <- function(target_cables, cables) {
 get_extension_node <- function(tcables) {
 	set1 <- tcables |>
 		filter(  DstIsCable) |> 
-		mutate(code = glue("{Tag2}{DstTag2} [label=\"\" shape=point]\n"))
+		mutate(code = glue("\"{Tag2}{DstTag2}\" [label=\"\" shape=point]\n"))
 	return( paste(set1$code , collapse = "\n")	)	
 }
 
 get_extension_edge <- function(tcables) {
 	edge1 <- tcables |>
 		filter(  DstIsCable) |> 
-		mutate(code = glue('"{SrcTag2}"{SrcPort2} -> {Tag2}{DstTag2} [label="{Tag}\n{Usage2}"]\n'))
+		mutate(code = glue('"{SrcTag2}"{SrcPort2} -> "{Tag2}{DstTag2}" [label="{Tag}\n{Usage2}"]\n'))
 
 	edge2 <- tcables |>
 		filter(  SrcIsCable) |>
-		mutate(code = glue('"{SrcTag2}"{Tag2} -> {DstTag2}{DstPort2} [label="{Tag}\n{Usage2}"]\n'))
+		mutate(code = glue('"{SrcTag2}{Tag2}" -> "{DstTag2}"{DstPort2} [label="{Tag}\n{Usage2}"]\n'))
 
 	edges <- c(edge1$code, edge2$code)
 	return( paste(edges , collapse = "\n")	)	
@@ -145,6 +145,15 @@ get_diagram <- function(targets, inventory, cables, label=NA
   initial_target_nodes <- unique(targets)
   initial_target_nodes <- initial_target_nodes[!is.na(initial_target_nodes)] # Remove NA if any
   
+  # Excluded devices act as a barrier: the walk must not pass through them,
+  # otherwise a single network switch drags in the whole building.
+  walk_cables <- cables
+  if ( !missing(exc_dev) ) {
+    initial_target_nodes <- setdiff(initial_target_nodes, exc_dev)
+    walk_cables <- cables |> 
+      filter(!(SrcTag %in% exc_dev) & !(DstTag %in% exc_dev) )
+  }
+  
   queue <- initial_target_nodes
   visited_nodes <- initial_target_nodes
   collected_cables_raw <- cables[FALSE, names(cables)] # Empty dataframe with cables structure
@@ -154,7 +163,7 @@ get_diagram <- function(targets, inventory, cables, label=NA
     current_node <- queue[head_ptr]
 
     # Find all cables connected to the current_node
-    connected_cables_step <- cables %>%
+    connected_cables_step <- walk_cables %>%
       filter(SrcTag == current_node | DstTag == current_node)
 
     # Add these cables to our collection
@@ -201,8 +210,8 @@ get_diagram <- function(targets, inventory, cables, label=NA
       mutate(DstTag2 = tolower(stringr::str_replace_all(DstTag, "-", ""))) %>%
       mutate(SrcPort2 = str_replace(SrcPort, ' ' , '')) %>%
       mutate(DstPort2 = str_replace(DstPort, ' ' , '')) %>%
-      mutate(SrcPort2 = ifelse(is.na(SrcPort), "", glue(": {SrcPort2}"))) %>%
-      mutate(DstPort2 = ifelse(is.na(DstPort), "", glue(": {DstPort2}"))) %>%
+      mutate(SrcPort2 = ifelse(is.na(SrcPort), "", glue(': "{SrcPort2}"'))) %>%
+      mutate(DstPort2 = ifelse(is.na(DstPort), "", glue(': "{DstPort2}"'))) %>%
       mutate(Tag2 = tolower(stringr::str_replace_all(Tag, "-", "")))  %>%
       mutate(Usage2 = ifelse( is.na(Usage), "",  glue("{Usage} ")) )
 

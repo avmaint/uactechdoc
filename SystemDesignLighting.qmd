@@ -51,7 +51,7 @@ db.cables   <- get.cables()
 
 # Introduction
 
-This document provides key technical documentation design for the lighting systems at UAC.
+This document provides the key technical design documentation for the lighting systems at UAC.
 The intended audience of this document are the people who need to manage and maintain the system.
 
 Purpose of the lighting system:
@@ -61,18 +61,18 @@ Purpose of the lighting system:
 -   Helps draw attention to the central item -- conversely makes it easier to ignore clutter
 -   Helps audience to focus and concentrate
 -   Reinforces the message (spoken or sung)
-- 	Creates a immersive and beautiful environment in which to worship
+-   Creates an immersive and beautiful environment in which to worship
 
 There are two mechanisms to control the lighting:
 
--   A touch panel located on the main floor by the south east auditorium doors. Users can select one of several preset configurations.
--   For more sophisticated control, The primary lighting control console is an ETC ColorSource 40AV console. It is used for all lighting operations more sophisticated than can be accomplished via the touchpad panel.
+-   A keypad located on the main floor by the south east auditorium doors. Users can select one of several preset configurations.
+-   For more sophisticated control, the primary lighting control console is a grandMA3 onPC command wing XT (2607-2500) located in the balcony. It is used for all lighting operations more sophisticated than can be accomplished via the keypad.
 
 # Control Systems
 
 There are three different protocols used to control the lighting levels of our major auditorium lighting systems:
 
-* DMX, [an industry standard protocol](https://en.wikipedia.org/wiki/DMX512), is the backbone. We use only one DMX universe for output
+* DMX, [an industry standard protocol](https://en.wikipedia.org/wiki/DMX512), is the backbone. We use only one DMX universe for output, driven directly from the DMX A port of the grandMA3 command wing
 * ETC Echonet
 * and KetraNet Mesh wireless
 
@@ -84,15 +84,16 @@ The handrail lighting in the balcony and the emergency lighting are independent 
 
 ```{r dmx_control}
 dmx_control <- c( 
-		  "ZLKU-C001"
-		, "ZLIU-0003"  
-		, "2310-0220"
-		, "2310-0223" 
-		, "2310-0211" 
-		, "2310-0202", "2310-0204", "ZLIU-A004"
+		  "2607-2500"   # grandMA3 onPC command wing XT
+		, "ZLIU-0003"   # opto-isolator / splitter
+		, "2310-0220"   # Echo DMX scene controller
+		, "2310-0211"   # ADJ 4-channel dimmer
+		, "ZLIU-A004"   # UFMP8 relay panel
 		 )
-xd <- c("ZLKU-B002", "ZLLU-B054"
-		, "ZLLU-B052", "bt_node")
+# Excluded devices are barriers for the walk. The console's LAN port and
+# touchscreens would otherwise drag in the whole building network.
+xd <- c("ZLKU-B002", "ZLLU-B054", "ZLLU-B052", "bt_node"
+		, "NSCU-A004", "2607-1000", "2607-1001")
 
 diag <- get_diagram(dmx_control 
 					, db.assets , db.cables
@@ -108,16 +109,15 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 ```
 
 ```{dot fig-sdl-dmx_control  }
-//| echo: true  
 //| label: fig-sdl-dmx_control
-//| fig-cap: Control Topology  
+//| fig-cap: DMX Control Topology (generated from the cable database)
 //| cap-location: bottom
 //| file: _work/sdl-dmx_control.gv
 ```
 
 ```{dot fig-sdl-topology1-control }
 //| label: fig-sdl-topology1-control
-//| fig-cap: Control Topology 
+//| fig-cap: Control Topology (simplified)
 //| cap-location: bottom
 //| file: gv/sdl-topology1-control.gv
 ```
@@ -146,7 +146,7 @@ The console is protected from power surges via an opto-isolator/DMX splitter.
 
 ```{r top2}
 selected.at <- c(
-                "ZLKU-C001", "ZLKU-B002", "CDWU-0009",
+                "2607-2500", "ZLKU-B002", "CDWU-0009",
                 "ZLIU-0003",
                 "ZLIU-A003", "ZLIU-A002", 
               "ZLIU-B001", "ZLIU-B002", "ZLIU-B003" 
@@ -163,7 +163,7 @@ db.assets  |>
 ## ETC Echo Control Topology
 
 There is a simple lighting control panel located next to the auditorium doors by the main office (south east).
-It enables the house lights to set according to several pre-defined looks.
+It enables the house lights to be set according to several pre-defined looks.
 
 The keypad and the main console can conflict with each other.
 When running from the console, the keypad should be in "Console Mode".
@@ -193,7 +193,7 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 # system(glue("open {tf}"))
 ```
 
-```{dot fig-sdl-dmx_control }
+```{dot fig-sdl-echo_control }
 //| label: fig-sdl-echo_control
 //| fig-cap: Echo Control Topology (generated)
 //| cap-location: bottom
@@ -202,7 +202,7 @@ grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(tf)
 
 __Restrictions__
 
-* The sconce lights has a timed switch which is next to the keypad, if you want sconce control during the day you will need to manual turn them on as well.
+* The sconce lights have a timed switch which is next to the keypad; if you want sconce control during the day you will need to manually turn them on as well.
 * The lighting instruments which are hung from the balcony bars cannot be controlled from the keypad due to the point in the topology where unison and dmx are merged. 
 * Any one DMX address can only belong to one Zone.
 * Control of the ADJ Ultrabar 12 devices on the walls presents a challenge as they are configured as 12 address devices and this DMX footprint is not supported by the *Echo* equipment.
@@ -224,7 +224,7 @@ Access BT Interface
 Inspire 8 Button
 
 :   Associates Button actions to presets.
-    See @fig-keypad-index
+    See @tbl-keypad-index
 
 > TODO: need to define behaviours for: single click, double click, press and hold.
 
@@ -268,7 +268,7 @@ rs.new <- zones2dmx |>
 	inner_join(rs, by=join_by(Zone) )
 ```
 
-This table defines the detailed programming for each Button, Preset and Zone, @fig-detailed-program.
+The detailed programming for each Button, Preset and Zone is shown in @fig-detailed-program1 and @fig-detailed-program2.
 
 ```{r fig-detailed-program}
 tab1 <- rs.new |>
@@ -288,9 +288,9 @@ gtsave(tab2, "./_work/sdl-detail-program2.png")
 
 ```
 
-![Detailed Programming 1](./_work/sdl-detail-program1.png){fig-detailed-program1} 
+![Detailed Programming 1](./_work/sdl-detail-program1.png){#fig-detailed-program1}
 
-![Detailed Programming 2](./_work/sdl-detail-program2.png){fig-detailed-program2}
+![Detailed Programming 2](./_work/sdl-detail-program2.png){#fig-detailed-program2}
 
 
 
@@ -398,8 +398,6 @@ circuits <- tribble(
 
 # House Lighting
 
-The house lights consists for many major components:
-
 ## Control
 
 The house lights (except the railing) can be controlled in two ways:
@@ -407,11 +405,11 @@ The house lights (except the railing) can be controlled in two ways:
 1.  Via the keypad panel
     -   Located at the front of the auditorium, office side.
     -   Allows the selection of one of eight preset scenes.
-2.  Via the Colorsource 40AV console
-    -   Located in the balcony on th erear desk.
-    -   many sophisticated looks can be programmed into the console.
+2.  Via the grandMA3 console
+    -   Located in the balcony on the rear desk.
+    -   Many sophisticated looks can be programmed into the console.
 
-These two control systems cannot be succesfully used at the same time. When using the main console select the *Console Mode* button on the keypad.
+These two control systems cannot be successfully used at the same time. When using the main console select the *Console Mode* button on the keypad.
 
 :::{.callout-note}
 TODO: need to add discussion about the sconce light and the interaction between the 3-way switch, timer and touchpad.
@@ -533,8 +531,8 @@ return(g)
 The basic floor plan (stage). See @fig-basic-floor
 
 ```{r fig-basic-floor }
-#| label: tbl-basic-floor
-#| tbl-cap: Basic Floor Plan
+#| label: fig-basic-floor
+#| fig-cap: Basic Floor Plan
 df <- plan
  g <- ggplot(df) + coord_equal() +
   # geom_path(data=l1, aes(x=x, y=y) ) +
@@ -569,8 +567,8 @@ We need to keep the light off the screens so we need to use the spot width lamps
 With nothing else added, these will create dots on the floor.
 
 ```{r  walls477}
-#| label: tbl-walls
-#| tbl-cap: Walls
+#| label: fig-walls
+#| fig-cap: Walls
 p1 <- plan |> 
    filter(group == "Wall" ) 
 
@@ -581,13 +579,13 @@ makeplot(p1 )
 
 The bulkhead pots can be used to light up the typical vocal area.
 An eight foot beam diameter should give decent coverage.
-With all of them on, the centre section wil be brighter than the outside.
+With all of them on, the centre section will be brighter than the outside.
 
 For coverage behind the bulkhead, we can use "Two Rows"
 
 ```{r fig-downstage }
-#| label: tbl-downstage
-#| tbl-cap: Down Stage
+#| label: fig-downstage
+#| fig-cap: Down Stage
 p1 <- plan |> 
    filter(group == "Down Stage" ) 
 
@@ -599,8 +597,8 @@ makeplot(p1 )
 The WF covers most of the riser
 
 ```{r  fig-upstagecentre }
-#| label: tbl-upstagecentre
-#| tbl-cap: Upstage Centre
+#| label: fig-upstagecentre
+#| fig-cap: Upstage Centre
 p1 <- plan |> 
    filter(group == "Up Stage" ) 
 
@@ -609,12 +607,12 @@ makeplot(p1 )
 
 ## Centre Wash
 
-The there are 10 centre pots are in one groups to wash most of the platform.
+The 10 centre pots are in one group to wash most of the platform.
 There will be a hot spot down the centre if all are on at once.
 
 ```{r fig-centrewash }
-#| label: tbl-centrewash
-#| tbl-cap: Centre Wash
+#| label: fig-centrewash
+#| fig-cap: Centre Wash
 p1 <- plan |> 
    filter(group == "Centre"  )   
 
@@ -691,9 +689,9 @@ The expected maximum transition time is `r T` seconds.
 Reference location "r1" is the "zero" point.
 
 ```{r fig-floor-plan  }
-#| label: tbl-floor-plan
-#| tbl-cap-location: bottom
-#| tbl-cap: Floor Plan
+#| label: fig-floor-plan
+#| fig-cap-location: bottom
+#| fig-cap: Floor Plan
  
 key.refs <- all.refs |> filter(group != "post")
 ggplot() + 
@@ -717,7 +715,8 @@ all.refs |>
 # Network Details
 
 The lighting system has few network components.
-RJ45 and cat6 cabling is used for some interconnects - the protocol is DMX not Ethernet.
+The grandMA3 console has a LAN connection (cable 2308-2600 to NSCU-A004 port 7).
+RJ45 and cat6 cabling is also used for some DMX interconnects - in those cases the protocol is DMX, not Ethernet.
 
 ```{r net_dets, results="asis"}
 db.network  |> 
@@ -738,7 +737,6 @@ db.network  |>
 cs = c("AssetTag","Qty"  ,
   "Manufacturer" ,
   "Model"  , 
-  "Qty",
   "Location"  ,
   "Type" ,
   "Desc"     )
@@ -769,7 +767,7 @@ tab1 <- df1 |>	gt() |>
 tab2 <-df2 |>	gt() |>
 	opt_stylize(style=3) |>
 	tab_header(header2)  
-tab3 <-df2 |>	gt() |>
+tab3 <-df3 |>	gt() |>
 	opt_stylize(style=3) |>
 	tab_header(header3) 
 ```
@@ -785,7 +783,6 @@ tab2 |> print_gt_table() |> cat()
 ```{r inv3,results="asis", eval=FALSE}
 tab3 |> print_gt_table() |> cat()
 ```
-# Appendix
 
 # Accessories
 
