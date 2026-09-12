@@ -68,6 +68,28 @@ There are two mechanisms to control the lighting:
 -   A keypad located on the main floor by the south east auditorium doors. Users can select one of several preset configurations.
 -   For more sophisticated control, the primary lighting control console is a grandMA3 onPC command wing XT (2607-2500) located in the balcony. It is used for all lighting operations more sophisticated than can be accomplished via the keypad.
 
+# Changes Expected in the Fall of 2026
+
+```{r}
+changes <- tribble(
+  ~Change, ~Description,
+  "sACN", "The control topology will be revamped to use sACN as the primary communication backbone.",
+  "ETC Nodes", "ETC sACN-DMX Nodes will be installed at key points to convert sACN traffic to local DMX.",
+  "Direct sACN Support", "Some fixtures will directly support sACN and will not require a local sACN-to-DMX node.",
+  "Control Override", "The grandMA3 console will be able to override the Echo controller (keypad) using sACN priorities.",
+  "Backup Control System", "A backup control system (onPC) will be provided in case the grandMA3 console is not available.",
+  "New Fixtures (2026)", "New lighting fixtures will be added, including 7 Ayrton Diablo S, 2 Elation KL Cyc S, 5 Acme Tornados, 3 Portland P2 EVOs.",
+  "New Fixtures (2027)", "Replacement of the house lighting fixtures. All pendants will be replaced with Acclaim Cycliner One Spectrum and some missing fixtures restored. Under Balcony replaced with ETC Navis Color Fixtures. Sconce light also likely replace with Acclaim Cycliner One Spectrum. The over stage posts will likely be replaced with LEDs on a relay."
+  
+)
+
+changes |>
+	gt() |>
+	tab_header("Expected Changes in Fall 2026 and Beyond") |>
+	opt_stylize(style=3)
+```
+
+
 # Control Systems
 
 There are three different protocols used to control the lighting levels of our major auditorium lighting systems:
@@ -76,7 +98,29 @@ There are three different protocols used to control the lighting levels of our m
 * ETC Echonet
 * and KetraNet Mesh wireless
 
-How these systems are interconnected is depicted on the diagrams below.
+## sACN (Streaming Architecture for Control Networks)
+In the fall of 2026 will will 
+revamp the control topology and make sACN 
+the primary communication backbone.
+ 
+When sACN is implemented, 
+the grandMA3 console will output all controls via 
+sACN and will no longer directly emit DMX. 
+ETC Nodes will be installed at key points that will convert the 
+sACN traffic to local DMX.  
+
+Some fixtures will directly support sACN and will not require a local sACN-to-DMX node. 
+
+One key design objective is that i want to be able to leverage sACN priorities to allow the grandMA3 console to override the Echo controller (keypad) and also provide for a backup control system in case the grandMA3 console is not available.
+
+This diagram (@fig-uac_sacn_lighting_170ch)  is illustrative of what this might look like. THe ETC DMX nodes are not shown. 
+
+```{dot fig-uac_sacn_lighting_170ch}
+//| file: gv/uac_sacn_lighting_170ch.gv
+```
+
+
+How these DMX systems were interconnected is depicted on the diagrams below. This will change in the fall of 2026. 
 
 The handrail lighting in the balcony and the emergency lighting are independent systems.
 
@@ -292,9 +336,11 @@ gtsave(tab2, "./_work/sdl-detail-program2.png")
 
 ![Detailed Programming 2](./_work/sdl-detail-program2.png){#fig-detailed-program2}
 
-
-
 ## DMX Address Map
+
+The channel IDs in these documents are the channel numbers as they were in the prior ETC ColourSource console. For the grandMA3 console, the fixture IDs are the old channel numbers plus 100 . The DMX addresses remain the same and are shown in the table below.
+
+In the fall of 2026, this may all change.
 
 ```{r dmxmap}
 dmxmap <- tribble(

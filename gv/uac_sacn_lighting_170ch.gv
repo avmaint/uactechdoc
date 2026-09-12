@@ -1,0 +1,88 @@
+// UAC Prposed sACN Lighting Topology
+// Acme Tornados in 170-channel mode (two network drops, 3/2 split across U4/U5)
+// Render:  dot -Tsvg uac_sacn_lighting_170ch.dot -o topology.svg
+//          dot -Tpng uac_sacn_lighting_170ch.dot -o topology.png
+
+digraph UAC_sACN_Lighting {
+    rankdir=TB;
+    compound=true;
+    graph [fontname="Helvetica", fontsize=13, labelloc="t",
+           label="Proposed UAC sACN Lighting Topology"];
+
+    // Default node = fixture; switches / console / core overridden below
+    node  [fontname="Helvetica", fontsize=10, shape=box,
+           style="rounded,filled", fillcolor="#E1F5EE", color="#0F6E56"];
+    edge  [fontname="Helvetica", fontsize=9];
+
+    // ---------- Control root ----------
+    console [label="grandMA3 onPC + Wing XT\nsACN source",
+             shape=box, style="rounded,filled", fillcolor="#D3D1C7", color="#5F5E5A"];
+    core    [label="Core switch — TL-SG3452XP\nLighting VLAN · IGMP querier",
+             shape=box, style="filled", fillcolor="#B5D4F4", color="#185FA5"];
+
+    console -> core [label="sACN backbone", color="#185FA5", penwidth=2.0];
+
+    // ---------- Diablo — Location A (U1, 4 fixtures, local switch) ----------
+    subgraph cluster_diabloA {
+        label="Diablo — Location over stage  ·  U1";
+        style="rounded,dashed"; color="#639922"; fontname="Helvetica"; fontsize=11;
+        dA1 [label="Diablo S #1"]; dA2 [label="Diablo S #2"];
+        dA3 [label="Diablo S #3"]; dA4 [label="Diablo S #4"];
+    }
+    core -> dA1 [label="Cat6 drop · sACN U1", color="#185FA5"];
+    dA1 -> dA2 [label="etherCON thru · sACN U1", color="#185FA5"];
+    dA2 -> dA3 [label="etherCON thru · sACN U1", color="#185FA5"];
+    dA3 -> dA4 [label="etherCON thru · sACN U1", color="#185FA5"];
+
+    // ---------- Diablo — Location B (U2, 3 fixtures, local switch) ----------
+    subgraph cluster_diabloB {
+        label="Diablo — Location mid house  ·  U2";
+        style="rounded,dashed"; color="#639922"; fontname="Helvetica"; fontsize=11;
+        dB1 [label="Diablo S #1"]; dB2 [label="Diablo S #2"]; dB3 [label="Diablo S #3"];
+    }
+    core -> dB1 [label="Cat6 drop · sACN U2", color="#185FA5"];
+    dB1 -> dB2 [label="etherCON thru · sACN U2", color="#185FA5"];
+    dB2 -> dB3 [label="etherCON thru · sACN U2", color="#185FA5"];
+
+    // ---------- Elation KL Cyc (U3, 2 fixtures, sACN daisy-chain) ----------
+    subgraph cluster_elation {
+        label="Elation KL Cyc - Location Thrust ·  U3";
+        style="rounded,dashed"; color="#534AB7"; fontname="Helvetica"; fontsize=11;
+        el1 [label="Elation KL Cyc #1"]; el2 [label="Elation KL Cyc #2"];
+    }
+    core -> el1 [label="Cat6 drop · sACN U3", color="#185FA5"];
+    el1 -> el2 [label="etherCON thru · sACN U3", color="#185FA5"];
+
+    // ---------- Acme Tornado — 170ch mode (5 fixtures, 2 drops, 3/2 split) ----------
+    subgraph cluster_tornado {
+        label="Acme Tornado — Location over USC—  170ch mode  ·  U4 + U5";
+        style="rounded,dashed"; color="#993C1D"; fontname="Helvetica"; fontsize=11;
+
+        t1 [label="Acme Tornado #1\nsACN→DMX node · U4\n3 × 170 = 510 ch",
+            fillcolor="#FAECE7", color="#993C1D"];
+        t2 [label="Acme Tornado #2 (DMX)", fillcolor="#FAECE7", color="#993C1D"];
+        t3 [label="Acme Tornado #3 (DMX)", fillcolor="#FAECE7", color="#993C1D"];
+
+        t4 [label="Acme Tornado #4\nsACN→DMX node · U5\n2 × 170 = 340 ch",
+            fillcolor="#FAECE7", color="#993C1D"];
+        t5 [label="Acme Tornado #5 (DMX)", fillcolor="#FAECE7", color="#993C1D"];
+    }
+    // Subgroup 1: U4 head-end + DMX thru chain
+    core -> t1 [label="Cat6 drop · sACN U4", color="#185FA5"];
+    t1 -> t2 [label="DMX U4 (5-pin)", color="#993C1D", style=dashed];
+    t2 -> t3 [label="DMX U4 (5-pin)", color="#993C1D", style=dashed];
+    // Subgroup 2: U5 head-end + DMX thru chain
+    core -> t4 [label="Cat6 drop · sACN U5", color="#185FA5"];
+    t4 -> t5 [label="DMX U5 (5-pin)", color="#993C1D", style=dashed];
+
+    // ---------- Legend ----------
+    legend [shape=plaintext, fillcolor="none", color="none", label=<
+        <table border="1" cellborder="0" cellspacing="4" cellpadding="2" color="#888780">
+          <tr><td align="left"><b>Legend</b></td></tr>
+          <tr><td align="left"><font color="#185FA5">──── sACN over Cat64 (network)</font></td></tr>
+          <tr><td align="left"><font color="#993C1D">- - -  DMX 5-pin thru</font></td></tr>
+          <tr><td align="left">Blue box = network switch</td></tr>
+          <tr><td align="left">Teal box = native-sACN fixture</td></tr>
+          <tr><td align="left">Coral box = Tornado (170ch)</td></tr>
+        </table>>];
+}
