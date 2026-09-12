@@ -1,6 +1,9 @@
 # Update all tech documents  
 # If the source has been updated since last publication, 
 # then render create a pdf and put the results in the publication directory 
+# run this from the terminal via `Rscript publish.R`
+# Afterwards, From media_arts_home, publish the rendered output to production:
+# ./publish_docs.sh
 
 publish.all <- FALSE
 
