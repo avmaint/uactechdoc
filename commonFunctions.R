@@ -147,8 +147,9 @@ ct <- c( rep("text",2),    # AssetTag, Category
          rep("numeric",2), #  AcqYear	EolYear
          "text",    #Disposed Y/N
          "numeric", #DisposedYear
-         "numeric", #DisposedValue
-         rep("text",2)     #DisposedComment, Destination
+         "numeric"  #DisposedValue
+         , rep("text",2)     #DisposedComment, Destination
+		 , "date"             #Audit Date
 )
 
 cache_assets <- read_excel(file.path(data_dir, asset_file), 
@@ -321,3 +322,4 @@ print_gt_table <- function(gt_table, vwidth = NULL, vheight = NULL) {
 	print(gt_table)
 	invisible(NULL)
 }
+
