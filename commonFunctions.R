@@ -105,13 +105,16 @@ print_inv <- function(items, inventory) {
 commit.log.html <- function(file.name) {
   
   cmd <- "git"
-  opt <- 'log --date=local --pretty=format:"%h,%an,%ad,%s" --'
+  # tab-separated with quoting off: commit messages may contain commas and quotes
+  opt <- 'log --date=local --pretty=format:"%h%x09%an%x09%ad%x09%s" --'
   
   args <- paste( opt, file.name)
   
   o <- system2(cmd, args=args, stdout=TRUE)
   
-  df <- read.csv(text=o, col.names=c("id", "user", "date", "message"), header=FALSE)
+  df <- read.delim(text=o, sep="\t", quote="", header=FALSE,
+                   col.names=c("id", "user", "date", "message"),
+                   stringsAsFactors=FALSE)
   
   # formatted <- df %>% 
   # 	select(user, date, message) %>%

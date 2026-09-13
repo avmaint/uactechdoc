@@ -349,3 +349,77 @@ test_gcd_6 <- function() {
 # test_gcd_4()
 # test_gcd_5()
 # test_gcd_6()
+
+
+#' Draw end-to-end paths through the BMD VideoHub matrix.
+#'
+#' The cable database records the VideoHub crosspoints as rows where SrcTag and
+#' DstTag are both the VideoHub (in_XX -> out_YY). This joins those with the
+#' cables into and out of the hub so that a source, its hub input, the routed
+#' hub output and the final destination are drawn as one path.
+#'
+#' @param cables      the cable database
+#' @param inventory   the asset database (for node labels)
+#' @param dest_tags   restrict to paths ending at these asset tags (optional)
+#' @param src_tags    restrict to paths starting at these asset tags (optional)
+#' @param hub         asset tag of the VideoHub
+#' @param label       diagram title
+#' @return DOT code
+videohub_path_diagram <- function(cables, inventory, dest_tags = NULL, src_tags = NULL,
+								  hub = "2507-0700", label = "VideoHub Paths",
+								  rankdir = "LR") {
+
+	xpt <- cables |> filter(SrcTag == hub, DstTag == hub) |>
+		select(hub_in = SrcPort, hub_out = DstPort, xpt_usage = Usage)
+	vin <- cables |> filter(DstTag == hub, SrcTag != hub | is.na(SrcTag), grepl("^in_", DstPort)) |>
+		select(SrcTag, SrcPort, hub_in = DstPort, in_usage = Usage, in_cable = Tag)
+	vout <- cables |> filter(SrcTag == hub, DstTag != hub | is.na(DstTag), grepl("^out_", SrcPort)) |>
+		select(hub_out = SrcPort, DstTag, DstPort, out_usage = Usage, out_cable = Tag)
+
+	paths <- xpt |>
+		left_join(vin, by = "hub_in", relationship = "many-to-many") |>
+		left_join(vout, by = "hub_out", relationship = "many-to-many")
+
+	if (!is.null(dest_tags)) paths <- paths |> filter(DstTag %in% dest_tags)
+	if (!is.null(src_tags))  paths <- paths |> filter(SrcTag %in% src_tags)
+	paths <- paths |> filter(!is.na(SrcTag) | !is.na(DstTag))
+
+	node_id <- function(tag) paste0("n_", tolower(gsub("[^A-Za-z0-9]", "", tag)))
+	dev_label <- function(tags) {
+		inv <- inventory |> filter(AssetTag %in% tags) |>
+			mutate(lbl = paste0(coalesce(Desc, ""), "\\n", coalesce(Model, ""), "\\n", AssetTag))
+		tibble(AssetTag = tags) |> left_join(inv |> select(AssetTag, lbl), by = "AssetTag") |>
+			mutate(lbl = coalesce(lbl, AssetTag)) |> pull(lbl)
+	}
+
+	srcs  <- unique(na.omit(paths$SrcTag))
+	dsts  <- unique(na.omit(paths$DstTag))
+	ins   <- unique(paths$hub_in)
+	outs  <- unique(paths$hub_out)
+
+	src_nodes <- paste0(node_id(srcs), ' [label="', dev_label(srcs), '"]', collapse = "\n")
+	dst_nodes <- paste0(node_id(dsts), ' [label="', dev_label(dsts), '"]', collapse = "\n")
+	in_nodes  <- paste0('"', ins,  '" [shape=box, style=filled, fillcolor=lightyellow, fontsize=8]', collapse = "\n")
+	out_nodes <- paste0('"', outs, '" [shape=box, style=filled, fillcolor=lightyellow, fontsize=8]', collapse = "\n")
+
+	e_in  <- paths |> filter(!is.na(SrcTag)) |> distinct(SrcTag, SrcPort, hub_in, in_cable) |>
+		mutate(code = glue('{node_id(SrcTag)} -> "{hub_in}" [label="{coalesce(SrcPort, "")}\\n{coalesce(in_cable, "")}"]')) |> pull(code)
+	e_xpt <- paths |> distinct(hub_in, hub_out) |>
+		mutate(code = glue('"{hub_in}" -> "{hub_out}" [color=grey40, style=dashed]')) |> pull(code)
+	e_out <- paths |> filter(!is.na(DstTag)) |> distinct(hub_out, DstTag, DstPort, out_cable, out_usage) |>
+		mutate(code = glue('"{hub_out}" -> {node_id(DstTag)} [label="{coalesce(DstPort, "")}\\n{coalesce(out_cable, "")}"]')) |> pull(code)
+
+	paste(
+		"digraph videohub_paths {",
+		glue('graph [rankdir={rankdir}, fontsize=16, fontname=Helvetica, label="{label}\\n(as of {Sys.Date()})", labelloc=b]'),
+		'node [shape=Mrecord, style=filled, fillcolor="white:beige", gradientangle=270, fontsize=9, fontname=Helvetica]',
+		'edge [fontsize=7, fontname=Helvetica]',
+		src_nodes, dst_nodes,
+		glue('subgraph cluster_hub {{ label="VideoHub {hub}"; style=rounded; color=grey60;'),
+		in_nodes, out_nodes, paste(e_xpt, collapse = "\n"),
+		"}",
+		paste(e_in, collapse = "\n"),
+		paste(e_out, collapse = "\n"),
+		"}",
+		sep = "\n")
+}

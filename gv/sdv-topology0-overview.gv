@@ -2,53 +2,60 @@ digraph topology0 {
 	tooltip="General Overview"
 	
 graph [overlap = true, fontsize = 30, rankdir=LR 
-      label="Overview\nas of 2026-01-13",
+      label="Overview\nas of 2026-09-12",
       fontname = Helvetica]
 
 node [shape=Mrecord, tooltip="" fontsize = 10, 
       fillcolor="white:beige" , style=filled  
       gradientangle=270]
       
-vid_matrices  [label="Video\nMatrices|BMD VideoHub\nand Kramer vs88dt"]
-constellation [label="Constellation\bVideo\nMixer|???-A003"]
+videohub      [label="{Video Matrix|BMD VideoHub 40x40\n2507-0700}"]
+vs88          [label="{Video Matrix|Kramer VS-88DT\nZVKU-A001}"]
+constellation [label="{Video Mixer|ATEM Constellation 2ME\n2601-2800}"]
+streamdeck    [label="{Stream Deck|switching and\nVideoHub presets}"]
 prod_monitors [label="{Production\nMonitors|{Broadcast Hi|Broadcast Lo|FoH}}"]
-cumug002    [label="ProPresenter|CUMU-G002"]
-cumug001    [label="Zoom|CUMU-G001"]
-cdwu0009    [label="Windows|CDWU-0009"]
-wp          [label="Web\nPresenter|ZVIU-A004"] 
-zviud002    [label="Resi Encoder|ZVIU-D002"]
-resi        [label="Resi|Service"]
-facebook    [label="Facebook Live|Service"]
-youtube     [label="YouTube Live|Service"]
-chop        [label="Church Online Platform|Service"]
-recorders   [label="Video\nRecorders"]
-zviue004    [label="DeckLink|ZVIU-E004"]
-tvs         [label="{TVs|{Lobby|Nursery|Toddler|Library}}"]
-cameras     [label="{{Left|Centre|Right|Stage}|Cameras}"]
-projectors  [label="{Projectors|{Proj A | Proj B | Proj C | Rear}}"]
+cumug002      [label="{ProPresenter|CUMU-G002}"]
+zviue004      [label="{DeckLink|ZVIU-E004}"]
+cumug001      [label="{Video / Zoom / OBS|CUMU-G001}"]
+cdwu0009      [label="{Windows|CDWU-0009}"]
+wp            [label="{Web Presenter|ZVIU-A004}"] 
+ndi           [label="{SDI to NDI|2411-1300}"]
+resienc       [label="{Resi Encoder|ZVIU-G001}"]
+resi          [label="Resi|Service"]
+facebook      [label="Facebook Live|Service"]
+youtube       [label="YouTube Live|Service"]
+chop          [label="Church Online Platform|Service"]
+recorders     [label="{Video Recorders|HyperDeck x2}"]
+tvs           [label="{TVs|{Lobby|Nursery|Toddler|Library}}"]
+cameras       [label="{{Left|Centre|Right|Stage}|Cameras}"]
+projectors    [label="{Projectors|{Proj A | Proj B | Proj C | Rear}}"]
 
 cumug002 -> zviue004
 
-zviud002 -> resi
-resi     -> facebook
-resi     -> youtube
-resi     -> chop 
- 
-wp -> cumug001  
+cameras  -> videohub
+zviue004 -> videohub
+cdwu0009 -> videohub
 
-cameras -> vid_matrices
-cumug002 -> vid_matrices 
-zviue004 -> vid_matrices
-zviue004 -> vid_matrices
-cdwu0009 -> vid_matrices
+videohub -> constellation [dir="both"]
+streamdeck -> constellation
+streamdeck -> videohub
 
-vid_matrices -> wp
-vid_matrices -> projectors
-vid_matrices -> recorders
-vid_matrices -> tvs
-vid_matrices -> zviud002
-vid_matrices -> prod_monitors
-vid_matrices -> constellation [dir="both"]
+videohub -> projectors
+videohub -> recorders
+videohub -> resienc
+videohub -> wp
+videohub -> ndi
+videohub -> prod_monitors
+videohub -> tvs
+vs88     -> projectors
+vs88     -> tvs
+
+wp  -> cumug001  
+
+resienc -> resi
+resi    -> facebook
+resi    -> youtube
+resi    -> chop 
 
 {rank=same; facebook youtube chop projectors recorders tvs}
  

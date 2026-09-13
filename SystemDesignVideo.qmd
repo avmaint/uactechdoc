@@ -39,7 +39,7 @@ further        <- get.further()
 ```
 
 # Introduction
-This document provides key technical documentation for the video recording and broadcasting subsystems at UAC. This diagram (@fig-video-overview) provides an overview of the major components and and in doing so leaves out some details.
+This document provides key technical documentation for the video recording and broadcasting subsystems at UAC. This diagram (@fig-video-overview) provides an overview of the major components and in doing so leaves out some details.
 
 ```{dot   }
 //| fig-width: 4
@@ -50,13 +50,13 @@ This document provides key technical documentation for the video recording and b
 
 Frequently throughout this document there will be a diagram or description of some aspect of the installation and following that a listing of the mentioned equipment which provide more detail on the mentioned assets.
 
-Every significant inventory item is to have an asset tag - an actual label attached to the device. For the AV gear these tags start with a Z or in the format of yymm-ddxx. For example ZVKU-A001 is the assest tag of the kramer video matrix. Cabling aslo have a tag for the format yymm-ddxx. yymm-ddxx represents the year, month, and date followed by a sequence number when the item was tagged.
+Every significant inventory item is to have an asset tag - an actual label attached to the device. For the AV gear these tags start with a Z or in the format of yymm-ddxx. For example ZVKU-A001 is the asset tag of the Kramer video matrix. Cables also have a tag in the format yymm-ddxx. yymm-ddxx represents the year, month, and date followed by a sequence number when the item was tagged.
 
 # Video Matrix
 
 The main job of a video matrix is to take multiple video sources, such as cameras or computers, and direct their video signals to different destinations, like TVs, projectors, or recording devices.
 
-We currently have two video matrix devices. The older one ("ZVKU-A001") is based on HDBaseT, and the newer one ("2507-0700") based on SDI. Over time 
+We currently have two video matrix devices. The older one ("ZVKU-A001") is based on HDBaseT, and the newer one ("2507-0700") is based on SDI.
 
 ```{r vhdiag, results="asis",eval=FALSE}
 
@@ -118,7 +118,7 @@ The routing can be managed via the front panel on the device or via the "VideoHu
 
 All inputs to the matrix are SDI. An input can be routed to a one or more outputs at once. Since there are 40 inputs and outputs, a single diagram to show everything at once is unreadable. A few diagrams show key connections with the full details are in the table.
 
-The Decklink is an 8-port PCIe Card located in the expansion chassis next to the Mac Studio (CUMU-G002). These ports can be configured for either input or output. Six of them feed into the VideoHub.
+The Decklink is an 8-port PCIe Card located in the expansion chassis next to the Mac Studio (CUMU-G002). These ports can be configured for either input or output. Seven of them feed into the VideoHub and one (sdi7) is fed from it.
 
 ```{r dl2vh, results="asis"}
 dot_code <- get_connectivity_diagram ( "2507-0700", "in"
@@ -196,7 +196,7 @@ All outputs are SDI.
 
 ```{r vh2projs, results="asis"}
 	ps <- c("2601-1304", "2601-1305" , "2601-1306"
-			, "ZVVU-A001", "ZVVU-A002" , "ZVVU-A003"
+			, "2604-2401", "2604-2402" , "2604-2403"
 	)
 	
 	a <- get_connectivity_diagram ( "2507-0700", "out", db.inventory
@@ -242,7 +242,7 @@ print_gt_table(tab) |> cat()
 
 The Kramer VS-88DT video matrix which is an 8x8 matrix and can handle HDMI inputs and outputs which are either HDMI or [HDBaseT](https://en.wikipedia.org/wiki/HDBaseT) formats. Any of the 8 inputs can be routed to any of the 8 outputs (or several outputs).
 
-It can be controlled via the buttons on the front panel or from it’s built in web page.
+It can be controlled via the buttons on the front panel or from its built-in web page.
 
 ### Inputs
 
@@ -276,7 +276,7 @@ Each matrix output can be either HDMI or HDBaseT. Several typical configurations
 
 ```{r vs882projs, results="asis"}
 	ps <- c( 
-			 "ZVVU-A001", "ZVVU-A002" , "ZVVU-A003"
+			 "2604-2401", "2604-2402" , "2604-2403"
 	)
 	
 	a <- get_connectivity_diagram ( "ZVKU-A001", "out", db.inventory
@@ -325,8 +325,7 @@ print_gt_table(tab) |> cat()
 ```
 
 ```{r vh-connections, results='asis'}
-# TODO: fix the code below.
-#| label: tab-topology1-computer
+#| label: tbl-vh-connections
 #| tbl-cap: "VideoHub Connected Devices"
 
 dev <- "2507-0700" #videohub
@@ -385,18 +384,18 @@ print_gt_table(tab ) |> cat()
 ## Outputs
 
 ```{r atem_out_table, results='asis' }
-#| tbl-cap: "ATEM Inputs"
+#| tbl-cap: "ATEM Outputs"
 #| tbl-cap-location: bottom
 #| out-width: 50%       # Scales the image to 100% of the text width
 #| fig-width: 4          # Sets the figure width in inches (useful for LaTeX)
 #| fig-height: 4         # Sets the figure height in inches
 
 dev <- "2601-2800"
-tt <- glue("Inputs for {dev}")
+tt <- glue("Outputs for {dev}")
 st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
 
 tab <- db.cables |>
-	full_join(db.inventory, by=join_by(SrcTag == AssetTag)
+	full_join(db.inventory, by=join_by(DstTag == AssetTag)
 			  , na_matches = "never") |>
 	filter(SrcTag == dev) |>
     select(Tag, SrcPort, DstTag
@@ -421,7 +420,7 @@ print_gt_table(tab ) |> cat()
 There are two main recording devices in the system. The Blackmagic Design HyperDeck Studio Mini and a Resi Encoder.
 
 ```{r RDnB, results="asis"}
-    targets <- c( "ZVRU-A001", "ZVRU-A002", "ZVIU-D002"
+    targets <- c( "ZVRU-A001", "ZVRU-A002", "ZVIU-G001"
 			 ) 
 	ps <- c(   "2507-0700"  
 	)
@@ -448,7 +447,7 @@ There are two main recording devices in the system. The Blackmagic Design HyperD
 dev <- c("ZVRU-A001", "ZVRU-A002")
 devlist <- paste(dev, collapse=", ")
 tt <- glue("Inputs for {devlist}")
-st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
+st <- db.inventory |> filter(AssetTag %in% dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt) |> paste(collapse = " / ")
 
 tab <- db.cables |>
 	full_join(db.inventory
@@ -482,7 +481,7 @@ print_gt_table(tab ) |> cat()
 dev <- c("ZVRU-A001", "ZVRU-A002")
 devlist <- paste(dev, collapse=", ")
 tt <- glue("Outputs for {devlist}")
-st <- db.inventory |> filter(AssetTag == dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
+st <- db.inventory |> filter(AssetTag %in% dev) |> mutate(txt = paste(Manufacturer, Model, Usage)) |> pull(txt)
 
 tab <- db.cables |>
 	full_join(db.inventory, by=join_by(DstTag == AssetTag)
@@ -512,7 +511,7 @@ There are a lot of components to the system. One big diagram is daunting. The sy
 
 ## Computer Topology
 
-There are three computers in the system (See @fig-topology1-computer):
+There are three computers in the system. The paths from the ProPresenter outputs through the VideoHub are generated from the cable database below.
 
 CUMU-G002 / MacOS / ProPresenter / DVD Player
 : This system runs ProPresenter and has multiple outputs:
@@ -523,7 +522,7 @@ CUMU-G002 / MacOS / ProPresenter / DVD Player
     +  Three SDI outputs to the front projectors via the Decklink interface
     + Two SDI outputs of Fill and Key for the ATEM
     + One SDI output for stage display which is fed into the video hub and then to the rear projector, broadcast room and the monitor beside FoH audio desk. 
-    + One output is space and could be used for the announcement layer.
+    + One output is spare and could be used for the announcement layer.
  
 
 CDWU-0009 Windows  
@@ -532,19 +531,19 @@ CDWU-0009 Windows
 CUMU-G001 MacOS / ATEM Control 
 : This system runs the ATEM switcher software and can also run things like Zoom. Although it has an unused HDMI output via a dongle, it is not currently connected.
 
-```{dot}
-//| label: fig-topology1-computer
-//| fig-cap: "Topology of video related computers"
-//| file: gv/sdv-topology1-computer.gv
+```{r topology1-computer-diag, results='asis'}
+dot_code <- videohub_path_diagram(db.cables, db.inventory
+					, src_tags = c("ZVIU-E004", "ZVIU-A006", "ZVIU-C001")
+					, label = "ProPresenter outputs through the VideoHub")
+cat(get_diagram_aux(dot_code))
 ```
 
 ```{r topology1-computer, results='asis'}
-# TODO: fix the code below.
-#| label: tab-topology1-computer
+#| label: tbl-topology1-computer
 #| tbl-cap: "Computer Topology"
 
-print_inv(c("CUMU-G001" , "ZVIU-E004"  
-		     ), db.inventory) |>
+print_inv(c("CUMU-G002", "ZVIU-E004", "ZVIU-E005", "ZVIU-A006", "ZVIU-C001"
+			, "CDWU-0009", "CUMU-G001"), db.inventory) |>
 	print_gt_table() |>
     cat()
 ```
@@ -552,20 +551,12 @@ print_inv(c("CUMU-G001" , "ZVIU-E004"
 ## Projection Topology
 There are four projectors in the auditorium, three FoH and one at the rear for confidence. They are all fed a HDBaseT signal (via Cat6) and a SDI signal.
 
-```{dot    }
-//| fig-width: 4
-//| fig-height: 2
-//| label: fig-topology-projection
-//| fig-cap: "Topology of video projectors"
-//| file: gv/sdv-topology2-projection.gv
-```
-
 ```{r projtopo , results="asis"}
     targets <- c( "ZVKU-A001"
 			 ) 
 	ps <- c(   "2507-0700"   
 			   ,"ZVVU-0001"
-			   ,"ZVVU-A001", "ZVVU-A002", "ZVVU-A003"
+			   ,"2604-2401", "2604-2402", "2604-2403"
 		, "2601-1304", "2601-1305" , "2601-1306"
 			   )
 	
@@ -578,13 +569,12 @@ There are four projectors in the auditorium, three FoH and one at the rear for c
 									, label = l 
 									, rankdir = "LR",
 									partners = ps) 
-	#cat(get_diagram_aux(a))
-	grViz(a)
+	cat(get_diagram_aux(a))
 ```
 
 
 ```{r top2}
-print_inv(c("ZVKU-A001","ZVVU-A001", "ZVVU-A002", "ZVVU-A003"
+print_inv(c("ZVKU-A001","2604-2401", "2604-2402", "2604-2403"
 			, "ZVVU-0001", "2310-1700"),
           db.inventory)
 ```
@@ -607,11 +597,6 @@ print_inv(c("ZVIU-A001", "ZVKU-A001"
 			, "2310-1700"
 			), db.inventory)
 ```
-
-
-* Diagrams and charts have been updated 
-* Inventory database updated with the new locations.
-* need to confirm what happened to ZVIU-A001 and ZVIU-A002
 
 ## Nursery Topology
 The TV in the nursery gets its content from the video matrix. For the main service it should get its feed from the video mixer program output.
@@ -654,7 +639,7 @@ xd <- c(   "ZVCU-A001" , "ZVCU-A002", "ZVCU-A003"
 		 , "2601-1304", "2601-1305" , "2601-1306"
 		 , "2510-0502", "2510-0503"
 		 , "ZVIU-A004"
-		 , "ZVIU-D002", "ZVIU-G001" 
+		 , "ZVIU-G001" 
 		 , "2602-1800-F38"
 		 , "c59", "c60"
 		) 
@@ -674,47 +659,49 @@ print_inv( targets_v, db.inventory)
 ```
 
 ## Recording / Livestream Topology
-The recording topology is quite complex and so it is broken up into peices.
+The recording topology is quite complex and so it is broken up into pieces.
 
 ### Inputs
 
-A key constraint for the ATEM video mixer is that all inputs must have the same input resolution settings. We have choosen 1080p59.94. 
+A key constraint for the ATEM video mixer is that all inputs must have the same input resolution settings. We have chosen 1080p59.94. 
 
-```{dot}
-//| fig-width: 4
-//| fig-height: 2
-//| label: fig-topology-recin
-//| fig-cap: "Topology for recording inputs"
-//| file: gv/sdv-topology5-rec-inputs.gv
+All ATEM inputs come from the VideoHub. The diagram below shows each source, the VideoHub input it lands on, the default crosspoint, and the ATEM input it reaches. The crosspoints are the defaults recorded in the cable database; the Stream Deck presets can change them.
+
+```{r recin-diag, results='asis'}
+dot_code <- videohub_path_diagram(db.cables, db.inventory
+					, dest_tags = "2601-2800"
+					, label = "Sources routed into the ATEM")
+cat(get_diagram_aux(dot_code))
 ```
 
 ### Outputs
 
-```{dot  }
-//| fig-width: 4
-//| fig-height: 2
-//| label: fig-topology-recout
-//| fig-cap: "Topology for Recording Outputs"
-//| file: gv/sdv-topology5-rec-outputs.gv
+All ATEM outputs go back into the VideoHub, which distributes them to the recorders, the Resi encoder, the Web Presenter, the NDI converter and the monitors.
+
+```{r recout-diag, results='asis'}
+dot_code <- videohub_path_diagram(db.cables, db.inventory
+					, src_tags = "2601-2800"
+					, label = "ATEM outputs routed to destinations")
+cat(get_diagram_aux(dot_code))
 ```
 
 ### Web Presenter
 
-The WebPresenter (see @fig-topology-webpres) converts its input (SDI or HDMI) to a usb webcam format which can be used by the computer (it also acts as a two-channel switch). 
- 
-```{dot  }
-//| fig-width: 4
-//| fig-height: 3
-//| label: fig-topology-webpres
-//| fig-cap: "Topology for Web Presenter"
-//| file: gv/sdv-topology6-rec-wp.gv
-``` 
- 
-```{r wp-inv}
-print_inv(c("ZVKU-A004", "ZVKU-A001", "CUMU-G001",
-           "ZVCU-A001", "ZVIU-C001",
-           "ZVCU-A002", "ZVCU-A003", "ZVKU-A003",
-           "ZVRU-A001", "ZVRU-A002", "ZVIU-A004"), db.inventory)
+The WebPresenter converts its SDI input to a USB webcam format which is used by the video computer (CUMU-G001) for Zoom or OBS. It is fed from VideoHub output 28.
+
+```{r wp-diag, results='asis'}
+dot_code <- videohub_path_diagram(db.cables, db.inventory
+					, dest_tags = "ZVIU-A004"
+					, label = "Web Presenter feed")
+cat(get_diagram_aux(dot_code))
+```
+
+```{r wp-inv, results='asis'}
+#| label: tbl-wp-inv
+#| tbl-cap: "Web Presenter"
+print_inv(c("ZVIU-A004", "CUMU-G001"), db.inventory) |>
+	print_gt_table() |>
+	cat()
 ```
 
 # Network Details
@@ -740,40 +727,20 @@ select(AssetTag, Usage.x,   MAC, IP, URL, Notes) %>%
 
 # Video Equipment Inventory
 
-```{r inventory, echo=FALSE, asis=TRUE}
+```{r inventory, results='asis'}
+#| label: tbl-video-inventory
+#| tbl-cap: "Video Equipment Inventory"
 
 items <- db.inventory |> 
           filter( Category=="Video" ,
-                  InService== "Y", !is.na(AssetTag)) |> 
+                  InService== "Y", !is.na(AssetTag)) |>
+          filter(!Type %in% c("Cable")) |>
           select(AssetTag) %>%
           pull()
   
-#print_inv(items, db.inventory)
+print_inv(items, db.inventory) |>
+	print_gt_table() |>
+	cat()
 ```
 
 {{< include common_trailer.qmd >}}
-
-
-```{r integrity1}
-dev <- "2507-0700" #videohub
-
-db.cables |>
-	filter( !( DstTag %in% db.inventory$AssetTag) ) |>
-	filter(DstTag %in% cdev) |>
-	select(Tag, DstTag) |>
-	gt() |>
-	tab_header("Cables with DstTag not in inventory")
-
-#db.inventory |> filter(AssetTag == dev)
-```
-
-```{r integrity2}
-dev <- "2507-0700" #videohub
-
-db.cables |>
-	filter(!( SrcTag  %in% db.inventory$AssetTag) ) |>
-	filter(SrcTag %in% cdev) |>
-	select(Tag, SrcTag) |>
-	gt() |>
-	tab_header("Cables with SrcTag not in inventory")
-```
