@@ -69,9 +69,9 @@ We do this for several purposes
 
 # Turning it on and off
 
-The video mixer, VideoHub and Stream Deck will usually have been turned on by the audio engineer. If by chance the ProPresenter computer was woken before the video mixer, you will not see its video feed. See the troubleshooting section for corrective steps.
+The video mixer, VideoHub and Stream Deck are powered all the time. If by chance the ProPresenter computer was woken before the video mixer, you will not see its video feed. See the troubleshooting section for corrective steps.
 
-Main Power
+Monitors
 
 :   On - Flip the switch at the top of the tabletop rack - labelled "Power Switch #4".
 
@@ -228,6 +228,7 @@ tribble(
 	"Cam 2", "2", "PTZ camera, centre (ZVCU-A002)",
 	"Cam 3", "3", "PTZ camera, west (ZVCU-A003)",
 	"Cam 4", "4", "Stage camera via the BNC patch panel",
+	"(none)", "5", "Reserved for a future fifth camera",
 	"ProP", "11 (fill) + 12 (key)", "ProPresenter fill and key - the lyric/graphic layer, keyed over a camera",
 	"ProP Full", "9", "ProPresenter's independent full-screen output (\"PP SW\")",
 	"MP1", "Media Player 1", "Still graphic or short clip loaded via the ATEM software",
@@ -520,7 +521,7 @@ You can also navigate using the arrow keys rather than the jog wheel.
 The device is pretty hands off.
 You should see the source signal on the front display.
 
-The Web Presenter is fed the ATEM program by the VideoHub (output 28) and its USB output appears on the video computer (CUMU-G001) as a web cam. In normal usage that is used to feed the program into OBS, where OBS sends it out as an NDI video feed to the prayer room. OBS could also be used for a special event where we want to stream direct to, e.g. YouTube.
+The Web Presenter is fed the ATEM program by the VideoHub (output 28) and its USB output appears on the video computer (CUMU-G001) as a web cam.
 
 The Web Presenter can also be used for video calls, see @sec-video-call.
 
@@ -602,35 +603,6 @@ resicloud -> "Church Online Platform"
      
 }
 ```
-
-# Livestreaming via OBS or Pro7
-
-We used to stream directly to Facebook using the OBS program on the computer.
-This is still possible but not part of normal operations.
-This is what the signal flow looks like in this case.
-
-```{dot lsfromcomp }
-//| fig-cap: Livestreaming from the Computer
-//| cap-location: bottom
-//| label: fig-ls-comp
-//| file:  ./gv/sov-ls-obs.gv
-//| fig-width: 3
-```
- 
-The video mixer program output is routed by the VideoHub (output 28) to the "Web Presenter" box.
-Its output is fed via USB to the VideoMac (CUMU-G001) computer. The computer sees that device as a web cam.
-
-We use a program called OBS to stream the web cam feed to facebook live, or other destinations.
-
-Somebody will have to create a streaming key for the target service (YouTube or Facebook).
-
--   Open OBS (on the CUMU-G001 computer) and go into Settings, and then the "Stream" section. Paste the key into the "Stream Key" field. Press "ok"
--   Press the "Start Streaming" button. It will then change to be the "stop streaming" button. Verify that the connection is working in a couple of ways:
-    1.  The streaming button changed from "Start Streaming" to "Stop Streaming",
-    2.  in the bottom right of the OBS screen there is a small green square indicating that our bit rate is good.
-
-At the end of the event, click "Stop Streaming".
-
 
 # Camera Settings
 
@@ -884,19 +856,12 @@ You are the eyes of the audience; you choose what they get to see.
 **Missing the video feed from ProPresenter (Lyrics)**
 
 -   This is likely caused by the ProPresenter computer being woken before the video recording system.
--   To fix, there are a few different ways, all of which reset the output resolution of the ProPresenter Mac (CUMU-G002)
-    1.  Power cycle the FX4 (power switch on the back)
-    2.  pull up the Mac display settings and change it to something and change it back - it should reset.
-    3.  Open Wall Designer and reload the Fx4 settings.
--   In all cases the projectors will flicker as they resync and ProPresenter will need to be restarted.
+-   To fix, reset the output resolution of the ProPresenter Mac (CUMU-G002): pull up the Mac display settings, change the resolution to something else and change it back.
+-   The projectors will flicker as they resync and ProPresenter will need to be restarted.
 
-**No video signal visible in OBS, but it is visible on Web Presenter**
+**No video signal from the Web Presenter on the computer**
 
 -   Pull the plug and reinsert on the USB cable going into to the computer (CUMU-G001). The cable has a label "Web Camera".
-
-**The video image on OBS is 'frozen' (and WebPresenter too)**
-
--   The recorders are in playback mode. Press record and stop and it should be fixed.
 
 **Don't see the lyric overlay when pressing "Lyrics"**
 
