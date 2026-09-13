@@ -1,5 +1,5 @@
 ---
-title: "System Design - Audio"
+title: "System Administration Guide"
 author: "UAC Media Arts"
 execute: 
   eval: true
@@ -27,6 +27,9 @@ source("commonFunctions.r")
 ```{r getdata}
 credentials <- get.credentials()
 software    <- get.software()
+db.assets   <- get.assets()
+db.cables   <- get.cables()
+db.network  <- get.network()
 ```
 
 # Introduction
@@ -87,7 +90,7 @@ software %>%
 
 # Server Applications
 
-Three custom server applications run on the video computer **CUMU-G001** under the `avuser` account. All are managed with a `run.sh` script in their respective directories under `/Users/avuser/`.
+Four server applications run on the video computer **CUMU-G001** under the `avuser` account. The three custom ones are managed with a `run.sh` script in their respective directories under `/Users/avuser/`; the fourth, Companion, is a packaged application.
 
 ## AVL Tech Assistant (`avltechassistant`) {#sec-avltechassistant}
 
@@ -239,6 +242,136 @@ Log: `server.log` in the repo root directory.
 
 ---
 
+## Stream Decks and Companion {#sec-streamdeck}
+
+### Purpose
+
+The Elgato Stream Decks are the primary operator control surfaces for the video switcher, VideoHub routing, camera PTZ, projector and TV power, ProPresenter slide control, lighting presets, audio helpers and the nursery parental call. The buttons themselves are dumb; every action is executed by [Companion](https://bitfocus.io/companion) (Bitfocus) running on CUMU-G001, which talks to the ATEM, VideoHub, projectors, grandMA3, Shure receivers, Reaper and ProPresenter over the network.
+
+::: callout-important
+Nothing on any Stream Deck works unless **`avuser` is logged in on CUMU-G001 and Companion is running**. This is the first thing to check when a Stream Deck goes blank.
+:::
+
+### Hardware
+
+```{r sd-hardware}
+#| label: tbl-sd-hardware
+#| tbl-cap: Stream Deck Hardware
+db.assets |>
+	filter(grepl("stream deck|network dock", paste(Model, Desc), ignore.case = TRUE)) |>
+	select(AssetTag, Model, Desc, Location, InService) |>
+	arrange(AssetTag) |>
+	gt() |>
+	opt_stylize(style = 5)
+```
+
+Video desk (2603-1301)
+
+:   Stream Deck XL connected directly to CUMU-G001 by USB-C. Runs the Video, Audio and Lighting menus. Its main job is switching the ATEM.
+
+ProPresenter desk (2605-2504)
+
+:   Stream Deck XL connected to a Stream Deck Network Dock (2605-2500), which puts it on the network so that Companion on CUMU-G001 can drive it. Its main job is projector and TV power control, projector freeze/thaw and ProPresenter slide control.
+
+Nursery (2605-1502)
+
+:   Stream Deck MK2 with its own network dock (2605-1503), not yet installed. Restricted to the parental call page: a parent number is punched in and the message appears on the projectors for a set time, managed by ProPresenter.
+
+```{r sd-connections}
+#| label: tbl-sd-connections
+#| tbl-cap: Stream Deck Connections
+sd <- db.assets |> filter(grepl("stream deck|network dock", paste(Model, Desc), ignore.case = TRUE)) |> pull(AssetTag)
+db.cables |>
+	filter(SrcTag %in% sd | DstTag %in% sd) |>
+	select(Tag, SrcTag, SrcPort, DstTag, DstPort, Type, Usage) |>
+	arrange(DstTag) |>
+	gt() |>
+	opt_stylize(style = 5) |>
+	sub_missing(missing_text = "-")
+```
+
+```{r sd-network}
+#| label: tbl-sd-network
+#| tbl-cap: Stream Deck Dock Network Addresses
+db.network |>
+	filter(AssetTag %in% sd) |>
+	select(AssetTag, Usage, IP, Notes) |>
+	gt() |>
+	opt_stylize(style = 5) |>
+	sub_missing(missing_text = "-")
+```
+
+### Menu Structure
+
+Both the video and ProPresenter units share one button layout. The three buttons in the lower right corner of every page are for navigation: the very corner button is **Main Menu**, the one to its left is the sub-menu, and the one to the left of that shows the current page name and does nothing when pressed.
+
+```{r sd-menu}
+#| label: tbl-sd-menu
+#| tbl-cap: Stream Deck Menu Structure
+tribble(
+	~Menu, ~Page, ~Description,
+	"Video", "ATEM ME1", "The most important controls for mix effects engine 1 on the video mixer: program/preview rows, T-bar steps, CUT/AUTO, Lyrics and PiP toggles",
+	"Video", "ATEM ME2", "Program/preview for mix effects engine 2, mostly used to pick the SuperSource camera",
+	"Video", "VideoHub", "Routing presets: Normal Projectors, Baptism, Pgm to B, Pgm to A & C, ProP HDMI to ABC",
+	"Video", "Camera 1 / 2 / 3", "PTZ, focus, colour and brightness for each camera",
+	"Video", "ATEM Macros", "Pre Service, Start Service, Start Message, Stop Service, Stop Message, Kaleo Bug (logo for 120 s)",
+	"Video", "Record Control", "Rec, Stop, Play, Prev/Next Clip, Format Prepare/Confirm for the HyperDeck recorders",
+	"ProPresenter", "Power Control", "Projector A/B/C and TV on/off (red = off, green = on), Freeze/Thaw A/B/C",
+	"ProPresenter", "ProP Controls", "Focus previous/next presentation, trigger first slide, previous/next slide",
+	"Audio", "Shure", "Signal and battery levels for the wireless microphones",
+	"Audio", "Reaper", "Layer keys that snap fader 1 of the FaderPort 16 to the first channel of a group (Drums, Guitars, Talk, Choir, Spare, Vocals, Keys, Busses)",
+	"Lighting", "Presets", "Lighting moments: Walk in, Talk Thrust, Talk Vox, Video, Message, Walk out; Scheme Series NoG, Scheme Missions",
+	"Utility (hidden)", "Jado", "Podcast / Normal: switches the Dante routing for a podcast session and back",
+	"Utility (hidden)", "Nursery", "Parental call: digits 0-9, Clear, Call #"
+) |>
+	gt(groupname_col = "Menu") |>
+	opt_stylize(style = 5) |>
+	tab_style(style = cell_text(weight = "bold"), locations = cells_row_groups())
+```
+
+The operator-facing descriptions of each page are in the Operations documents: the ATEM, VideoHub, macro and recorder pages in *System Operations - Video*, the power control page in *System Operations - Projection*.
+
+### Power Control Notes
+
+-   **Proj A / B / C**: pressing when red turns the projector on; the button turns green after some seconds. Pressing when green turns it off.
+-   **TV Lobby**: red when off, green when on; pressing also forces the TV input to HDMI 1.
+-   **StgDsp TV** and **Nursery TV**: not currently working.
+-   **Freeze x / Thaw x**: holds the image on that projector until thawed. Companion cannot show freeze status on the button.
+
+### Architecture
+
+| Component | Technology | Location |
+|-----------|-----------|----------|
+| Companion | Bitfocus Companion (packaged macOS app) | CUMU-G001, `avuser` |
+| Configuration | Companion config (pages, buttons, connections) | Companion's application data on CUMU-G001 |
+| Devices | Stream Deck XL over USB; Stream Deck XL / MK2 over Network Dock | see @tbl-sd-connections |
+| Emulator | Companion's built-in web emulator | Companion web interface on CUMU-G001 |
+
+Companion also offers a web page emulator that presents the same button pages in a browser, which is the fallback if a physical unit fails.
+
+Companion connects to the controlled devices through its device modules: Blackmagic ATEM (2601-2800), Blackmagic VideoHub (2507-0700), Blackmagic HyperDeck (ZVRU-A001, ZVRU-A002), Sony PTZ cameras (ZVCU-A001..A003), Sony projectors (2604-2401..2403), the lobby TV (2310-1700), grandMA3 (2607-2500), the Shure wireless receivers, Reaper (CUMU-E001) and ProPresenter (CUMU-G002).
+
+### Startup
+
+Companion must be running whenever the Stream Decks are needed. If a Stream Deck is blank:
+
+1.  Log in to CUMU-G001 as `avuser`.
+2.  Check that Companion is running (menu bar icon). Start it from Applications if not.
+3.  Open the Companion web interface and check the *Connections* tab: every connection should show a green status. A red one usually means the device is off or unreachable on the network.
+4.  Check the *Surfaces* tab: the USB Stream Deck and the network docks should be listed. A network dock that is missing usually needs its power or network cable reseated.
+
+::: callout-note
+TODO: confirm how Companion is launched at login (login item vs. Automator), the web interface URL/port, and add Companion to the software inventory sheet.
+:::
+
+### Backup and Changes
+
+-   Before changing anything, export the configuration from the Companion web interface (*Import / Export* > *Export*) and keep the file with the other system backups.
+-   Button changes are made in the web interface. Test on the emulator before relying on the physical unit.
+-   A Companion upgrade can change module behaviour; export first and keep the previous installer.
+
+---
+
 ## CueCommander {#sec-cuecommander-admin}
 
 {{< include common_CueCommander.qmd >}}
@@ -266,5 +399,6 @@ Source code: `https://github.com/donert/CueCommander-NR` (public)
 | AVL Tech Assistant | `http://192.168.0.206:8080` | 8080 / 9000 | `/Users/avuser/avltechassistant/run.sh` |
 | Media Arts Home | `http://192.168.0.206` | 80 | `/Users/avuser/media_arts_home/run.sh` |
 | CueCommander | `http://192.168.0.206:1880/ui` | 1880 | Automator / `node-red` |
+| Companion (Stream Decks) | TODO | TODO | Companion application, see @sec-streamdeck |
 
 {{< include common_trailer.qmd >}}
