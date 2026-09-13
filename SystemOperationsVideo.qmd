@@ -69,15 +69,17 @@ We do this for several purposes
 
 # Turning it on and off
 
-The video mixer will likely have been turned on by the audio engineer.
-If by chance the ProPresenter computer was woken before the video mixer, you will not see its video feed.
-See the troubleshooting section for corrective steps.
+The video mixer, VideoHub and Stream Deck will usually have been turned on by the audio engineer. If by chance the ProPresenter computer was woken before the video mixer, you will not see its video feed. See the troubleshooting section for corrective steps.
 
 Main Power
 
 :   On - Flip the switch at the top of the tabletop rack - labelled "Power Switch #4".
 
 :   Off - Flip the same switch the other way.
+
+Stream Deck
+
+:   The Stream Deck at the video desk (2603-1301) is driven by the *Companion* software running on the video computer (CUMU-G001). It only works while **avuser is logged in** on that computer. If the buttons are blank or unresponsive, log in on CUMU-G001 and check that Companion is running.
 
 Cameras
 
@@ -164,101 +166,82 @@ Presets 7 and 8 are available for your ad-hoc usage.
 Recalling a preset recalls all settings which may cause an unintended colour or brightness shift.
 :::
 
-# Video Mixer Overview
+The Stream Deck also has a page per camera (*Video Menu* > *Camera 1/2/3*) with PTZ, focus, colour and brightness controls.
 
-## Inputs
+# Video System Overview
 
-The Video Mixer (Asset Tag# ZVKU-A003) takes many different inputs such as the PTZ cameras, potentially combining them together and sending the result to the output, such as the video recorder.
+The video system has four main parts. Understanding how they fit together makes the rest of this document easier to follow.
 
-The complete list of external sources is in @tbl-input-map:
+VideoHub (2507-0700)
 
-```{r tbl-input-map}
-#| tbl-cap: Inputs to the ATEM
-#| tbl-cap-location: bottom
-#| label: tbl-input-map
+:   A 40x40 SDI video matrix. Every video source in the building (cameras, ProPresenter outputs, the video mixer's own outputs) goes *into* the VideoHub, and every destination (video mixer inputs, projectors, recorders, the Resi encoder, TVs, monitors) is fed *from* it. Which input goes to which output is a "route". The routes are normally left at their defaults; a few presets on the Stream Deck change them for special events.
 
-db.cables |> 
-	filter(DstTag == "ZVKU-A003") |> 
-	left_join(db.assets, join_by (SrcTag == AssetTag )) |>
-	select(DstPort, Usage.x ,  SrcTag, SrcPort, Desc  ) |> 
-	arrange(DstPort) |> 
+ATEM Constellation 2ME (2601-2800)
+
+:   The video mixer. It has two mix/effects engines: **ME1** produces the program that is recorded and streamed; **ME2** is used mainly as a camera selector for the SuperSource box on ME1. It also provides the keyers used for the lyric overlay and the picture-in-picture.
+
+Stream Deck (2603-1301)
+
+:   The primary operator control. It talks to the ATEM, the VideoHub, the recorders and the cameras via the *Companion* software on CUMU-G001. Almost everything in this document is done from here.
+
+ATEM Software Control (on CUMU-G001)
+
+:   Blackmagic's control application. Used when something is needed that the Stream Deck doesn't expose - loading media into the media players, adjusting keyer or SuperSource settings, or editing macros.
+
+## Video Mixer Inputs
+
+All twelve ATEM inputs are fed from the VideoHub. @tbl-atem-input-map shows, for each ATEM input, the VideoHub output that feeds it, the VideoHub input that is routed to that output by default, and the actual source. The table is generated from the cabling database.
+
+```{r atem-input-map}
+#| label: tbl-atem-input-map
+#| tbl-cap: ATEM Inputs and their Sources (via the VideoHub)
+hub  <- "2507-0700"
+atem <- "2601-2800"
+xpt <- db.cables |> filter(SrcTag == hub, DstTag == hub) |>
+	select(hub_in = SrcPort, hub_out = DstPort)
+vin <- db.cables |> filter(DstTag == hub, SrcTag != hub | is.na(SrcTag), grepl("^in_", DstPort)) |>
+	select(SrcTag, SrcPort, hub_in = DstPort, Usage)
+vout <- db.cables |> filter(SrcTag == hub, DstTag == atem, grepl("^out_", SrcPort)) |>
+	select(hub_out = SrcPort, atem_in = DstPort)
+
+vout |>
+	left_join(xpt, by = "hub_out", relationship = "many-to-many") |>
+	left_join(vin, by = "hub_in", relationship = "many-to-many") |>
+	left_join(db.assets |> select(AssetTag, Desc), by = c("SrcTag" = "AssetTag")) |>
+	distinct(atem_in, hub_out, hub_in, SrcTag, Desc, Usage) |>
+	arrange(atem_in) |>
 	gt() |>
-	opt_stylize(style=3) |>
-	cols_label( DstPort = "Input Port",
-				SrcTag  = "Source",
-				SrcPort = "Source Port",
-				Desc    = "Source Description") |>
-	tab_footnote("Usually used for the Stage camera via extension cable"
-				 , locations= 
-				 	cells_body(columns=DstPort,
-				 						rows = DstPort == 'in8'))
+	opt_stylize(style = 3) |>
+	cols_label(atem_in = "ATEM In", hub_out = "VideoHub Out", hub_in = "VideoHub In",
+			   SrcTag = "Source", Desc = "Source Description") |>
+	sub_missing(missing_text = "-")
 ```
 
- 
-
-In addition to the eight physical inputs, there are several more internal inputs.
-This is the complete list and the associated key combination for that source.
+The sources as they appear on the Stream Deck:
 
 ```{r}
 #| label: tbl-atem-sources
-#| tbl-cap: ATEM Sources and Key Combinations
-srcs <- tribble(
-	~Source, ~KeyCombo, ~Desc
-, "Input 1", "1", "ProPresenter SW Image"
-, "Input 2", "2", "ProPresenter Key"
-, "Input 3", "3", "From Matrix"
-, "Input 4", "4", "ProPresenter Fill"
-, "Input 5", "5", "Camera 1"
-, "Input 6", "6", "Camera 2"
-, "Input 7", "7", "Camera 3"
-, "Input 8", "8", "Stage Camera"
-, "Media Player 1", "Shift-1", ""
-, "Media Player 1 Key", "Shift-2", ""
-, "Media Player 2", "Shift-3", ""
-, "Media Player 2 Key", "Shift-4", ""
-, "Background Colour 1", "Shift-5", ""
-, "Background Colour 2", "Shift-6", ""
- 
-,"Black", "Shift-7", ""
-,"Colour Bars", "Shift-8", "" 
-,"Program", "", ""
-,"", "Shift-Shift-1", ""
-,"", "Shift-Shift-2", ""
-,"", "Shift-Shift-3", ""
-,"", "Shift-Shift-4", ""
-,"", "Shift-Shift-5", ""
-,"", "Shift-Shift-6", ""
-,"", "Shift-Shift-7", ""
-,"", "Shift-Shift-8", ""
-
-
-)
-
-srcs |>
+#| tbl-cap: Stream Deck Source Buttons
+tribble(
+	~Button, ~ATEM.Input, ~Description,
+	"Cam 1", "1", "PTZ camera, east (ZVCU-A001)",
+	"Cam 2", "2", "PTZ camera, centre (ZVCU-A002)",
+	"Cam 3", "3", "PTZ camera, west (ZVCU-A003)",
+	"Cam 4", "4", "Stage camera via the BNC patch panel",
+	"ProP", "11 (fill) + 12 (key)", "ProPresenter fill and key - the lyric/graphic layer, keyed over a camera",
+	"ProP Full", "9", "ProPresenter's independent full-screen output (\"PP SW\")",
+	"MP1", "Media Player 1", "Still graphic or short clip loaded via the ATEM software",
+	"Super Source", "SuperSource", "ME2's program (normally a camera) in a box beside the ProPresenter output",
+	"G001", "-", "Video from the video computer CUMU-G001 (e.g. Zoom)"
+) |>
 	gt() |>
-	opt_stylize(style=3)
+	opt_stylize(style = 3) |>
+	cols_label(ATEM.Input = "ATEM Input")
 ```
 
-::: callout-note
-TODO: Complete table
-:::
+## Video Mixer Outputs
 
-## Outputs
-
-There are two outputs: Program and Auxiliary.
-(See @tbl-atem-outputs and @fig-atem-outputs)
-
-The Program output of the video mixer is sent to three different destinations:
-
--   To the video matrix (ZVKU-A001), where it can be routed to a projector
--   The two video recorders (ZVRU-A001 and ZVRU-A002)
--   The Resi livestream encoder
--   The Web Presenter device (ZVIU-A004), which is connected to the VideoMac (CUMU-G001) where it can provide video input for Zoom or OBS.
-
-The Auxiliary output is sent to two destinations:
-
--   The video matrix (ZVKU-A001), where it can be further routed to any of its outputs.
--   The Web Presenter (ZVIU-A004) - same as above.
+ATEM output 1 (ME1 program) goes back into the VideoHub (input 10) and from there is routed to the recorders, the Resi encoder, the Web Presenter, the NDI converter and the lobby/nursery TVs. The multiview outputs feed the broadcast monitors. See @tbl-atem-outputs.
 
 ```{r tbl-atem-outputs}
 #| tbl-cap: ATEM Outputs
@@ -266,26 +249,17 @@ The Auxiliary output is sent to two destinations:
 #| label: tbl-atem-outputs
 
 db.cables |> 
-	filter(SrcTag == "ZVKU-A003") |> 
-	left_join(db.assets, join_by (DstTag == AssetTag )) |>
-	select(SrcPort, Usage.x ,  DstTag, DstPort, Desc  ) |> 
+	filter(SrcTag == "2601-2800") |> 
+	select(SrcPort, Usage, DstTag, DstPort) |> 
 	arrange(SrcPort) |> 
 	gt() |>
 	opt_stylize(style=3) |>
 	cols_label( SrcPort = "Output Port",
 				DstTag  = "Destination",
-				DstPort = "Destination Port",
-				Desc    = "Destination Description")  
+				DstPort = "Destination Port")  
 ```
 
-```{dot fig-atem-outputs }
-//| label: fig-atem-outputs
-//| fig-cap: ATEM Outputs
-//| cap-location: bottom
-//| file: gv/sov-atem-outputs.gv
-```
-
-## Alpha Keying
+## How Alpha Keying Works
 
 Alpha keying is an essential technique in video production.
 It allows us to superimpose people, objects, or animations onto our camera images easily, creating amazing scenes and adding a touch of magic to our broadcasts.
@@ -323,127 +297,151 @@ The person or object from the key picture appears on top of the background from 
 TODO: Add example pictures
 :::
 
-## 5.x Using the Program Bus
+# Operating the Switcher from the Stream Deck
 
-This section needs to move down
+## Menu Structure
 
-There are several sections that we will use a lot.
+The three buttons in the lower right corner of every page are for navigation: the very corner button is **Main Menu**, the one to its left is the sub-menu (**Video Menu** on the pages below), and the one to the left of that shows the current page name and does nothing when pressed. The video-related pages are:
 
-Program and Preview buttons (@fig-sov-ProgramPreview)
+```{r}
+#| label: tbl-sd-video-pages
+#| tbl-cap: Stream Deck Video Menu Pages
+tribble(
+	~Page, ~Purpose,
+	"ATEM ME1", "The main switching page - program/preview selection, transitions, lyrics and PiP",
+	"ATEM ME2", "Program/preview selection for ME2, which feeds the SuperSource box",
+	"VideoHub", "Routing presets: Normal Projectors, Baptism, Pgm to B, Pgm to A & C, ProP HDMI to ABC",
+	"Camera 1 / 2 / 3", "PTZ, focus, colour and brightness for each camera",
+	"ATEM Macros", "Pre Service, Start Service, Start Message, Stop Service, Stop Message, Kaleo Bug",
+	"Record Control", "Rec, Stop, Play, Prev/Next Clip, Format Prepare/Confirm for the HyperDeck recorders"
+) |>
+	gt() |>
+	opt_stylize(style = 3)
+```
 
-:   In the lower left corner there are two rows of 8 buttons.
-    They are not labelled as Program and Preview, but instead with the corresponding source.
+## The ME1 Page
 
--   The top row will have a red button, and the bottom will have a green button.
--   The red button indicates which source is currently live.
--   The green button indicates which one is next.
+This is where you will spend most of the service. See @fig-sd-me1.
 
-::: callout-tip
-If these buttons are white rather than red and green, then Aux mode has been selected.
-If they are flashing then you are using the shifted source If they are blue, then you are using the double shifted source
-:::
+![Stream Deck - ATEM ME1 page](./images/2603-1301-me1-controls.png){#fig-sd-me1 width="90%"}
 
-![Program and Preview, Lower Left](./images/sov-ProgramPreview.jpg){#fig-sov-ProgramPreview}
+Row 1 - Program
 
-CUT and AUTO Buttons (Next to Slider) @fig-sov-CutAuto
+:   The source that is currently **live**. The live button is lit red. Pressing a button on this row cuts it straight to air - the same as selecting it on Preview and pressing CUT.
 
-:   In the centre at the bottom the are two buttons.
+Row 2 - Preview
 
--   Pushing the CUT button will immediately switch the next source (green) to live, and place the one that was live as the next.
--   The AUTO button also swaps current and next but does so using the selected transition effect, such as mix.
--   There is a slider next to the AUTO button, this functions much like the auto button, but gives you direct control over the speed of the transition.
+:   The source that will go live on the **next transition**. The selected button is lit green. This is the normal way to line up your next shot.
 
-![Cut and Auto, Lower Centre](./images/sov-CutAuto.jpg){#fig-sov-CutAuto width="50%"}
+Row 3 - T-bar
 
-Slider
+:   **Tbar 0 ... Tbar 100** set the transition bar to that percentage. Stepping through them gives a manual fade with full control over speed; Tbar 100 completes the transition. **G001** is the video from the video computer (CUMU-G001), used for Zoom and similar.
 
-:   Bottom Centre.
+Row 4 - Transitions and keyers
 
--   the slider executes the same transition as the AUTO button will execute except that you manually control the speed of the transition. You can even stop part way through, and go backwards.
-
-Mix Button (@fig-sov-Mix)
-
-:   Top centre
-
--   The mix button, when pressed, sets the transition to be a dissolve between the current and next images (one image will fade away as the other fades in).
-
-![Mix, Top Centre](./images/sov-Mix.jpg){#fig-sov-Mix width="50%"}
-
-DVE PiP Buttons (@fig-sov-PiP)
-
-:   Left side middle - there are four of them.
-
--   These buttons are used for picture-in-picture effects. Pressing one of those buttons inserts a second video source into that corner of the screen (in the NEXT scene). It will initially appear as a black box.
--   You would then press the 'Key 1 Fill' button (on the opposite side of the console) and one of the small numbers underneath to select which source you want to use as the fill.
--   Once the look is ready, go live with the AUTO or CUT buttons.
-
-![DVE PiP, Right Middle](./images/sov-PiP.jpg){#fig-sov-PiP width="50%"}
-
-Key 1 Fill (@fig-sov-Key1Fill)
-
-:   Left side, middle
-
--   This button is used in conjunction with the numbered keys immediately below to select the source to be placed in a PiP.
-
-![Key 1 Fill, Left Middle](./images/sov-Key1Fill.jpg){#fig-sov-Key1Fill width="50%"}
-
-::: callout-note
-TODO - add more content about USK and DSK
-:::
-
-# Operations
-
-## Basic Operations
-
--   Decide which source you want to change to
--   Press the corresponding button on the preview row
--   Verify you have the desired look on the preview window on the monitor.
--   Decide on your transition effect, for most cases a simple cross fade works great.
--   Press the transition button to take the transition effect ("Auto") or "Cut" for an instantaneous transition
+:   **CUT** takes the preview source to air instantly. **AUTO** takes it to air using the configured transition (normally a mix). **Lyrics** toggles the lyric overlay (see below); **PiP** toggles the picture-in-picture box. Both light red when on. **Go to ME2** jumps to the ME2 page.
 
 ::: callout-tip
-Note you can also perform direct cut using the red buttons.
+Lyrics and PiP are *toggles*. A red button means the layer is currently on air. If you see red when you don't expect it, press the button to clear it.
 :::
+
+## Basic Switching
+
+-   Decide which source you want to change to.
+-   Press its button on the **Preview** row (it turns green).
+-   Verify the shot on the preview window of the multiview monitor.
+-   Press **AUTO** for a mix, or **CUT** for an instantaneous change.
+
+## Lyrics Overlay
+
+The **Lyrics** button turns on a downstream keyer that overlays the ProPresenter fill (ATEM input 11), shaped by the ProPresenter key (input 12), on top of whatever is on program. Because it is a downstream key it sits over everything, including SuperSource and PiP. Press again to remove it. The mechanics of the fill/key pair are described in the alpha keying section above.
 
 ## Picture in Picture
 
--   Decide on which source you want to have as the main image
--   Decide on which corner of the screen you want to have the PiP and press the corresponding DVE PiP Button
--   Press the "Key 1 Fill" button and then press the numbered button below which corresponds to the source you desire in the corner.
--   Finally press the CUT or AUTO button to make the transition.
-
-::: callout-tip
-The Picture in Picture (PiP) feature uses the Upstream keyer.
-If you have set the USK to use as an alpha key for lyrics, it will have to be reset to Luma after using PiP.
-:::
+The **PiP** button turns on an upstream keyer that places the ProPresenter output in a box over the live camera. Press again to remove it. Use it when a slide needs to be seen alongside the speaker rather than replacing them.
 
 ::: callout-note
-TODO To turn PiP off ... I don't remember - fiddle with the BKGD and "Key 1 TIE" buttons.
+The position and size of the PiP box are set in the ATEM software. They are not adjusted from the Stream Deck.
 :::
 
-## On-Screen Graphics from ProPresenter
+## SuperSource
+
+**Super Source** is a composed picture: the ME2 program (normally a camera) in a box alongside the ProPresenter output. To use it:
+
+1.  Press **Go to ME2** and select the camera you want in the box (Preview then CUT/AUTO, or straight on the Program row). See @fig-sd-me2.
+2.  Press **Go to ME1**.
+3.  Select **Super Source** on Preview and take it with AUTO or CUT.
+
+![Stream Deck - ATEM ME2 page](./images/2603-1301-me2-controls.png){#fig-sd-me2 width="90%"}
+
+The ME2 page has the same Program/Preview/Cut/Auto layout as ME1 but only the sources that make sense in the box: the four cameras, the ProPresenter **Fill** and **MP1**. The SuperSource layout itself is fixed and is not currently modified during services.
+
+## ProP vs ProP Full
+
+**ProP** is the ProPresenter fill/key pair - the layer designed to be keyed over a camera. Selecting it on program shows the fill on its own. **ProP Full** is an independent full-screen ProPresenter output and is the right choice when you want the slides to fill the frame (e.g. a video played from ProPresenter).
+
+## VideoHub Presets
+
+The *VideoHub* page changes the matrix routing for special situations:
+
+```{r}
+#| label: tbl-sd-videohub
+#| tbl-cap: Stream Deck VideoHub Presets
+tribble(
+	~Button, ~Effect,
+	"Normal Projectors", "Resets the projectors to the standard routing. Use this to get back to normal after any of the others.",
+	"Baptism", "Routing configuration for a baptism.",
+	"Pgm to B", "Sends the ATEM program to the centre projector (B) only.",
+	"Pgm to A & C", "Sends the ATEM program to the two side projectors (A and C).",
+	"ProP HDMI to ABC", "Sends the direct ProPresenter HDMI output to all three front projectors."
+) |>
+	gt() |>
+	opt_stylize(style = 3)
+```
+
+::: callout-important
+Always return to **Normal Projectors** when the special routing is no longer needed.
+:::
+
+## ATEM Macros
+
+A macro is a recorded sequence of switcher actions that runs at the press of a button, so that a complex set of steps is done quickly and without error. The service macros are on the Stream Deck *ATEM Macros* page:
+
+```{r}
+#| label: tbl-sd-macros
+#| tbl-cap: Service Macros
+tribble(
+	~Macro, ~Purpose,
+	"Pre Service", "Pre-service setup of keyers and media players",
+	"Start Service", "Start of service actions, including starting the recorders",
+	"Start Message", "Start of message actions, including the message recording and title graphics",
+	"Stop Message", "End of message actions, including the trailer and stopping the message recording",
+	"Stop Service", "End of service actions, including stopping the recorders",
+	"Kaleo Bug", "Shows the Kaleo logo on screen for 120 seconds, then hides it"
+) |>
+	gt() |>
+	opt_stylize(style = 3)
+```
+
+Macros can also be run, edited and recorded from the ATEM software on CUMU-G001: open the *Macros* window, choose the **Run** tab and **Recall and Run**, then click the macro name.
 
 ::: callout-note
-TODO - resume editing here
+TODO: document the exact steps recorded in each macro on the Constellation.
 :::
 
-::: callout-note
-"Up Stream Key" is abbreviated USK.
-Downstream Key is abbreviated as DSK.
-:::
+## Using the ATEM Software
 
-::: callout-note
-There is a dedicated word document on this topic that goes into great detail.
-See "deepdive_livestream_graphics.docx"
-:::
+The ATEM Software Control application on CUMU-G001 mirrors the whole switcher. Use it when you need to:
 
-::: callout-note
-Our regular usage is setup and run by macros.
-:::
+-   load graphics or clips into the media players (see below),
+-   adjust keyer settings (lyric key clip/gain, PiP position),
+-   change the SuperSource layout,
+-   edit macros, or
+-   recover when the Stream Deck is unavailable - everything on the ME1 page can be done from the *Switcher* tab.
 
 ## Using the Built-in Media Player
 
-The ATEM mixer has two built-in media players which can play images and very short videos.
+The ATEM mixer has built-in media players which can play images and very short videos.
 Using them has three steps:
 
 1.  Loading the content into the mixer
@@ -453,8 +451,7 @@ Using them has three steps:
     -   Using the ATEM software, media tab as above. You can drag n' drop media from the bin to the player of your choice on the right hand side.
     -   Using the ATEM console itself, you can navigate to the media player menus and select the item you want by file name.
 3.  Using the player as a source
-    -   You can select either media player as a source for a transition using either the Program buttons or the Preview buttons. They are labelled "MP 1" and "MP 2".
-    -   You do have to use the 'shift button' to select them.
+    -   Media Player 1 is available as **MP1** on the Stream Deck ME1 and ME2 pages, on both the Program and Preview rows.
 
 ## Usage of media players
 
@@ -476,169 +473,13 @@ TODO: take a screenshot of the media tab, with the favourites expanded.
 TODO: take a screenshot of the tiles where the lower third should be dropped.
 :::
 
-## Using Macros
-
-### What is a Macro?
-
-A macro is an easy way to automate a sequence of switcher actions so you can repeat the sequence at the press of a button.
-This makes the execution of a complex set of steps easy to do in a hurry and without error.
-
-### Running Macros
-
-There are two ways to run macros: from the panel or via the control software.
-
-**Running Macros from the panel**
-
-1.  Press the macro button and then the number of the macro you wish to execute
-
-**Running Macros from the ATEM Control Software**
-
-1.  On the Video Mac (CUMU-G001), Open the application (if not already running)
-2.  Click on 'macros' in the title bar. The macro window is a floating window you can move freely about on your desktop.
-3.  There is a tab for "Create" and "Run", **click on "Run"**
-4.  There is a radio button for **"Recall and Run"**, select that.
-5.  To run a specific macro just **click on the macro name** in the grid.
-
-![Running Macros via Software](./images/sov-macro-run.JPG){height="3in"}
-
-### Standard Macros Defined for UAC
-
-There are two types of macros we have defined:
-
--   "DO" macros are meant for use during the service and execute a set of predefined actions meant for a particular point in time in the service.
--   "Setup" macros are meant to change configurations and are used as part of the DO macros. This way we can change a setting without re-recording the entire DO macro.
-    -   The "Do Setup" macro is a hybrid. It executes all of the pre-service setup macros.
-
-```{r}
-macros <- tribble(
-~Macro, ~Type, ~Desc  
-, 1, "Do", "Setup pre-service"
-, 3, "Do", "Start Service" 
-, 4, "Do", "Stop Service"
-, 5, "Do", "Start Message"
-, 6, "Do", "Stop Message"
-
-,16, "Do", "Aux1 from ProP"
-,17, "Do", "Aux1 from CDWU-0009"
-,18, "Do", "Aux1 from Program"
-,19, "Do", "USK On - Turn on the Upstream keyer"
-,20, "Do", "USK Off - Turn off the Upstream keyer" 
-
-,21, "Setup", "USK for ProP overlay. This sets the upstream key to create a overlay of just the bright parts of the ProPresenter source - which is usually just the Text" 
-,22, "Setup", "Pre-Message MP"
-,23, "Setup", "DSK1 and DSK2 for luma key"
-,24, "Setup", "Post-Message video Trailer MP"
-)
-
-steps <- tribble(
-~Macro, ~Step, ~Action
-, 1, 1, "Run 21 setup USK"
-, 1, 2, "Run 22 setup Pre-message MP"
-, 1, 3, "Run 23 setup DSK1 and dsk2"
-
-,5,  1, "Run  MP setup 22"
-,5,  2, "Run DSK setup 23"
-,5,  3, "Run start recorder 2"
-,5,  4, "Fire DSK1" 
-,5,  5, "pause for 3s"
-,5,  6, "remove DSK1, Fire DSK2" 
-,5,  7, "Pause for 3s"
-,5,  8, "Remove DSK2"
-
-,6,  1, "Set post msg trailer mp1 24"  
-,6,  2, "Fire mp1"
-,6,  3, "Pause 3s"
-,6,  4, "FTB"
-,6,  5, "Run stop recorder 2"
-,6,  6, "fire camera 2"
-,6,  7, "FTB"
-,21, 1, "set fill and key to PP. Threshold at 92, gain 70"
-,21, 2, "source and key as ProP"
-,21, 3, "Set Flying key position A to Bottom Centre x=0, y=-3, size=.8"
-,21, 4, "Set Flying key position B to Bottom Right  x=6, y=-4, size=.6" 
-
-,22, 1, "Move graphic 1 to Mp1 (church Logo)"
-,22, 2, "Move graphic 2 to MP2 (speaker L3rd)"
-
-,23, 1, "%10, source and key to be respective MP"
-
-,24, 1, "Move Graphic 3 to MP1"
-)
- 
-macros |>
-	left_join(steps) |>
-	gt(groupname_col = c("Macro", "Type", "Desc")) |>
-	opt_stylize(style=3) |>
-	tab_style(
-			style = cell_text(weight = "bold", size="large"),
-			  locations = cells_row_groups()
-	)
-```
-
-## Going Deeper
-
-Once you are comfortable with the basics, reading through the manual would be beneficial.
-
-The video mixer manual is a massive 1673 pages, but don't be scared by that.
-It is the same content repeated for 8 different languages and four different products, so that reduces it to about 100 pages of relevant content for our product.
-
-You can access the manual directly from this [link:](https://www.dropbox.com/s/kpj5k4nvx9jy85j/BMD%20ATEM_Switchers_Manual.pdf?dl=0)
-
-Be aware that not all products offer the same feature sets, so you when reading a section you need to watch out for sections they may only apply to the "Broadcast 1 M/E" or "Broadcast 1 M/E" products.
-They have more features than ours.
-Our video mixer model is called a "Blackmagic Design ATEM Television Studio Pro HD".
-
-Page 106
-
-:   Begins the section on our particular model, "ATEM Television Studio Pro HD"
-
-Page 109-110
-
-:   Covers audio controls, not of a big interest to us since most of our Audio work is handle by our audio mixing system.
-
-Page 110-113
-
-:   Covers the camera control features which doesn't apply to our cameras models.
-
-Page 114
-
-:   Starts a short section on upstream and downstream keying.
-    See page 135 for details.
-
-Page 116
-
-:   Picture in Picture
-
-Page 117
-
-:   The Aux button.
-    Our product has only one Aux output.
-
-Page 118
-
-:   Operating your ATEM switcher (not all features supported - such as 'stinger')
-
-Page 135
-
-:   Keying.
-    Pay particular attention to Luma keying on page 136.
-    I have found that use of the clip parameter an important function for a good key.
-
-page 157-163
-
-:   Macros.
-    I think they are an important feature we can leverage to make our opening much smoother.
-
-Page 33
-
-:   Using the ATEM Control Software.
-    Most things can be done directly from the panel, but some things are much easier from the software.
-
-# Operating the Video Recorders
+# Operating the Video Recorders {#sec-record-control}
 
 We have two solid state recorders, Black Magic Design Hyperdeck Minis (Asset Tags ZVRU-A001 and ZVRU-A002).
-These record onto SD memory cards.
+These record onto SD memory cards. Both are fed the ATEM program from the VideoHub.
 You can observe and verify what is being recorded by looking at the mini screens on the device.
+
+The normal way to control them is the Stream Deck *Record Control* page, which has **● Rec**, **■ Stop**, **▶ Play**, **Prev Clip** / **Next Clip** and **Format Prepare** / **Format Confirm** buttons for each deck. The front-panel controls described below do the same thing.
 If the screen is black you may want to record a few seconds and then stop recording to ensure things are correctly initialized.
 
 > Ensure that the destination cards have been formatted before you begin recording.
@@ -652,7 +493,7 @@ To stop recording
 
 :   Press the white square
 
-> There are also macros that can do the same thing for both recorders: "Start Service", "Stop Service", and "Start Message" and "Stop Message".
+> The Stream Deck *Record Control* page and the *ATEM Macros* page ("Start Service", "Stop Service", "Start Message", "Stop Message") can do the same thing - see @sec-record-control.
 
 The screen will display the amount of time the recording has been going for.
 If the counter turns red then not much time is left on the cards.
@@ -660,7 +501,7 @@ The amount of recording time should be checked well before the beginning of serv
 
 ### Formatting a card
 
-To format the memory card using the hyperdeck mini:
+The Stream Deck *Record Control* page has **Format Prepare** and **Format Confirm** buttons which must be pressed in that order. To format from the HyperDeck itself:
 
 1.  Insert the media you want to format in the SD card slot.
 2.  Press the 'menu' button on the control panel.
@@ -678,58 +519,10 @@ You can also navigate using the arrow keys rather than the jog wheel.
 
 The device is pretty hands off.
 You should see the source signal on the front display.
-If not then hit the 'some button - don't recall which' button on recorder #1 as it is a source for the web presenter.
 
-There is a mini-switcher built into the web presenter.
-The box is wired to see the ATEM Program output on #1 and the ATEM Aux output on #2.
-You typically will want the #1 for recording or live streaming.
+The Web Presenter is fed the ATEM program by the VideoHub (output 28) and its USB output appears on the video computer (CUMU-G001) as a web cam. In normal usage that is used to feed the program into OBS, where OBS sends it out as an NDI video feed to the prayer room. OBS could also be used for a special event where we want to stream direct to, e.g. YouTube.
 
-In normal usage we use this device to feed the program feed into OBS on the video computer (CUMU-G001) where OBS sends it out as an NDI video feed to the prayer room.
-
-OBS could also be used for a special event where we want to stream direct to, eg Youtube
-
-The webpresenter can also be used for video calls, see @sec-video-call.
-
-```{r wpcon-gen}
-target <- wp <- c('ZVIU-A004', "ZVKU-A003" )
-
-xd <- c("2308-1124","ZVIU-C001","ZVIU-E003","ZVIU-A008"
-		, "ZVKU-A001"
-		,"ZVCU-A001","ZVCU-A002", "ZVCU-A003"
-		, "2307-2306", "2308-1123", "ZVIU-D002"
-		, "ZLIU-A002", "ZAMU-A001", "ZAMU-A002", "ZAMUB001"
-		, "ZVVU-0002", "ZVIU-A001", "ZVIU-A002"
-		, "CDMU-A001", "CDWU-0009")
-diag <- get_diagram(target , db.assets, db.cables
-					, exc_dev =xd
-					, label= '"Web Presenter Connections"'
-					, rankdir ="TB")
-
-gv_path  <- "_work/diag598.gv"
-png_path <- "_work/diag598.png"
-write_file(diag, gv_path)
-grViz(diag) |> export_svg() |> charToRaw() |> rsvg_png(png_path, width = 1200)
-```
-
-::: {.content-visible when-format="html"}
-```{dot  }
-//| fig-cap: Web Presenter Connections
-//| cap-location: bottom
-//| label: fig-wp-conn
-//| file: _work/diag598.gv
-```
-:::
-
-::: {.content-visible unless-format="html"}
-```{r  }
-#| label: fig-wp-conn2
-#| fig-cap: Web Presenter Connections
-#| fig-width: 5.5
-#| fig-height: 3.5
-knitr::include_graphics(png_path)
-```
-:::
-
+The Web Presenter can also be used for video calls, see @sec-video-call.
 
 # Video Calls - Zoom, etc {#sec-video-call}
 
@@ -773,9 +566,9 @@ For these instructions I will assume that we will be using computer CUMU-G001 to
 We stream our entire service to three different destinations: "FaceBook Live", "YouTube", and "Church Online".
 This is how it works.
 
-The "Program" output from the ATEM is wired into the input of a "Resi" hardware encoder via SDI.
+The ATEM program output is routed by the VideoHub (output 22) to a "Resi" hardware encoder (ZVIU-G001) via SDI.
 This device encodes the video stream for internet transmission and sends it to the Resi cloud service.
-This service as a standing configuration that broadcasts our service beginning at 9:55 am.
+The service has a standing configuration that broadcasts our service beginning at 9:55 am.
 Whatever is on the program output at the time is what our audience will see.
 
 Here is a diagram of the signal flow:
@@ -788,38 +581,21 @@ Here is a diagram of the signal flow:
 digraph livestreaming { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Livestreaming Topology\n(as of 2023-07-29)",
+      label="Livestreaming Topology\n(as of 2026-09-12)",
       fontname = Helvetica, bgcolor=white
       ]
  
 node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
       gradientangle=270 fontname = Helvetica ]
 
-rswitch [
-  tooltip="BMD ATEM Television Studio Pro HD"
-
-  label="{
-    {{<al>AudioL}|{<ar>AudioR}|
-      {<i1>hdmi|In1}|{<i2>hdmi|In2}|{<i3>hdmi|In3}|{<i4>hdmi|In4}
-      |{<i5>sdi|In5}|{<i6>sdi|In6}|{<i7>sdi|In7}|{<i8>sdi|In8}}
-      |{Recording Switcher  (ZVKU-A003)}|
-      {{Out1|<o1>sdi}|{Out2|<o2>sdi}|{Out3|<o3>sdi}|{Out4|<o4>sdi}|{Aux|<aux>sdi}|{mv|<mv>hdmi}}
-    }"
-]
-
-resi [
-  label="{
-    <i1>sdi|in
-    |{Resi Encoder (ZVIU-D00?)}
-    |<o1>ethernet
-    }"
-  tooltip="Resi Ray Encoder"
-]
- 
+atem  [label="{ATEM Constellation 2ME\n2601-2800|<pgm>Out 1 - ME1 Program}"]
+hub   [label="{<in>In 10|VideoHub\n2507-0700|<out>Out 22}"]
+resi  [label="{<i1>sdi in|Resi Encoder\nZVIU-G001|<o1>ethernet}"]
 resicloud [label="Resi Cloud Service"] 
  
-rswitch:o4 -> resi:i1 
-resi:o1 -> resicloud
+atem:pgm -> hub:in
+hub:out  -> resi:i1 
+resi:o1  -> resicloud
 resicloud -> Facebook
 resicloud -> YouTube
 resicloud -> "Church Online Platform"
@@ -841,7 +617,7 @@ This is what the signal flow looks like in this case.
 //| fig-width: 3
 ```
  
-The video mixer output is sent to the input of the "Web Presenter" box.
+The video mixer program output is routed by the VideoHub (output 28) to the "Web Presenter" box.
 Its output is fed via USB to the VideoMac (CUMU-G001) computer. The computer sees that device as a web cam.
 
 We use a program called OBS to stream the web cam feed to facebook live, or other destinations.
@@ -1101,14 +877,18 @@ You are the eyes of the audience; you choose what they get to see.
 
 # Troubleshooting
 
+**Stream Deck buttons are blank or do nothing**
+
+-   The Stream Deck is driven by Companion on the video computer (CUMU-G001). Make sure *avuser* is logged in there and Companion is running. The Companion web page on that computer offers the same buttons as a fallback, and the ATEM software can drive the switcher directly.
+
 **Missing the video feed from ProPresenter (Lyrics)**
 
 -   This is likely caused by the ProPresenter computer being woken before the video recording system.
--   To fix, there are a few different ways, all of which reset the output resolution of the Mac (CDMU-A001)
+-   To fix, there are a few different ways, all of which reset the output resolution of the ProPresenter Mac (CUMU-G002)
     1.  Power cycle the FX4 (power switch on the back)
     2.  pull up the Mac display settings and change it to something and change it back - it should reset.
     3.  Open Wall Designer and reload the Fx4 settings.
--   In all cases the projectors will flicker as they resync and Propresenter will need to be restarted.
+-   In all cases the projectors will flicker as they resync and ProPresenter will need to be restarted.
 
 **No video signal visible in OBS, but it is visible on Web Presenter**
 
@@ -1118,10 +898,14 @@ You are the eyes of the audience; you choose what they get to see.
 
 -   The recorders are in playback mode. Press record and stop and it should be fixed.
 
-**Don't see lyric overlay as expected (when pressing "Key 1 Cut")**
+**Don't see the lyric overlay when pressing "Lyrics"**
 
--   If macro 1 was not run, run it.
--   Check to ensure that the Upstream Key settings in the software is set to the first tab (Luma).
+-   Run the *Pre Service* macro if it has not been run.
+-   In the ATEM software, check that the downstream key source is the ProPresenter fill/key and that the key type is Luma.
+
+**A projector is showing the wrong thing**
+
+-   Press **Normal Projectors** on the Stream Deck VideoHub page. If a special routing was selected earlier it may not have been reset.
 
 **Video Mixer is not passing Audio**
 
