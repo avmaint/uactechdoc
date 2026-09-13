@@ -1,38 +1,42 @@
-digraph bfs { 
+digraph livestream_overview { 
   
 graph [overlap = true, fontsize = 20, 
-      label="Proposed Livestream Overview\n(as of 2024-10-24)",
+      label="Livestream Overview\n(as of 2026-09-12)",
       fontname = Helvetica, bgcolor=white, rankdir=TB
       ]
  
 node [shape = Mrecord style=filled , fillcolor="white:beige"  , fontsize = 10,
       gradientangle=270 fontname = Helvetica ]
-  
-avio [label="{<i1_2>In 1&2|{video avio}}"]  
- 
+
+dlive [label="{dLive MixRack\n2407-3000 / 2407-3002|{<lr>House LR\n127&128|<sub>Subs\n126|<mtx>2Video MTX\n124&125|<dir>Direct Outs\n(64)}}", tooltip="FOH"]
+
+daw   [label="{{<in>DVS In\n(64)}|{DAW - Reaper|CUMU-E001}|{<out>Stream Mix\n1&2}}", tooltip="Reaper"]
+
 core  [label="{
-	{<ts>net|{{<i1_2>1&2|<i3>3|<i4_5>4&5|<i6_7>6&7}|Dante}}
-| The actual input numbers TBD based\non what is available on the core	
-| {UAC-Core}
-| {{Dante|{1&2|3&4|5|<o6_7>6&7}}}}
+	{<ts>net|{{<i1_2>1&2|<i3>3|<i4_5>4&5|<i6_7>6&7}|Dante In}}
+| {Q-Sys Core|2408-2700}
+| {{Dante Out|{<amps>1,2&5|<o3_4>3&4}}}}
 ", tooltip="Core"]
 
-touch [label="{Touch Screen|<net>net}"]
+touch [label="{Touch Screen|2408-2704|<net>net}"]
 
-daw  [label="{DAW|<o1_2>Mix Out\n1&2}", tooltip="Reaper"]
+amps  [label="{House Amps 1-7}"]
 
-dlive [label="{dLive MixRack|{<o_lr>LR\n127&128|<o_mtx>MTX\n?&?}}", tooltip="FOH L_R"]
+avio  [label="{{<in>Dante}|{avio|2308-1124}|{<out>XLR L&R}}"]  
 
-vidmix [label="{<i_lr>XLR\nL&R|Video Mixer}"]
+vidmix [label="{{<i_lr>audio in L&R}|{ATEM 2ME|2601-2800}}"]
   
-daw:o1_2    -> core:i6_7 [label="dante", color="green"]
-dlive:o_lr  -> core:i1_2 [label="dante", color="green"]
-dlive:o_mtx -> core:i4_5 [label="dante", color="green"]
+dlive:dir  -> daw:in     [label="dante", color="green"]
+daw:out    -> core:i6_7  [label="dante", color="green"]
+dlive:lr   -> core:i1_2  [label="dante", color="green"]
+dlive:sub  -> core:i3    [label="dante", color="green"]
+dlive:mtx  -> core:i4_5  [label="dante", color="green"]
 
-core:o6_7 -> avio:i1_2 [label="dante", color="green"]
+core:amps  -> amps       [label="dante", color="green"]
+core:o3_4  -> avio:in    [label="dante\n(selected source)", color="green"]
  
-touch:net -> core:ts [label="network", color="blue", dir="both"]
+touch:net  -> core:ts    [label="network\nVideo Send select", color="blue", dir="both"]
 
-avio -> vidmix:i_lr [label="audio", color="red" ]
+avio:out   -> vidmix:i_lr [label="audio", color="red" ]
 
 }

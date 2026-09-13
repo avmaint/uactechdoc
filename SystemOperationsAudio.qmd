@@ -33,7 +33,7 @@ assets        <- get.assets()
 ```
 
 # Introduction
-This document provides basic operating information for each of the main auditorium audio system at UAC.
+This document provides basic operating information for the main auditorium audio system at UAC.
 
 Purpose of our Sound System:
 
@@ -82,7 +82,7 @@ Although not part of the audio system, it is often the audio engineer who turns 
 
 # Training Videos
 
-See (@fig-training-videos) for a list of training videos. The titles are links you can follow.
+See @tbl-training-videos for a list of training videos. The titles are links you can follow.
  
 ```{r}
 #| tbl-cap: "Training Videos"
@@ -112,7 +112,7 @@ get.training() |>
 				columns =  "Title")
 ```
 
-There is a good collection of videos on YouTube from the [Dante Certification program](https://www.audinate.com/learning/training-certification/dante-certification-program) . You can enroll in the program which will give you access to all of the videos. The level 1 videos are listed here @fig-training-videos-dante.
+There is a good collection of videos on YouTube from the [Dante Certification program](https://www.audinate.com/learning/training-certification/dante-certification-program) . You can enroll in the program which will give you access to all of the videos. The level 1 videos are listed here @tbl-training-videos-dante.
 
 ```{r}
 #| tbl-cap: "Dante Training Videos"
@@ -121,7 +121,7 @@ There is a good collection of videos on YouTube from the [Dante Certification pr
 get.training() |>
   filter(Topic1=="Audio") |>
   filter(Topic2 %in% c(	  "Dante")) |>
-  filter(Topic3 == "Level 3") |>
+  filter(Topic3 == "Level 1") |>
   mutate(Title = md(glue("[{Title}]({URL})"))) |>	
   select(Topic3, Episode, Duration , Title, Notes )  |>
   arrange(Topic3, Episode) |>	
@@ -184,7 +184,7 @@ db.cables |>
 
 
 __2. DX168 Inputs:__
-There are 16 analog inputs in the small stage rack located next to the drum riser. There are used for the drum inputs, and the bass. 
+There are 16 analog inputs in the small stage rack located next to the drum riser. They are used for the drum inputs and the bass. 
 
 ```{r eval=TRUE}
 #| label: tbl-mixrack-inputs-dx168
@@ -197,7 +197,6 @@ get_inputs("2410-1902") |>
 	sub_missing(  missing_text = "-")  
 ``` 
 
-I am in the midst of changing the way I document the system config. The next table should be similar to the above but generated from the cabling database.
 
 ```{r ins_dx168}
 # "2410-1902" is the DX168 in the on-stage rack
@@ -249,7 +248,7 @@ Virtual Sound Check is enabled by going into the IO settings and the "Virtual So
 #| label: tbl-mixrack-dante-inputs-vsc
 #| tbl-cap: Dante Inputs for Virtual Sound Check
 get_inputs("2407-3002") |>
-	filter(DstPort > "in_64" ) |>
+	filter(readr::parse_number(DstPort) >= 65 ) |>   # port names are inconsistently zero-padded, so compare numerically
    select(SrcTag, SrcPort, Usage) |>	
   gt() |>
   tab_header("MixRack Dante Inputs for Virtual Sound Check") |>
@@ -272,14 +271,14 @@ get_inputs("2407-3001") |>
 	sub_missing(  missing_text = "-")  
 ```
 
-![Surface Rear Inputs](./images/sda-s5000-rear.jpg){#fig-sda-s5000-rear.jpg width=125mm}
+![Surface Rear (inputs are on the left of the panel)](./images/sda-s5000-rear.jpg){#fig-sda-s5000-rear-inputs width=125mm}
 
 # Console Outputs
 
 Similar to the system inputs, there are outputs in four separate interfaces. 
 
 __1. DM64 Outputs:__
-There are 32 analog outputs on the front face of the DM64 mounted in the amp rack. Two of those are used as analog backup 
+There are 32 analog outputs on the front face of the DM64 mounted in the amp rack. Outputs 31 and 32 carry an analog copy of the main Left and Right as a backup to the Dante feed.
 
 __2. DX168 Outputs:__
 Not used.
@@ -297,6 +296,7 @@ Because there are upto 128 active inputs and an addtional 12 outputs, some of th
 The table below shows the configured Dante outputs from the dLive system.
 
 ```{r dlive-dante-outputs}
+#| label: tbl-dlive-dante-outputs
 #| tbl-cap: dLive Dante Outputs
 dlive_devices <- c("2407-3000", "2407-3001", "2407-3002", "2410-1902")
 db.cables |>
@@ -313,15 +313,15 @@ db.cables |>
  
 
 __4. Surface Outputs:__ 
-There are no surface outputs in regular use. If there was a need for an output to send to a videogapher or such, these outputs could be used for that, but they are not currently pre-configured for that. (I would likley route the mains in parallel for that scenario)
+There are no surface outputs in regular use. If there was a need for an output to send to a videographer or such, these outputs could be used for that, but they are not currently pre-configured for that. (I would likely route the mains in parallel for that scenario)
 
-![Surface Rear Outputs](./images/sda-s5000-rear.jpg){#fig-sda-s5000-rear.jpg width=125mm}
+![Surface Rear (outputs are on the right of the panel)](./images/sda-s5000-rear.jpg){#fig-sda-s5000-rear-outputs width=125mm}
 
 ## Monitors
 
 We have eight monitor amplifier channels, each which can handle a load of two of our monitor wedges. 
 
-Our standard monitor configuration is (@fig-monitors), however with our usage of the IEMs, these are not all that often used.
+Our standard monitor configuration is @tbl-monitors, however with our usage of the IEMs, these are not all that often used.
 
 ```{r}
 #| label: tbl-monitors
@@ -342,13 +342,13 @@ The standard mode of operation drives the subs from the main LR mix. However, if
 
 The button under the "Sub Send" title selects whether to feed the subs from the **Mains** or the **Aux**. The button is a toggle.
 
-![Sub Send](./images/soa_qsys_touch.png){#fig-soa-scene-recall width=65mm}
+![Sub Send](./images/soa_qsys_touch.png){#fig-soa-sub-send width=65mm}
 
 ## Video Mix
 
 We have three ways of sending audio to the video mixer. The choice is made using the touchscreen panel. There are three choices underneath "Video Send": **Mains**, **Matrix** and **DAW**. The light blue item is the active item.
 
-![Video Mix](./images/soa_qsys_touch.png){#fig-soa-scene-recall width=65mm}
+![Video Mix](./images/soa_qsys_touch.png){#fig-soa-video-send width=65mm}
 
 Mains
 : The **Mains** option routes the main FoH audio mix to the video mixer. It tends to be too quiet so needs the audio controls in the ATEM video mixer to be boosted.
@@ -361,7 +361,7 @@ DAW
 
 # Effects
 
-Four Stereo busses have been allocated for Effects. The master scene configures those as **Plate**, **Hall**, **Chorus**, and **Delay**. There are softkeys that will pull up the effects sends on faders (keys 20-23). 
+Four Stereo busses have been allocated for Effects. The master scene configures those as **Plate**, **Hall**, **Chorus**, and **Delay**. Softkeys 21, 22 and 23 pull up the Plate, Hall and Delay sends on faders, and key 20 is the Delay tap-tempo; Chorus does not have a softkey. 
 
 Bank 3, Layer F has the effect Send master. Bank 3, Layer B has the Effect returns.
 
@@ -392,21 +392,21 @@ The main audio console is located in the balcony. It can also be operated remote
 
 Scenes are a collection of settings that can be stored and recalled together. This is a very effective way of getting to a good known state. We have created a scene (**Master #001**) which should be used as a base for start an event. This scenes is locked so that they cannot be easily overwritten. If you would like to make a change to a base scene, please discuss with Terry.
 
-When recalling a scene, whatever is being recalled will (almost) instantly become active or inactive. You __don't__ what to do this when live, unless you know exactly what you are doing.
+When recalling a scene, whatever is being recalled will (almost) instantly become active or inactive. You __don't__ want to do this when live, unless you know exactly what you are doing.
 
 __Scene 001__
 
-To recall Scene 001, press the scene button on the right hand side, and then using the right monitor, scroll to the top of the list where you will find "Master". Touch it to select it and then press the physical "Go" button to the right.   (@fig-soa-dlive-scene-recall).
+To recall Scene 001, press the scene button on the right hand side, and then using the right monitor, scroll to the top of the list where you will find "Master". Touch it to select it and then press the physical "Go" button to the right.   (@fig-soa-scene-recall).
 
- [Scene Recall](./images/soa-dlive-scene-recall.png){#fig-soa-scene-recall width=65mm}
+![Scene Recall](./images/soa-dlive-scene-recall.png){#fig-soa-scene-recall width=65mm}
 
 ## dLive Softkeys 
 
-The softkeys allow the operator to quickly access common features. They are located on the very right hand side of the console, see figure @fig-soa-s5000-softkeys for the location and  @fig-soa-dlive-softkeys for the standard usage.
+The softkeys allow the operator to quickly access common features. They are located on the very right hand side of the console, see figure @fig-soa-s5000-softkeys for the location and  @tbl-soa-dlive-softkeys for the standard usage.
 
 ```{r}
 #| label: tbl-soa-dlive-softkeys
-#| tbl-cap: dLive Sof Keys
+#| tbl-cap: dLive Soft Keys
 softkeys <- tribble(
 ~SoftKey , ~Function 
 ,"1","Monitor 1 to faders"  
@@ -425,7 +425,7 @@ softkeys <- tribble(
 
 gt(softkeys) |>
 	opt_stylize(style=3) |>
-	tab_header("Softkeys Keys")
+	tab_header("Soft Keys")
 ```
 
 ![Surface Softkey Location](./images/soa-s5000-softkeys.jpg){#fig-soa-s5000-softkeys width=50mm}
@@ -442,7 +442,7 @@ Some of the changes you make on channel inputs can also affect what happens on t
 
 * Other changes can also make an impact but are not likely to occur in normal operation. For example: adjusting the *Direct Out* levels of certain channels, or adjusting the mix or master level of busses 11-14.
 
-See @fig-dante-outputs for more details.
+See @tbl-dlive-dante-outputs for more details.
 :::
 
 The channels are laid out 32 on the left hand side and 16 on the right; all in groups of 8. The bank of 8 faders in the centre mirrors one of those groups or can be used to access other functions like the monitor masters. 
@@ -457,7 +457,7 @@ The **SEL** button *selects* that channel and brings it into focus on the displa
 
 __CUE__
 
-The **CUE** button activates that channel to be heard via the headphones. The volume on the headphones can be adjusted via the monitor level below-right to the screen as well as the the knob under the wrist rest in the centre. 
+The **CUE** button activates that channel to be heard via the headphones. The volume on the headphones can be adjusted via the monitor level below-right to the screen as well as the knob under the wrist rest in the centre. 
 
 Multiple channels can be **CUE**d at the same time. 
 
@@ -471,7 +471,7 @@ Turning a channel off also affects the direct out send to the livestream mixer.
 
 ## Monitors on Faders
 
-To adjust the monitor mix you can press on of the buttons labelled "M1" thru "M6" to the lower-right of the screen. Pressing the same button will revert the faders to the main mix.
+To adjust the monitor mix you can press one of the buttons labelled "M1" thru "M6" to the lower-right of the screen. Pressing the same button will revert the faders to the main mix.
 
 ## Preamp Gain Adjustments
 
@@ -507,7 +507,7 @@ To control/eliminate feedback, several approaches can be taken. In approximate p
 
 * In some circumstances you can add a slight delay, less than 10 ms, on the problem microphone and that can inhibit the feedback cycle.
 
-* Using the phase invesion switch can help when desperate but can cause other weird effects, especially of multiple microphones are in use.
+* Using the phase inversion switch can help when desperate but can cause other weird effects, especially of multiple microphones are in use.
 
 # IEM Operations
 
@@ -519,7 +519,7 @@ The Klang:app is used to manage the IEM system. It is installed on the Mac in th
 
 Using the Klang:app, go into their mix. Take all the relevant group levels to zero and then bring up the individual channels to about -10 dB, with some discretion about what they might actually want to hear. A general guideline is to put the background channels (for them) at about -10 dB and what ever is needed for pitch and timing reference at zero, with their own channel at +5 db.  
  
-2) A particular channel is on and it is causing problems for people - for example, say the peacher has turned their mic on at the beginning of the service and is singing along, and it is also turned up in the IEMs.
+2) A particular channel is on and it is causing problems for people - for example, say the preacher has turned their mic on at the beginning of the service and is singing along, and it is also turned up in the IEMs.
 
 Using the Klang:app, find the channel in question and mute it in every IEM mix. At the moment that means you'd have to do it 11 times.   
 
@@ -544,7 +544,7 @@ Using the Klang:app, find the channel in question and make it visible on the Kon
 
 # Operating the Wireless Microphones
 
-We have 18 wireless transmitters and 16 receivers. A receiver can only be paired with on transmitter at a time, which means we can have, at most 16 active transmitters.
+We have 18 wireless transmitters and 16 receivers. A receiver can only be paired with one transmitter at a time, which means we can have, at most 16 active transmitters.
 
 Of the 18 transmitters, 12 are handheld microphones, and 6 are beltpack units that can be fitted with either a headset or lavalier microphone.
 
