@@ -18,357 +18,244 @@ always_allow_html: yes
 
 ```{r packages}
 source("commonPackages.R")
-
-require(formattable)
 ```
 
 ```{r functions}
 source("commonFunctions.R")
+source("commonDiagram.R")
+source("commonDiagramConnectivity.R")
 ```
 
 ```{r data }
 NetworkInventory <- get.network()
 assets           <- get.assets()
-further          <- get.further() 
+db.inventory     <- get.inventory()
+db.cables        <- get.cables()
 ```
 
 # Introduction
 
-This document provides key technical documentation for the video subsystems at UAC. @fig-overview provides a simplified overview of the major components in the system. Subsequent sections provide more detail.
+This document provides key technical documentation for the projection subsystem at UAC: how ProPresenter's outputs reach the projectors and the TVs around the building. @fig-overview provides a simplified overview of the whole video system; the projection parts are the ProPresenter computer, the DeckLink, the two video matrices, the projectors and the TVs. Recording, streaming and the video mixer are covered in the *System Design - Video* document.
 
 ```{dot overview}
 //| fig-width: 4
 //| label: fig-overview
-//| fig-cap: "Projection Overview"
+//| fig-cap: "Video System Overview"
 //| file: gv/sdv-topology0-overview.gv
 ```
 
+Every significant inventory item has an asset tag. Tags are either of the form Zxxx-xxxx or yymm-ddxx (the date the item was tagged plus a sequence number). Cables are tagged the same way.
+
 # ProPresenter {#sec-propresenter}
 
-ProPresenter generates 7 physical video outputs, and those are five of the 8 inputs into the video matrix. It also has one [NDI](https://sites.google.com/view/buzz-sparky-and-flip/articles/video/ndi-overview) output which is a network interface.
+ProPresenter runs on the Mac Studio CUMU-G002. It produces seven SDI outputs through the DeckLink card, one HDMI output through the computer's dock, and an NDI output on the network:
 
-* Three outputs are the triple wide video outputs which are normally routed directly to the front of house (FoH) projectors. This is via the Decklink.
-
-* Two outputs are specifically to feed the ATEM video mixer. This pair of feeds are called a *Key* and *Fill.* The *Fill* looks like a normal single wide image. The *Key* is a mask which the ATEM uses to select which parts of the *Fill* are to be displayed. An area on the *Key* which is white is displayed. An area which is black, is transparent. Areas which a grey are semi-transparent, the darker the grey, the more transparent is that portion.
-
-* One output is the stage display via the Decklink.
-
-* An HDMI output which can be used when the decklink outputs are not appropriate (eg: Powerpoint and DVDs).  
-
-* The NDI output is a copy of the stage display that is sent out over the network and provides key status information to the audio engineer running the livestream.  
-
-## Decklink
-
-The Decklink card is connected to the computer via a USBC/Thunderbolt cable. It is configured using a program called *Desktop Video*. It can provide up to 8 video outputs, but we configure it for 6 outputs.
- 
-The Decklink outputs are special purpose outputs which are not recognized by the Mac Operating system. So you cannot do things like DVD playback or Safari Web Page display on those outputs. You can use the hdmi output for that, with corresponding routing changes on the video matrix.
+* Three DeckLink outputs are the **triple wide** image (TW1, TW2, TW3), one per front-of-house projector.
+* Two DeckLink outputs feed the ATEM video mixer as a **Key** and **Fill** pair. The *Fill* looks like a normal single wide image. The *Key* is a mask which the ATEM uses to select which parts of the *Fill* are displayed: white areas are shown, black areas are transparent, and grey areas are semi-transparent.
+* One DeckLink output is the **stage display**, and another carries a second stage display layout.
+* The DeckLink also has one **input** (sdi7) which brings the ATEM program back into ProPresenter so that live video can be placed on a slide. The video is delayed by about 20ms, which may be noticeable on a tight vocal shot or a drummer.
+* The **HDMI** output ("PP SW", the switched output) is a normal operating-system display and is used when the DeckLink outputs are not appropriate, e.g. PowerPoint, DVDs or a web page. It reaches the VideoHub through the VS-88DT and an HDMI-to-SDI converter.
+* The **NDI** output is a copy of the stage display sent over the network to the audio engineer running the livestream.
 
 ::: callout-note
 See the document *deepdive_displaying_a_web_page_within_pp7.docx* for instructions on how to display a browser webpage via ProPresenter.
 :::
 
-::: {#fig-decklink-tw-sd layout-ncol=2}
-```{dot pp_and_decklink-tw}
-//| fig-cap: (a) Triplewide
-//| file: gv/sdv-decklink_ProPresenter-tw.gv
-```
-```{dot pp_and_decklink-sd}
-//| fig-cap: (b) Stage Display
-//| file: gv/sdv-decklink_ProPresenter-sd.gv
-//| 
-```
-ProPresenter and Decklink Configurations
-:::
+## DeckLink
 
-::: {#fig-decklink-kf-in layout-ncol=2}
-```{dot pp_and_decklink-kf}
-//| fig-cap: (a) Key and Fill
-//| file: gv/sdv-decklink_ProPresenter-kf.gv
-```
-```{dot pp_and_decklink-in}
-//| fig-cap: (b) Inputs
-//| file: gv/sdv-decklink_ProPresenter-in.gv
-```
-ProPresenter and Decklink Configurations
-:::
+The DeckLink Quad 2 (ZVIU-E004) sits in a Thunderbolt expansion chassis (ZVIU-E005) next to the Mac Studio and is configured with Blackmagic's *Desktop Video* application. Its ports are special purpose outputs which are not recognized by the Mac operating system, so you cannot do things like DVD playback or Safari web page display on them; use the HDMI output for that, with a corresponding routing change on the VideoHub.
 
-:::callout-note
-When using the video input into ProPresenter from the ATEM, the video is delayed about 20ms. This may be noticeable in some circumstances; lip synchronization on a tight shot vocal or a drummer might be noticeable to the audience.  
-:::
-
-# Video Matrix
-
-The main job of a video matrix is to take multiple video sources, such as cameras or computers, and direct their video signals to different destinations, like TVs, projectors, or recording devices.
-
-Our video matrix is a Kramer VS-88DT which is an 8x8 matrix and can handle HDMI inputs and both HDMI and [HDBaseT](https://en.wikipedia.org/wiki/HDBaseT) formats. Any of the 8 inputs can be routed to any of the 8 outputs (or several outputs).
-
-It can be controlled via the buttons on the front panel or from its built in web page.
-
-
-```{r psi, results='asis'}
-#| label: tbl-matrix-inputs
-#| tbl-cap: Matrix Inputs
-
-psi <- tribble(
-~Input, ~Usage, ~Comment,
-1,
-"TW A",
-"The left most third of the ProPresenter triple wide display from the decklink (sdi4)",
-
-2, 
-"TW B",
-"The centre third of the ProPresenter triple wide display from the decklink (sdi6)",
-
-3,
-"TW C",
-"The right most third of the ProPresenter triple wide display from the decklink (sdi8)",
-
-4,
-"Stage Display",
-"The stage display from ProPresenter via the decklink (sdi3)",
-
-5,
-"CDWU-0009",
-"Source is Windows machine which can run Powerpoint and OBS",
-
-6,
-"ATEM Program",
-"The Program feed from the ATEM, a copy of what is also streamed",
-
-7, 
-"ATEM Auxillary",
-"Auxillary feed from the ATEM video mixer. Not usually used but could be used to source different video content from the ATEM. For example a static graphic for the centre projector.",
-
-8,
-"CDMU-A001 HDMI",
-"The HDMI Video from CDMU-A001. This would be used when a system display is required.")
-
-tab <- psi |> 
+```{r decklink-ports}
+#| label: tbl-decklink-ports
+#| tbl-cap: DeckLink Ports
+dl <- "ZVIU-E004"
+# what ProPresenter assigns to each port (logical), and what each port is cabled to (physical)
+logical  <- db.cables |> filter(SrcTag == "CUMU-G002", DstTag == dl) |>
+	select(Port = DstPort, ProPresenter = Usage)
+physical <- db.cables |>
+	filter((SrcTag == dl & DstTag != dl & DstTag != "CUMU-G002") |
+		   (DstTag == dl & SrcTag != dl & SrcTag != "CUMU-G002"),
+		   Type != "internal") |>
+	mutate(Port = ifelse(SrcTag == dl, SrcPort, DstPort),
+		   Direction = ifelse(SrcTag == dl, "Output", "Input"),
+		   Connected = ifelse(SrcTag == dl, paste(DstTag, DstPort), paste(SrcTag, SrcPort))) |>
+	select(Port, Direction, Connected, Usage) |>
+	distinct()
+physical |>
+	full_join(logical, by = "Port") |>
+	arrange(Port) |>
+	select(Port, ProPresenter, Direction, Connected, Usage) |>
 	gt() |>
 	opt_stylize(style = 3) |>
- 	tab_header("Video Matrix Inputs" ) |>
-	tab_style(
-		style=list( cell_text(weight = "bold") ),
-		locations=cells_body(columns=Input)
-	)
-# 	) |>
-#   cols_width(
-#     Comment ~ pct(70),
-#     Usage   ~ pct(15),
-#     Input  ~ pct(15)
-#   )
+	cols_label(ProPresenter = "ProPresenter Output", Connected = "Connected To") |>
+	sub_missing(missing_text = "-")
+```
 
+The paths from the DeckLink through the VideoHub to their normal destinations are generated from the cable database below. The dashed lines inside the VideoHub are the default crosspoints.
+
+```{r decklink-paths, results='asis'}
+dot_code <- videohub_path_diagram(db.cables, db.inventory
+					, src_tags = c("ZVIU-E004", "ZVIU-A006")
+					, label = "ProPresenter outputs through the VideoHub")
+cat(get_diagram_aux(dot_code))
+```
+
+# Video Routing
+
+There are two video matrices. The BMD VideoHub (2507-0700) is the primary one: every ProPresenter output goes into it and the projectors and most TVs are fed from it over SDI. The older Kramer VS-88DT (ZVKU-A001) is an HDBaseT matrix which now provides the long cable runs to the lobby, nursery and rear projector, and a second, fallback feed to each front projector.
+
+## VideoHub (SDI)
+
+The VideoHub is a 40x40 SDI matrix. Any input can be routed to any number of outputs. It is normally left on its default routing; the *VideoHub* page on the video desk Stream Deck has presets that change the projector routing for special situations (see the Operations document). Routing can also be changed from the front panel or the *VideoHub Control* application.
+
+The projector and TV paths from the VideoHub are generated from the cable database below. Each front projector is reached through a BiDirectional SDI/HDMI converter mounted at the projector.
+
+```{r vh-projectors, results='asis'}
+dot_code <- videohub_path_diagram(db.cables, db.inventory
+					, dest_tags = c("2601-1304", "2601-1305", "2601-1306")
+					, label = "VideoHub to the Front Projectors")
+cat(get_diagram_aux(dot_code))
+```
+
+```{r vh-tvs, results='asis'}
+dot_code <- videohub_path_diagram(db.cables, db.inventory
+					, dest_tags = c("ZVIU-A005", "ZVIU-G004", "2512-1001")
+					, label = "VideoHub to the Stage Display TV, the VS-88DT and the Library TV")
+cat(get_diagram_aux(dot_code))
+```
+
+```{r sd-videohub}
+#| label: tbl-sd-videohub
+#| tbl-cap: Stream Deck VideoHub Presets
+tribble(
+	~Preset, ~Effect,
+	"Normal Projectors", "Triple wide (TW1/2/3) to projectors A/B/C. The default.",
+	"Baptism", "Routing configuration for a baptism.",
+	"Pgm to B", "ATEM program to the centre projector (B); A and C stay on triple wide.",
+	"Pgm to A & C", "ATEM program to the side projectors (A and C).",
+	"ProP HDMI to ABC", "The ProPresenter HDMI (PP SW) output to all three front projectors, e.g. for a DVD or PowerPoint."
+) |>
+	gt() |>
+	opt_stylize(style = 3)
+```
+
+## VS-88DT (HDBaseT)
+
+The Kramer VS-88DT is an 8x8 matrix with HDMI inputs and HDMI or [HDBaseT](https://en.wikipedia.org/wiki/HDBaseT) outputs. HDBaseT carries video over Cat6 cable, which is how the long runs to the lobby, nursery and rear projector are made. It can be controlled from the buttons on its front panel or from its built-in web page.
+
+The front projectors each have two feeds: HDMI on **Input C** from the VideoHub path above, and HDBaseT on **Input D** from the VS-88DT. Input D is the fallback if the SDI path fails, and is also used for HDCP-protected (copyrighted) material, which the SDI/HDMI converter path will not pass.
+
+```{r vs-in, results='asis'}
+#| tbl-cap: "VS-88DT Inputs"
+#| tbl-cap-location: bottom
+dev <- "ZVKU-A001"
+tab <- db.cables |>
+	filter(DstTag == dev, SrcTag != dev, !Type %in% c("cat6a")) |>
+	left_join(db.inventory |> select(AssetTag, Desc), by = c("SrcTag" = "AssetTag")) |>
+	select(Tag, DstPort, SrcTag, Desc, SrcPort, Usage) |>
+	arrange(DstPort) |>
+	gt() |>
+	opt_stylize(style = 3) |>
+	tab_header(glue("Inputs for {dev}")) |>
+	cols_label(Tag = "Cable", DstPort = "Input", SrcTag = "Source", Desc = "Source Description") |>
+	sub_missing(missing_text = "-")
 print_gt_table(tab) |> cat()
 ```
 
-```{r pso, results='asis'}
-#| label: tbl-matrix-outputs
-#| tbl-cap: Matrix Outputs
- 
-pso <- tribble(
-~Output, ~Type, ~Usage, ~Comment,
-"1", "HDBaseT", 
-"East Projector",
-"Front of House projector - Stage Right / East wall.",
-
-"2",  "HDBaseT",
-"Centre Projector",
-"Front of House projector - Stage Centre / South wall.",
-
-"3",  "HDBaseT",
-"West Projector",
-"Front of House projector - Stage Left / West wall.",
-
-"4", "HDBaseT", 
-"Rear Projector",
-"Projector which projects onto the rear wall in balcony. Lyrics for singers, etc.",
-
-"5", "HDMI" ,
-"Feed to ATEM","Secondary feed to Video Mixer. Destination is to the video mixer so projected content can be mixed with camera – Picture-in-Picture, etc.",
-
-"6", NA,
-"unused","unused",
-
-"7",  "HDBaseT",
-"Lobby","Feed to the Lobby TV.",
-
-
-"8" ,  "HDBaseT",
-"Nursery", "Feed to the Nursery TV."
-)
-
-tab <- pso |> 
+```{r vs-out, results='asis'}
+#| tbl-cap: "VS-88DT Outputs"
+#| tbl-cap-location: bottom
+tab <- db.cables |>
+	filter(SrcTag == dev, DstTag != dev) |>
+	left_join(db.inventory |> select(AssetTag, Desc), by = c("DstTag" = "AssetTag")) |>
+	select(Tag, SrcPort, DstTag, Desc, DstPort, Usage) |>
+	arrange(SrcPort) |>
 	gt() |>
 	opt_stylize(style = 3) |>
-	tab_header("Video Matrix Outputs" ) |>
-	tab_style(
-		style=list( cell_text(weight = "bold") ),
-		locations=cells_body(columns=Output)
-	) |>
-	tab_footnote("A potential future output would be an audio feed to the Audio mix console, or a decklink input.", 
-				 locations=cells_body(
-				 	columns=Comment , 
-				 	rows= Output==6)) 
-# |>
-#   cols_width(
-#     Comment ~ pct(55),
-#     Usage   ~ pct(15),
-#     Type    ~ pct(15),
-#     Output  ~ pct(15)
-#   ) |>
-# 	tab_options(table.width=pct(100))
+	tab_header(glue("Outputs for {dev}")) |>
+	cols_label(Tag = "Cable", SrcPort = "Output", DstTag = "Destination", Desc = "Destination Description") |>
+	sub_missing(missing_text = "-")
 print_gt_table(tab) |> cat()
 ```
 
-## Video Matrix Configurations
-
-:::{.callout-note}
-Would this be better located in the Video Operations?
-:::
-
-The current matrix routing can be queried and changed using either the webpage or the front panel.
-
-The LCD display on the front of the unit report the current routing topology. The Output row shows the number of the input which is selected for that output. A '0' indicates no source has been selected. Here are a few sample configurations. The detailed settings are in the table @tbl-vmsc that follows.
-
-Full_TW
-: Use this when you want triple wide capability. 
-
-Centre_ATEM_AUX
-: Use this when you want to use the ATEM Aux output as a source. An common example of this is a static graphic on the centre screen. This could also be done using the Full_TW with a prop on the centre screen which is never cleared.
-
-Centre_ATEM_Prg
-: Use this when you want live camera on the centre screen. 
-
-All_three_HDMI
-: Use this when you want the conputers HDMI output to be routed to the projectors. For example, playing a DVD. It could also be a fallback if there is a problem with the triple wide system.
-
-```{r samp_cfg}
-samp_cfg <- tribble(
-~Num,
-~Output, ~Full_TW, ~Centre_ATEM_AUX, ~Centre_ATEM_Prg, ~All_three_HDMI,
-1, "ProjEast",	1,	1,	1,	8,
-2, "ProjCent",	2,	7,	6,	8,
-3, "ProjWest",	3,	3,	3,	8,
-4, "RearProj",	4,	4,	4,	4,
-5, "ATEM In 1", 	8,	8,	8,	8,
-6, "not used",	4,	4,	4,	4,
-7, "Lobby"  ,	6,	6,	6,	6,
-8, "Nursery",	6,	6,	6,	6
-)
-```
-
-```{r tbl-vmsc}
-#| label: tbl-vmsc
-#| tbl-cap: Video Matrix Sample Configurations
-samp_cfg |> 
+```{r vs-routes}
+#| label: tbl-vs-routes
+#| tbl-cap: VS-88DT Default Routes
+db.cables |>
+	filter(SrcTag == dev, DstTag == dev) |>
+	select(Input = SrcPort, Output = DstPort, Usage) |>
+	arrange(Output) |>
 	gt() |>
 	opt_stylize(style = 3) |>
-	tab_header("Video Matrix Sample Configurations" 
-			  , subtitle="Settings which are differnt from Full_TW are in Yellow." ) |>
-    tab_style(  
-      style = list(  cell_fill(color = "yellow")  ),
-      locations = cells_body(columns = Centre_ATEM_AUX,
-      					     rows = Num == 2   )
-	) |>
-    tab_style(  
-      style = list(  cell_fill(color = "yellow")  ),
-      locations = cells_body(columns = Centre_ATEM_Prg,
-      					     rows = Num == 2   )
-	) |>
-    tab_style(  
-      style = list(  cell_fill(color = "yellow")  ),
-      locations = cells_body(columns = All_three_HDMI,
-      					     rows = Num %in% c(1,2,3)   )
-	)
+	sub_missing(missing_text = "-")
 ```
 
 # Topologies
 
-There are a lot of components to the system. One big diagram is daunting. It has been broken down into smaller portions to be more consumable.
+## Computers
 
-## Computer Topology
+CUMU-G002 / MacOS / ProPresenter
 
-There are three computers in the system (@fig-comp-top):
+: The Mac Studio that runs ProPresenter. Its outputs are described in @sec-propresenter. Its HDMI output is also fed to a KVM-over-IP encoder so the operator display can be seen elsewhere.
 
-CDMU-A001 MacOS / ProPresenter
+CDWU-0009 / Windows / PowerPoint
 
-: This system runs ProPresenter and has a built in operator display and a number of other outputs, see @sec-propresenter for details. It also has Powerpoint for Mac and Keynote installed.
+: A Windows system with the Windows version of PowerPoint, for guests whose presentation only runs on Windows. Its HDMI output goes into the VideoHub.
 
-CUMU-G001 MacOS / ATEM - OBS
+CUMU-G001 / MacOS / Companion
 
-: This system runs the ATEM switcher software, and OBS (for distrbution of the ATEM program output over the network) and can also run things like Skype. It has a USBC-HDMI adapter that is *not* currently connected to Input 3 of the video mixer.
+: The video computer. It runs the *Companion* software that drives all of the Stream Decks, including the projector power controls, as well as the ATEM software.
 
-CDWU-0009 Windows / PowerPoint
-
-: The windows system runs the windowns version of PowerPoint and has a dual output video card. One is used for the operator display, and the second for presentation.  This can be used if a guest has a PowerPoint that can only be run on Windows.
-
-```{dot dot_top_comp}
-//| fig-width: 4
-//| label: fig-top-comp
-//| fig-cap: "Computer Topology"
-//| file: gv/sdv-topology1-computer.gv
-```
-
-```{r gt_topComp}
-#| tbl-cap: Computer Inventory
+```{r comp-inv, results='asis'}
 #| label: tbl-comp-top
-selected.at <- c(
-                "CDWU-0009", "CDMU-A001"
-              , "CUMU-G001", "CUMU-E001"
-              , "ZVKU-A001",  "ZVKU-A003" 
-              , "ZVIU-A004", "ZVIU-E004") 
-
-assets |>
-   filter( AssetTag %in% selected.at) |> 
-    select(AssetTag, Manufacturer, Model, Desc ) |>
-    arrange( AssetTag ) |> 
-	gt() |>
-	opt_stylize(style = 3) |>
-	tab_header("Device Details" ) |>
-	tab_style(
-		style=list( cell_text(weight = "bold") ),
-		locations=cells_body(columns=AssetTag)
-	) 
+#| tbl-cap: Computer Inventory
+print_inv(c("CUMU-G002", "ZVIU-E004", "ZVIU-E005", "CDWU-0009", "CUMU-G001"), db.inventory) |>
+	print_gt_table() |>
+	cat()
 ```
 
+## Projectors
 
-## Projection Topology
+There are three front-of-house laser projectors on the bulkhead and a rear (confidence) projector in the balcony. All four have HDBaseT inputs; the front three also take HDMI from the VideoHub converters.
 
-Long distance signal transmission is achieved using Cat5e or Cat6 cabling. An industry standard solution called HDBaseT is used.  All of our projectors have HDBaseT connections built in.  
-
-```{dot top_proj}
-//| fig-width: 4
-//| label: fig-top-proj
-//| fig-cap: "Projector Topology"
-//| file: gv/sdv-topology2-projection.gv
+```{r projtopo, results="asis"}
+targets <- c("ZVKU-A001")
+ps <- c("2507-0700"
+		, "ZVVU-0001"
+		, "2604-2401", "2604-2402", "2604-2403"
+		, "2601-1304", "2601-1305", "2601-1306")
+a <- get_connectivity_diagram(targets, "both", db.inventory, db.cables
+							  , types = NULL, label = '"Projection Topology"'
+							  , rankdir = "LR", partners = ps)
+cat(get_diagram_aux(a))
 ```
 
-```{r}
-#| tbl-cap: Projection Topology Inventory
+```{r proj-inv, results='asis'}
 #| label: tbl-proj-det
-selected.at <- c(
-              "ZVKU-A001", 
-              "ZVVU-0001",
-              "ZVVU-A001", "ZVVU-A002", "ZVVU-A003" 
-              )
+#| tbl-cap: Projection Inventory
+print_inv(c("2604-2401", "2604-2402", "2604-2403", "2601-1304", "2601-1305", "2601-1306"
+			, "ZVVU-0001", "ZVKU-A001", "2507-0700"), db.inventory) |>
+	print_gt_table() |>
+	cat()
+```
 
-assets |>
-   filter( AssetTag %in% selected.at) |> 
-    select(AssetTag, Manufacturer, Model, Desc ) |>
-    arrange( AssetTag ) |> 
-	gt() |>
-	opt_stylize(style = 3) |>
-	tab_header("Device Details" ) |>
-	tab_style(
-		style=list( cell_text(weight = "bold") ),
-		locations=cells_body(columns=AssetTag)
-	) 
+Each front projector is also on the network so that the Stream Deck can turn it on and off and freeze or thaw its image.
 
+## Stage Display
+
+The stage display (confidence display) is shown on two devices: the rear projector (ZVVU-0001) fed by HDBaseT from VS-88DT output 4, and the 85in TV in the balcony (2605-0500) fed from VideoHub output 6 through an SDI-to-HDMI converter.
+
+```{r stgdsp-inv, results='asis'}
+#| label: tbl-stgdsp-det
+#| tbl-cap: Stage Display Inventory
+print_inv(c("ZVVU-0001", "2605-0500", "ZVIU-A005"), db.inventory) |>
+	print_gt_table() |>
+	cat()
 ```
 
 ## Lobby Topology
 
-The TV in the lobby gets its content from the video matrix. For the main service it should get its feed from the video mixer program output. HDBaseT is used for this and also requires a converter at the TV to provide the HDMI format.
+The TV in the lobby gets the ATEM program: VideoHub output 33 feeds an SDI-to-HDMI converter into VS-88DT input 1, which is routed to HDBaseT output 7. The Stream Deck power button for the lobby TV also forces its input to HDMI 1. HDBaseT is used for this and also requires a converter at the TV to provide the HDMI format.
 
 ```{dot top_lobby}
 //| fig-width: 4
@@ -377,31 +264,17 @@ The TV in the lobby gets its content from the video matrix. For the main service
 //| file: gv/sdv-topology3-lobby.gv
 ```
 
-```{r gt-topLobby}
+```{r gt-topLobby, results='asis'}
 #| tbl-cap: Lobby Inventory
 #| label: tbl-lob-top
-
-selected.at <- c(
-              "ZVKU-A001" , "ZVIU-A002"
-              , "2310-1700"
-              ) 
-
-assets  |>
-   filter( AssetTag %in% selected.at) |> 
-    select(AssetTag, Manufacturer, Model, Desc ) |>
-    arrange( AssetTag ) |> 
-	gt() |>
-	opt_stylize(style = 3) |>
-	tab_header("Device Details" ) |>
-	tab_style(
-		style=list( cell_text(weight = "bold") ),
-		locations=cells_body(columns=AssetTag)
-	) 
+print_inv(c("ZVKU-A001", "ZVIU-A001", "2310-1700"), db.inventory) |>
+	print_gt_table() |>
+	cat()
 ```
 
 ## Nursery/Toddler Topology
 
-The TV in the nursery gets its content from the video matrix. For the main service it should get its feed from the video mixer program output. HDBaseT is used for this and also requires a converter at the TV to provide the HDMI format.
+The TV in the nursery gets the same feed as the lobby, from VS-88DT HDBaseT output 8. HDBaseT is used for this and also requires a converter at the TV to provide the HDMI format.
 
 There is an HDMI splitter at the Nursery TV which provides an HDMI feed to the TV in the Toddler room.
 
@@ -414,152 +287,24 @@ Each TV has a remote control.
 //| file: gv/sdv-topology4-nursery.gv
 ```
 
-```{r top3}
+```{r top3, results='asis'}
 #| tbl-cap: Nursery Topology Inventory
 #| label: tbl-nursery-det
-
-selected.at <- c(
-              "ZVKU-A001",  
-              "ZVVU-0002", "2308-2900",
-              "ZVIU-A002", "ZVVU-0003"
-              )  
-
-assets |>
-   filter( AssetTag %in% selected.at) |> 
-    select(AssetTag, Manufacturer, Model, Desc ) |>
-    arrange( AssetTag ) |> 
-	gt() |>
-	opt_stylize(style = 3) |>
-	tab_header("Device Details" ) |>
-	tab_style(
-		style=list( cell_text(weight = "bold") ),
-		locations=cells_body(columns=AssetTag)
-	) 
+print_inv(c("ZVKU-A001", "ZVIU-A002", "2308-2900", "ZVVU-0002", "ZVVU-0003"), db.inventory) |>
+	print_gt_table() |>
+	cat()
 ```
 
-## Recording Topology
+## Library
 
-The recording topology is quite complex and so it is broken up into pieces.
+The TV in the library is fed directly from the VideoHub (output 38) through a BiDirectional SDI/HDMI converter. The default route is the ATEM program.
 
-### Inputs
-
-See @fig-rec-inputs
-
-```{dot top_rec-inputs}
-//| fig-width: 4
-//| label: fig-rec-inputs
-//| fig-cap: "Recording Inputs Topology"
-//| file: gv/sdv-topology5-rec-inputs.gv
-```
-
-### Outputs
-
-See @fig-rec-outputs
-
-```{dot top_rec-outputs}
-//| fig-width: 4
-//| label: fig-rec-outputs
-//| fig-cap: "Recording Outputs Topology"
-//| file: gv/sdv-topology5-rec-outputs.gv
-```
-
-### Web Presenter
-
-See @fig-rec-wp and @fig-wp-det
-
-```{dot top_rec-wp}
-//| fig-width: 4
-//| label: fig-rec-wp
-//| fig-cap: "WebPresenter Topology"
-//| file: gv/sdv-topology6-rec-wp.gv
-```
-
-```{r}
-#| tbl-cap: WebPresenter Details
-#| tbl-cap-location: bottom
-#| label: tbl-wp-det
-selected.at <- c(
-              "ZVKU-A003", 
-              "ZVRU-A001", "ZVRU-A002",
-              "ZVIU-A004",
-              "CUMU-G001"
-              , "ZVIU-D001"
-              ) 
-
-assets|>
-   filter( AssetTag %in% selected.at) |> 
-    select(AssetTag, Manufacturer, Model, Desc ) |>
-    arrange( AssetTag ) |> 
-	gt() |>
-	opt_stylize(style = 3) |>
-	tab_header("Device Details" ) |>
-	tab_style(
-		style=list( cell_text(weight = "bold") ),
-		locations=cells_body(columns=AssetTag)
-	) 
-```
-
-The details of the network configuration are not shown. See the Network design document for technically accurate descriptions.
-
-
-# Network Details
-
-See @fig-net-det
-
-```{r gt-net-details, results="asis", fig.id=TRUE }
-#| tbl-cap: Network Details
-#| tbl-cap-location: bottom
-#| label: tbl-net-det
-NetworkInventory |> 
- left_join(assets) |>
- filter(Category=="Video") |> 
- filter(Building == "B1") |>
- select(AssetTag, Location, Usage, MAC, IP, URL, Notes) |>
- arrange(AssetTag) |>
-	gt() |>
-	opt_stylize(style = 3) |>
-	tab_header("Network Device Details" ) |>
-	tab_style(
-		style=list( cell_text(weight = "bold") ),
-		locations=cells_body(columns=AssetTag)
-	)  |>
- print_gt_table() |> cat()	
-```
-
-# Video Equipment Inventory
-
-```{r inventory }
-#| tbl-cap: Asset Details
-#| tbl-cap-location: bottom
-#| label: tbl-asset-det
- 
-cs = c("AssetTag", "Qty"  ,
-  "Manufacturer" ,
-  "Model"  , 
-  "Qty",
-  "Location"  ,
-  "Type" ,
-  "Desc"     )
-
-Video_Inventory <- assets |>  
-          filter( Category=="Video" 
-          		, InService== "Y"
-          		, Building == "Main"
-          		, Floor != "Basement"
-          		, Type != "Hardware") 
-nr <- nrow(Video_Inventory)
-
-Video_Inventory |>
-   #filter( AssetTag %in% selected.at) |> 
-    select(AssetTag, Location, Manufacturer, Model, Desc ) |>
-    arrange( AssetTag ) |> 
-	gt() |>
-	opt_stylize(style = 3) |>
-	tab_header(glue("Video Device Details n={nr} ") ) |>
-	tab_style(
-		style=list( cell_text(weight = "bold") ),
-		locations=cells_body(columns=AssetTag)
-	) 
+```{r lib-inv, results='asis'}
+#| label: tbl-lib-det
+#| tbl-cap: Library Inventory
+print_inv(c("2507-0700", "2512-1001", "2601-0600"), db.inventory) |>
+	print_gt_table() |>
+	cat()
 ```
 
 # Terminology
