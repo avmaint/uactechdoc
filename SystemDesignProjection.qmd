@@ -190,6 +190,17 @@ db.cables |>
 	sub_missing(missing_text = "-")
 ```
 
+# Audio
+
+Within MacOS the "Audio MIDI Setup" application is used to create an aggregate device called "Propresenter Audio" which combines multiple outputs into one combined device. 
+
+![Propresenter Audio](./images/cumu-g002-audio-setup.png)
+
+Since audio and video are routed separately, the audio from ProPresenter needs to be delayed to match the video. The delay is a setting in ProPresenter. A calibration video was used to determine that a delay of 280ms is needed (with current hardware and configuration).  
+
+![Audio Delay](./images/cumu-g002_audio_delay.png)
+The videos used for calibration were downloaded from [PhotoJoseph](https://photojoseph.com/tips/2021/3/30/downloadable-audiovideo-sync-tests-2398-24-25-2997-50-5994) and video from Ballast Media which is no longer avaiable, but they are both available on the ProPresenter computer.  
+
 # Topologies
 
 ## Computers
@@ -276,7 +287,7 @@ print_inv(c("ZVKU-A001", "ZVIU-A001", "2310-1700"), db.inventory) |>
 
 The TV in the nursery gets the same feed as the lobby, from VS-88DT HDBaseT output 8. HDBaseT is used for this and also requires a converter at the TV to provide the HDMI format.
 
-There is an HDMI splitter at the Nursery TV which provides an HDMI feed to the TV in the Toddler room.
+There is an HDMI spliter at the Nursery TV which provides an HDMI feed to the TV in the Toddler room.
 
 Each TV has a remote control.
 
